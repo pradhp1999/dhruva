@@ -23,7 +23,6 @@
         <dependency>
             <groupId>com.cisco.wx2</groupId>
             <artifactId>cloud-apps-server-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.cisco.wx2</groupId>
