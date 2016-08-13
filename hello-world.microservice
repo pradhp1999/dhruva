@@ -1,0 +1,10 @@
+id: hello-world
+appname: hello-world
+name: "Hello World Service"
+version: ${project.version}
+deploy-file: server/target/hello-world-server-${project.version}.war
+ping-path: hello-world/api/v1/ping
+
+owner:
+  email: prentice
+
