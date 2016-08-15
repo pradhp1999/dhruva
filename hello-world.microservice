@@ -2,7 +2,7 @@ id: hello-world
 appname: hello-world
 name: "Hello World Service"
 version: 1.0
-deploy-file: hello-world-server.war
+deploy-file: server/target/hello-world-server.war
 ping-path: hello-world/api/v1/ping
 
 owner:
