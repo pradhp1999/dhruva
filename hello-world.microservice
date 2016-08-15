@@ -1,8 +1,8 @@
 id: hello-world
 appname: hello-world
 name: "Hello World Service"
-version: ${project.version}
-deploy-file: hello-world-server-${project.version}.war
+version: 1.0
+deploy-file: hello-world-server.war
 ping-path: hello-world/api/v1/ping
 
 owner:
