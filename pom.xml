@@ -20,7 +20,7 @@
     <parent>
         <groupId>com.ciscospark</groupId>
         <artifactId>cisco-spark-parent</artifactId>
-        <version>0.0.19</version>
+        <version>0.0.21</version>
     </parent>
 
     <modules>
@@ -29,4 +29,34 @@
         <module>common</module>
         <module>client</module>
     </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <executions>
+                    <execution>
+                        <id>copy-microservice-file</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}</directory>
+                                    <includes>
+                                        <include>hello-world.microservice</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
