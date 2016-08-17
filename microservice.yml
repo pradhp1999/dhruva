@@ -8,3 +8,12 @@ ping-path: hello-world/api/v1/ping
 owner:
   email: prentice
 
+publish:
+  git:
+    url: git@sqbu-github.cisco.com:WebExSquared/hello-world.git
+    branch: master
+    commit: ${env.GIT_COMMIT}
+  maven:
+    command-line: "mvn deploy -DskipTests"
+    modules:
+    - client
