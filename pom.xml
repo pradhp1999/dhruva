@@ -12,8 +12,8 @@
 
     <repositories>
         <repository>
-            <id>webex-cca-group</id>
-            <url>http://engci-maven.cisco.com/artifactory/webex-cca-group</url>
+            <id>webex-cca-release</id>
+            <url>http://engci-maven.cisco.com/artifactory/webex-cca-release</url>
         </repository>
     </repositories>
 
