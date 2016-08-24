@@ -10,8 +10,8 @@ owner:
 
 publish:
   git:
-    url: git@sqbu-github.cisco.com:WebExSquared/hello-world.git
-    branch: master
+    url: ${env.GIT_URL}
+    branch: ${env.GIT_BRANCH}
     commit: ${env.GIT_COMMIT}
   maven:
     command-line: "mvn deploy -DskipTests"
