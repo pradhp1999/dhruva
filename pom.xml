@@ -13,14 +13,14 @@
     <repositories>
         <repository>
             <id>webex-cca-release</id>
-            <url>http://engci-maven.cisco.com/artifactory/webex-cca-release</url>
+            <url>http://engci-maven.cisco.com/artifactory/webex-cca-group</url>
         </repository>
     </repositories>
 
     <parent>
         <groupId>com.ciscospark</groupId>
         <artifactId>cisco-spark-parent</artifactId>
-        <version>0.0.23</version>
+        <version>0.0.24</version>
     </parent>
 
     <modules>
