@@ -1,4 +1,4 @@
-package com.cisco.wx2.helloworld.client;
+package com.ciscospark.helloworld.client;
 
 import com.cisco.wx2.client.ClientFactory;
 import java.net.URI;
@@ -17,12 +17,6 @@ public class HelloWorldClientFactory extends ClientFactory {
     public HelloWorldClient newHelloWorldClient() {
         return new HelloWorldClient(this, apiServiceUrl);
     }
-
-   /* public HelloWorldClient newHelloWorldClient(String authorization) {
-        HelloWorldClient client = newHelloWorldClient();
-        client.setAuthorization(authorization);
-        return client;
-    }*/
 
     public static Builder builder() {
         return new Builder();
