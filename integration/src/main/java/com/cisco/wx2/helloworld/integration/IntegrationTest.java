@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.cisco.wx2.helloworld.client.HelloWorldClient;
-import com.cisco.wx2.helloworld.client.HelloWorldClientFactory;
+import com.ciscospark.helloworld.client.HelloWorldClient;
+import com.ciscospark.helloworld.client.HelloWorldClientFactory;
 import com.cisco.wx2.test.TestUser;
 import com.cisco.wx2.test.TestUserManager;
 

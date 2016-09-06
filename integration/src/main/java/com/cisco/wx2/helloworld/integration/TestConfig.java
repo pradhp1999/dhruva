@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import com.cisco.wx2.helloworld.client.HelloWorldClientFactory;
+import com.ciscospark.helloworld.client.HelloWorldClientFactory;
 import com.cisco.wx2.test.BaseTestConfig;
 import com.cisco.wx2.test.TestUser;
 

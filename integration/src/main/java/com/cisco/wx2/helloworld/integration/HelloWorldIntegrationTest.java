@@ -4,7 +4,7 @@ import static org.testng.Assert.assertNotNull;
 
 import org.testng.annotations.Test;
 
-import com.cisco.wx2.helloworld.common.HelloResponse;
+import api.HelloResponse;
 import com.cisco.wx2.util.EmailAddress;
 import com.cisco.wx2.dto.BuildInfo;
 import com.cisco.wx2.dto.health.ServiceHealth;

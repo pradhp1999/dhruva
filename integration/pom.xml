@@ -4,15 +4,13 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>hello-world-integration</artifactId>
-    <name>Hello World Integration Tests</name>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>com.cisco.wx2</groupId>
-        <artifactId>hello-world-service</artifactId>
+        <groupId>com.ciscospark</groupId>
+        <artifactId>hello-world</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <dependencies>

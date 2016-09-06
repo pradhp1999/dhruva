@@ -1,4 +1,4 @@
-package com.cisco.wx2.server.helloworld;
+package com.ciscospark.helloworld;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,13 +6,13 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 
 @SpringBootApplication
-public class HelloWorldApp extends SpringBootServletInitializer {
+public class HelloWorldApplication extends SpringBootServletInitializer {
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(HelloWorldApp.class);
+        return application.sources(HelloWorldApplication.class);
     }
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(HelloWorldApp.class, args);
+        SpringApplication.run(HelloWorldApplication.class, args);
     }
 }
