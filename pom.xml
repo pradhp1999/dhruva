@@ -10,10 +10,6 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <properties>
-        <cisco-spark-parent.version>0.0.24</cisco-spark-parent.version>
-    </properties>
-
     <repositories>
         <repository>
             <id>webex-cca-release</id>
@@ -24,7 +20,7 @@
     <parent>
         <groupId>com.ciscospark</groupId>
         <artifactId>cisco-spark-parent</artifactId>
-        <version>${cisco-spark-parent.version}</version>
+        <version>0.0.24</version>
     </parent>
 
     <modules>
