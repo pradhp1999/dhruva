@@ -2,6 +2,8 @@
 
 // Timestamp the whole thing, so on any given line, we know how long it takes
 timestamps {
+    sh 'env'
+
     // Set some common values.
     env.PIPELINE = 'hello-world'
 
@@ -69,11 +71,14 @@ timestamps {
         }
     }
 
-    // The following will perform a default go-to-integration action. This will trigger an action that must be manually accepted
-    // before the pipeline will continue to run.
-    common_pipeline.go_to_integration()
+    // TEMPORARY: Disable this for now until certain how to distinguish between a PR build and a branch build.
+    if (false) {
+        // The following will perform a default go-to-integration action. This will trigger an action that must be manually accepted
+        // before the pipeline will continue to run.
+        common_pipeline.go_to_integration()
 
-    // The following will perform a default go-to-production action. This will trigger an action that must be manually accepted
-    // before the pipeline will continue to run.
-    common_pipeline.go_to_production()
+        // The following will perform a default go-to-production action. This will trigger an action that must be manually accepted
+        // before the pipeline will continue to run.
+        common_pipeline.go_to_production()
+    }
 }
