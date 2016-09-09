@@ -32,9 +32,15 @@ timestamps {
         try {
             // Obtain the current code base, then extract commit information.
             stage 'Get Code'
+
+            env.TARGET_BRANCH = 'refs/heads/master'
+            if (env.BUILD_BRANCH != null) {
+                target_branch = 'refs/heads/' + env.BUILD_BRANCH
+            }
+
             GIT_URL = 'git@sqbu-github.cisco.com:WebExSquared/hello-world.git'
             checkout poll: false,
-                    scm: [$class                           : 'GitSCM', branches: [[name: '*/master']],
+                    scm: [$class                           : 'GitSCM', branches: [[name: env.TARGET_BRANCH]],
                           doGenerateSubmoduleConfigurations: false,
                           extensions                       : [[$class: 'CleanCheckout']],
                           submoduleCfg                     : [],
