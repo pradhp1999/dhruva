@@ -5,6 +5,10 @@ timestamps {
     // Set some common values.
     env.PIPELINE = 'hello-world'
 
+    // If this is a gated build - from Gauntlet or other mechanism, then set
+    // gated_build = true
+    gated_build = false
+
     // Set the target version information. This approach means that every build
     // will roll the version number - even if the build is bad. This way,
     // every unique build is uniquely identified.
@@ -76,6 +80,13 @@ timestamps {
         } finally {
             deleteDir()
         }
+    }
+
+    // If this is a gated build, and not running on a Branch or PR, then this might be a good place to merge
+    // the code changes to master. Or you can move the code later and merge it after it has passed a deploy-and-test
+    // in Integration
+    if (gated_build) {
+        echo "TODO: Need to merge changes"
     }
 
     // TEMPORARY: Disable this for now until certain how to distinguish between a PR build and a branch build.
