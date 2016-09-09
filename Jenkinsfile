@@ -2,8 +2,6 @@
 
 // Timestamp the whole thing, so on any given line, we know how long it takes
 timestamps {
-    sh 'env'
-
     // Set some common values.
     env.PIPELINE = 'hello-world'
 
@@ -30,6 +28,7 @@ timestamps {
     // as necessary; for the build an local tests.
     // If your team needs a different build machine, or already has one, specify it here.
     node('SPARK_BUILDER') {
+        sh 'env'
         try {
             // Obtain the current code base, then extract commit information.
             stage 'Get Code'
