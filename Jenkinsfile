@@ -9,7 +9,7 @@ env.TARGET_VERSION = TARGET_VERSION
 
 // Download the common pipeline libraries. They'll be used later in this pipeline.
 // NOTE: This allocates a separate slave to obtain the file.
-fileLoader.fromGit('sparks.groovy', 'git@sqbu-github.cisco.com:WebExSquared/pipeline.git',
+def common_pipeline = fileLoader.fromGit('sparks.groovy', 'git@sqbu-github.cisco.com:WebExSquared/pipeline.git',
         'master', env.PIPELINE_CREDENTIALS, 'BASIC_SLAVE')
 
 // Set the title (beyond the build number) that will be used.
@@ -37,7 +37,7 @@ node('SPARK_BUILDER') {
 
         // This will determine any GIT values that might not yet be known. Also, populates the
         // environment with the GIT values used by the maven build process.
-        load_git_info(GIT_URL)
+        common_pipeline.load_git_info(GIT_URL)
 
         // Perform the build and test part.
         // NOTE - UNDER CONSTRUCTION: SPARK_BUILDER nodes are rigged with docker host and several supporting
@@ -67,9 +67,9 @@ node('SPARK_BUILDER') {
 
 // The following will perform a default go-to-integration action. This will trigger an action that must be manually accepted
 // before the pipeline will continue to run.
-go_to_integration()
+common_pipeline.go_to_integration()
 
 
 // The following will perform a default go-to-production action. This will trigger an action that must be manually accepted
 // before the pipeline will continue to run.
-go_to_production()
+common_pipeline.go_to_production()
