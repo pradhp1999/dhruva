@@ -20,7 +20,7 @@
     <parent>
         <groupId>com.ciscospark</groupId>
         <artifactId>cisco-spark-parent</artifactId>
-        <version>0.0.38</version>
+        <version>0.0.39</version>
     </parent>
 
     <modules>
