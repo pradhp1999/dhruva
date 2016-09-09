@@ -34,8 +34,8 @@ timestamps {
             stage 'Get Code'
 
             env.TARGET_BRANCH = 'refs/heads/master'
-            if (env.BUILD_BRANCH != null) {
-                target_branch = 'refs/heads/' + env.BUILD_BRANCH
+            if (env.BRANCH_NAME != null) {
+                env.TARGET_BRANCH = 'refs/heads/' + env.BRANCH_NAME
             }
 
             GIT_URL = 'git@sqbu-github.cisco.com:WebExSquared/hello-world.git'
