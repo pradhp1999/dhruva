@@ -41,7 +41,7 @@ timestamps {
             if (env.BRANCH_NAME != null) {
                 if (env.BRANCH_NAME.startsWith('PR-')) {
                     // PR Build
-                    env.TARGET_PR_NUMBER = env.BRANCH_NAME - 'PR-'
+                    env.TARGET_PR_NUMBER = env.BRANCH_NAME.substring(3)
                     env.TARGET_BRANCH = 'refs/pull/' + env.TARGET_PR_NUMBER
                 } else {
                     // Branch build
