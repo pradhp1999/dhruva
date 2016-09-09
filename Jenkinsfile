@@ -40,6 +40,8 @@ timestamps {
                           submoduleCfg                     : [],
                           userRemoteConfigs                : [[credentialsId: env.GIT_MAIN_CREDENTIALS, url: GIT_URL]]]
 
+            sh 'env'
+
             // This will determine any GIT values that might not yet be known. Also, populates the
             // environment with the GIT values used by the maven build process.
             common_pipeline.load_git_info(GIT_URL)
