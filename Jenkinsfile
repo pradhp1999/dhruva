@@ -39,7 +39,14 @@ timestamps {
 
             env.TARGET_BRANCH = 'refs/heads/master'
             if (env.BRANCH_NAME != null) {
-                env.TARGET_BRANCH = 'refs/heads/' + env.BRANCH_NAME
+                if (env.BRANCH_NAME.startsWith('PR-')) {
+                    // PR Build
+                    env.TARGET_PR_NUMBER = env.BRANCH_NAME - 'PR-'
+                    env.TARGET_BRANCH = 'refs/pull/' + env.TARGET_PR_NUMBER
+                } else {
+                    // Branch build
+                    env.TARGET_BRANCH = 'refs/heads/' + env.BRANCH_NAME
+                }
             }
 
             GIT_URL = 'git@sqbu-github.cisco.com:WebExSquared/hello-world.git'
