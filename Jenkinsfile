@@ -9,6 +9,12 @@ timestamps {
     // gated_build = true
     gated_build = false
 
+    // Flag indicating if this is pull request build.
+    is_pr_build = (env.CHANGE_ID != null)
+
+    // Flag indicating if this is a branch build. NOTE: PR builds are a form of branch build.
+    is_branch_build = (env.BRANCH_NAME != null) && (env.BRANCH_NAME != 'master')
+
     // Set the target version information. This approach means that every build
     // will roll the version number - even if the build is bad. This way,
     // every unique build is uniquely identified.
@@ -32,36 +38,14 @@ timestamps {
     // as necessary; for the build an local tests.
     // If your team needs a different build machine, or already has one, specify it here.
     node('SPARK_BUILDER') {
-        sh 'env'
         try {
             // Obtain the current code base, then extract commit information.
             stage 'Get Code'
-
-            env.TARGET_BRANCH = 'refs/heads/master'
-            if (env.BRANCH_NAME != null) {
-                if (env.BRANCH_NAME.startsWith('PR-')) {
-                    // PR Build
-                    env.TARGET_PR_NUMBER = env.BRANCH_NAME.substring(3)
-                    env.TARGET_BRANCH = 'refs/pull/' + env.TARGET_PR_NUMBER
-                } else {
-                    // Branch build
-                    env.TARGET_BRANCH = 'refs/heads/' + env.BRANCH_NAME
-                }
-            }
-
-            GIT_URL = 'git@sqbu-github.cisco.com:WebExSquared/hello-world.git'
-            checkout poll: false,
-                    scm: [$class                           : 'GitSCM', branches: [[name: env.TARGET_BRANCH]],
-                          doGenerateSubmoduleConfigurations: false,
-                          extensions                       : [[$class: 'CleanCheckout']],
-                          submoduleCfg                     : [],
-                          userRemoteConfigs                : [[credentialsId: env.GIT_MAIN_CREDENTIALS, url: GIT_URL]]]
-
-            sh 'env'
+            checkout scm
 
             // This will determine any GIT values that might not yet be known. Also, populates the
             // environment with the GIT values used by the maven build process.
-            common_pipeline.load_git_info(GIT_URL)
+            common_pipeline.load_git_info('git@sqbu-github.cisco.com:WebExSquared/hello-world.git')
 
             // Perform the build and test part.
             // NOTE - UNDER CONSTRUCTION: SPARK_BUILDER nodes are rigged with docker host and several supporting
@@ -96,8 +80,8 @@ timestamps {
         echo "TODO: Need to merge changes"
     }
 
-    // TEMPORARY: Disable this for now until certain how to distinguish between a PR build and a branch build.
-    if (false) {
+    // Only run master builds through the deploys
+    if (!is_branch_build) {
         // The following will perform a default go-to-integration action. This will trigger an action that must be manually accepted
         // before the pipeline will continue to run.
         common_pipeline.go_to_integration()
