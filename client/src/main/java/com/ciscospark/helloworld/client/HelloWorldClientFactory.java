@@ -8,7 +8,6 @@ import static com.google.common.base.Preconditions.*;
 public class HelloWorldClientFactory extends ClientFactory {
     private final URI apiServiceUrl;
 
-
     private HelloWorldClientFactory(Builder builder) {
         super(builder);
         this.apiServiceUrl = builder.apiServiceUrl;
@@ -36,5 +35,4 @@ public class HelloWorldClientFactory extends ClientFactory {
             return this;
         }
     }
-
 }

@@ -25,19 +25,15 @@ public class GreetingStore {
     public Greeting getGreeting(String name) {
         String greeting = store.get(name);
         if (greeting == null) {
-            greeting = defaultGreetingPrefix;
+            greeting = defaultGreetingPrefix + " " + name;
         }
 
-        return Greeting.builder()
-                .greeting(greeting + " " + name)
-                .message(message).build();
+        return Greeting.builder().greeting(greeting).message(message).build();
     }
 
     public Greeting setGreeting(String name, String greeting) {
         store.put(name, greeting);
 
-        return Greeting.builder()
-                .greeting(greeting)
-                .message(message).build();
+        return Greeting.builder().greeting(greeting).message(message).build();
     }
 }

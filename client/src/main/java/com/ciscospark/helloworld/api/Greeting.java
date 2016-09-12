@@ -12,7 +12,7 @@ public class Greeting {
     private final String greeting;
     private final String message;
 
-    @JsonPOJOBuilder
+    @JsonPOJOBuilder(withPrefix = "")
     public static final class GreetingBuilder {
     }
 }

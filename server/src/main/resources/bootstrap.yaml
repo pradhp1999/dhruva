@@ -1,1 +1,7 @@
-spring.cloud.consul.config.enabled: false
+
+# Export SPRING_CLOUD_CONSUL_CONFIG_ENABLED=true to enable consul based configuration.
+spring:
+  cloud:
+    consul:
+      config:
+        enabled: false
