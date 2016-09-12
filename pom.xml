@@ -4,9 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.cisco.wx2</groupId>
-    <artifactId>hello-world-service</artifactId>
-    <name>Hello World Service</name>
+    <artifactId>hello-world</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -20,13 +18,13 @@
     <parent>
         <groupId>com.ciscospark</groupId>
         <artifactId>cisco-spark-parent</artifactId>
-        <version>0.0.40</version>
+        <version>0.0.43</version>
+        <!--<version>1.0-SNAPSHOT</version>-->
+        <!--<relativePath>../cisco-spark-base/cisco-spark-parent</relativePath>-->
     </parent>
 
     <modules>
-        <module>integration</module>
         <module>server</module>
-        <module>common</module>
         <module>client</module>
     </modules>
 
