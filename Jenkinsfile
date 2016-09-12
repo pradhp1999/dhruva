@@ -59,7 +59,7 @@ timestamps {
             #export _JAVA_OPTIONS="${_JAVA_OPTIONS} -DcassandraHostAddress=${cassandraHostAddress}"
 
             mvn versions:set -DnewVersion=${TARGET_VERSION}
-            mvn clean package -U
+            mvn verify
             '''
 
             // From the build - if it works - archive up the files that are needed for downstream
