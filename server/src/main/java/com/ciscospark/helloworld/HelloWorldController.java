@@ -24,13 +24,13 @@ public class HelloWorldController {
         this.greetingStore = greetingStore;
     }
 
-    @AuthorizationScope("webex-squared")
+    @AuthorizationScope("*any*")
     @RequestMapping(value = "/greeting/{name}", method = GET)
     public Greeting getGreeting(@PathVariable("name") String name) {
         return greetingStore.getGreeting(name);
     }
 
-    @AuthorizationScope("webex-squared")
+    @AuthorizationScope("*any*")
     @RequestMapping(value = "/greeting/{name}", method = POST)
     public Greeting postGreeting(@PathVariable("name") String name, @RequestBody Greeting greeting) {
         return greetingStore.setGreeting(name, greeting.getGreeting());
