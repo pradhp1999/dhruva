@@ -5,7 +5,7 @@
 // Browse https://sqbu-github.cisco.com/WebExSquared/pipeline/blob/master/samples for more.
 
 stage 'Build'
-nodeWith(services = ['cassandra', 'redis']) {
+nodeWith(['cassandra:2.2', 'redis:3']) {
     checkout scm
 
     sh 'mvn versions:set -DnewVersion=1.0.${TARGET_VERSION}'
