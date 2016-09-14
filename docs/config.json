@@ -1,0 +1,23 @@
+{
+  "items": [
+    {
+      "title": "Overview",
+      "items": [
+        {
+          "title": "Introduction",
+          "content": "intro.md"
+        }
+      ]
+    },
+    {
+      "title": "API Reference - ",
+      "items": [
+        {
+          "title": "Hello World API v1",
+          "type": "swagger",
+          "content": "swagger.yaml"
+        }
+      ]
+    }
+  ]
+}

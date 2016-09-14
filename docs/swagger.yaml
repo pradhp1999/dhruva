@@ -1,0 +1,93 @@
+swagger: '2.0'
+info:
+  title: Hello World API
+  description: Have you greeted someone today?
+  version: v1
+host: hello-world-a.wbx2.com
+schemes:
+  - https
+securityDefinitions:
+  SparkAuth:
+    type: oauth2
+    authorizationUrl: https://api.ciscospark.com/v1/authorize
+    tokenUrl: https://api.ciscospark.com/v1/access_token
+    flow: accessCode
+    scopes:
+      '*any*': Any valid scope
+basePath: /hello-world/api/v1
+produces:
+  - application/json
+paths:
+  /greetings/{name}:
+    get:
+      summary: Get Greeting
+      description: |
+        The Greetings endpoint returns the greeting for the specified name.
+        The response includes a greeting and a special message that has been
+        set previously or a default message.
+      parameters:
+        - name: name
+          in: path
+          description: Who are we greeting?
+          required: true
+          type: string
+      tags:
+        - Greetings
+      responses:
+        200:
+          description: A greeting for {name}
+          schema:
+            $ref: '#/definitions/Greeting'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Update Greeting
+      description: |
+        Update the greeting for the specified name.
+      security:
+        - SparkAuth: [ '*any*' ]
+      parameters:
+        - name: name
+          in: path
+          description: Who are we greeting?
+          required: true
+          type: string
+        - name: greeting
+          in: body
+          description: An updated greeting.
+          required: true
+          schema:
+            $ref: '#/definitions/Greeting'
+      tags:
+        - Greetings
+      responses:
+        200:
+          description: The updated greeting for {name}
+          schema:
+            $ref: '#/definitions/Greeting'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  Greeting:
+    type: object
+    properties:
+      greeting:
+        type: string
+        description: A greeting
+      message:
+        type: string
+        description: A message
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string
