@@ -1,5 +1,6 @@
 package com.ciscospark.helloworld;
 
+import com.cisco.wx2.server.auth.AuthorizationNone;
 import com.ciscospark.helloworld.api.Greeting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +25,7 @@ public class HelloWorldController {
         this.greetingStore = greetingStore;
     }
 
-    @AuthorizationScope("*any*")
+    @AuthorizationNone
     @RequestMapping(value = "/greetings/{name}", method = GET)
     public Greeting getGreeting(@PathVariable("name") String name) {
         return greetingStore.getGreeting(name);

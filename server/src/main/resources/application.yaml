@@ -1,6 +1,0 @@
-spring:
-  application:
-    name: hello-world
-cisco-spark:
-  server:
-    importLegacyServerConfig: true
