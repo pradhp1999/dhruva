@@ -18,9 +18,11 @@ nodeWith(['cassandra:2.2', 'redis:3']) {
 }
 
 if (isMasterBranch()) {
-    approveStage 'deploy to integration', submitter: 'squared'
-    deploy 'integration'
+    approveStage 'deploy to integration', submitter: 'squared' {
+        deploy 'integration'
+    }
 
-    approveStage 'deploy to production', submitter: 'squared'
-    deploy 'production'
+    approveStage 'deploy to production', submitter: 'squared' {
+        deploy 'production'
+    }
 }
