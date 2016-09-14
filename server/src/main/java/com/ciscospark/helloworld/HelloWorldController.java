@@ -25,13 +25,13 @@ public class HelloWorldController {
     }
 
     @AuthorizationScope("*any*")
-    @RequestMapping(value = "/greeting/{name}", method = GET)
+    @RequestMapping(value = "/greetings/{name}", method = GET)
     public Greeting getGreeting(@PathVariable("name") String name) {
         return greetingStore.getGreeting(name);
     }
 
     @AuthorizationScope("*any*")
-    @RequestMapping(value = "/greeting/{name}", method = POST)
+    @RequestMapping(value = "/greetings/{name}", method = POST)
     public Greeting postGreeting(@PathVariable("name") String name, @RequestBody Greeting greeting) {
         return greetingStore.setGreeting(name, greeting.getGreeting());
     }
