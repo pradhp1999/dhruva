@@ -15,7 +15,8 @@
  * the deploy to the environment is triggered.
  *
  * For more information about how to construct a Jenkinsfile, please consult these resources:
- *   - Steps reference documentation: https://jenkins.io/doc/pipeline/steps/
+ *   - Pipeline Reference:
+ *       https://sqbu-jenkins.cisco.com:8443/job/team/job/hello-world/job/pipeline-hello-world/pipeline-syntax/
  *   - Getting started with Pipeline: https://jenkins.io/doc/
  *   - Examples: https://jenkins.io/doc/pipeline/examples/
  *   - Steps reference for sparkPipeline library: https://sqbu-github.cisco.com/WebExSquared/pipeline
