@@ -1,5 +1,5 @@
 #!groovy
-@Library('sparkPipeline@library') _
+@Library('sparkPipeline') _
 
 /**
  * This is a simple pipeline for hello-world. It may work for your service or it may not.
@@ -23,12 +23,6 @@
  */
 
 
-stage('Publish docs') {
-    node('SPARK_BUILDER') {
-        publishDocs 'docs/', serviceName: 'Hello World'
-    }
-}
-
 nodeWith(stage: 'Build', services: ['cassandra:2.2', 'redis:3']) {
     checkout scm
 
@@ -39,6 +33,7 @@ nodeWith(stage: 'Build', services: ['cassandra:2.2', 'redis:3']) {
     archive 'target/microservice.yml'
     archive 'client/target/*.jar'
     archive 'server/target/*.war'
+    stash name: 'docs', includes: 'docs/'
 }
 
 if (isMasterBranch()) {
@@ -50,4 +45,8 @@ if (isMasterBranch()) {
         deploy 'production'
     }
 
+    nodeWith(stage: 'Publish docs') {
+        unstash 'docs'
+        publishDocs name: 'Hello World', includes: 'docs/'
+    }
 }
