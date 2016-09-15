@@ -1,5 +1,5 @@
 #!groovy
-@Library('sparkPipeline') _
+@Library('sparkPipeline@library') _
 
 /**
  * This is a simple pipeline for hello-world. It may work for your service or it may not.
@@ -22,6 +22,13 @@
  *   - Steps reference for sparkPipeline library: https://sqbu-github.cisco.com/WebExSquared/pipeline
  */
 
+
+stage('Publish docs') {
+    node('SPARK_BUILDER') {
+        publishDocs 'docs/', serviceName: 'Hello World'
+    }
+}
+
 nodeWith(stage: 'Build', services: ['cassandra:2.2', 'redis:3']) {
     checkout scm
 
@@ -42,4 +49,5 @@ if (isMasterBranch()) {
     approveStage('Deploy to production', submitter: 'squared') {
         deploy 'production'
     }
+
 }
