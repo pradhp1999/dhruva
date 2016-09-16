@@ -60,6 +60,11 @@ if (isMasterBranch()) {
         unstash 'docs'
         publishDocs name: 'Hello World', includes: 'docs/*'
     }
+
+    nodeWith(stage: 'Publish artifacts') {
+        unstash 'publishableArtifacts'
+        deployPublishableArtifacts
+    }
 }
 
 /**
