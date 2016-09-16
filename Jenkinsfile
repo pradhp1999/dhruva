@@ -38,7 +38,13 @@ nodeWith(stage: 'Build', services: ['redis:3']) {
     archive 'target/microservice.yml'
     archive 'client/target/*.jar'
     archive 'server/target/*.war'
+
     stash name: 'docs', includes: 'docs/'
+
+    stashPublishableArtifacts {
+        client = [file: 'client/target/*.jar', pom: 'client/pom.xml']
+        parent = [file: 'pom.xml', pom: 'pom.xml']
+    }
 }
 
 if (isMasterBranch()) {
