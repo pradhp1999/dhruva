@@ -31,7 +31,7 @@ echo "Starting build of ${env.SERVICE_NAME} version ${env.BUILD_VERSION}"
 nodeWith(stage: 'Build', services: ['redis:3']) {
     checkout scm
 
-    sh "mvn versions:set -DnewVersion=${version}"
+    sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
     sh 'mvn verify -Dmaven.test.failure.ignore'
 
     junit '**/target/surefire-reports/TEST-*.xml'
