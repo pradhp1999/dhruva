@@ -25,11 +25,13 @@
  *   - Steps reference for sparkPipeline library: https://sqbu-github.cisco.com/WebExSquared/pipeline
  */
 
+inititializeEnv('hello-world')
+echo "Starting build of ${env.SERVICE_NAME} version ${env.BUILD_VERSION}"
 
-nodeWith(stage: 'Build', services: ['cassandra:2.2', 'redis:3']) {
+nodeWith(stage: 'Build', services: ['redis:3']) {
     checkout scm
 
-    sh "mvn versions:set -DnewVersion=1.1.${currentBuild.number}"
+    sh "mvn versions:set -DnewVersion=${version}"
     sh 'mvn verify -Dmaven.test.failure.ignore'
 
     junit '**/target/surefire-reports/TEST-*.xml'
@@ -50,6 +52,6 @@ if (isMasterBranch()) {
 
     nodeWith(stage: 'Publish docs') {
         unstash 'docs'
-        publishDocs name: 'Hello World', includes: 'docs/'
+        publishDocs name: 'Hello World', includes: 'docs/*'
     }
 }
