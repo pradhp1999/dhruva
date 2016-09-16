@@ -42,8 +42,8 @@ nodeWith(stage: 'Build', services: ['redis:3']) {
     stash name: 'docs', includes: 'docs/'
 
     stashPublishableArtifacts {
-        client = [file: 'client/target/*.jar', pom: 'client/pom.xml']
-        parent = [file: 'pom.xml', pom: 'pom.xml']
+        artifacts << [file: 'client/target/*.jar', pom: 'client/pom.xml']
+        artifacts << [file: 'pom.xml', pom: 'pom.xml']
     }
 }
 
@@ -61,3 +61,15 @@ if (isMasterBranch()) {
         publishDocs name: 'Hello World', includes: 'docs/*'
     }
 }
+
+/**
+ * Pipeline TODO:
+ *   - Rename artifact jobs to platform/pipeline/team/${serviceName}/${targetEnvironment}-artifact
+ *   - Rename deploy jobs to platform/pipeline/team/${serviceName}/${targetEnvironment}-deploy
+ *   - Expose nodeWith service hostnames to body
+ *   - Have artifact jobs always archive from main pipeline and not other artifact jobs
+ *   - What's the purpose of update-version-hello-world job?
+ *   - Understand the security concern over maven deploy jobs, but currently have massive security holes in them
+ *     - Can inject arbitrary code execution in with commandLines or via pom exec plugins
+ *   - Still very difficult to follow pipeline flow, especially as things go through vortex with dynamically created jobs
+ */
