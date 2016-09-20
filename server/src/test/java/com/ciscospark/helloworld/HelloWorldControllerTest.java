@@ -37,7 +37,7 @@ public class HelloWorldControllerTest {
     public void testGetGreeting() throws Exception {
         given(greetingStore.getGreeting("spark")).willReturn(greeting);
 
-        mvc.perform(get("/hello-world/api/v1/greetings/spark"))
+        mvc.perform(get("/api/v1/greetings/spark"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.greeting").value("Hello spark"))
                 .andExpect(jsonPath("$.message").value("A special message for you."));
@@ -47,7 +47,7 @@ public class HelloWorldControllerTest {
     public void testPostGreeting() throws Exception {
         given(greetingStore.setGreeting("spark", "Hello spark")).willReturn(greeting);
 
-        mvc.perform(post("/hello-world/api/v1/greetings/spark").contentType(MediaType.APPLICATION_JSON).content(ObjectMappers.toJson(greeting)))
+        mvc.perform(post("/api/v1/greetings/spark").contentType(MediaType.APPLICATION_JSON).content(ObjectMappers.toJson(greeting)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.greeting").value("Hello spark"))
                 .andExpect(jsonPath("$.message").value("A special message for you."));

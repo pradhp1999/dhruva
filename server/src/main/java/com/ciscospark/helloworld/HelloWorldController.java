@@ -16,7 +16,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  * The Hello World microservice.
  */
 @RestController
-@RequestMapping("/hello-world/api/v1")
+@RequestMapping("${cisco-spark.server.apiPath:/api/v1}")
 public class HelloWorldController {
     private final GreetingStore greetingStore;
 
