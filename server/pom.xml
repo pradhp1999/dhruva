@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>com.ciscospark</groupId>
-            <artifactId>cisco-spark-server-starter</artifactId>
+            <artifactId>cisco-spark-starter-server</artifactId>
             <type>pom</type>
         </dependency>
         <dependency>
