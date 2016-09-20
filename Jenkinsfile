@@ -67,10 +67,12 @@ if (isMasterBranch()) {
  * Pipeline TODO:
  *   - Rename artifact jobs to platform/pipeline/team/${serviceName}/${targetEnvironment}-artifact
  *   - Rename deploy jobs to platform/pipeline/team/${serviceName}/${targetEnvironment}-deploy
- *   - Expose nodeWith service hostnames to body
  *   - Have artifact jobs always archive from main pipeline and not other artifact jobs
  *   - What's the purpose of update-version-hello-world job?
  *   - Understand the security concern over maven deploy jobs, but currently have massive security holes in them
  *     - Can inject arbitrary code execution in with commandLines or via pom exec plugins
+ *     - Need to not rebuild artifacts. Instead, rely on artifacts archived by main job
  *   - Still very difficult to follow pipeline flow, especially as things go through vortex with dynamically created jobs
+ *   - Expose nodeWith service hostnames to body
+ *   - Executable JARs.
  */
