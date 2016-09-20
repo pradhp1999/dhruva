@@ -25,11 +25,9 @@
  *   - Steps reference for sparkPipeline library: https://sqbu-github.cisco.com/WebExSquared/pipeline
  */
 
-inititializeEnv('hello-world')
-echo "Starting build of ${env.SERVICE_NAME} version ${env.BUILD_VERSION}"
-
 nodeWith(stage: 'Build', services: ['redis:3']) {
     checkout scm
+    inititializeEnv('hello-world')
 
     sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
     sh 'mvn verify -Dmaven.test.failure.ignore'
@@ -41,7 +39,8 @@ nodeWith(stage: 'Build', services: ['redis:3']) {
 
     stash name: 'docs', includes: 'docs/'
 
-    stashPublishableArtifacts {
+    // Save artifacts and poms that will later be published to a maven repository.
+    publishableArtifacts {
         artifacts << [file: 'client/target/*.jar', pom: 'client/pom.xml']
         artifacts << [file: 'pom.xml', pom: 'pom.xml']
     }
@@ -61,10 +60,7 @@ if (isMasterBranch()) {
         publishDocs name: 'Hello World', includes: 'docs/*'
     }
 
-    nodeWith(stage: 'Publish artifacts') {
-        unstash 'publishableArtifacts'
-        deployPublishableArtifacts
-    }
+    publishArtifacts
 }
 
 /**
