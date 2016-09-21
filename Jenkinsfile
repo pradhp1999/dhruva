@@ -25,6 +25,8 @@
  *   - Steps reference for sparkPipeline library: https://sqbu-github.cisco.com/WebExSquared/pipeline
  */
 
+pipelineProperties numToKeep: 10
+
 nodeWith(stage: 'Build', services: ['redis:3']) {
     checkout scm
     inititializeEnv('hello-world')
