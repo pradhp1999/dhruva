@@ -38,7 +38,7 @@ nodeWith(stage: 'Build', services: ['redis:3']) {
     archive 'target/microservice.yml'
     archive 'client/target/*.jar'
     archive 'server/target/*.war'
-    archive '**/target/*-deps.dot'
+    zip zipFile: 'dependencyTrees.zip', glob: '**/target/*-deps.dot', archive: true
 
     stash name: 'docs', includes: 'docs/'
 
