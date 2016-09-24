@@ -1,54 +1,69 @@
 #!groovy
+@Library('sparkPipeline') _
 
-/*
-DO NOT, DO NOT, DO NOT, DO NOT, DO NOT, DO NOT, DO NOT, DO NOT, DO NOT -
-copy this JenkinsFile and use it as baseline for your pipeline.
-
-Instead, go to https://sqbu-github.cisco.com/WebExSquared/pipeline/blob/master/samples
-and use one of the samples from there.
-
+/**
+ * This is a simple pipeline for hello-world. It may work for your service or it may not.
+ * Browse https://sqbu-github.cisco.com/WebExSquared/pipeline/blob/master/samples for more.
+ *
+ * This pipeline performs a `mvn verify` at the root level after using the `versions:set`
+ * maven goal to update the POMs with a version generated from the current build number.
+ *
+ * Artifacts are then archived. If this is a PR or branch build, the pipeline stops there.
+ * If this is a build off of master, then we proceed to the deploy stages, including publishing
+ * to maven and publishing our documentation, which, of course, is always up-to-date, right?
+ *
+ * For each deploy stage, the pipeline is paused until is approved. Once approved, the deploy
+ * to the environment is triggered. The actual deploy mechanism is triggered here, but handled
+ * by platform controlled jobs because they expose the credentials to the environments.
+ *
+ * For more information about how to construct a Jenkinsfile, please consult these resources:
+ *   - Ask Pipeline room in the Sparkans Team.
+ *   - Pipeline Reference:
+ *       https://sqbu-jenkins.cisco.com:8443/job/team/job/hello-world/job/pipeline-hello-world/pipeline-syntax/
+ *   - Getting started with Pipeline: https://jenkins.io/doc/
+ *   - Examples: https://jenkins.io/doc/pipeline/examples/
+ *   - Steps reference for sparkPipeline library: https://sqbu-github.cisco.com/WebExSquared/pipeline
  */
 
-timestamps {
-    env.PIPELINE = 'hello-world'
-    is_pr_build = (env.CHANGE_ID != null)
-    is_branch_build = (env.BRANCH_NAME != null) && (env.BRANCH_NAME != 'master')
+pipelineProperties numToKeep: 10
 
-    def TARGET_VERSION = "1.1." + currentBuild.number
-    env.TARGET_VERSION = TARGET_VERSION
+nodeWith(stage: 'Build', services: ['redis:3']) {
+    checkout scm
+    inititializeEnv('hello-world')
 
-    // TODO: Replace with Shared Librarys
-    def common_pipeline = fileLoader.fromGit('sparks.groovy', 'git@sqbu-github.cisco.com:WebExSquared/pipeline.git',
-            'master', env.PIPELINE_CREDENTIALS, 'BASIC_SLAVE')
+    sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
+    sh 'mvn -Dmaven.test.failure.ignore verify'
 
-    def TARGET_TITLE = "v" + TARGET_VERSION
-    env.TARGET_TITLE = TARGET_TITLE
-    currentBuild.displayName = '#' + currentBuild.number + ' ' + TARGET_TITLE
-    node('SPARK_BUILDER') {
-        try {
-            // Obtain the current code base, then extract commit information.
-            stage 'Get Code'
-            checkout scm
-            common_pipeline.load_git_info('git@sqbu-github.cisco.com:WebExSquared/hello-world.git')
+    junit '**/target/**/TEST-*.xml'
+    archive 'target/microservice.yml'
+    archive 'client/target/*.jar'
+    archive 'server/target/*.war'
+    archive '**/target/*-deps.dot'
 
-            // Perform the build and test part.
-            stage 'Build and Test'
-            sh '''#!/bin/bash -ex
-            mvn versions:set -DnewVersion=${TARGET_VERSION}
-            mvn verify
-            '''
+    stash name: 'docs', includes: 'docs/'
 
-            // Archive elements
-            archive 'target/microservice.yml'
-            archive 'server/target/hello-world-server.war'
-        } finally {
-            deleteDir()
-        }
+    // Save artifacts and poms that will later be published to a maven repository.
+    publishableArtifacts {
+        artifacts << [file: 'client/target/*.jar', pom: 'client/pom.xml']
+        artifacts << [file: 'pom.xml', pom: 'pom.xml']
+    }
+}
+
+if (isMasterBranch()) {
+    approveStage('Deploy to integration', submitter: 'squared') {
+        deploy 'integration'
     }
 
-    // Only run master builds through the deploys
-    if (!is_branch_build) {
-        common_pipeline.go_to_integration()
-        common_pipeline.go_to_production()
+    approveStage('Deploy to production', submitter: 'squared') {
+        deploy 'production'
+    }
+
+    nodeWith(stage: 'Publish docs') {
+        unstash 'docs'
+        publishDocs name: 'Hello World', includes: 'docs/*'
+    }
+
+    stage('Publish artifacts') {
+        publishArtifacts
     }
 }
