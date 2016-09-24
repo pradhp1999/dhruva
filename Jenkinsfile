@@ -34,7 +34,7 @@ nodeWith(stage: 'Build', services: ['redis:3']) {
     sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
     sh 'mvn -Dmaven.test.failure.ignore verify'
 
-    junit '**/target/surefire-reports/TEST-*.xml'
+    junit '**/target/**/TEST-*.xml'
     archive 'target/microservice.yml'
     archive 'client/target/*.jar'
     archive 'server/target/*.war'
