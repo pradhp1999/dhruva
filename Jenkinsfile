@@ -64,6 +64,6 @@ if (isMasterBranch()) {
     }
 
     stage('Publish artifacts') {
-        publishArtifacts
+        publishArtifacts()
     }
 }
