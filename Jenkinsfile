@@ -29,7 +29,7 @@ pipelineProperties numToKeep: 10
 
 nodeWith(stage: 'Build', services: ['redis:3']) {
     checkout scm
-    inititializeEnv('hello-world')
+    initializeEnv('hello-world')
 
     sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
     sh 'mvn -Dmaven.test.failure.ignore verify'
