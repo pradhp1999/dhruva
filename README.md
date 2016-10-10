@@ -25,19 +25,19 @@ The `server` module implements your entire service. That includes:
 
 Services are Spring Boot applications. If you are unfamiliar with Spring in general or Spring Boot, it would be wise to invest some time learning this foundational layer.
 
-#### API endpoints
+**API endpoints**
 
 APIs are not someone else’s problem, they are the problem for everyone building Spark services. That's you. When developing your API, always thinking about the consumer first and keep it simple. Read and follow the [Spark Cloud API Manifesto](https://wiki.cisco.com/display/S4D/Spark+Cloud+API+Manifesto).
 
 Your API will typically be implemented by annotating a class with `@RestController` and using the `@RequestMapping` annotation to specify paths, methods and other attributes of your requests.
 
-#### Properties and configuration
+**Properties and configuration**
 
 Your service will run in many environments without modification to the source so all configuration must be externalized. Spring makes this very easy. To take advantage of this, define your properties similar to `HelloWorldProperties` – you can group your properties into different classes. The property values will be available at runtime and automatically injected from various sources including your `application.properties` file, environment variables and properties dynamically read from consul.
 
 Your properties will be used primarily to construct your beans from your configuration class or classes or from components discovered through component scanning (see `@ComponentScan`).
 
-#### Database and migrations
+**Database and migrations**
 
 TODO:
 
@@ -45,7 +45,7 @@ TODO:
 * Link to schema review process
 * Migrations
 
-#### Health monitoring
+**Health monitoring**
 
 Your service automatically exposes a few serviceability endpoints. The `/ping` endpoint returns a JSON object that describes the health of your service and the health of any of your upstream services. It is very important that you add monitoring into your service that monitors its own health and the health of all upstream services.
 
