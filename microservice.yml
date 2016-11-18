@@ -1,9 +1,7 @@
 id: hello-world
-appname: hello-world
-name: hello-world
-version: ${project.version}
-deploy-file: ../server/target/hello-world-server.war
-ping-path: api/v1/ping
+version: v1
+deploy-file: server/target/hello-world-server.war
+ping-path: /ping
 
 owner:
   email: prentice

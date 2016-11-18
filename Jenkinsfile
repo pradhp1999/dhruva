@@ -19,7 +19,7 @@
  * For more information about how to construct a Jenkinsfile, please consult these resources:
  *   - Ask Pipeline room in the Sparkans Team.
  *   - Pipeline Reference:
- *       https://sqbu-jenkins.cisco.com:8443/job/team/job/hello-world/job/pipeline-hello-world/pipeline-syntax/
+ *       https://sqbu-jenkins.cisco.com:8443/job/team/job/hello-world/job/pipeline/pipeline-syntax/
  *   - Getting started with Pipeline: https://jenkins.io/doc/
  *   - Examples: https://jenkins.io/doc/pipeline/examples/
  *   - Steps reference for sparkPipeline library: https://sqbu-github.cisco.com/WebExSquared/pipeline
@@ -35,7 +35,7 @@ nodeWith(stage: 'Build', services: ['redis:3']) {
     sh 'mvn -Dmaven.test.failure.ignore verify'
 
     junit '**/target/**/TEST-*.xml'
-    archive 'target/microservice.yml'
+    archive 'microservice.yml'
     archive 'client/target/*.jar'
     archive 'server/target/*.war'
     zip zipFile: 'dependencyTrees.zip', glob: '**/target/*-deps.dot', archive: true
