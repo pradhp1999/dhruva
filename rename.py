@@ -2,14 +2,13 @@
 """Usage: rename.py <service-name>"""
 from __future__ import print_function
 import os.path
-import inflection
 from docopt import docopt
 from subprocess import check_call, check_output
 
 def rename(name):
     ldashed_name = name.lower()
-    humanized_name = inflection.titleize(name)
-    camel_name = inflection.camelize(inflection.underscore(name))
+    humanized_name = ' '.join([x.capitalize() for x in name.split('-')])
+    camel_name = ''.join([x.capitalize() for x in name.split('-')])
     all_lower_name = ldashed_name.replace('-', '')
 
     print("Dashed name:", ldashed_name)
