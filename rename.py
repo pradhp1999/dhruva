@@ -33,6 +33,7 @@ def rename(name):
         contents = contents.replace('helloworld', all_lower_name)
         with open(new_path, 'w') as f:
             f.write(contents)
+        check_call("git add {0}".format(new_path), shell=True)
         
 
 if __name__ == '__main__':
