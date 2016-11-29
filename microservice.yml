@@ -1,7 +1,7 @@
 id: hello-world
 version: v1
 deploy-file: server/target/hello-world-server.war
-ping-path: /ping
+ping-path: ping
 
 owner:
   email: prentice
