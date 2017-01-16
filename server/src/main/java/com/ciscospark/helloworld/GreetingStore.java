@@ -36,4 +36,17 @@ public class GreetingStore {
 
         return Greeting.builder().greeting(greeting).message(message).build();
     }
+
+    public Greeting deleteGreeting(String name) {
+        String greeting = store.remove(name);
+
+        Greeting result = null;
+
+        if(greeting != null)
+        {
+            result =  Greeting.builder().greeting(greeting).message(message).build();
+        }
+
+        return result;
+    }
 }

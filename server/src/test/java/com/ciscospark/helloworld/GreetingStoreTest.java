@@ -39,4 +39,27 @@ public class GreetingStoreTest {
         assertThat(greetingStore.getGreeting("me"))
                 .isEqualTo(expected);
     }
+
+    @Test
+    public void testSuccessfullySetAndDeleteTheSameObject() throws Exception {
+        Greeting expected = Greeting.builder().greeting("hi").message(message).build();
+        assertThat(greetingStore.setGreeting("me", "hi"))
+                .isEqualTo(expected);
+
+        assertThat(greetingStore.deleteGreeting("me"))
+                .isEqualTo(expected);
+    }
+
+    @Test
+    public void testDeletingTwiceTheSameGreetingReturnsNull() throws Exception {
+        Greeting expected = Greeting.builder().greeting("hi").message(message).build();
+        assertThat(greetingStore.setGreeting("me", "hi"))
+                .isEqualTo(expected);
+
+        assertThat(greetingStore.deleteGreeting("me"))
+                .isEqualTo(expected);
+
+        assertThat(greetingStore.deleteGreeting("me"))
+                .isEqualTo(null);
+    }
 }

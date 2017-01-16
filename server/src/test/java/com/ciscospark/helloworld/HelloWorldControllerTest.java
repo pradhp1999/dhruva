@@ -4,14 +4,18 @@ import com.cisco.wx2.util.ObjectMappers;
 import com.ciscospark.helloworld.api.Greeting;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -52,4 +56,31 @@ public class HelloWorldControllerTest {
                 .andExpect(jsonPath("$.greeting").value("Hello spark"))
                 .andExpect(jsonPath("$.message").value("A special message for you."));
     }
+
+    @Test
+    public void testDeleteGreeting() throws Exception {
+        given(greetingStore.deleteGreeting("spark")).willReturn(greeting);
+
+        mvc.perform(delete("/api/v1/greetings/spark"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.greeting").value("Hello spark"))
+                .andExpect(jsonPath("$.message").value("A special message for you."));
+
+        verify(greetingStore).deleteGreeting(Matchers.eq("spark"));
+
+    }
+
+    @Test
+    public void testDeleteNonExistentGreetingReturnsNotFound() throws Exception {
+        given(greetingStore.deleteGreeting("spark")).willReturn(null);
+
+        mvc.perform(delete("/api/v1/greetings/spark"))
+                .andExpect(status().isNotFound());
+
+        verify(greetingStore).deleteGreeting(Matchers.eq("spark"));
+
+    }
+
+
+
 }

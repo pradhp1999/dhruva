@@ -3,6 +3,8 @@ package com.ciscospark.helloworld;
 import com.cisco.wx2.server.auth.AuthorizationNone;
 import com.ciscospark.helloworld.api.Greeting;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +13,7 @@ import org.versly.rest.wsdoc.AuthorizationScope;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 
 /**
  * The Hello World microservice.
@@ -35,5 +38,20 @@ public class HelloWorldController {
     @RequestMapping(value = "/greetings/{name}", method = POST)
     public Greeting postGreeting(@PathVariable("name") String name, @RequestBody Greeting greeting) {
         return greetingStore.setGreeting(name, greeting.getGreeting());
+    }
+
+    @AuthorizationScope("*any*")
+    @RequestMapping(value = "/greetings/{name}", method = DELETE)
+    public Greeting deleteGreeting(@PathVariable("name") String name) {
+
+        Greeting result =  greetingStore.deleteGreeting(name);
+
+        if(result == null)
+        {
+            throw new GreetingNotFound();
+        }
+
+        return result;
+
     }
 }
