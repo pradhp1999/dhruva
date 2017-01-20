@@ -22,4 +22,20 @@ public class HelloWorldProperties {
      * Message to be delivered with the greeting.
      */
     String message = "Beer is proof God loves us and wants us to be happy";
+
+    public HelloWorldProperties() {
+    }
+
+    public HelloWorldProperties(String defaultGreetingPrefix, String message) {
+        this.defaultGreetingPrefix = defaultGreetingPrefix;
+        this.message = message;
+    }
+
+    public String getDefaultGreetingPrefix() {
+        return defaultGreetingPrefix;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }

@@ -8,19 +8,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 import java.util.List;
 
 @Configuration
-@Import({HelloWorldController.class})
+@Import({HelloWorldController.class, GreetingStore.class})
 public class HelloWordlTestConfig extends WebMvcConfigurationSupport
 {
-
-    public HelloWordlTestConfig() {
-//        MockitoAnnotations.initMocks(this);
-    }
-
-//    @Bean
-//    public GreetingStore greetingStore() {
-//        return new GreetingStore(new HelloWorldProperties());
-//    }
-
     @Override
     protected void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
         super.configureHandlerExceptionResolvers(exceptionResolvers);

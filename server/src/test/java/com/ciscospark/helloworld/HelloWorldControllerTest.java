@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(value = HelloWorldController.class)
-@ContextConfiguration(classes = {HelloWordlTestConfig.class})
+@ContextConfiguration(classes = {HelloWordlTestConfig.class} )
 public class HelloWorldControllerTest {
 
     @Autowired

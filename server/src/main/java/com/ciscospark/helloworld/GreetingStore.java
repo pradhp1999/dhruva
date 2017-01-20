@@ -42,7 +42,7 @@ public class GreetingStore {
         String greeting = store.remove(name);
 
         if(greeting == null) {
-            throw ServerException.notFound("");
+            throw ServerException.notFound("Greeting not found!");
         }
     }
 }
