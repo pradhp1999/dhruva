@@ -1,13 +1,16 @@
 package com.ciscospark.helloworld;
 
+import com.cisco.wx2.server.ServerException;
 import com.ciscospark.helloworld.api.Greeting;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.ApplicationContextTestUtils;
 import org.springframework.test.context.junit4.SpringRunner;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -16,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "cisco-spark.server.importLegacyServerConfig=false",
                 "hello-world.defaultGreetingPrefix=Doh!",
                 "hello-world.message=" + GreetingStoreTest.message
-        })
-public class GreetingStoreTest {
+         })
+public class GreetingStoreTest extends ApplicationContextTestUtils {
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
 
     @Autowired
@@ -46,20 +49,20 @@ public class GreetingStoreTest {
         assertThat(greetingStore.setGreeting("me", "hi"))
                 .isEqualTo(expected);
 
-        assertThat(greetingStore.deleteGreeting("me"))
-                .isEqualTo(expected);
+        greetingStore.deleteGreeting("me");
+
     }
 
-    @Test
-    public void testDeletingTwiceTheSameGreetingReturnsNull() throws Exception {
+    @Test (expected = ServerException.class)
+    public void testDeletingTwiceTheSameGreetingThrowsException() throws Exception {
         Greeting expected = Greeting.builder().greeting("hi").message(message).build();
         assertThat(greetingStore.setGreeting("me", "hi"))
                 .isEqualTo(expected);
 
-        assertThat(greetingStore.deleteGreeting("me"))
-                .isEqualTo(expected);
+        greetingStore.deleteGreeting("me");
 
-        assertThat(greetingStore.deleteGreeting("me"))
-                .isEqualTo(null);
+        greetingStore.deleteGreeting("me");
     }
+
 }
+

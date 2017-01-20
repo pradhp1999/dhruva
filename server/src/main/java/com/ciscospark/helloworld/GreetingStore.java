@@ -1,5 +1,6 @@
 package com.ciscospark.helloworld;
 
+import com.cisco.wx2.server.ServerException;
 import com.ciscospark.helloworld.api.Greeting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -37,16 +38,11 @@ public class GreetingStore {
         return Greeting.builder().greeting(greeting).message(message).build();
     }
 
-    public Greeting deleteGreeting(String name) {
+    public void deleteGreeting(String name) {
         String greeting = store.remove(name);
 
-        Greeting result = null;
-
-        if(greeting != null)
-        {
-            result =  Greeting.builder().greeting(greeting).message(message).build();
+        if(greeting == null) {
+            throw ServerException.notFound("");
         }
-
-        return result;
     }
 }

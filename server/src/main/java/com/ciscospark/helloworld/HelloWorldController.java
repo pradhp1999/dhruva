@@ -1,5 +1,6 @@
 package com.ciscospark.helloworld;
 
+import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.auth.AuthorizationNone;
 import com.ciscospark.helloworld.api.Greeting;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,16 +41,8 @@ public class HelloWorldController {
 
     @AuthorizationScope("*any*")
     @RequestMapping(value = "/greetings/{name}", method = DELETE)
-    public Greeting deleteGreeting(@PathVariable("name") String name) {
+    public void deleteGreeting(@PathVariable("name") String name) {
 
-        Greeting result =  greetingStore.deleteGreeting(name);
-
-        if(result == null)
-        {
-            throw new GreetingNotFound();
-        }
-
-        return result;
-
+        greetingStore.deleteGreeting(name);
     }
 }
