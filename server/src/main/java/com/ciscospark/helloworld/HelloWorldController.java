@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.versly.rest.wsdoc.AuthorizationScope;
 
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -35,5 +36,11 @@ public class HelloWorldController {
     @RequestMapping(value = "/greetings/{name}", method = POST)
     public Greeting postGreeting(@PathVariable("name") String name, @RequestBody Greeting greeting) {
         return greetingStore.setGreeting(name, greeting.getGreeting());
+    }
+
+    @AuthorizationScope("*any*")
+    @RequestMapping(value = "/greetings/{name}", method = DELETE)
+    public void deleteGreeting(@PathVariable("name") String name) {
+        greetingStore.deleteGreeting(name);
     }
 }

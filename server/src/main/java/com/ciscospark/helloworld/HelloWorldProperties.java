@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Properties that are specific to the hello-world service.
- *
+ * <p>
  * See also: http://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html
  */
 @Data
