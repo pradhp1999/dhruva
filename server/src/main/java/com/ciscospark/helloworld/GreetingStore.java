@@ -41,7 +41,7 @@ public class GreetingStore {
     public void deleteGreeting(String name) {
         String greeting = store.remove(name);
 
-        if(greeting == null) {
+        if (greeting == null) {
             throw ServerException.notFound("Greeting not found!");
         }
     }
