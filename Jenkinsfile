@@ -50,11 +50,14 @@ nodeWith(stage: 'Build', services: ['redis:3']) {
 }
 
 if (isMasterBranch()) {
-    approveStage('Deploy to integration', submitter: 'squared') {
-        deploy 'integration'
+    approveStage('Deploy', submitter: 'squared') {
+        parallel (
+            integration: { deploy'integration' },
+            loadtest: { deploy 'loadtest' }
+        )
     }
 
-    approveStage('Deploy to production', submitter: 'squared') {
+    approveStage('Production', submitter: 'squared') {
         deploy 'production'
     }
 
