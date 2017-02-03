@@ -36,17 +36,10 @@ nodeWith(stage: 'Build', services: ['redis:3']) {
 
     junit '**/target/**/TEST-*.xml'
     archive 'microservice.yml'
-    archive 'client/target/*.jar'
     archive 'server/target/*.war'
-    zip zipFile: 'dependencyTrees.zip', glob: '**/target/*-deps.dot', archive: true
-
-    stash name: 'docs', includes: 'docs/'
-
-    // Save artifacts and poms that will later be published to a maven repository.
-    publishableArtifacts {
-        artifacts << [file: 'client/target/*.jar', pom: 'client/pom.xml']
-        artifacts << [file: 'pom.xml', pom: 'pom.xml']
-    }
+    
+    archiveMavenArtifacts()
+    archivePubHub()
 }
 
 if (isMasterBranch()) {
@@ -61,12 +54,5 @@ if (isMasterBranch()) {
         deploy 'production'
     }
 
-    nodeWith(stage: 'Publish docs') {
-        unstash 'docs'
-        publishDocs name: 'Hello World', includes: 'docs/*'
-    }
-
-    stage('Publish artifacts') {
-        publishArtifacts()
-    }
+    publish()
 }
