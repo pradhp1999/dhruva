@@ -1,6 +1,8 @@
 package com.ciscospark;
 
 import org.apache.log4j.Logger;
+import org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter;
+import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.logging.LogLevel;
@@ -8,7 +10,10 @@ import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.RegexPatternTypeFilter;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -28,11 +33,34 @@ public class TestRunner {
 
         final Set<BeanDefinition> classes = provider.findCandidateComponents("com.ciscospark");
 
-        final String[] tests = classes.stream()
-                .map(BeanDefinition::getBeanClassName)
-                .collect(Collectors.toList())
-                .toArray(new String[]{});
+        Function<BeanDefinition, Class> classFromBean = (BeanDefinition s) -> {
+            String className = s.getBeanClassName();
+            Class name = null;
+            try {
+                name = Class.forName(className);
+            } catch (ClassNotFoundException ex) {
+                System.out.println("Error test class not found:" + className);
 
-        JUnitCore.main(tests);
+            } finally {
+                return name;
+            }
+        };
+
+        final Class[] tests = classes.stream()
+                .map(classFromBean)
+                .collect(Collectors.toList())
+                .toArray(new Class[]{});
+
+        JUnitCore junit = new JUnitCore();
+        junit.addListener(new JUnitResultFormatterAsRunListener(new XMLJUnitResultFormatter()) {
+            @Override
+            public void testStarted(Description description) throws Exception {
+                formatter.setOutput(new FileOutputStream(new File(".", "TEST-" + description.getDisplayName() + ".xml")));
+                super.testStarted(description);
+            }
+        });
+
+        junit.run(tests).wasSuccessful();
+        System.exit(1);
     }
 }
