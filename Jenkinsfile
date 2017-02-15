@@ -35,7 +35,7 @@ nodeWith(stage: 'Build', services: ['redis:3']) {
     sh 'mvn -Dmaven.test.failure.ignore verify'
 
     junit '**/target/**/TEST-*.xml'
-    archive 'microservice.yml'
+    archive 'target/microservice.yml'
     archive 'server/target/*.war'
     
     archiveMavenArtifacts()
