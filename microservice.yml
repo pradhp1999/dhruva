@@ -1,6 +1,6 @@
 id: hello-world
-version: v1
-deploy-file: server/target/hello-world-server.war
+version: ${project.version}
+deploy-file: ../server/target/hello-world-server.war
 ping-path: ping
 
 owner:
