@@ -1,5 +1,5 @@
 #!groovy
-@Library('sparkPipeline') _
+@Library('sparkPipeline@buildStage') _
 
 /**
  * This is a simple pipeline for hello-world. It may work for your service or it may not.
@@ -27,10 +27,7 @@
 
 pipelineProperties numToKeep: 10
 
-nodeWith(stage: 'Build', services: ['redis:3']) {
-    checkout scm
-    initializeEnv('hello-world')
-
+buildStage(pipelineName: 'hello-world', services: ['redis:3']) {
     sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
     sh 'mvn -Dmaven.test.failure.ignore verify'
 
