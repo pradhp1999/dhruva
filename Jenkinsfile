@@ -27,7 +27,7 @@
 
 pipelineProperties numToKeep: 10
 
-buildStage(pipelineName: 'hello-world', services: ['redis:3']) {
+buildStage('hello-world', services: ['redis:3']) {
     sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
     sh 'mvn -Dmaven.test.failure.ignore verify'
 
