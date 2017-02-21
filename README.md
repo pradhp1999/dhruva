@@ -37,11 +37,15 @@ Your service will run in many environments without modification to the source so
 
 Your properties will be used primarily to construct your beans from your configuration class or classes or from components discovered through component scanning (see `@ComponentScan`).
 
+Since HelloWorld is a Spring Boot application, the main class is automatically a configuration class - see `HelloWorldApplication`. This means that you can define beans and autowire other beans in this class. `HelloWorldApplication` also contains documentation that explains when and how to create a separate configuration class that extends `Wx2ConfigAdapter` (which in turn extends `AbstractConfig`). Note, however, that you do *not* need to do this to access all of the beans defined in `AbstractConfig`.
+
 **Health monitoring**
 
 Your service automatically exposes a few serviceability endpoints. The `/ping` endpoint returns a JSON object that describes the health of your service and the health of any of your upstream services. It is very important that you add monitoring into your service that monitors its own health and the health of all upstream services.
 
 If your service is degraded or unavailable in an environment and your health monitoring is still reporting that your service is healthy, this is a production-impacting bug in your service monitoring and should be treated as a high priority.
+
+The `HelloWorldApplication` class defines the use of the feature service, and as such it defines a feature client factory bean that is used in `GreetingService`, and a `ServiceHealthPinger` that is used to monitor availability of the feature service. Furthermore, it gives an example of how microservice A can call microservice B.
 
 **Database and migrations**
 

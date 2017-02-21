@@ -1,9 +1,13 @@
 package com.ciscospark.helloworld;
 
 import com.cisco.wx2.server.ServerException;
+import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.spring.ExceptionResolver;
 import com.cisco.wx2.util.ObjectMappers;
+import com.cisco.wx2.wdm.client.FeatureClient;
+import com.cisco.wx2.wdm.client.FeatureClientFactory;
 import com.ciscospark.helloworld.api.Greeting;
+import com.ciscospark.server.CiscoSparkServerProperties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
@@ -22,6 +26,8 @@ import java.util.List;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -42,19 +48,36 @@ public class HelloWorldControllerTest {
         public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
             exceptionResolvers.add(new ExceptionResolver());
         }
+
+        /* Even though they are not referenced or used in this test, the MockBean instances are needed in order to satisfy
+         * HelloWorldApplication's @Autowired beans, because the use of @TestConfiguration augments, as opposed to replaces
+         * the HelloWorldApplication context.
+         */
+        @MockBean
+        private ConfigProperties configProperties;
+
+        @MockBean
+        private CiscoSparkServerProperties serverProperties;
+
+        @MockBean
+        private FeatureClient featureClient;
+
+        @MockBean
+        private FeatureClientFactory featureClientFactory;
     }
+
 
     @Autowired
     MockMvc mvc;
 
     @MockBean
-    private GreetingStore greetingStore;
+    private GreetingService greetingService;
 
     private final Greeting greeting = Greeting.builder().greeting("Hello spark").message("A special message for you.").build();
 
     @Test
     public void testGetGreeting() throws Exception {
-        given(greetingStore.getGreeting("spark")).willReturn(greeting);
+        given(greetingService.getGreeting(eq("spark"))).willReturn(greeting);
 
         mvc.perform(get("/api/v1/greetings/spark"))
                 .andExpect(status().isOk())
@@ -64,7 +87,7 @@ public class HelloWorldControllerTest {
 
     @Test
     public void testPostGreeting() throws Exception {
-        given(greetingStore.setGreeting("spark", "Hello spark")).willReturn(greeting);
+        given(greetingService.setGreeting(eq("spark"), eq("Hello spark"), any())).willReturn(greeting);
 
         mvc.perform(post("/api/v1/greetings/spark").contentType(MediaType.APPLICATION_JSON).content(ObjectMappers.toJson(greeting)))
                 .andExpect(status().isOk())
@@ -77,16 +100,16 @@ public class HelloWorldControllerTest {
         mvc.perform(delete("/api/v1/greetings/spark"))
                 .andExpect(status().isOk());
 
-        verify(greetingStore).deleteGreeting(Matchers.eq("spark"));
+        verify(greetingService).deleteGreeting(eq("spark"));
     }
 
     @Test
     public void testDeleteNonExistentGreetingReturnsNotFound() throws Exception {
-        Mockito.doThrow(ServerException.notFound("Greeting not found!")).when(greetingStore).deleteGreeting(Matchers.any());
+        Mockito.doThrow(ServerException.notFound("Greeting not found!")).when(greetingService).deleteGreeting(any());
 
         mvc.perform(delete("/api/v1/greetings/spark"))
                 .andExpect(status().isNotFound());
 
-        verify(greetingStore).deleteGreeting(Matchers.eq("spark"));
+        verify(greetingService).deleteGreeting(eq("spark"));
     }
 }

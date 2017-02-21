@@ -14,7 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(classes = TestConfig.class)
 public class HelloWorldIT extends AbstractJUnit4SpringContextTests {
     @Autowired
-    HelloWorldClientFactory helloWorldClientFactory;
+    private HelloWorldClientFactory helloWorldClientFactory;
 
     @Test
     public void testPing() {

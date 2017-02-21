@@ -14,7 +14,7 @@
     </parent>
 
     <properties>
-        <tomcat.server.port>9221</tomcat.server.port>
+        <tomcat.server.port>10221</tomcat.server.port>
         <tomcat.ajp.port>9222</tomcat.ajp.port>
         <tomcat.rmi.port>9223</tomcat.rmi.port>
         <helloWorldApiUrl>http://localhost:${tomcat.server.port}/api/v1</helloWorldApiUrl>
