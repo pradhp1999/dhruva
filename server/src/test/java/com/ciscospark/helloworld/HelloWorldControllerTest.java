@@ -48,24 +48,24 @@ public class HelloWorldControllerTest {
         public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
             exceptionResolvers.add(new ExceptionResolver());
         }
-
-        /* Even though they are not referenced or used in this test, the MockBean instances are needed in order to satisfy
-         * HelloWorldApplication's @Autowired beans, because the use of @TestConfiguration augments, as opposed to replaces
-         * the HelloWorldApplication context.
-         */
-        @MockBean
-        private ConfigProperties configProperties;
-
-        @MockBean
-        private CiscoSparkServerProperties serverProperties;
-
-        @MockBean
-        private FeatureClient featureClient;
-
-        @MockBean
-        private FeatureClientFactory featureClientFactory;
     }
 
+
+    /* Even though they are not referenced or used in this test, the MockBean instances are needed in order to satisfy
+     * HelloWorldApplication's @Autowired beans, because the use of @TestConfiguration augments, as opposed to replaces
+     * the HelloWorldApplication context.
+     */
+    @MockBean
+    ConfigProperties configProperties;
+
+    @MockBean
+    CiscoSparkServerProperties serverProperties;
+
+    @MockBean
+    FeatureClient featureClient;
+
+    @MockBean
+    FeatureClientFactory featureClientFactory;
 
     @Autowired
     MockMvc mvc;
