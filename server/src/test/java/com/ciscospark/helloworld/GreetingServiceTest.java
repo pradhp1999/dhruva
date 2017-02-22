@@ -19,9 +19,13 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +51,13 @@ import static org.mockito.Mockito.when;
                 "hello-world.trailer=" + GreetingServiceTest.trailer
         })
 public class GreetingServiceTest {
+
+    @TestConfiguration
+    @Import(RedisTestConfig.class)
+    static class Config {
+
+    }
+
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";
     private static final String JOE_RANDOM_TEST_USER = "Joe Random TestUser";
@@ -67,6 +78,9 @@ public class GreetingServiceTest {
 
     @MockBean
     private FeatureClientFactory featureClientFactory;
+
+    @MockBean
+    private HttpServletRequest servletRequest;
 
     @Mock
     private AuthInfo authInfo;
@@ -90,14 +104,13 @@ public class GreetingServiceTest {
 
         when(authInfo.getEffectiveUser()).thenReturn(user);
         when(authInfo.getAuthorization()).thenReturn("Basic dummy authorization string");
-        when(serverProperties.getName()).thenReturn(name);
     }
 
     /* Default GET that is done without a login */
     @Test
     public void testGetDefault() throws Exception {
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
-        assertThat(greetingService.getGreeting("Homer Simpson"))
+        assertThat(greetingService.getGreeting("Homer Simpson", Optional.empty()))
                 .isEqualTo(expected);
     }
 
@@ -106,8 +119,10 @@ public class GreetingServiceTest {
     public void testGetDefaultWithTrailer() throws Exception {
         String n = serverProperties.getName() + ".adduserresponse";
         when(featureClient.getFeature(any(), eq(n))).thenReturn(new FeatureToggle(n, true, true, FeatureToggleType.DEV));
+        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
+
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message + trailer + JOE_RANDOM_TEST_USER).build();
-        assertThat(greetingService.getGreeting("Homer Simpson", authInfo))
+        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
                 .isEqualTo(expected);
     }
 
@@ -116,8 +131,9 @@ public class GreetingServiceTest {
     public void testGetDefaultWithTrailerFalseToggle() throws Exception {
         String n = serverProperties.getName() + ".adduserresponse";
         when(featureClient.getFeature(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
+        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
-        assertThat(greetingService.getGreeting("Homer Simpson", authInfo))
+        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
                 .isEqualTo(expected);
     }
 
@@ -126,8 +142,9 @@ public class GreetingServiceTest {
     public void testGetDefaultWithTrailerNoToggle() throws Exception {
         String n = serverProperties.getName() + ".adduserresponse";
         when(featureClient.getFeature(any(), eq(n))).thenReturn(null);
+        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
-        assertThat(greetingService.getGreeting("Homer Simpson", authInfo))
+        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
                 .isEqualTo(expected);
     }
 
@@ -136,17 +153,17 @@ public class GreetingServiceTest {
     public void testSetAndGet() throws Exception {
 
         Greeting expected = Greeting.builder().greeting("hi").message(message).build();
-        assertThat(greetingService.setGreeting("me", "hi", authInfo))
+        assertThat(greetingService.setGreeting("me", "hi"))
                 .isEqualTo(expected);
 
-        assertThat(greetingService.getGreeting("me"))
+        assertThat(greetingService.getGreeting("me", Optional.of(authInfo)))
                 .isEqualTo(expected);
     }
 
     @Test
     public void testDelete() throws Exception {
         Greeting expected = Greeting.builder().greeting("hi").message(message).build();
-        assertThat(greetingService.setGreeting("me", "hi", authInfo))
+        assertThat(greetingService.setGreeting("me", "hi"))
                 .isEqualTo(expected);
 
         greetingService.deleteGreeting("me");

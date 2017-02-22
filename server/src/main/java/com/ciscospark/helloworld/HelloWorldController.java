@@ -1,6 +1,7 @@
 package com.ciscospark.helloworld;
 
 import com.cisco.wx2.server.auth.AuthInfo;
+import com.cisco.wx2.server.auth.AuthUtil;
 import com.cisco.wx2.server.auth.AuthorizationNone;
 import com.ciscospark.helloworld.api.Greeting;
 import org.slf4j.Logger;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.versly.rest.wsdoc.AuthorizationScope;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
@@ -39,21 +42,18 @@ public class HelloWorldController {
      */
     @AuthorizationNone
     @RequestMapping(value = "/greetings/{name}", method = GET)
-    public Greeting getGreeting(@PathVariable("name") String name, HttpServletRequest request)
-    {
-        AuthInfo authInfo = (AuthInfo)request.getAttribute("AuthInfo");
+    public Greeting getGreeting(@PathVariable("name") String name, HttpServletRequest request) {
+        AuthInfo authInfo = AuthUtil.getAuthInfo(request);
 
-        /* Ternary operator used to preserve testing semantics of not having to require a 2nd parameter */
-        return authInfo == null ? greetingService.getGreeting(name) : greetingService.getGreeting(name, authInfo);
+        return greetingService.getGreeting(name, Optional.ofNullable(authInfo));
     }
 
     @AuthorizationScope("*any*")
     @RequestMapping(value = "/greetings/{name}", method = POST)
-    public Greeting postGreeting(@PathVariable("name") String name, @RequestBody Greeting greeting, HttpServletRequest request)
-    {
-        AuthInfo authInfo = (AuthInfo)request.getAttribute("AuthInfo");
+    public Greeting postGreeting(@PathVariable("name") String name, @RequestBody Greeting greeting, HttpServletRequest request) {
+        AuthInfo authInfo = AuthUtil.getAuthInfo(request);
         log.debug("Greeting is going to be set by '{}'", authInfo != null ? authInfo.getEffectiveUser().getName() : "nobody");
-        return greetingService.setGreeting(name, greeting.getGreeting(), authInfo);
+        return greetingService.setGreeting(name, greeting.getGreeting());
     }
 
     @AuthorizationScope("*any*")

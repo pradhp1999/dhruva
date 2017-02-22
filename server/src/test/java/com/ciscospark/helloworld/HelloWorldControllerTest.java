@@ -10,12 +10,12 @@ import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class HelloWorldControllerTest {
 
     @TestConfiguration
+    @Import(RedisTestConfig.class)
     static class TestConfig extends WebMvcConfigurerAdapter {
         @Override
         public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
@@ -77,7 +78,7 @@ public class HelloWorldControllerTest {
 
     @Test
     public void testGetGreeting() throws Exception {
-        given(greetingService.getGreeting(eq("spark"))).willReturn(greeting);
+        given(greetingService.getGreeting(eq("spark"), any())).willReturn(greeting);
 
         mvc.perform(get("/api/v1/greetings/spark"))
                 .andExpect(status().isOk())
@@ -87,7 +88,7 @@ public class HelloWorldControllerTest {
 
     @Test
     public void testPostGreeting() throws Exception {
-        given(greetingService.setGreeting(eq("spark"), eq("Hello spark"), any())).willReturn(greeting);
+        given(greetingService.setGreeting(eq("spark"), eq("Hello spark"))).willReturn(greeting);
 
         mvc.perform(post("/api/v1/greetings/spark").contentType(MediaType.APPLICATION_JSON).content(ObjectMappers.toJson(greeting)))
                 .andExpect(status().isOk())
