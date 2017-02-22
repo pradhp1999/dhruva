@@ -20,7 +20,7 @@
         <artifactId>cisco-spark-parent</artifactId>
         <version>0.0.89</version>
         <!--<version>1.0-SNAPSHOT</version>-->
-        <!--<relativePath>../../cisco-spark-base/cisco-spark-parent</relativePath>-->
+        <!--<relativePath>../cisco-spark-base/cisco-spark-parent</relativePath>-->
     </parent>
 
     <modules>
