@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.versly.rest.wsdoc.AuthorizationScope;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.*;

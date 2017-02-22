@@ -1,19 +1,14 @@
 package com.ciscospark.helloworld;
 
-import com.cisco.wx2.client.ClientFactory;
 import com.cisco.wx2.client.health.ServiceHealthPinger;
 import com.cisco.wx2.dto.health.ServiceHealth;
 import com.cisco.wx2.dto.health.ServiceType;
-import com.cisco.wx2.server.AuditedJedisPool;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.health.MonitorableClientServiceMonitor;
 import com.cisco.wx2.server.health.ServiceMonitor;
 import com.cisco.wx2.util.ObjectMappers;
 import com.cisco.wx2.wdm.client.FeatureClientFactory;
 import com.ciscospark.server.CiscoSparkServerProperties;
-import com.netflix.hystrix.strategy.HystrixPlugins;
-import com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategy;
-import com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategyDefault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
@@ -24,22 +19,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
-import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
-import org.springframework.cloud.netflix.hystrix.EnableHystrix;
-import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
-import org.springframework.cloud.netflix.hystrix.security.SecurityContextConcurrencyStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.DefaultRedisMap;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.net.URI;
 import java.util.Map;
-import java.util.Optional;
 
 /*
  * As of this writing, you cannot run the micro-service in IntelliJ via simply clicking on the "Play" button. You
@@ -76,8 +65,6 @@ import java.util.Optional;
  *    present.
  */
 @SpringBootApplication
-@EnableCircuitBreaker
-@EnableHystrixDashboard
 @EnableAutoConfiguration(exclude = WebMvcAutoConfiguration.class)
 public class HelloWorldApplication extends SpringBootServletInitializer {
     private static final String DEFAULT_FEATURE_PUBLIC_URL = "http://feature-a.wbx2.com/feature/api/v1";

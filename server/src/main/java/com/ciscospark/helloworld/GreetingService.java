@@ -8,7 +8,6 @@ import com.cisco.wx2.wdm.client.FeatureClientFactory;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import com.google.common.base.Preconditions;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,9 +47,17 @@ public class GreetingService {
         this.request = request;
     }
 
+    Greeting getGreeting(String name, Optional<AuthInfo> authInfo)
+    {
+        try {
+            return getEnhancedGreeting(name, authInfo);
+        } catch(Exception e) {
+            log.debug("Unable to retrieve enhanced greeting - {}", e);
+            return getDefaultGreeting(name, authInfo);
+        }
+    }
 
-    @HystrixCommand(fallbackMethod = "getDefaultGreeting")
-    Greeting getGreeting(String name, Optional<AuthInfo> authInfo) {
+    private Greeting getEnhancedGreeting(String name, Optional<AuthInfo> authInfo) {
         Preconditions.checkNotNull(name);
 
         String greeting = store.get(name);
