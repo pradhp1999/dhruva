@@ -39,7 +39,6 @@ import static org.mockito.Mockito.when;
  * a web environment. In other words, it keeps your tests small, efficient and fast. You need to have a mock bean
  * for every @Autowire that exists in your SpringApplication configuration, and a @MockBean for every @Autowire
  * or @Autowire constructor parameter for a @Component (or @Resource, or @Service or spring stereotype).
- *
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -90,8 +89,7 @@ public class GreetingServiceTest {
     private GreetingService greetingService;
 
     @Before
-    public void init()
-    {
+    public void init() {
         when(serverProperties.getName()).thenReturn(name);
 
         String n = serverProperties.getName() + ".adduserresponse";

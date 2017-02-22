@@ -22,7 +22,6 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RefreshScope
-@RequestScope
 public class GreetingService {
     private final String defaultGreetingPrefix;
     private final String message;
@@ -34,25 +33,21 @@ public class GreetingService {
 
     private final CiscoSparkServerProperties serverProperties;
 
-    private final HttpServletRequest request;
-
     @Autowired
-    public GreetingService(HelloWorldProperties properties, FeatureClientFactory featureClientFactory, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties, HttpServletRequest request) {
+    public GreetingService(HelloWorldProperties properties, FeatureClientFactory featureClientFactory, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties) {
         this.defaultGreetingPrefix = properties.getDefaultGreetingPrefix();
         this.message = properties.message;
         this.trailer = properties.trailer;
         this.featureClientFactory = featureClientFactory;
         this.store = store;
         this.serverProperties = serverProperties;
-        this.request = request;
     }
 
-    Greeting getGreeting(String name, Optional<AuthInfo> authInfo)
-    {
+    Greeting getGreeting(String name, Optional<AuthInfo> authInfo) {
         try {
             return getEnhancedGreeting(name, authInfo);
-        } catch(Exception e) {
-            log.debug("Unable to retrieve enhanced greeting - {}", e);
+        } catch (Exception e) {
+            log.error("Unable to retrieve enhanced greeting", e);
             return getDefaultGreeting(name, authInfo);
         }
     }
@@ -72,22 +67,22 @@ public class GreetingService {
          * statement here as an example.
          */
         String sendingMessage =
-            authInfo.flatMap( ai -> {
-                String msg = message;
-                FeatureClient client = featureClientFactory.newClient(ai.getAuthorization());
-                String key = serverProperties.getName() + ".adduserresponse";
-                FeatureToggle feature = client.getFeature(ai.getEffectiveUser().getId(), key);
-                if (feature != null && feature.getBooleanValue()) {
-                    log.debug("Feature {} is set, adding trailer and username to response", key);
-                    msg += " " + trailer + ai.getEffectiveUser().getName();
-                } else
-                    log.debug("Feature {} is not set, omitting trailer and username", key);
+                authInfo.flatMap(ai -> {
+                    String msg = message;
+                    FeatureClient client = featureClientFactory.newClient(ai.getAuthorization());
+                    String key = serverProperties.getName() + ".adduserresponse";
+                    FeatureToggle feature = client.getFeature(ai.getEffectiveUser().getId(), key);
+                    if (feature != null && feature.getBooleanValue()) {
+                        log.debug("Feature {} is set, adding trailer and username to response", key);
+                        msg += " " + trailer + ai.getEffectiveUser().getName();
+                    } else
+                        log.debug("Feature {} is not set, omitting trailer and username", key);
 
-                return Optional.of(msg);
-            }).orElseGet(() -> {
-                log.debug("AuthInfo is not present, omitting trailer and username");
-                return message;
-            });
+                    return Optional.of(msg);
+                }).orElseGet(() -> {
+                    log.debug("AuthInfo is not present, omitting trailer and username");
+                    return message;
+                });
 
         return Greeting.builder().greeting(greeting).message(sendingMessage).build();
     }

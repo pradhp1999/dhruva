@@ -22,9 +22,11 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.DefaultRedisMap;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.net.URI;
@@ -81,6 +83,9 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
     private CiscoSparkServerProperties props;
 
     @Autowired
+    private JedisPool jedisPool;
+
+    @Autowired
     private JedisPoolConfig jedisPoolConfig;
 
     @Bean
@@ -106,9 +111,20 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
     }
 
 
+    class MyJedisConnectionFactory extends JedisConnectionFactory {
+        public MyJedisConnectionFactory(JedisPoolConfig config) {
+            super(config);
+        }
+
+        @Override
+        protected JedisPool createRedisPool() {
+            return jedisPool;
+        }
+    }
+
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new JedisConnectionFactory(jedisPoolConfig);
+        return new MyJedisConnectionFactory(jedisPoolConfig);
     }
 
     @Bean
