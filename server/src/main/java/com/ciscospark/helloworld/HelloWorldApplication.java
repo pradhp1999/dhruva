@@ -111,8 +111,8 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
     }
 
 
-    class MyJedisConnectionFactory extends JedisConnectionFactory {
-        public MyJedisConnectionFactory(JedisPoolConfig config) {
+    class SimpleJedisConnectionFactory extends JedisConnectionFactory {
+        public SimpleJedisConnectionFactory(JedisPoolConfig config) {
             super(config);
         }
 
@@ -124,7 +124,7 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new MyJedisConnectionFactory(jedisPoolConfig);
+        return new SimpleJedisConnectionFactory(jedisPoolConfig);
     }
 
     @Bean
