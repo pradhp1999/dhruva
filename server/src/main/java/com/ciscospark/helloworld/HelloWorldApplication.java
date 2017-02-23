@@ -6,9 +6,15 @@ import com.cisco.wx2.dto.health.ServiceType;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.health.MonitorableClientServiceMonitor;
 import com.cisco.wx2.server.health.ServiceMonitor;
+import com.cisco.wx2.server.util.JedisPoolRedisCacheClient;
+import com.cisco.wx2.server.util.RedisCache;
+import com.cisco.wx2.server.util.RedisCacheClient;
 import com.cisco.wx2.util.ObjectMappers;
 import com.cisco.wx2.wdm.client.FeatureClientFactory;
 import com.ciscospark.server.CiscoSparkServerProperties;
+import com.codahale.metrics.MetricRegistry;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Joiner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
@@ -21,16 +27,11 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnection;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.support.collections.DefaultRedisMap;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /*
  * As of this writing, you cannot run the micro-service in IntelliJ via simply clicking on the "Play" button. You
@@ -71,6 +72,7 @@ import java.util.Map;
 public class HelloWorldApplication extends SpringBootServletInitializer {
     private static final String DEFAULT_FEATURE_PUBLIC_URL = "http://feature-a.wbx2.com/feature/api/v1";
     private static final String FEATURE_URL_PROP = "featureServicePublicUrl";
+    private static final long DEFAULT_CACHE_TIMEOUT = 10;
 
 
     @Autowired
@@ -86,7 +88,8 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
     private JedisPool jedisPool;
 
     @Autowired
-    private JedisPoolConfig jedisPoolConfig;
+    private MetricRegistry metricRegistry;
+
 
     @Bean
     public FeatureClientFactory featureClientFactory() {
@@ -110,32 +113,15 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
         return MonitorableClientServiceMonitor.newMonitor("FeatureService", ServiceType.REQUIRED, pinger);
     }
 
-
-    class SimpleJedisConnectionFactory extends JedisConnectionFactory {
-        public SimpleJedisConnectionFactory(JedisPoolConfig config) {
-            super(config);
-        }
-
-        @Override
-        protected JedisPool createRedisPool() {
-            return jedisPool;
-        }
-    }
-
-    @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        return new SimpleJedisConnectionFactory(jedisPoolConfig);
-    }
-
-    @Bean
-    public StringRedisTemplate redisTemplate() {
-        return new StringRedisTemplate(redisConnectionFactory());
-    }
-
     @Bean
     @Qualifier("store")
     public Map<String, String> greetingStore() {
-        return new DefaultRedisMap<>("store", redisTemplate());
+        return new RedisHashMap<>(jedisPool, props.getName() + "-store", defaultCacheTimeout(), ObjectMappers.getObjectMapper(), metricRegistry);
+    }
+
+    @Bean
+    public Integer defaultCacheTimeout() {
+        return (int)TimeUnit.MINUTES.toSeconds(DEFAULT_CACHE_TIMEOUT);
     }
 
     public URI getFeatureServicePublicUrl() {

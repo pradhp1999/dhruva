@@ -29,10 +29,6 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.ciscospark</groupId>
             <artifactId>hello-world-client</artifactId>
             <version>${project.version}</version>

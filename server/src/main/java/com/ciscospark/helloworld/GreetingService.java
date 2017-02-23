@@ -13,9 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.RequestScope;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,11 +24,8 @@ public class GreetingService {
     private final String defaultGreetingPrefix;
     private final String message;
     private final String trailer;
-
     private final Map<String, String> store;
-
     private final FeatureClientFactory featureClientFactory;
-
     private final CiscoSparkServerProperties serverProperties;
 
     @Autowired
@@ -71,7 +66,7 @@ public class GreetingService {
                     String msg = message;
                     FeatureClient client = featureClientFactory.newClient(ai.getAuthorization());
                     String key = serverProperties.getName() + ".adduserresponse";
-                    FeatureToggle feature = client.getFeature(ai.getEffectiveUser().getId(), key);
+                    FeatureToggle feature = client.getDeveloperFeatureOrNull(ai.getEffectiveUser().getId(), key);
                     if (feature != null && feature.getBooleanValue()) {
                         log.debug("Feature {} is set, adding trailer and username to response", key);
                         msg += " " + trailer + ai.getEffectiveUser().getName();
@@ -107,11 +102,12 @@ public class GreetingService {
     void deleteGreeting(String name) {
         Preconditions.checkNotNull(name);
 
-        log.info("Removing name '{}' from greeting store", name);
-        String greeting = store.remove(name);
-
-        if (greeting == null) {
+        if (store.get(name) == null) {
             throw ServerException.notFound("Greeting not found!");
         }
+
+        log.info("Removing name '{}' from greeting store", name);
+        store.remove(name);
+
     }
 }

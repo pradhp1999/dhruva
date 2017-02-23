@@ -53,11 +53,10 @@ public class GreetingServiceTest {
 
     @TestConfiguration
     @Import(RedisTestConfig.class)
-    static class Config {
+    static class TestConfig {}
 
-    }
 
-    static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
+        static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";
     private static final String JOE_RANDOM_TEST_USER = "Joe Random TestUser";
 
@@ -93,7 +92,7 @@ public class GreetingServiceTest {
         when(serverProperties.getName()).thenReturn(name);
 
         String n = serverProperties.getName() + ".adduserresponse";
-        when(featureClient.getFeature(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
+        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
         when(featureClientFactory.newClient(anyString())).thenReturn(featureClient);
 
         User user = Mockito.mock(User.class);
@@ -116,7 +115,7 @@ public class GreetingServiceTest {
     @Test
     public void testGetDefaultWithTrailer() throws Exception {
         String n = serverProperties.getName() + ".adduserresponse";
-        when(featureClient.getFeature(any(), eq(n))).thenReturn(new FeatureToggle(n, true, true, FeatureToggleType.DEV));
+        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, true, true, FeatureToggleType.DEV));
         when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
 
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message + trailer + JOE_RANDOM_TEST_USER).build();
@@ -128,7 +127,7 @@ public class GreetingServiceTest {
     @Test
     public void testGetDefaultWithTrailerFalseToggle() throws Exception {
         String n = serverProperties.getName() + ".adduserresponse";
-        when(featureClient.getFeature(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
+        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
         when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
         assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
@@ -139,7 +138,7 @@ public class GreetingServiceTest {
     @Test
     public void testGetDefaultWithTrailerNoToggle() throws Exception {
         String n = serverProperties.getName() + ".adduserresponse";
-        when(featureClient.getFeature(any(), eq(n))).thenReturn(null);
+        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(null);
         when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
         assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
