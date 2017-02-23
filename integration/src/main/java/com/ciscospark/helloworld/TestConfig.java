@@ -14,6 +14,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.net.URL;
 
 @Configuration
 @EnableConfigurationProperties
@@ -28,7 +29,7 @@ public class TestConfig extends BaseTestConfig {
             super(env);
         }
 
-        private URI helloWorldApiUrl = URI.create("http://localhost:8080/api/v1");
+        private URI baseUrl = URI.create("http://localhost:9221/api/v1");
     }
 
     @Autowired
@@ -37,9 +38,6 @@ public class TestConfig extends BaseTestConfig {
     @Bean
     public HelloWorldClientFactory helloWorldClientFactory() {
         Preconditions.checkNotNull(testProperties);
-        return HelloWorldClientFactory.builder()
-                .configure(testProperties)
-                .apiServiceUrl(testProperties.getHelloWorldApiUrl())
-                .build();
+        return HelloWorldClientFactory.builder(testProperties, testProperties.getBaseUrl()).build();
     }
 }
