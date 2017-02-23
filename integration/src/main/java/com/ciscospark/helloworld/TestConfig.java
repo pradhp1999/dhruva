@@ -3,11 +3,8 @@ package com.ciscospark.helloworld;
 import com.cisco.wx2.test.BaseTestConfig;
 import com.cisco.wx2.test.TestProperties;
 import com.ciscospark.helloworld.client.HelloWorldClientFactory;
+import com.google.common.base.Preconditions;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -25,7 +22,9 @@ public class TestConfig extends BaseTestConfig {
     @Component
     @ConfigurationProperties
     static class HelloWorldTestProperties extends TestProperties {
+        @Autowired
         public HelloWorldTestProperties(Environment env) {
+
             super(env);
         }
 
@@ -37,6 +36,7 @@ public class TestConfig extends BaseTestConfig {
 
     @Bean
     public HelloWorldClientFactory helloWorldClientFactory() {
+        Preconditions.checkNotNull(testProperties);
         return HelloWorldClientFactory.builder()
                 .configure(testProperties)
                 .apiServiceUrl(testProperties.getHelloWorldApiUrl())

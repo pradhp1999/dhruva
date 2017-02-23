@@ -22,4 +22,9 @@ public class HelloWorldProperties {
      * Message to be delivered with the greeting.
      */
     String message = "Beer is proof God loves us and wants us to be happy";
+
+    /**
+     * Something to optionally append to the greeting.
+     */
+    String trailer = "Message lovingly crafted by";
 }
