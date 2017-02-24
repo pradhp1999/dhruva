@@ -25,7 +25,7 @@
  *   - Steps reference for sparkPipeline library: https://sqbu-github.cisco.com/WebExSquared/pipeline
  */
 
-pipelineOptions {
+pipelineProperties {
     name = 'hello-world'
     numToKeep = 10
 
