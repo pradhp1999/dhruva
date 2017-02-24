@@ -42,7 +42,7 @@ try {
     }
 
     // quick temporary test of Jenkinsfile to see if I can add a throw for the warning stuff ...
-    approveStage('Continue with build even though loadtest failed?', submitter: 'squared', skip: true)
+    input message: 'Loadtest deploy has failed, Continue?'
 
 
     buildStage(pipelineName, services: ['redis:3']) {
