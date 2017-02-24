@@ -38,7 +38,7 @@ roomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vY2ZhODk0NDAtZmE5ZC0xMWU2LWJjNzAtYjUwZTY3Mz
 
 try {
     if (isMasterBranch()) {
-        notify(roomId, "Build started.  Changes since last build:\n${buildChanges(repoBaseUrl)}")
+        notify(roomId, "Build started.")
     }
 
 
@@ -105,17 +105,3 @@ def notify(String roomId, String markdown) {
     sparkSend(roomId: roomId, markdown: "Build [#${currentBuild.number}](${env.BUILD_URL}console): ${markdown.replaceAll("'", "`")}")
 }
 
-def buildChanges(String repoBaseUrl) {
-    String changeString = ""
-    for (changeLogSet in currentBuild.changeSets) {
-        for (entry in changeLogSet.items) {
-            if (entry.author.id == "noreply") {
-                changeString += "* [GH](${repoBaseUrl}/commit/${entry.commitId}) ${entry.msg}\n"
-            } else {
-                changeString += "* [GH](${repoBaseUrl}/commit/${entry.commitId}) ${entry.msg} - <@personEmail:${entry.author.id}@cisco.com|${entry.author.fullName}>\n"
-            }
-        }
-    }
-
-    return changeString ?: "* No new changes"
-}
