@@ -1,5 +1,5 @@
 #!groovy
-@Library('sparkPipeline') _
+@Library('sparkPipeline@extractHelloWorld') _
 
 /**
  * This is a simple pipeline for hello-world. It may work for your service or it may not.
