@@ -41,10 +41,6 @@ try {
         notify(roomId, "Build started.")
     }
 
-    // quick temporary test of Jenkinsfile to see if I can add a throw for the warning stuff ...
-    input message: 'Loadtest deploy has failed, Continue?'
-
-
     buildStage(pipelineName, services: ['redis:3']) {
         sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
         sh 'mvn -Dmaven.test.failure.ignore verify'
@@ -77,7 +73,7 @@ try {
                             }
                         } catch (e) {
                             notify(roomId, "Warning: there was a problem deploying to `loadtest` - timeout reached")
-
+                            timeout(time: 10, unit: 'MINUTES') { input message: 'Loadtest deploy has failed, Continue?' }
                         }
                     }
             )
