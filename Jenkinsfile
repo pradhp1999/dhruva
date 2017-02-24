@@ -41,7 +41,6 @@ try {
         notify(roomId, "Build started.")
     }
 
-
     buildStage(pipelineName, services: ['redis:3']) {
         sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
         sh 'mvn -Dmaven.test.failure.ignore verify'
@@ -74,6 +73,7 @@ try {
                             }
                         } catch (e) {
                             notify(roomId, "Warning: there was a problem deploying to `loadtest` - timeout reached")
+                            timeout(time: 10, unit: 'MINUTES') { input message: 'Loadtest deploy has failed, Continue?' }
                         }
                     }
             )
@@ -92,7 +92,9 @@ try {
             notify(roomId, "Deployed to Production")
         }
 
+        notify(roomId, "Publishing artifacts")
         publish()
+        notify(roomId, "Artifacts published. Build finished.")
     }
 } catch (e) {
     if (isMasterBranch()) {
@@ -100,6 +102,8 @@ try {
     }
     throw e
 }
+
+
 
 def notify(String roomId, String markdown) {
     sparkSend(roomId: roomId, markdown: "Build [#${currentBuild.number}](${env.BUILD_URL}console): ${markdown.replaceAll("'", "`")}")

@@ -6,8 +6,9 @@ import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.NotImplementedException;
 import redis.clients.jedis.JedisPool;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 
 import java.util.Collection;
 import java.util.Map;
@@ -33,12 +34,12 @@ public class RedisHashMap<K, V> implements Map<K, V> {
 
     @Override
     public int size() {
-        throw new NotImplementedException();
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public boolean isEmpty() {
-        throw new NotImplementedException();
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
@@ -48,7 +49,7 @@ public class RedisHashMap<K, V> implements Map<K, V> {
 
     @Override
     public boolean containsValue(Object value) {
-        throw new NotImplementedException();
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
@@ -79,22 +80,22 @@ public class RedisHashMap<K, V> implements Map<K, V> {
 
     @Override
     public void clear() {
-        throw new NotImplementedException();
+        throw new NotImplementedException("Not implemented");
 
     }
 
     @Override
     public Set<K> keySet() {
-        throw new NotImplementedException();
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public Collection<V> values() {
-        throw new NotImplementedException();
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        throw new NotImplementedException();
+        throw new NotImplementedException("Not implemented");
     }
 }
