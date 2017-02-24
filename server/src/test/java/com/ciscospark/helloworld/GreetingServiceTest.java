@@ -53,10 +53,11 @@ public class GreetingServiceTest {
 
     @TestConfiguration
     @Import(RedisTestConfig.class)
-    static class TestConfig {}
+    static class TestConfig {
+    }
 
 
-        static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
+    static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";
     private static final String JOE_RANDOM_TEST_USER = "Joe Random TestUser";
 
