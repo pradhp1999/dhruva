@@ -25,9 +25,9 @@
  *   - Steps reference for sparkPipeline library: https://sqbu-github.cisco.com/WebExSquared/pipeline
  */
 
-pipelineProperties {
-    name = 'hello-world'
-    numToKeep = 10
+pipelineProperties(
+    name: 'hello-world',
+    numToKeep: 10,
 
     /*
      * The room Id refers to the "HelloWorld Pipeline" room, and notifies it with some details. To set this
@@ -35,8 +35,8 @@ pipelineProperties {
      * enable test mode, and then enter the name of your newly-created room to find the room Id. Put that
      * here. Alternatively, if you don't want this, simply remove it and the associated "notify" calls.
      */
-    notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vZmIyYWYyYTAtZmFkNi0xMWU2LWE4MzctZmQ5MjFlYjIzZDA5'
-}
+    notifySparkRoomId: 'Y2lzY29zcGFyazovL3VzL1JPT00vZmIyYWYyYTAtZmFkNi0xMWU2LWE4MzctZmQ5MjFlYjIzZDA5'
+)
 
 buildStage(services: ['redis:3']) {
     sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
