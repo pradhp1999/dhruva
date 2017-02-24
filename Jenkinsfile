@@ -35,7 +35,7 @@ pipelineProperties {
      * enable test mode, and then enter the name of your newly-created room to find the room Id. Put that
      * here. Alternatively, if you don't want this, simply remove it and the associated "notify" calls.
      */
-    notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vY2ZhODk0NDAtZmE5ZC0xMWU2LWJjNzAtYjUwZTY3MzgxYjll'
+    notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vZmIyYWYyYTAtZmFkNi0xMWU2LWE4MzctZmQ5MjFlYjIzZDA5'
 }
 
 buildStage(services: ['redis:3']) {
