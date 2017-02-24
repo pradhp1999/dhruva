@@ -26,30 +26,96 @@
  */
 
 pipelineProperties numToKeep: 10
+pipelineName = 'hello-world'
 
-buildStage('hello-world', services: ['redis:3']) {
-    sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
-    sh 'mvn -Dmaven.test.failure.ignore verify'
+/*
+ * The room Id refers to the "HelloWorld Pipeline" room, and notifies it with some details. To set this
+ * up, create a room in Spark, and then go to https://developer.ciscospark.com/endpoint-rooms-get.html,
+ * enable test mode, and then enter the name of your newly-created room to find the room Id. Put that
+ * here. Alternatively, if you don't want this, simply remove it and the associated "notify" calls.
+ */
+roomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vY2ZhODk0NDAtZmE5ZC0xMWU2LWJjNzAtYjUwZTY3MzgxYjll'
 
-    junit '**/target/**/TEST-*.xml'
-    archive 'target/microservice.yml'
-    archive 'server/target/*.war'
-    
-    archiveMavenArtifacts()
-    archivePubHub()
+try {
+    if (isMasterBranch()) {
+        notify(roomId, "Build started.  Changes since last build:\n${buildChanges(repoBaseUrl)}")
+    }
+
+
+    buildStage(pipelineName, services: ['redis:3']) {
+        sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
+        sh 'mvn -Dmaven.test.failure.ignore verify'
+
+        junit '**/target/**/TEST-*.xml'
+        archive 'target/microservice.yml'
+        archive 'server/target/*.war'
+
+        archiveMavenArtifacts()
+        archivePubHub()
+    }
+
+    if (isMasterBranch()) {
+        notify(roomId, "Deploy to Test?") // Yeah, we could probably add this into approveStage at some point ...
+        approveStage('Deploy to Test', submitter: 'squared') {
+            notify(roomId, "Deploying to integration...")
+            parallel(
+                    integration: {
+                        try {
+                            timeout(time: 10, unit: 'MINUTES') { deploy 'integration' }
+                        } catch (e) {
+                            notify(roomId, "Fatal: there was a problem deploying to `integration` - timeout reachced")
+                            throw e
+                        }
+                    },
+                    loadtest: {
+                        try {
+                            timeout(time: 10, unit: 'MINUTES') {
+                                deploy 'loadtest'
+                            }
+                        } catch (e) {
+                            notify(roomId, "Warning: there was a problem deploying to `loadtest` - timeout reached")
+                        }
+                    }
+            )
+            notify(roomId, "Deployed to integration")
+        }
+
+        notify(roomId, "Deploy to Production?")
+        approveStage('Deploy to Production', submitter: 'squared') {
+            notify(roomId, "Deploying to Production")
+            try {
+                timeout(time: 20, unit: 'MINUTES') { deploy 'production' }
+            } catch(e) {
+                notify(roomId, 'Fatal: there was a problem deploying to `production` - timeout reached')
+                throw e
+            }
+            notify(roomId, "Deployed to Production")
+        }
+
+        publish()
+    }
+} catch (e) {
+    if (isMasterBranch()) {
+        notify(roomId, "Pipeline aborted")
+    }
+    throw e
 }
 
-if (isMasterBranch()) {
-    approveStage('Deploy to Test', submitter: 'squared') {
-        parallel (
-            integration: { deploy 'integration' },
-            loadtest: { deploy 'loadtest' }
-        )
+def notify(String roomId, String markdown) {
+    sparkSend(roomId: roomId, markdown: "Build [#${currentBuild.number}](${env.BUILD_URL}console): ${markdown.replaceAll("'", "`")}")
+}
+
+def buildChanges(String repoBaseUrl) {
+    String changeString = ""
+    for (changeLogSet in currentBuild.changeSets) {
+        for (entry in changeLogSet.items) {
+            if (entry.author.id == "noreply") {
+                changeString += "* [GH](${repoBaseUrl}/commit/${entry.commitId}) ${entry.msg}\n"
+            } else {
+                changeString += "* [GH](${repoBaseUrl}/commit/${entry.commitId}) ${entry.msg} - <@personEmail:${entry.author.id}@cisco.com|${entry.author.fullName}>\n"
+            }
+        }
     }
 
-    approveStage('Deploy to Production', submitter: 'squared') {
-        deploy 'production'
-    }
-
-    publish()
+    return changeString ?: "* No new changes"
 }
