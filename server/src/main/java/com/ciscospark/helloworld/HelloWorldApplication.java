@@ -70,7 +70,7 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 @EnableAutoConfiguration(exclude = WebMvcAutoConfiguration.class)
 public class HelloWorldApplication extends SpringBootServletInitializer {
-    private static final String DEFAULT_FEATURE_PUBLIC_URL = "http://feature-a.wbx2.com/feature/api/v1";
+    private static final String DEFAULT_FEATURE_PUBLIC_URL = "http://localhost:8080/feature/api/v1";
     private static final String FEATURE_URL_PROP = "featureServicePublicUrl";
     private static final long DEFAULT_CACHE_TIMEOUT = 10;
 
