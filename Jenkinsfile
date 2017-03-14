@@ -27,7 +27,7 @@
 
 pipelineProperties(
     name: 'hello-world',
-    numToKeep: 10,
+    numToKeep: 15,
 
     /*
      * The room Id refers to the "HelloWorld Pipeline" room, and notifies it with some details. To set this
