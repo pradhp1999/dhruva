@@ -38,7 +38,8 @@ pipelineProperties(
     notifySparkRoomId: 'Y2lzY29zcGFyazovL3VzL1JPT00vZmIyYWYyYTAtZmFkNi0xMWU2LWE4MzctZmQ5MjFlYjIzZDA5'
 )
 
-buildStage(env.PIPELINE_NAME, services: ['redis:3']) {
+buildStage(env.PIPELINE_NAME, services: ['redis:3']) { services ->
+    env.redisHost = services.redis
     sh "mvn versions:set -DnewVersion=${env.BUILD_VERSION}"
     sh 'mvn -Dmaven.test.failure.ignore verify'
 
