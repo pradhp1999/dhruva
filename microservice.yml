@@ -56,9 +56,9 @@ tests:
   default:
     name: HelloWorld Integration Tests
     files:
-    - "../integration/target/hello-world-integration-tests.jar"
+    - ../integration/target/hello-world-integration-tests.jar
     test-task:
-      command: java -jar integration-tests.jar
+      command: java -jar hello-world-integration-tests.jar
       service-environment: 'true'
     artifacts:
       "**/TEST-*.xml":

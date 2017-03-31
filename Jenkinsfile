@@ -46,6 +46,7 @@ buildStage(env.PIPELINE_NAME, services: ['redis:3']) { services ->
     junit '**/target/**/TEST-*.xml'
     archive 'target/microservice.yml'
     archive 'server/target/*.war'
+    archive 'integration/target/*.jar'
 
     archiveMavenArtifacts()
     archivePubHub()
