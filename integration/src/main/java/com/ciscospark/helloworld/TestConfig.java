@@ -29,7 +29,9 @@ public class TestConfig extends BaseTestConfig {
             super(env);
         }
 
-        private URI baseUrl = URI.create("http://localhost:9221/api/v1");
+        public URI helloWorldUrl() {
+            return URI.create(env.getProperty("helloWorldUrl", "http://localhost:8080/api/v1"));
+        }
     }
 
     @Autowired
@@ -38,6 +40,6 @@ public class TestConfig extends BaseTestConfig {
     @Bean
     public HelloWorldClientFactory helloWorldClientFactory() {
         Preconditions.checkNotNull(testProperties);
-        return HelloWorldClientFactory.builder(testProperties, testProperties.getBaseUrl()).build();
+        return HelloWorldClientFactory.builder(testProperties, testProperties.helloWorldUrl()).build();
     }
 }
