@@ -48,6 +48,7 @@
     </dependencies>
 
     <build>
+        <finalName>hello-world-integration-tests</finalName>
         <plugins>
             <!--
                 Create a shaded jar that contains the integration tests so they can be run independently from

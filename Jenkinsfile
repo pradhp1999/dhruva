@@ -54,9 +54,13 @@ buildStage(env.PIPELINE_NAME, services: ['redis:3']) { services ->
 if (isMasterBranch()) {
     approveStage('Deploy to Test', submitter: 'squared', changeLogSince: 'deployed/integration') {
         parallel(
-            integration: { deploy 'integration' },
+            integration: { buildIds = deploy 'integration' },
             loadtest: { deploy 'loadtest' }
         )
+    }
+
+    stage('Integration tests') {
+        runTests('integration', buildIds.archiveBuildId)
     }
 
     approveStage('Deploy to Production', submitter: 'squared', changeLogSince: 'deployed/production') {

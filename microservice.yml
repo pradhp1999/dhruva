@@ -52,6 +52,18 @@ owner:
   #            typically be the "Ask Component" room
   askspark: 9ddb7ab0-6af4-11e6-8ceb-b9db98a3b15e
 
+tests:
+  default:
+    name: HelloWorld Integration Tests
+    files:
+    - "../integration/target/hello-world-integration-tests.jar"
+    test-task:
+      command: java -jar integration-tests.jar
+      service-environment: 'true'
+    artifacts:
+      "**/TEST-*.xml":
+        type: junit
+
 publish:
   git:
     url: ${env.GIT_URL}
