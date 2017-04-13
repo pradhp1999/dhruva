@@ -30,7 +30,7 @@ public class GreetingService {
 
     @Autowired
     public GreetingService(HelloWorldProperties properties, FeatureClientFactory featureClientFactory, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties) {
-        this.defaultGreetingPrefix = properties.getDefaultGreetingPrefix();
+        this.defaultGreetingPrefix = properties.defaultGreetingPrefix;
         this.message = properties.message;
         this.trailer = properties.trailer;
         this.featureClientFactory = featureClientFactory;

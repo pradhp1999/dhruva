@@ -8,6 +8,7 @@ import com.cisco.wx2.wdm.client.FeatureClient;
 import com.cisco.wx2.wdm.client.FeatureClientFactory;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
+import com.codahale.metrics.MetricRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -39,6 +40,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(HelloWorldController.class)
 public class HelloWorldControllerTest {
+
+
+    @MockBean
+    MetricRegistry metricRegistry;
 
     @TestConfiguration
     @Import(RedisTestConfig.class)
