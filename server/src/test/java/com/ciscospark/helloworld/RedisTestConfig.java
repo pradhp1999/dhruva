@@ -23,8 +23,8 @@ class RedisTestConfig {
     @MockBean
     private JedisPoolConfig jedisPoolConfig;
 
-//    @MockBean
-//    MetricRegistry metricRegistry;
+    @MockBean
+    MetricRegistry metricRegistry;
 
     @Bean
     @Qualifier("store")

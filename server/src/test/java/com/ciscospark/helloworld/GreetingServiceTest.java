@@ -16,11 +16,11 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -50,11 +50,6 @@ import static org.mockito.Mockito.when;
         })
 @AutoConfigureStubRunner(workOffline = true, ids = "com.cisco.wx2:feature-server:+:stubs:8090")
 public class GreetingServiceTest {
-
-    @TestConfiguration
-    @Import(RedisTestConfig.class)
-    static class TestConfig {
-    }
 
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";
@@ -89,6 +84,12 @@ public class GreetingServiceTest {
 
     @Mock
     private AuthInfo authInfo;
+
+    @MockBean
+    private JedisPool jedisPool;
+
+    @MockBean
+    private JedisPoolConfig jedisPoolConfig;
 
     private GreetingService greetingService;
 

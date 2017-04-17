@@ -70,7 +70,7 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 @EnableAutoConfiguration(exclude = WebMvcAutoConfiguration.class)
 public class HelloWorldApplication extends SpringBootServletInitializer {
-    private static final String DEFAULT_FEATURE_PUBLIC_URL = "http://localhost:8090/fearure/api/v1/";
+    private static final String DEFAULT_FEATURE_PUBLIC_URL = "http://localhost:8080/feature/api/v1/";
     private static final String FEATURE_URL_PROP = "featureServicePublicUrl";
     private static final long DEFAULT_CACHE_TIMEOUT = 10;
 
@@ -100,7 +100,7 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
     }
 
     /* Feature service currently does not implement ServiceHealthPinger, so we need to create one ourselves, hence
-     * the single-line closure cd he    for pinger ...
+     * the single-line closure for pinger ...
      */
     @Bean
     @ConditionalOnMissingBean(name = "featureServiceServiceMonitor")
