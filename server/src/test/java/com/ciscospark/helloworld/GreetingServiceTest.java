@@ -125,7 +125,7 @@ public class GreetingServiceTest {
                 .isEqualTo(expected);
     }
 
-    /* GET that is done with a login and with the  */
+    /* GET that is done with a login, and with the adduserresponse feature toggle set to false */
     @Test
     public void testGetDefaultWithTrailerFalseToggleFromUnAuthorizedUser() throws Exception {
 

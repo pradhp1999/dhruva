@@ -1,7 +1,6 @@
 package com.ciscospark.helloworld;
 
 import com.codahale.metrics.MetricRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
