@@ -1,8 +1,6 @@
 package com.ciscospark.helloworld;
 
 import com.cisco.wx2.dto.User;
-import com.cisco.wx2.dto.wdm.FeatureToggle;
-import com.cisco.wx2.dto.wdm.FeatureToggleType;
 import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.auth.AuthInfo;
 import com.cisco.wx2.server.config.ConfigProperties;
@@ -13,34 +11,24 @@ import com.ciscospark.server.CiscoSparkServerProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -57,28 +45,29 @@ import static org.mockito.Mockito.when;
                 "cisco-spark.server.importLegacyServerConfig=false",
                 "hello-world.defaultGreetingPrefix=Doh!",
                 "hello-world.message=" + GreetingServiceTest.message,
-                "hello-world.trailer=" + GreetingServiceTest.trailer
+                "hello-world.trailer=" + GreetingServiceTest.trailer,
+                "featureServicePublicUrl=" + "http://localhost:8090/"
         })
 @AutoConfigureStubRunner(workOffline = true, ids = "com.cisco.wx2:feature-server:+:stubs:8090")
-public class GreetingServiceTest  {
+public class GreetingServiceTest {
 
     @TestConfiguration
     @Import(RedisTestConfig.class)
     static class TestConfig {
     }
 
-
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";
     private static final String JOE_RANDOM_TEST_USER = "Joe Random TestUser";
+    private static final String JOE_RANDOM_TEST_UUID = "b3474dff-8de5-4b12-8e2b-dfeee1cd11b2";
+
+    private static final String BOB_RANDOM_UNAUTHORIZED_USER = "BOB Random TestUser";
+    private static final String BOB_RANDOM_UNAUTHORIZED_TEST_UUID = "2fdf0844-d1aa-4d4b-8699-8043b97ddac5";
+
 
     /* Since we do not have a real application context, server properties are a dummy, so pull this in separately */
     @Value("${spring.application.name:application}")
     private String name;
-//
-//    @MockBean
-//    @Qualifier("store")
-//    private Map<String, String> store;
 
     @MockBean
     private ConfigProperties configProperties;
@@ -101,25 +90,17 @@ public class GreetingServiceTest  {
     @Mock
     private AuthInfo authInfo;
 
-//    @Autowired
-//    @InjectMocks
     private GreetingService greetingService;
 
     @Before
     public void init() {
 
-//        HelloWorldProperties properties, FeatureClientFactory featureClientFactory, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties
-
-        greetingService = new GreetingService(properties,featureClientFactory, new HashMap<>(),serverProperties );
+        greetingService = new GreetingService(properties, featureClientFactory, new HashMap<>(), serverProperties);
         when(serverProperties.getName()).thenReturn(name);
-
-        String n = serverProperties.getName() + ".adduserresponse";
-//        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
-//        when(featureClientFactory.newClient(anyString())).thenReturn(featureClient);
 
         User user = Mockito.mock(User.class);
         when(user.getName()).thenReturn(JOE_RANDOM_TEST_USER);
-        when(user.getId()).thenReturn(UUID.randomUUID());
+        when(user.getId()).thenReturn(UUID.fromString(JOE_RANDOM_TEST_UUID));
 
         when(authInfo.getEffectiveUser()).thenReturn(user);
         when(authInfo.getAuthorization()).thenReturn("Basic dummy authorization string");
@@ -132,70 +113,68 @@ public class GreetingServiceTest  {
         assertThat(greetingService.getGreeting("Homer Simpson", Optional.empty()))
                 .isEqualTo(expected);
     }
-//
-//    /* GET that is done with a login, and with the adduserresponse feature toggle set */
-//    @Test
-//    public void testGetDefaultWithTrailer() throws Exception {
-//        String n = serverProperties.getName() + ".adduserresponse";
-////        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, true, true, FeatureToggleType.DEV));
-//        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
-//
-//        Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message + trailer + JOE_RANDOM_TEST_USER).build();
-//        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
-//                .isEqualTo(expected);
-//    }
-//
-    /* GET that is done with a login, and with the adduserresponse feature toggle set to false */
+
+    /* GET that is done with a login, and with the adduserresponse feature toggle set */
     @Test
-    public void testGetDefaultWithTrailerFalseToggle() throws Exception {
-        String n = serverProperties.getName() + ".adduserresponse";
-//        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
+    public void testGetDefaultWithTrailerTrueToggleFromAuthorizedUser() throws Exception {
         when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
+
+        Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message + trailer + JOE_RANDOM_TEST_USER).build();
+        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
+                .isEqualTo(expected);
+    }
+
+    /* GET that is done with a login and with the  */
+    @Test
+    public void testGetDefaultWithTrailerFalseToggleFromUnAuthorizedUser() throws Exception {
+
+        User user = Mockito.mock(User.class);
+        when(user.getName()).thenReturn(BOB_RANDOM_UNAUTHORIZED_USER);
+        when(user.getId()).thenReturn(UUID.fromString(BOB_RANDOM_UNAUTHORIZED_TEST_UUID));
+
+        when(authInfo.getEffectiveUser()).thenReturn(user);
+
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
         assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
                 .isEqualTo(expected);
     }
-//
-//    /* GET that is done with a login, and with the adduserresponse feature not present */
-//    @Test
-//    public void testGetDefaultWithTrailerNoToggle() throws Exception {
-//        String n = serverProperties.getName() + ".adduserresponse";
-////        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(null);
-//        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
-//        Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
-//        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
-//                .isEqualTo(expected);
-//    }
-//
-//
-//    @Test
-//    public void testSetAndGet() throws Exception {
-//
-//        Greeting expected = Greeting.builder().greeting("hi").message(message).build();
-//        assertThat(greetingService.setGreeting("me", "hi"))
-//                .isEqualTo(expected);
-//
-//        assertThat(greetingService.getGreeting("me", Optional.of(authInfo)))
-//                .isEqualTo(expected);
-//    }
-//
-//    @Test
-//    public void testDelete() throws Exception {
-//        Greeting expected = Greeting.builder().greeting("hi").message(message).build();
-//        assertThat(greetingService.setGreeting("me", "hi"))
-//                .isEqualTo(expected);
-//
-//        greetingService.deleteGreeting("me");
-//
-//        // Verify deleting again throws exception
-//        assertThatThrownBy(() -> greetingService.deleteGreeting("me"))
-//                .isInstanceOf(ServerException.class)
-//                .hasMessageContaining("not found");
-//
-//        // Verify deleting a non-existent greeting throws not found exception
-//        assertThatThrownBy(() -> greetingService.deleteGreeting("non-existent"))
-//                .isInstanceOf(ServerException.class)
-//                .hasMessageContaining("not found");
-//
-//    }
+
+    /* GET that is done with a login, and with the adduserresponse feature not present */
+    @Test
+    public void testGetDefaultWithTrailerNoToggle() throws Exception {
+        Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
+        assertThat(greetingService.getGreeting("Homer Simpson", Optional.empty()))
+                .isEqualTo(expected);
+    }
+
+    @Test
+    public void testSetAndGet() throws Exception {
+
+        Greeting expected = Greeting.builder().greeting("hi").message(message).build();
+        assertThat(greetingService.setGreeting("me", "hi"))
+                .isEqualTo(expected);
+
+        assertThat(greetingService.getGreeting("me", Optional.empty()))
+                .isEqualTo(expected);
+    }
+
+    @Test
+    public void testDelete() throws Exception {
+        Greeting expected = Greeting.builder().greeting("hi").message(message).build();
+        assertThat(greetingService.setGreeting("me", "hi"))
+                .isEqualTo(expected);
+
+        greetingService.deleteGreeting("me");
+
+        // Verify deleting again throws exception
+        assertThatThrownBy(() -> greetingService.deleteGreeting("me"))
+                .isInstanceOf(ServerException.class)
+                .hasMessageContaining("not found");
+
+        // Verify deleting a non-existent greeting throws not found exception
+        assertThatThrownBy(() -> greetingService.deleteGreeting("non-existent"))
+                .isInstanceOf(ServerException.class)
+                .hasMessageContaining("not found");
+
+    }
 }

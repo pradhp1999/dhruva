@@ -65,7 +65,7 @@ public class GreetingService {
                 authInfo.flatMap(ai -> {
                     String msg = message;
                     FeatureClient client = featureClientFactory.newClient(ai.getAuthorization());
-                    String key = serverProperties.getName() + ".adduserresponse";
+                    String key = serverProperties.getName() + "-adduserresponse";
                     FeatureToggle feature = client.getDeveloperFeatureOrNull(ai.getEffectiveUser().getId(), key);
                     if (feature != null && feature.getBooleanValue()) {
                         log.debug("Feature {} is set, adding trailer and username to response", key);
