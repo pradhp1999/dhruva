@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(HelloWorldController.class)
 public class HelloWorldControllerTest {
 
-   @TestConfiguration
+    @TestConfiguration
     @Import(RedisTestConfig.class)
     static class TestConfig extends WebMvcConfigurerAdapter {
         @Override
