@@ -22,9 +22,6 @@ class RedisTestConfig {
     @MockBean
     private JedisPoolConfig jedisPoolConfig;
 
-    @MockBean
-    MetricRegistry metricRegistry;
-
     @Bean
     @Qualifier("store")
     public Map<String, String> greetingStore() {

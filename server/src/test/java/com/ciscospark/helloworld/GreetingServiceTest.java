@@ -1,6 +1,8 @@
 package com.ciscospark.helloworld;
 
 import com.cisco.wx2.dto.User;
+import com.cisco.wx2.dto.wdm.FeatureToggle;
+import com.cisco.wx2.dto.wdm.FeatureToggleType;
 import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.auth.AuthInfo;
 import com.cisco.wx2.server.config.ConfigProperties;
@@ -8,27 +10,28 @@ import com.cisco.wx2.wdm.client.FeatureClient;
 import com.cisco.wx2.wdm.client.FeatureClientFactory;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
+import com.codahale.metrics.MetricRegistry;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -45,20 +48,21 @@ import static org.mockito.Mockito.when;
                 "cisco-spark.server.importLegacyServerConfig=false",
                 "hello-world.defaultGreetingPrefix=Doh!",
                 "hello-world.message=" + GreetingServiceTest.message,
-                "hello-world.trailer=" + GreetingServiceTest.trailer,
-                "featureServicePublicUrl=" + "http://localhost:8090/"
+                "hello-world.trailer=" + GreetingServiceTest.trailer
         })
-@AutoConfigureStubRunner(workOffline = true, ids = "com.cisco.wx2:feature-server:+:stubs:8090")
 public class GreetingServiceTest {
+
+    @TestConfiguration
+    @Import(RedisTestConfig.class)
+    static class TestConfig {
+    }
+
+    @MockBean
+    MetricRegistry metricRegistry;
 
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";
     private static final String JOE_RANDOM_TEST_USER = "Joe Random TestUser";
-    private static final UUID JOE_RANDOM_TEST_UUID =  UUID.fromString("b3474dff-8de5-4b12-8e2b-dfeee1cd11b2");
-
-    private static final String BOB_RANDOM_UNAUTHORIZED_USER = "BOB Random TestUser";
-    private static final UUID BOB_RANDOM_UNAUTHORIZED_TEST_UUID =  UUID.fromString("2fdf0844-d1aa-4d4b-8699-8043b97ddac5");
-
 
     /* Since we do not have a real application context, server properties are a dummy, so pull this in separately */
     @Value("${spring.application.name:application}")
@@ -73,35 +77,30 @@ public class GreetingServiceTest {
     @MockBean
     private FeatureClient featureClient;
 
-    @Autowired
+    @MockBean
     private FeatureClientFactory featureClientFactory;
 
     @MockBean
     private HttpServletRequest servletRequest;
 
-    @Autowired
-    private HelloWorldProperties properties;
-
     @Mock
     private AuthInfo authInfo;
 
-    @MockBean
-    private JedisPool jedisPool;
-
-    @MockBean
-    private JedisPoolConfig jedisPoolConfig;
-
+    @Autowired
+    @InjectMocks
     private GreetingService greetingService;
 
     @Before
     public void init() {
-
-        greetingService = new GreetingService(properties, featureClientFactory, new HashMap<>(), serverProperties);
         when(serverProperties.getName()).thenReturn(name);
+
+        String n = serverProperties.getName() + "-adduserresponse";
+        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
+        when(featureClientFactory.newClient(anyString())).thenReturn(featureClient);
 
         User user = Mockito.mock(User.class);
         when(user.getName()).thenReturn(JOE_RANDOM_TEST_USER);
-        when(user.getId()).thenReturn(JOE_RANDOM_TEST_UUID);
+        when(user.getId()).thenReturn(UUID.randomUUID());
 
         when(authInfo.getEffectiveUser()).thenReturn(user);
         when(authInfo.getAuthorization()).thenReturn("Basic dummy authorization string");
@@ -117,7 +116,9 @@ public class GreetingServiceTest {
 
     /* GET that is done with a login, and with the adduserresponse feature toggle set */
     @Test
-    public void testGetDefaultWithTrailerTrueToggleFromAuthorizedUser() throws Exception {
+    public void testGetDefaultWithTrailer() throws Exception {
+        String n = serverProperties.getName() + "-adduserresponse";
+        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, true, true, FeatureToggleType.DEV));
         when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
 
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message + trailer + JOE_RANDOM_TEST_USER).build();
@@ -127,14 +128,10 @@ public class GreetingServiceTest {
 
     /* GET that is done with a login, and with the adduserresponse feature toggle set to false */
     @Test
-    public void testGetDefaultWithTrailerFalseToggleFromUnAuthorizedUser() throws Exception {
-
-        User user = Mockito.mock(User.class);
-        when(user.getName()).thenReturn(BOB_RANDOM_UNAUTHORIZED_USER);
-        when(user.getId()).thenReturn(BOB_RANDOM_UNAUTHORIZED_TEST_UUID);
-
-        when(authInfo.getEffectiveUser()).thenReturn(user);
-
+    public void testGetDefaultWithTrailerFalseToggle() throws Exception {
+        String n = serverProperties.getName() + "-adduserresponse";
+        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
+        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
         assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
                 .isEqualTo(expected);
@@ -143,10 +140,14 @@ public class GreetingServiceTest {
     /* GET that is done with a login, and with the adduserresponse feature not present */
     @Test
     public void testGetDefaultWithTrailerNoToggle() throws Exception {
+        String n = serverProperties.getName() + "-adduserresponse";
+        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(null);
+        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
-        assertThat(greetingService.getGreeting("Homer Simpson", Optional.empty()))
+        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
                 .isEqualTo(expected);
     }
+
 
     @Test
     public void testSetAndGet() throws Exception {
@@ -155,7 +156,7 @@ public class GreetingServiceTest {
         assertThat(greetingService.setGreeting("me", "hi"))
                 .isEqualTo(expected);
 
-        assertThat(greetingService.getGreeting("me", Optional.empty()))
+        assertThat(greetingService.getGreeting("me", Optional.of(authInfo)))
                 .isEqualTo(expected);
     }
 

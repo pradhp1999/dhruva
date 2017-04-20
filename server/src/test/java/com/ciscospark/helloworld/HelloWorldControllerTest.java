@@ -8,6 +8,7 @@ import com.cisco.wx2.wdm.client.FeatureClient;
 import com.cisco.wx2.wdm.client.FeatureClientFactory;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
+import com.codahale.metrics.MetricRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -48,7 +49,8 @@ public class HelloWorldControllerTest {
             exceptionResolvers.add(new ExceptionResolver());
         }
     }
-
+    @MockBean
+    MetricRegistry metricRegistry;
 
     /* Even though they are not referenced or used in this test, the MockBean instances are needed in order to satisfy
      * HelloWorldApplication's @Autowired beans, because the use of @TestConfiguration augments, as opposed to replaces
