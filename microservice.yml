@@ -63,6 +63,17 @@ tests:
     artifacts:
       "**/TEST-*.xml":
         type: junit
+  hello-world-integration:
+    name: Integration tests that consume hello-world
+    files:
+    - ../integration/target/hello-world-integration-tests.jar
+    tags:
+      [xtest.hello-world]
+    test-task:
+      command: java -jar hello-world-integration-tests.jar
+    artifacts:
+      "**/TEST-*.xml":
+        type: junit
 
 publish:
   git:
