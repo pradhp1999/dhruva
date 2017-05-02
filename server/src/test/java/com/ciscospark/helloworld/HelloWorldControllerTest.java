@@ -13,9 +13,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -23,7 +25,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
@@ -42,15 +46,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class HelloWorldControllerTest {
 
     @TestConfiguration
-    @Import(RedisTestConfig.class)
     static class TestConfig extends WebMvcConfigurerAdapter {
         @Override
         public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
             exceptionResolvers.add(new ExceptionResolver());
         }
+        @Bean
+        @Qualifier("store")
+        public Map<String, String> greetingStore() {
+            return new HashMap<>();
+        }
     }
-    @MockBean
-    MetricRegistry metricRegistry;
+//    @MockBean
+//    MetricRegistry metricRegistry;
 
     /* Even though they are not referenced or used in this test, the MockBean instances are needed in order to satisfy
      * HelloWorldApplication's @Autowired beans, because the use of @TestConfiguration augments, as opposed to replaces

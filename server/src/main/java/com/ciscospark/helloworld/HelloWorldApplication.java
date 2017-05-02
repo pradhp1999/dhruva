@@ -84,13 +84,6 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
     @Autowired
     private CiscoSparkServerProperties props;
 
-    @Autowired
-    private JedisPool jedisPool;
-
-    @Autowired
-    private MetricRegistry metricRegistry;
-
-
     @Bean
     public FeatureClientFactory featureClientFactory() {
         return FeatureClientFactory.builder(configProperties)
@@ -115,7 +108,7 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
 
     @Bean
     @Qualifier("store")
-    public Map<String, String> greetingStore() {
+    public Map<String, String> greetingStore(JedisPool jedisPool, MetricRegistry metricRegistry) {
         return new RedisHashMap<>(jedisPool, props.getName() + "-store", defaultCacheTimeout(), ObjectMappers.getObjectMapper(), metricRegistry);
     }
 

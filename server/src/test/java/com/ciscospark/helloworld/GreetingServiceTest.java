@@ -18,14 +18,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -52,13 +56,17 @@ import static org.mockito.Mockito.when;
         })
 public class GreetingServiceTest {
 
+
     @TestConfiguration
-    @Import(RedisTestConfig.class)
+//    @Import(RedisTestConfig.class)
     static class TestConfig {
+        @Bean
+        @Qualifier("store")
+        public Map<String, String> greetingStore() {
+            return new HashMap<>();
+        }
     }
 
-    @MockBean
-    MetricRegistry metricRegistry;
 
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";

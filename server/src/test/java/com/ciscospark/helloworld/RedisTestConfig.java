@@ -16,11 +16,6 @@ import java.util.Map;
  */
 @TestConfiguration
 class RedisTestConfig {
-    @MockBean
-    private JedisPool jedisPool;
-
-    @MockBean
-    private JedisPoolConfig jedisPoolConfig;
 
     @Bean
     @Qualifier("store")
