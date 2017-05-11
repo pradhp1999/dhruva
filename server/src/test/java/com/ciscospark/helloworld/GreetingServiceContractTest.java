@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
                 "hello-world.message=" + GreetingServiceTest.message,
                 "hello-world.trailer=" + GreetingServiceTest.trailer,
                 "featureServicePublicUrl=" + "http://localhost:8090/"})
-@AutoConfigureStubRunner(workOffline = true, ids = "com.cisco.wx2:feature-server:+:stubs:8090")
+@AutoConfigureStubRunner(repositoryRoot = "http://engci-maven.cisco.com/artifactory/webex-cca-group", workOffline = false, ids = "com.cisco.wx2:feature-server:+:stubs:8090")
 @DirtiesContext
 public class GreetingServiceContractTest {
 
