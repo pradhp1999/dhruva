@@ -57,8 +57,6 @@ public class HelloWorldControllerTest {
             return new HashMap<>();
         }
     }
-//    @MockBean
-//    MetricRegistry metricRegistry;
 
     /* Even though they are not referenced or used in this test, the MockBean instances are needed in order to satisfy
      * HelloWorldApplication's @Autowired beans, because the use of @TestConfiguration augments, as opposed to replaces

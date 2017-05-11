@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-        classes = RedisTestConfig.class,
+        classes = TestConfig.class,
         properties = {
                 "cisco-spark.server.importLegacyServerConfig=false",
                 "hello-world.defaultGreetingPrefix=Doh!",
