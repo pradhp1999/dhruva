@@ -2,8 +2,7 @@
 @Library('sparkPipeline') _
 
 /**
- * This is a simple pipeline for hello-world. It may work for your service or it may not.
- * Browse https://sqbu-github.cisco.com/WebExSquared/pipeline/blob/master/samples for more.
+ * This is a simple pipeline for hello-world.
  *
  * This pipeline performs a `mvn verify` at the root level after using the `versions:set`
  * maven goal to update the POMs with a version generated from the current build number.
@@ -33,7 +32,9 @@ pipelineProperties(
      * The room Id refers to the "HelloWorld Pipeline" room, and notifies it with some details. To set this
      * up, create a room in Spark, and then go to https://developer.ciscospark.com/endpoint-rooms-get.html,
      * enable test mode, and then enter the name of your newly-created room to find the room Id. Put that
-     * here. Alternatively, if you don't want this, simply remove it and the associated "notify" calls.
+     * here. Lastly, add the Jenkins Pipeline Notifications bot to your room.
+     * 
+     * Alternatively, if you don't want this, simply remove it and the associated "notify" calls.
      */
     notifySparkRoomId: 'Y2lzY29zcGFyazovL3VzL1JPT00vZmIyYWYyYTAtZmFkNi0xMWU2LWE4MzctZmQ5MjFlYjIzZDA5'
 )
