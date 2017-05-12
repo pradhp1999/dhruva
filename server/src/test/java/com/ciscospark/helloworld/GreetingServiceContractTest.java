@@ -79,7 +79,7 @@ public class GreetingServiceContractTest {
     }
 
     @Test
-    public void test_Get_Default_Greeting() throws Exception {
+    public void testGetDefaultGreeting() throws Exception {
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
         assertThat(greetingService.getGreeting("Homer Simpson", Optional.empty()))
                 .isEqualTo(expected);
@@ -90,7 +90,7 @@ public class GreetingServiceContractTest {
      * tells the Hello World to include the trailer in the greeting message.
      * */
     @Test
-    public void when_Authorized_User_The_Trailer_Is_Included_In_The_Greeting() throws Exception {
+    public void testGetDefaultWithTrailer() throws Exception {
 
         User user = Mockito.mock(User.class);
         when(user.getName()).thenReturn(JOE_RANDOM_TEST_USER);
@@ -109,7 +109,7 @@ public class GreetingServiceContractTest {
      * tells the Hello World to not include the trailer in the greeting message.
      * */
     @Test
-    public void when_Not_Authorized_User_The_Trailer_Is_Not_Included_In_The_Greeting() throws Exception {
+    public void testGetDefaultWithTrailerFalseToggle() throws Exception {
 
         User user = Mockito.mock(User.class);
         when(user.getName()).thenReturn(BOB_RANDOM_UNAUTHORIZED_USER);
