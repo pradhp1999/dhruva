@@ -19,9 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +41,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
+        classes = TestConfig.class,
         properties = {
                 "cisco-spark.server.importLegacyServerConfig=false",
                 "hello-world.defaultGreetingPrefix=Doh!",
@@ -51,12 +50,6 @@ import static org.mockito.Mockito.when;
         })
 public class GreetingServiceTest {
 
-    @TestConfiguration
-    @Import(RedisTestConfig.class)
-    static class TestConfig {
-    }
-
-
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";
     private static final String JOE_RANDOM_TEST_USER = "Joe Random TestUser";
@@ -64,10 +57,6 @@ public class GreetingServiceTest {
     /* Since we do not have a real application context, server properties are a dummy, so pull this in separately */
     @Value("${spring.application.name:application}")
     private String name;
-
-
-    @MockBean
-    private ConfigProperties configProperties;
 
     @MockBean
     private CiscoSparkServerProperties serverProperties;
@@ -92,7 +81,7 @@ public class GreetingServiceTest {
     public void init() {
         when(serverProperties.getName()).thenReturn(name);
 
-        String n = serverProperties.getName() + ".adduserresponse";
+        String n = serverProperties.getName() + "-adduserresponse";
         when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
         when(featureClientFactory.newClient(anyString())).thenReturn(featureClient);
 
@@ -115,7 +104,7 @@ public class GreetingServiceTest {
     /* GET that is done with a login, and with the adduserresponse feature toggle set */
     @Test
     public void testGetDefaultWithTrailer() throws Exception {
-        String n = serverProperties.getName() + ".adduserresponse";
+        String n = serverProperties.getName() + "-adduserresponse";
         when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, true, true, FeatureToggleType.DEV));
         when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
 
@@ -127,7 +116,7 @@ public class GreetingServiceTest {
     /* GET that is done with a login, and with the adduserresponse feature toggle set to false */
     @Test
     public void testGetDefaultWithTrailerFalseToggle() throws Exception {
-        String n = serverProperties.getName() + ".adduserresponse";
+        String n = serverProperties.getName() + "-adduserresponse";
         when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
         when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
@@ -138,7 +127,7 @@ public class GreetingServiceTest {
     /* GET that is done with a login, and with the adduserresponse feature not present */
     @Test
     public void testGetDefaultWithTrailerNoToggle() throws Exception {
-        String n = serverProperties.getName() + ".adduserresponse";
+        String n = serverProperties.getName() + "-adduserresponse";
         when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(null);
         when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
