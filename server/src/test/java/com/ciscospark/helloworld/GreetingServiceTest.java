@@ -59,9 +59,6 @@ public class GreetingServiceTest {
     private String name;
 
     @MockBean
-    private ConfigProperties configProperties;
-
-    @MockBean
     private CiscoSparkServerProperties serverProperties;
 
     @MockBean

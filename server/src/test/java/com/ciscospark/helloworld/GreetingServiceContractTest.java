@@ -52,9 +52,9 @@ import static org.mockito.Mockito.when;
                 "hello-world.trailer=" + GreetingServiceTest.trailer,
                 "featureServicePublicUrl=" + "http://localhost:8090/"})
 @AutoConfigureStubRunner(repositoryRoot = "http://engci-maven.cisco.com/artifactory/webex-cca-group", workOffline = false, ids = "com.cisco.wx2:feature-server:+:stubs:8090")
-@DirtiesContext
 public class GreetingServiceContractTest {
 
+    static final String name = "hello-world";
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";
     private static final String JOE_RANDOM_TEST_USER = "Joe Random TestUser";
@@ -63,20 +63,8 @@ public class GreetingServiceContractTest {
     private static final String BOB_RANDOM_UNAUTHORIZED_USER = "BOB Random TestUser";
     private static final UUID BOB_RANDOM_UNAUTHORIZED_TEST_UUID = UUID.fromString("2fdf0844-d1aa-4d4b-8699-8043b97ddac5");
 
-    @Autowired
-    MetricRegistry metricRegistry;
-
-    @Value("${spring.application.name:application}")
-    private String name;
-
-    @Autowired
-    private FeatureClientFactory featureClientFactory;
-
     @MockBean
     private CiscoSparkServerProperties ciscoSparkServerProperties;
-
-    @MockBean
-    private ConfigProperties configProperties;
 
     @InjectMocks
     @Autowired
@@ -88,13 +76,6 @@ public class GreetingServiceContractTest {
     @Before
     public void init() {
         when(ciscoSparkServerProperties.getName()).thenReturn(name);
-
-        User user = Mockito.mock(User.class);
-        when(user.getName()).thenReturn(JOE_RANDOM_TEST_USER);
-        when(user.getId()).thenReturn(JOE_RANDOM_TEST_UUID);
-
-        when(authInfo.getEffectiveUser()).thenReturn(user);
-        when(authInfo.getAuthorization()).thenReturn("Basic dummy authorization string");
     }
 
     @Test
@@ -110,6 +91,14 @@ public class GreetingServiceContractTest {
      * */
     @Test
     public void testThatAuthorizedUserIncludeTheTrailerInTheGreetingMessage() throws Exception {
+
+        User user = Mockito.mock(User.class);
+        when(user.getName()).thenReturn(JOE_RANDOM_TEST_USER);
+        when(user.getId()).thenReturn(JOE_RANDOM_TEST_UUID);
+
+        when(authInfo.getEffectiveUser()).thenReturn(user);
+        when(authInfo.getAuthorization()).thenReturn("Basic dummy authorization string");
+
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message + trailer + JOE_RANDOM_TEST_USER).build();
         assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
                 .isEqualTo(expected);
@@ -127,6 +116,7 @@ public class GreetingServiceContractTest {
         when(user.getId()).thenReturn(BOB_RANDOM_UNAUTHORIZED_TEST_UUID);
 
         when(authInfo.getEffectiveUser()).thenReturn(user);
+        when(authInfo.getAuthorization()).thenReturn("Basic dummy authorization string");
 
         Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
         assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
