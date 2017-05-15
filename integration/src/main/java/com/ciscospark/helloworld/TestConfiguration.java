@@ -18,7 +18,7 @@ import java.net.URL;
 
 @Configuration
 @EnableConfigurationProperties
-public class TestConfigIT extends BaseTestConfig {
+public class TestConfiguration extends BaseTestConfig {
     @Data
     @Component
     @ConfigurationProperties
