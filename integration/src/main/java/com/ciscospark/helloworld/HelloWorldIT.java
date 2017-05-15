@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = TestConfigIT.class)
+@ContextConfiguration(classes = TestConfiguration.class)
 public class HelloWorldIT extends AbstractJUnit4SpringContextTests {
     @Autowired
     private HelloWorldClientFactory helloWorldClientFactory;
