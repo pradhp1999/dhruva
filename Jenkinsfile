@@ -36,7 +36,7 @@ pipelineProperties(
      * 
      * Alternatively, if you don't want this, simply remove it and the associated "notify" calls.
      */
-    notifySparkRoomId: 'Y2lzY29zcGFyazovL3VzL1JPT00vZmIyYWYyYTAtZmFkNi0xMWU2LWE4MzctZmQ5MjFlYjIzZDA5'
+    notifySparkRoomId: 'Y2lzY29zcGFyazovL3VzL1JPT00vODM2YzMzYjAtZGNkNS0xMWU2LTg1MWEtYzNmZWU2OTE1MWFhCg=='
 )
 
 buildStage(env.PIPELINE_NAME, services: ['redis:3']) { services ->
