@@ -49,6 +49,10 @@
             <version>2.9.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.cisco.wx2</groupId>
+            <artifactId>feature-client</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
