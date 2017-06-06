@@ -10,7 +10,7 @@ import com.cisco.wx2.server.util.JedisPoolRedisCacheClient;
 import com.cisco.wx2.server.util.RedisCache;
 import com.cisco.wx2.server.util.RedisCacheClient;
 import com.cisco.wx2.util.ObjectMappers;
-import com.cisco.wx2.wdm.client.FeatureClientFactory;
+import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.core.type.TypeReference;

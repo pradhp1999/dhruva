@@ -3,7 +3,6 @@ package com.ciscospark.helloworld;
 import com.cisco.wx2.dto.User;
 import com.cisco.wx2.server.auth.AuthInfo;
 import com.cisco.wx2.server.config.ConfigProperties;
-import com.cisco.wx2.wdm.client.FeatureClientFactory;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import com.codahale.metrics.MetricRegistry;
