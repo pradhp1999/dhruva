@@ -50,6 +50,15 @@ import static org.mockito.Mockito.when;
                 "hello-world.message=" + GreetingServiceTest.message,
                 "hello-world.trailer=" + GreetingServiceTest.trailer,
                 "featureServicePublicUrl=" + "http://localhost:8090/"})
+/*
+ * If you want to run this test against local changes to the stubs you will need to
+ *   - ensure the locally modified stubs are published to your local repo using mvn install
+ *   - update the stub runner config: remove repositoryRoot and set workOffline=true
+ *   - if you are using a non default location for local repo (i.e. have set localRepository in maven settings.xml) then
+ *      pass the property  -Dmaven.repo.local=/path/to/local/repo  to the jvm when running the tests
+ *   - optionally: you can change the '+' to refer to a specific version, e.g. com.cisco.wx2:feature-server:1.0-SNAPSHOT:stubs:8090
+ * */
+//@AutoConfigureStubRunner(workOffline = true, ids = "com.cisco.wx2:feature-server:+:stubs:8090") // Config for testing against stubs from local repository
 @AutoConfigureStubRunner(repositoryRoot = "http://engci-maven.cisco.com/artifactory/webex-cca-group", workOffline = false, ids = "com.cisco.wx2:feature-server:+:stubs:8090")
 public class GreetingServiceContractTest {
 
