@@ -1,5 +1,6 @@
 package com.ciscospark.helloworld;
 
+import com.ciscospark.integration.Tag;
 import com.cisco.wx2.client.ClientException;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.helloworld.client.HelloWorldClientFactory;
@@ -20,6 +21,7 @@ public class HelloWorldIT extends AbstractJUnit4SpringContextTests {
     private HelloWorldClientFactory helloWorldClientFactory;
 
     @Test
+    @Tag("TAP")
     public void testPing() {
         helloWorldClientFactory.newHelloWorldClient().ping();
     }
