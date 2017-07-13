@@ -62,7 +62,7 @@ if (isMasterBranch()) {
     }
 
     stage('Integration tests') {
-        runTests('integration', buildIds.archiveBuildId)
+        runTests('integration', buildIds.archiveBuildId, tagExcludes: ['TAP'])
     }
 
     approveStage('Deploy to Production', submitter: 'squared', changeLogSince: 'deployed/production') {

@@ -65,6 +65,18 @@ tests:
     artifacts:
       "**/TEST-*.xml":
         type: junit
+  tap-tests:
+    name: HelloWorld TAP Tests
+    files:
+    - ../integration/target/hello-world-integration-tests.jar
+    tags:
+      [TAP]
+    test-task:
+      command: java -jar hello-world-integration-tests.jar -includeTag TAP
+      service-environment: 'true'
+    artifacts:
+      "**/TEST-*.xml":
+        type: junit
 
 publish:
   git:
