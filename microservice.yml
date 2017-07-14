@@ -52,6 +52,7 @@ owner:
   #            typically be the "Ask Component" room
   askspark: 9ddb7ab0-6af4-11e6-8ceb-b9db98a3b15e
 
+# Define tests to be run or consumed. See https://sqbu-github.cisco.com/WebExSquared/pipeline/wiki/Consumer-Tests#running-consumer-tests
 tests:
   default:
     name: HelloWorld Integration Tests
