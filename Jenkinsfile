@@ -65,6 +65,10 @@ if (isMasterBranch()) {
         runTests('integration', buildIds.archiveBuildId, tagExcludes: ['TAP'])
     }
 
+    stage('Consumer tests') {
+        runConsumerTests()
+    }
+
     approveStage('Deploy to Production', submitter: 'squared', changeLogSince: 'deployed/production') {
         deploy 'production'
     }

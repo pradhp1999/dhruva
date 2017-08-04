@@ -58,8 +58,6 @@ tests:
     name: HelloWorld Integration Tests
     files:
     - ../integration/target/hello-world-integration-tests.jar
-    tags:
-      [xtest.hello-world]
     test-task:
       command: java -jar hello-world-integration-tests.jar
       service-environment: 'true'
