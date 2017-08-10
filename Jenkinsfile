@@ -50,7 +50,6 @@ buildStage(env.PIPELINE_NAME, services: ['redis:3']) { services ->
     archive 'integration/target/*.jar'
 
     archiveMavenArtifacts()
-    archivePubHub()
 }
 
 if (isMasterBranch()) {
