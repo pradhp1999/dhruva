@@ -1,5 +1,5 @@
 #!groovy
-@Library('sparkPipeline@changelogPermalink') _
+@Library('sparkPipeline') _
 
 /**
  * This is a simple pipeline for hello-world.
