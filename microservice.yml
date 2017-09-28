@@ -81,7 +81,7 @@ publish:
   git:
     url: ${env.GIT_URL}
     branch: ${env.GIT_BRANCH}
-    commit: ${env.GIT_COMMIT}
+    commit: "${env.GIT_COMMIT}"
   maven:
     modules:
     - client
