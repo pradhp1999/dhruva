@@ -1,6 +1,7 @@
 package com.ciscospark.helloworld;
 
 import com.cisco.wx2.server.config.ConfigProperties;
+import com.cisco.wx2.test.BaseTestConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @TestConfiguration
-class TestConfig {
+class TestConfig extends BaseTestConfig {
 
     @Bean
     public ConfigProperties configProperties(Environment env) {
