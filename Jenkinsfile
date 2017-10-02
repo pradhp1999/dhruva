@@ -53,19 +53,22 @@ buildStage(env.PIPELINE_NAME, services: ['redis:3']) { services ->
 }
 
 if (isMasterBranch()) {
-    approveStage('Deploy to Test', submitter: 'squared', changeLogSince: 'deployed/integration') {
+
+    def deployToTest = approveStage('Deploy to Test', submitter: 'squared', changeLogSince: 'deployed/integration') {
         parallel(
             integration: { buildIds = deploy 'integration' },
             loadtest: { deploy 'loadtest' }
         )
     }
-
-    stage('Integration tests') {
-        runTests('integration', buildIds.archiveBuildId, tagExcludes: ['TAP'])
-    }
-
-    stage('Consumer tests') {
-        runConsumerTests()
+        
+    stage('Test') {
+        if (!deployToTest.skipped) {
+            parallel (
+                // Use the buildId deployed above for integration Test
+                integration: { runTests('integration', buildIds.archiveBuildId, tagExcludes: ['TAP']) },
+                consumer: { runConsumerTests() }
+            )
+        }
     }
 
     approveStage('Deploy to Production', submitter: 'squared', changeLogSince: 'deployed/production') {
