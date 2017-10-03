@@ -15,7 +15,7 @@ description: A complete minimal microservice.
 # version - The deployed version, populated automatically.
 version: ${project.version}
 # deploy-file - The file used to deploy the component.
-deploy-file: ../server/target/hello-world-server.war
+deploy-file: server/target/hello-world-server.war
 # ping-path - The relative path of the ping URL for the component.
 ping-path: ping
 # timezone - The primary timezone for the component team. It should work as a query
@@ -57,7 +57,7 @@ tests:
   default:
     name: HelloWorld Integration Tests
     files:
-    - ../integration/target/hello-world-integration-tests.jar
+    - integration/target/hello-world-integration-tests.jar
     test-task:
       command: java -jar hello-world-integration-tests.jar
       service-environment: 'true'
@@ -67,7 +67,7 @@ tests:
   tap-tests:
     name: HelloWorld TAP Tests
     files:
-    - ../integration/target/hello-world-integration-tests.jar
+    - integration/target/hello-world-integration-tests.jar
     tags:
       [TAP]
     test-task:

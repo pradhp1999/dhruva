@@ -45,7 +45,7 @@ buildStage(env.PIPELINE_NAME, services: ['redis:3']) { services ->
     sh 'mvn -Dmaven.test.failure.ignore verify'
 
     junit '**/target/**/TEST-*.xml'
-    archiveService file: 'target/microservice.yml'
+    archiveService file: 'microservice.yml'
 }
 
 if (isMasterBranch()) {
