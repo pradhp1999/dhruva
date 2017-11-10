@@ -93,7 +93,7 @@
                     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
                     <testSourceDirectory>${project.build.sourceDirectory}</testSourceDirectory>
                     <environmentVariables>
-                        <helloWorldUrl>${helloWorldUrl}</helloWorldUrl>
+                        <helloWorldPublicUrl>${helloWorldPublicUrl}</helloWorldPublicUrl>
                     </environmentVariables>
                 </configuration>
                 <executions>
