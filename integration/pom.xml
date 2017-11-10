@@ -17,7 +17,7 @@
         <tomcat.server.port>9221</tomcat.server.port>
         <tomcat.ajp.port>9222</tomcat.ajp.port>
         <tomcat.rmi.port>9223</tomcat.rmi.port>
-        <helloWorldPublicUl>http://localhost:${tomcat.server.port}/api/v1</helloWorldUrl>
+        <helloWorldPublicUrl>http://localhost:${tomcat.server.port}/api/v1</helloWorldUrl>
     </properties>
 
     <dependencies>
