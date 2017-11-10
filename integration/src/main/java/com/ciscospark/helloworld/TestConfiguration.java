@@ -30,7 +30,7 @@ public class TestConfiguration extends BaseTestConfig {
         }
 
         public URI helloWorldUrl() {
-            return URI.create(env.getProperty("helloWorldUrl", "http://localhost:8080/api/v1"));
+            return URI.create(env.getProperty("helloWorldPublicUrl", "http://localhost:8080/api/v1"));
         }
     }
 

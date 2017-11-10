@@ -17,7 +17,7 @@
         <tomcat.server.port>9221</tomcat.server.port>
         <tomcat.ajp.port>9222</tomcat.ajp.port>
         <tomcat.rmi.port>9223</tomcat.rmi.port>
-        <helloWorldUrl>http://localhost:${tomcat.server.port}/api/v1</helloWorldUrl>
+        <helloWorldPublicUrl>http://localhost:${tomcat.server.port}/api/v1</helloWorldPublicUrl>
     </properties>
 
     <dependencies>
@@ -93,7 +93,7 @@
                     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
                     <testSourceDirectory>${project.build.sourceDirectory}</testSourceDirectory>
                     <environmentVariables>
-                        <helloWorldUrl>${helloWorldUrl}</helloWorldUrl>
+                        <helloWorldPublicUrl>${helloWorldPublicUrl}</helloWorldPublicUrl>
                     </environmentVariables>
                 </configuration>
                 <executions>
