@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
                 "hello-world.defaultGreetingPrefix=Doh!",
                 "hello-world.message=" + GreetingServiceTest.message,
                 "hello-world.trailer=" + GreetingServiceTest.trailer,
-                "featureServicePublicUrl=" + "http://localhost:8090/"})
+                "featureServicePublicUrl=" + "http://localhost:8090/api/v1/"})
 /*
  * If you want to run this test against local changes to the stubs you will need to
  *   - ensure the locally modified stubs are published to your local repo using mvn install
