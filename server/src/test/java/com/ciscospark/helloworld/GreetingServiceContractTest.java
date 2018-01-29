@@ -7,6 +7,7 @@ import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import com.codahale.metrics.MetricRegistry;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -60,6 +61,7 @@ import static org.mockito.Mockito.when;
  * */
 //@AutoConfigureStubRunner(workOffline = true, ids = "com.cisco.wx2:feature-server:+:stubs:8090") // Config for testing against stubs from local repository
 @AutoConfigureStubRunner(repositoryRoot = "http://engci-maven.cisco.com/artifactory/webex-cca-group", workOffline = false, ids = "com.cisco.wx2:feature-server:+:stubs:8090")
+@Ignore
 public class GreetingServiceContractTest {
 
     static final String name = "hello-world";
