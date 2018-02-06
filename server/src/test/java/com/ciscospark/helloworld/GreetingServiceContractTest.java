@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
  *   - optionally: you can change the '+' to refer to a specific version, e.g. com.cisco.wx2:feature-server:1.0-SNAPSHOT:stubs:8090
  * */
 //@AutoConfigureStubRunner(workOffline = true, ids = "com.cisco.wx2:feature-server:+:stubs:8090") // Config for testing against stubs from local repository
-@AutoConfigureStubRunner(repositoryRoot = "http://engci-maven.cisco.com/artifactory/webex-cca-group", workOffline = false, ids = "com.cisco.wx2:feature-server:+:stubs:8090")
+@AutoConfigureStubRunner(repositoryRoot = "http://engci-maven-master.cisco.com/artifactory/webex-cca-group", ids = "com.cisco.wx2:feature-server:+:stubs:8090")
 public class GreetingServiceContractTest {
 
     static final String name = "hello-world";
