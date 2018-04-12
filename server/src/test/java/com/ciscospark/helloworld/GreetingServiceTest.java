@@ -74,7 +74,6 @@ public class GreetingServiceTest {
     private AuthInfo authInfo;
 
     @Autowired
-    @InjectMocks
     private GreetingService greetingService;
 
     @Before

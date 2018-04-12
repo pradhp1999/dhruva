@@ -69,7 +69,6 @@ public class GreetingServiceContractTest {
     @MockBean
     private CiscoSparkServerProperties ciscoSparkServerProperties;
 
-    @InjectMocks
     @Autowired
     private GreetingService greetingService;
 
