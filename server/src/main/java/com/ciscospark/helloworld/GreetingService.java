@@ -8,7 +8,8 @@ import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import com.google.common.base.Preconditions;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -17,10 +18,11 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Optional;
 
-@Slf4j
 @Service
 @RefreshScope
 public class GreetingService {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     private final String defaultGreetingPrefix;
     private final String message;
     private final String trailer;
