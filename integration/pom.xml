@@ -96,7 +96,7 @@
                 <version>1.6.2</version>
                 <configuration>
                     <container>
-                        <containerId>tomcat7x</containerId>
+                        <containerId>tomcat9x</containerId>
                     </container>
                     <configuration>
                         <type>standalone</type>

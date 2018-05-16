@@ -4,42 +4,32 @@ import com.cisco.wx2.test.BaseTestConfig;
 import com.cisco.wx2.test.TestProperties;
 import com.ciscospark.helloworld.client.HelloWorldClientFactory;
 import com.google.common.base.Preconditions;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
-import java.net.URL;
 
 @Configuration
 @EnableConfigurationProperties
 public class TestConfiguration extends BaseTestConfig {
-    @Data
     @Component
     @ConfigurationProperties
-    static class HelloWorldTestProperties extends TestProperties {
-        @Autowired
-        public HelloWorldTestProperties(Environment env) {
+    static class HelloWorldTestProperties {
+        @Value("${helloWorldPublicUrl:http://localhost:8080/api/v1}")
+        private String helloWorldUrl;
 
-            super(env);
-        }
-
-        public URI helloWorldUrl() {
-            return URI.create(env.getProperty("helloWorldPublicUrl", "http://localhost:8080/api/v1"));
+        URI helloWorldUrl() {
+            return URI.create(helloWorldUrl);
         }
     }
 
-    @Autowired
-    HelloWorldTestProperties testProperties;
-
     @Bean
-    public HelloWorldClientFactory helloWorldClientFactory() {
+    public HelloWorldClientFactory helloWorldClientFactory(TestProperties testProperties, HelloWorldTestProperties helloWorldTestProperties) {
         Preconditions.checkNotNull(testProperties);
-        return HelloWorldClientFactory.builder(testProperties, testProperties.helloWorldUrl()).build();
+        return HelloWorldClientFactory.builder(testProperties, helloWorldTestProperties.helloWorldUrl()).build();
     }
 }
