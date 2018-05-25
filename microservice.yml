@@ -18,9 +18,11 @@ version: ${project.version}
 deploy-file: server/target/hello-world-server.war
 # ping-path - The relative path of the ping URL for the component.
 ping-path: ping
-# timezone - The primary timezone for the component team. It should work as a query
-#            to https://time.is/<timezone>
-timezone: PST
+# timezone - The primary timezone for the component team. Prefered is an IANA timezone
+#            See: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+#            However some commonly used timezones have been grandfathered: ET, CET, WET, CT, MT, PT
+#            Timezones like PDT or PST SHOULD not be used since they change seasonally.
+timezone: 	Australia/Sydney
 # location - The primary location for the component team. It should work as a query
 #            to https://time.is/<location> and https://maps.google.com/?q=<location>
 location: Seattle, WA
@@ -30,6 +32,14 @@ issues: https://sqbu-github.cisco.com/WebExSquared/hello-world/issues
 wiki: https://sqbu-github.cisco.com/WebExSquared/hello-world/wiki
 # runbook - The URL for the component's runbook.
 runbook: https://sqbu-github.cisco.com/WebExSquared/hello-world/wiki/Runbook
+# Specify when deploys should be done for this service. Usually it will be a convenient
+# Time for the location of the team.
+deploys:
+    # target-time is a 5-hour window starting at 'target-time' during which a normal 
+    # deploy may occur. If specified without a timezone, the timezone: above is used.
+    # Here the time will be the daylight/standard adjusted time of 2PM in Pacific Time.
+    # IMPORTANT: String / time MUST be quoted!
+    target-time: '14:00 PT'
 
 # owner - information about the component owner(s)
 owner:
