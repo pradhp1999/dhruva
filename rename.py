@@ -2,7 +2,8 @@
 """Usage: rename.py <service-name>"""
 from __future__ import print_function
 import os.path
-from docopt import docopt
+import re
+import sys
 from subprocess import check_call, check_output
 
 def rename(name):
@@ -25,18 +26,18 @@ def rename(name):
             check_call("mkdir -p {}".format(os.path.dirname(new_path)), shell=True)
             check_call("git mv {} {}".format(path, new_path), shell=True)
         print(new_path)
-        with open(new_path) as f:
-            contents = f.read()
+
+        contents = check_output(['sed', '/rename-remove-begin/,/rename-remove-end/d', new_path])
         contents = contents.replace('hello-world', ldashed_name)
         contents = contents.replace('Hello World', humanized_name)
         contents = contents.replace('HelloWorld', camel_name)
         contents = contents.replace('helloworld', all_lower_name)
+
         with open(new_path, 'w') as f:
             f.write(contents)
         check_call("git add {0}".format(new_path), shell=True)
         
 
 if __name__ == '__main__':
-    args = docopt(__doc__)
-    rename(args.get('<service-name>'))
+    rename(sys.argv[1])
 
