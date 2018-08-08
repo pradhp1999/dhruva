@@ -1,6 +1,5 @@
 package com.ciscospark.helloworld;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -9,22 +8,48 @@ import org.springframework.stereotype.Component;
  * <p>
  * See also: http://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html
  */
-@Data
 @ConfigurationProperties(prefix = "hello-world")
 @Component
 public class HelloWorldProperties {
     /**
      * The default greeting prefix if no specific greeting is found.
      */
-    String defaultGreetingPrefix = "Hello";
+    private String defaultGreetingPrefix = "Hello";
 
     /**
      * Message to be delivered with the greeting.
      */
-    String message = "Beer is proof God loves us and wants us to be happy";
+    private String message = "Beer is proof God loves us and wants us to be happy";
 
     /**
      * Something to optionally append to the greeting.
      */
-    String trailer = "Message lovingly crafted by";
+    private String trailer = "Message lovingly crafted by";
+
+    public HelloWorldProperties() {
+    }
+
+    public String getDefaultGreetingPrefix() {
+        return this.defaultGreetingPrefix;
+    }
+
+    public String getMessage() {
+        return this.message;
+    }
+
+    public String getTrailer() {
+        return this.trailer;
+    }
+
+    public void setDefaultGreetingPrefix(String defaultGreetingPrefix) {
+        this.defaultGreetingPrefix = defaultGreetingPrefix;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setTrailer(String trailer) {
+        this.trailer = trailer;
+    }
 }
