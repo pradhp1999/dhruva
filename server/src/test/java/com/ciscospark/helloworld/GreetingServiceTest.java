@@ -3,17 +3,15 @@ package com.ciscospark.helloworld;
 import com.cisco.wx2.dto.User;
 import com.cisco.wx2.dto.wdm.FeatureToggle;
 import com.cisco.wx2.dto.wdm.FeatureToggleType;
-import com.cisco.wx2.server.ServerException;
-import com.cisco.wx2.server.auth.AuthInfo;
-import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.feature.client.FeatureClient;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
+import com.cisco.wx2.server.ServerException;
+import com.cisco.wx2.server.auth.AuthInfo;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,7 +137,7 @@ public class GreetingServiceTest {
     public void testSetAndGet() throws Exception {
 
         Greeting expected = Greeting.builder().greeting("hi").message(message).build();
-        assertThat(greetingService.setGreeting("me", "hi"))
+        assertThat(greetingService.setGreeting("me", "hi", authInfo))
                 .isEqualTo(expected);
 
         assertThat(greetingService.getGreeting("me", Optional.of(authInfo)))
@@ -149,18 +147,18 @@ public class GreetingServiceTest {
     @Test
     public void testDelete() throws Exception {
         Greeting expected = Greeting.builder().greeting("hi").message(message).build();
-        assertThat(greetingService.setGreeting("me", "hi"))
+        assertThat(greetingService.setGreeting("me", "hi", authInfo))
                 .isEqualTo(expected);
 
-        greetingService.deleteGreeting("me");
+        greetingService.deleteGreeting("me", authInfo);
 
         // Verify deleting again throws exception
-        assertThatThrownBy(() -> greetingService.deleteGreeting("me"))
+        assertThatThrownBy(() -> greetingService.deleteGreeting("me", authInfo))
                 .isInstanceOf(ServerException.class)
                 .hasMessageContaining("not found");
 
         // Verify deleting a non-existent greeting throws not found exception
-        assertThatThrownBy(() -> greetingService.deleteGreeting("non-existent"))
+        assertThatThrownBy(() -> greetingService.deleteGreeting("non-existent", authInfo))
                 .isInstanceOf(ServerException.class)
                 .hasMessageContaining("not found");
 

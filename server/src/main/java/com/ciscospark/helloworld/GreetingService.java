@@ -91,9 +91,9 @@ public class GreetingService {
         return Greeting.builder().greeting(greeting).message(message + " (fallback)").build();
     }
 
-    Greeting setGreeting(String name, String greeting) {
         Preconditions.checkNotNull(name);
         Preconditions.checkNotNull(greeting);
+    Greeting setGreeting(String name, String greeting, AuthInfo authInfo) {
 
 
         log.debug("Setting greeting for name '{}' to '{}'", name, greeting);
@@ -101,8 +101,8 @@ public class GreetingService {
         return Greeting.builder().greeting(greeting).message(message).build();
     }
 
-    void deleteGreeting(String name) {
         Preconditions.checkNotNull(name);
+    void deleteGreeting(String name, AuthInfo authInfo) {
 
         if (store.get(name) == null) {
             throw ServerException.notFound("Greeting not found!");

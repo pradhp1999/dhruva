@@ -1,14 +1,13 @@
 package com.ciscospark.helloworld;
 
+import com.cisco.wx2.feature.client.FeatureClient;
+import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.spring.ExceptionResolver;
 import com.cisco.wx2.util.ObjectMappers;
-import com.cisco.wx2.feature.client.FeatureClient;
-import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
-import com.codahale.metrics.MetricRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -18,7 +17,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -94,7 +92,7 @@ public class HelloWorldControllerTest {
 
     @Test
     public void testPostGreeting() throws Exception {
-        given(greetingService.setGreeting(eq("spark"), eq("Hello spark"))).willReturn(greeting);
+        given(greetingService.setGreeting(eq("spark"), eq("Hello spark"), any())).willReturn(greeting);
 
         mvc.perform(post("/api/v1/greetings/spark").contentType(MediaType.APPLICATION_JSON).content(ObjectMappers.toJson(greeting)))
                 .andExpect(status().isOk())
@@ -107,16 +105,16 @@ public class HelloWorldControllerTest {
         mvc.perform(delete("/api/v1/greetings/spark"))
                 .andExpect(status().isOk());
 
-        verify(greetingService).deleteGreeting(eq("spark"));
+        verify(greetingService).deleteGreeting(eq("spark"), any());
     }
 
     @Test
     public void testDeleteNonExistentGreetingReturnsNotFound() throws Exception {
-        Mockito.doThrow(ServerException.notFound("Greeting not found!")).when(greetingService).deleteGreeting(any());
+        Mockito.doThrow(ServerException.notFound("Greeting not found!")).when(greetingService).deleteGreeting(any(), any());
 
         mvc.perform(delete("/api/v1/greetings/spark"))
                 .andExpect(status().isNotFound());
 
-        verify(greetingService).deleteGreeting(eq("spark"));
+        verify(greetingService).deleteGreeting(eq("spark"), any());
     }
 }
