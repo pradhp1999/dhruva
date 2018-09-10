@@ -7,7 +7,6 @@ import com.cisco.wx2.feature.client.FeatureClient;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Optional;
+
+import static java.util.Objects.requireNonNull;
 
 @Service
 @RefreshScope
@@ -41,6 +42,9 @@ public class GreetingService {
     }
 
     Greeting getGreeting(String name, Optional<AuthInfo> authInfo) {
+        requireNonNull(name);
+        requireNonNull(authInfo);
+
         try {
             return getEnhancedGreeting(name, authInfo);
         } catch (Exception e) {
@@ -50,7 +54,8 @@ public class GreetingService {
     }
 
     private Greeting getEnhancedGreeting(String name, Optional<AuthInfo> authInfo) {
-        Preconditions.checkNotNull(name);
+        requireNonNull(name);
+        requireNonNull(authInfo);
 
         String greeting = store.get(name);
         if (greeting == null) {
@@ -86,14 +91,18 @@ public class GreetingService {
 
     /* The fallback method will not invoke any network operations, so will return an uncustomized greeting */
     private Greeting getDefaultGreeting(String name, Optional<AuthInfo> authInfo) {
+        requireNonNull(name);
+        requireNonNull(authInfo);
+
         log.debug("Circuit failure. Executing default greeting");
         String greeting = defaultGreetingPrefix + " " + name;
         return Greeting.builder().greeting(greeting).message(message + " (fallback)").build();
     }
 
-        Preconditions.checkNotNull(name);
-        Preconditions.checkNotNull(greeting);
     Greeting setGreeting(String name, String greeting, AuthInfo authInfo) {
+        requireNonNull(name);
+        requireNonNull(greeting);
+        requireNonNull(authInfo);
 
 
         log.debug("Setting greeting for name '{}' to '{}'", name, greeting);
@@ -101,8 +110,9 @@ public class GreetingService {
         return Greeting.builder().greeting(greeting).message(message).build();
     }
 
-        Preconditions.checkNotNull(name);
     void deleteGreeting(String name, AuthInfo authInfo) {
+        requireNonNull(name);
+        requireNonNull(authInfo);
 
         if (store.get(name) == null) {
             throw ServerException.notFound("Greeting not found!");
