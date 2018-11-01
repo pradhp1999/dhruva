@@ -9,7 +9,7 @@ library identifier: 'sparkPipeline', changelog: false
 sparkPipeline {
     notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vZmIyYWYyYTAtZmFkNi0xMWU2LWE4MzctZmQ5MjFlYjIzZDA5'
     // rename-remove-begin
-    integration.deployMode = 'canary'
-    production.deployMode = 'canary'
+    integration.deployMode = 'deploy'
+    production.deployMode = 'deploy'
     // rename-remove-end
 }
