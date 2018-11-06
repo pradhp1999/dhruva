@@ -71,8 +71,7 @@
                 <artifactId>mar-maven-plugin</artifactId>
                 <version>1.2</version>
                 <configuration>
-                    <bundledGroups>com.cisco.*</bundledGroups>
-                    <outputFile>hello-world-server.mar</outputFile>
+                    <bundledGroups>com.cisco.*, com.webex.*, net.minidev.*</bundledGroups>
                 </configuration>
                 <executions>
                     <execution>
