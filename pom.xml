@@ -12,6 +12,12 @@
             <url>http://engci-maven.cisco.com/artifactory/webex-cca-group</url>
         </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>webex-cca-release</id>
+            <url>http://engci-maven.cisco.com/artifactory/webex-cca-group</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <parent>
         <groupId>com.ciscospark</groupId>
