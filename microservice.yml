@@ -15,7 +15,7 @@ description: A complete minimal microservice.
 # version - The deployed version, populated automatically.
 version: "${project.version}"
 # deploy-file - The file used to deploy the component.
-deploy-file: server/target/hello-world-server.war
+deploy-file: server/target/hello-world-server.mar
 # ping-path - The relative path of the ping URL for the component.
 ping-path: ping
 # timezone - The primary timezone for the component team. Prefered is an IANA timezone
