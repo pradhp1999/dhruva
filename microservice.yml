@@ -35,7 +35,7 @@ wiki: https://sqbu-github.cisco.com/WebExSquared/hello-world/wiki
 # runbook - The URL for the component's runbook.
 runbook: https://sqbu-github.cisco.com/WebExSquared/hello-world/wiki/Runbook
 
-# security-automation - specify teams parameters for running security cato compliance scans
+# security-automation - specify teams parameters for running security-automation cato compliance job
 # See: https://sqbu-github.cisco.com/WebExSquared/security-automation/blob/master/README.md
 security-automation:
      credentials-id: "corona"
