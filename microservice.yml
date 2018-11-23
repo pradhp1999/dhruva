@@ -34,10 +34,22 @@ issues: https://sqbu-github.cisco.com/WebExSquared/hello-world/issues
 wiki: https://sqbu-github.cisco.com/WebExSquared/hello-world/wiki
 # runbook - The URL for the component's runbook.
 runbook: https://sqbu-github.cisco.com/WebExSquared/hello-world/wiki/Runbook
+
+# security-automation - specify teams parameters for running security cato compliance scans
+# See: https://sqbu-github.cisco.com/WebExSquared/security-automation/blob/master/README.md
+security-automation:
+     credentials-id: "corona"
+     do-ip-central: False
+     do-direct-ip-central: True
+     ipcentral-id: 188014301
+     corona-pid: 2568
+     jira-id: TBD
+     disabled_scans: [black_duck, host_scan] #(optional) list of scan to be disabled
+
 # Specify when deploys should be done for this service. Usually it will be a convenient
 # Time for the location of the team.
 deploys:
-    # target-time is a 5-hour window starting at 'target-time' during which a normal 
+    # target-time is a 5-hour window starting at 'target-time' during which a normal
     # deploy may occur. If specified without a timezone, the timezone: above is used.
     # Here the time will be the daylight/standard adjusted time of 2PM in Pacific Time.
     # IMPORTANT: String / time MUST be quoted!
@@ -53,14 +65,14 @@ owner:
   pagerduty: https://ciscospark.pagerduty.com/services/PZGV51T
   # pagerdutyemail - the pagerduty email alias for the component
   #                  The same formats as the email field can be used, but
-  #                  as there may be no sensible display name, the recommendation 
+  #                  as there may be no sensible display name, the recommendation
   #                  to use a dict does not apply
   # pagerdutyemail: hello-world-pagerduty@some-domain.tld
 
   # spark - The spark room ID for automaic notifications. This will typically be
-  #         the "Component Pipeline" room 
+  #         the "Component Pipeline" room
   spark: fb2af2a0-fad6-11e6-a837-fd921eb23d09
-  # askspark - The spark room ID for asking questions about the component. This will 
+  # askspark - The spark room ID for asking questions about the component. This will
   #            typically be the "Ask Component" room
   askspark: 9ddb7ab0-6af4-11e6-8ceb-b9db98a3b15e
 
