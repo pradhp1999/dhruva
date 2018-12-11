@@ -39,11 +39,8 @@ runbook: https://sqbu-github.cisco.com/WebExSquared/hello-world/wiki/Runbook
 # See: https://sqbu-github.cisco.com/WebExSquared/security-automation/blob/master/README.md
 security-automation:
      credentials-id: "corona"
-     do-ip-central: False
-     do-direct-ip-central: True
      ipcentral-id: 188014301
      corona-pid: 2568
-     jira-id: TBD
      disabled_scans: [black_duck, host_scan] #(optional) list of scan to be disabled
 
 # Specify when deploys should be done for this service. Usually it will be a convenient
