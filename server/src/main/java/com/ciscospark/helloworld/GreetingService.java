@@ -45,6 +45,10 @@ public class GreetingService {
         requireNonNull(name);
         requireNonNull(authInfo);
 
+        if(authInfo.isPresent()) {
+            log.info("Getting greeting for name : {}, userId : {}, orgId : {}", name, authInfo.get().getEffectiveUserId(), authInfo.get().getOrgId());
+        }
+        
         try {
             return getEnhancedGreeting(name, authInfo);
         } catch (Exception e) {
@@ -105,7 +109,7 @@ public class GreetingService {
         requireNonNull(authInfo);
 
 
-        log.debug("Setting greeting for name '{}' to '{}'", name, greeting);
+        log.info("Setting greeting for name '{}' to '{}'", name, greeting);
         store.put(name, greeting);
         return Greeting.builder().greeting(greeting).message(message).build();
     }
