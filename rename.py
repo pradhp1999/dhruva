@@ -6,7 +6,7 @@ import re
 import sys
 from subprocess import check_call, check_output
 
-def rename(name):
+def rename(name, notify_id):
     ldashed_name = name.lower()
     humanized_name = ' '.join([x.capitalize() for x in name.split('-')])
     camel_name = ''.join([x.capitalize() for x in name.split('-')])
@@ -16,6 +16,7 @@ def rename(name):
     print("Human name: ", humanized_name)
     print("Camel name: ", camel_name)
     print("Package:    ", all_lower_name)
+    print("Notify ID:  ", notify_id)
 
     files = [x for x in check_output('git ls-files', shell=True).splitlines() if x != 'rename.py']
     for path in files:
@@ -32,6 +33,7 @@ def rename(name):
         contents = contents.replace('Hello World', humanized_name)
         contents = contents.replace('HelloWorld', camel_name)
         contents = contents.replace('helloworld', all_lower_name)
+        contents = contents.replace('Y2lzY29zcGFyazovL3VzL1JPT00vZmIyYWYyYTAtZmFkNi0xMWU2LWE4MzctZmQ5MjFlYjIzZDA5', notify_id)
 
         with open(new_path, 'w') as f:
             f.write(contents)
@@ -39,5 +41,11 @@ def rename(name):
         
 
 if __name__ == '__main__':
-    rename(sys.argv[1])
+    name = None
+    alt_id = None
+    if len(sys.argv) > 1:
+        name = sys.argv[1]
+    if len(sys.argv) > 2:
+        alt_id = sys.argv[2]
+    rename(name, alt_id)
 
