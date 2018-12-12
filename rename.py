@@ -42,10 +42,10 @@ def rename(name, notify_id):
 
 if __name__ == '__main__':
     name = None
-    alt_id = None
+    notify_id = ''
     if len(sys.argv) > 1:
         name = sys.argv[1]
     if len(sys.argv) > 2:
-        alt_id = sys.argv[2]
-    rename(name, alt_id)
+        notify_id = sys.argv[2]
+    rename(name, notify_id)
 
