@@ -12,7 +12,7 @@ sparkPipeline {
     
     // Other teams should NOT be keeping 100 master branch builds. This is strictly for hello-world, since
     // it runs constantly as a canary.
-    numToKeep = isMasterBranch() ? 100 : 3
+    numToKeep = this.isMasterBranch() ? 100 : 3
     
     // This allows hello-world to run without human intervention, for canary purposes.
     integration.deployMode = 'deploy'
