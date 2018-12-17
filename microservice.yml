@@ -37,11 +37,11 @@ runbook: https://sqbu-github.cisco.com/WebExSquared/hello-world/wiki/Runbook
 
 # security-automation - specify teams parameters for running security-automation cato compliance job
 # See: https://sqbu-github.cisco.com/WebExSquared/security-automation/blob/master/README.md
-security-automation:
-     credentials-id: "corona"
-     ipcentral-id: 188014301
-     corona-pid: 2568
-     disabled_scans: [black_duck, host_scan] #(optional) list of scan to be disabled
+#security-automation:
+#     credentials-id: "corona"
+#     ipcentral-id: 188014301
+#     corona-pid: 2568
+#     disabled_scans: [black_duck, host_scan] #(optional) list of scan to be disabled
 
 # Specify when deploys should be done for this service. Usually it will be a convenient
 # Time for the location of the team.
