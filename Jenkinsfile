@@ -18,5 +18,9 @@ sparkPipeline {
     integration.deployMode = 'deploy'
     production.deployMode = 'deploy'
     
+    // This is NOT needed for hello-world, but we add Cassandra in to be a pipeline canary check
+    // against containers.cisco.com
+     services = ['redis:3', 'containers.cisco.com/spark_pipelines/cassandra']
+    
     // rename-remove-end
 }
