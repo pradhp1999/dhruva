@@ -57,7 +57,7 @@ owner:
   # email - the contact email address(es) of the owner.
   #         The format can be any of dict, list, or comma separated string
   #         It's recommended to use a dict mapping email to display name.
-  email: { tpatnoe : "Tory Patnoe" }
+  email: { sgaikwad : "Sachin Gaikwad" }
   # pagerduty - the pagerduty.com URL for the component
   pagerduty: https://ciscospark.pagerduty.com/services/PZGV51T
   # pagerdutyemail - the pagerduty email alias for the component
