@@ -2,7 +2,7 @@ package com.ciscospark.helloworld;
 
 import com.cisco.wx2.server.auth.AuthInfo;
 import com.cisco.wx2.server.auth.AuthUtil;
-import com.cisco.wx2.server.auth.ng.Org;
+import com.cisco.wx2.server.auth.ng.Auth.Org;
 import com.cisco.wx2.server.auth.ng.Scope;
 import com.cisco.wx2.server.auth.ng.annotation.AuthorizeAnonymous;
 import com.cisco.wx2.server.auth.ng.annotation.AuthorizeWhen;
