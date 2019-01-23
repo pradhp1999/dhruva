@@ -33,4 +33,22 @@
         <module>integration</module>
     </modules>
 
+    <build>
+        <plugins>
+            <!-- Validate that AuthNG Spring and JAX-RS annotations are used correctly -->
+            <plugin>
+                <groupId>com.cisco.wx2</groupId>
+                <artifactId>core-auth-maven-plugin</artifactId>
+                <configuration>
+                    <failOnWarnings>
+                        <!-- Types: insecure, deprecation, validation, not_annotated, hint and pending -->
+                        <failOnWarning>insecure</failOnWarning>
+                        <failOnWarning>validation</failOnWarning>
+                        <failOnWarning>not_annotated</failOnWarning>
+                    </failOnWarnings>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
