@@ -48,10 +48,8 @@ public class HelloWorldController {
     @RequestMapping(value = "/greetings/{name}", method = GET)
     public Greeting getGreeting(@PathVariable("name") String name, HttpServletRequest request) {
         AuthInfo authInfo = AuthUtil.getAuthInfo(request);
-        String buildNumber = env.getProperty("buildNumber");
-        String buildVersion = env.getProperty("build.version");
-        String build = env.getProperty("build");
-        log.info("QQQ Properties found buildNumber={}, buildVersion={}, build={}", buildNumber, buildVersion, build);
+        String buildVersion = env.getProperty("buildVersion");
+        log.info("QQQ Properties found buildVersion={}", buildVersion);
 
         return greetingService.getGreeting(name, Optional.ofNullable(authInfo));
     }
