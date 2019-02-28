@@ -10,6 +10,7 @@ import com.ciscospark.helloworld.api.Greeting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +30,8 @@ public class HelloWorldController {
     private final GreetingService greetingService;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    @Autowired
+    private Environment env;
 
     @Autowired
     public HelloWorldController(GreetingService greetingService) {
@@ -45,6 +48,10 @@ public class HelloWorldController {
     @RequestMapping(value = "/greetings/{name}", method = GET)
     public Greeting getGreeting(@PathVariable("name") String name, HttpServletRequest request) {
         AuthInfo authInfo = AuthUtil.getAuthInfo(request);
+        String buildNumber = env.getProperty("buildNumber");
+        String buildVersion = env.getProperty("build.version");
+        String build = env.getProperty("build");
+        log.info("QQQ Properties found buildNumber={}, buildVersion={}, build={}", buildNumber, buildVersion, build);
 
         return greetingService.getGreeting(name, Optional.ofNullable(authInfo));
     }
