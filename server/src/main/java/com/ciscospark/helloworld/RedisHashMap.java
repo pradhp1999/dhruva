@@ -1,35 +1,32 @@
 package com.ciscospark.helloworld;
 
-import com.cisco.wx2.server.util.JedisPoolRedisCacheClient;
-import com.cisco.wx2.server.util.RedisCacheClient;
+import com.cisco.wx2.redis.RedisDataSource;
+import com.cisco.wx2.redis.operations.commands.RedisCommonCommands;
+import com.cisco.wx2.server.util.RedisCache;
 import com.codahale.metrics.MetricRegistry;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.NotImplementedException;
-import redis.clients.jedis.JedisPool;
-
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * A simple wrapper around RedisCacheClient to make it function as a standard java collections Map, enabling us to
+ * A simple wrapper around RedisCache to make it function as a standard java collections Map, enabling us to
  * abstract redis out of our tests.
+ * It also use a RedisCommonCommands to validate the caching data for demonstration purpose.
  */
 public class RedisHashMap<K, V> implements Map<K, V> {
 
 
-    private final TypeReference<V> valueType = new TypeReference<V>(){};
-    private final int expiration;
-    private RedisCacheClient<V> cacheClient;
+    private final RedisCache<V> redisCache;
+    private final RedisCommonCommands redisCommonCommands;
 
 
-
-    public RedisHashMap(JedisPool jedisPool, String redisPrefix, int expiration, ObjectMapper objectMapper, MetricRegistry metricRegistry) {
-        cacheClient = new JedisPoolRedisCacheClient<V>(jedisPool, redisPrefix, valueType, (e,t) -> { throw new RuntimeException(t); }, objectMapper, metricRegistry);
-        this.expiration = expiration;
+    public RedisHashMap(RedisDataSource redisDataSource, String redisPrefix, int expiration, Class<V> valueClass, ObjectMapper objectMapper, MetricRegistry metricRegistry) {
+        this.redisCache = new RedisCache<>(redisDataSource, redisPrefix, expiration, valueClass , null, objectMapper, metricRegistry, null);
+        this.redisCommonCommands = redisDataSource.createRedisCommonCommands();
     }
 
     @Override
@@ -55,13 +52,20 @@ public class RedisHashMap<K, V> implements Map<K, V> {
     @Override
     public V get(Object key) {
         Preconditions.checkNotNull(key);
-        return cacheClient.get(String.valueOf(key.hashCode()));
+        V v = redisCache.getIfPresent(String.valueOf(key.hashCode()));
+        if ( v !=null) {
+            String stringV = redisCommonCommands.getValue(String.valueOf(key.hashCode()));
+            if (stringV == null) {
+                throw new RuntimeException("two redis operation not in sync");
+            }
+        }
+        return v;
     }
 
     @Override
     public V put(K key, V value) {
         Preconditions.checkNotNull(key);
-        cacheClient.set(String.valueOf(key.hashCode()), value, expiration);
+        redisCache.put(String.valueOf(key.hashCode()), value);
         return value;
     }
 
@@ -69,7 +73,10 @@ public class RedisHashMap<K, V> implements Map<K, V> {
     public V remove(Object key) {
         Preconditions.checkNotNull(key);
         V v = get(key);
-        cacheClient.delete(String.valueOf(key.hashCode()));
+        redisCache.invalidate(String.valueOf(key.hashCode()));
+        if (redisCommonCommands.exists(String.valueOf(key.hashCode()))) {
+            throw new RuntimeException("redis value still exists after invalidate!");
+        }
         return v;
     }
 
