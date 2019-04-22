@@ -77,11 +77,14 @@ Likewise, if you create a new branch, Jenkins will automatically start building 
 
 Please note that Jenkins and the build slaves are a shared resource. As much as possible, perform local validation of your changes before opening a PR or pushing to a branch. Relying on the slaves to run your tests as a matter of your development cycle unfairly impacts other teams that rely on that same pool of slaves. 
 
-### TODO: IPCentral
+### IPCentral
 
 Integration with IPCentral is enabled automatically for your service, but it will require you to follow through with any actions identified by the IPCentral tool. In your pipeline, your service's dependencies are captured and stored as an artifact of the build. This dependency tree is used to keep IPCentral's record of your dependencies synchronized with the dependencies you declare in your Maven poms.
+Threat Model: hello-world-service (25358) available at https://wwwin-tb.cisco.com/www/threatBuilder.html
+IP Central record: https://ipcentral.cisco.com/ipcentral/jsp/ipcentral.jsp?component=ProjectView&entityId=192709214
 
-### TODO: API Documentation
+### API Documentation
+Refer: http://apidocs.cisco.com/apidocs/static/raml/hello-world-server-hello-world.html
 
 ### Starters and auto configuration
  

@@ -23,4 +23,5 @@ sparkPipeline {
      services = ['redis:3', 'containers.cisco.com/spark_pipelines/cassandra']
     
     // rename-remove-end
+    integration.runSecurityScans = true
 }
