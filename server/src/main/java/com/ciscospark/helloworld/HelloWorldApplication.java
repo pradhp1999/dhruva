@@ -85,8 +85,6 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
     @Autowired
     private Environment env;
 
-    @Autowired
-    private Wx2ConfigAdapter wx2ConfigAdapter;
 
     @Bean
     public FeatureClientFactory featureClientFactory() {
