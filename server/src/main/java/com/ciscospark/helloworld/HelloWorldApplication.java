@@ -111,7 +111,7 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
     @Bean
     @Qualifier("store")
     public Map<String, String> greetingStore(RedisDataSourceManager redisDataSourceManager, MetricRegistry metricRegistry, CiscoSparkServerProperties props) {
-        RedisDataSource redisDataSource = redisDataSourceManager.getRedisDataSource("helloworld-app");
+        RedisDataSource redisDataSource = redisDataSourceManager.getRedisDataSource("helloworldapp");
         return new RedisHashMap(redisDataSource, props.getName() + "-store", defaultCacheTimeout(), String.class, ObjectMappers.getObjectMapper(), metricRegistry);
     }
 
