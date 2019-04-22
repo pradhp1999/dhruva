@@ -3,6 +3,9 @@ package com.ciscospark.helloworld;
 import com.cisco.wx2.client.health.ServiceHealthPinger;
 import com.cisco.wx2.dto.health.ServiceHealth;
 import com.cisco.wx2.dto.health.ServiceType;
+import com.cisco.wx2.redis.RedisDataSource;
+import com.cisco.wx2.redis.RedisDataSourceManager;
+import com.cisco.wx2.server.config.AbstractConfig;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.health.MonitorableClientServiceMonitor;
 import com.cisco.wx2.server.health.ServiceMonitor;
@@ -12,6 +15,7 @@ import com.cisco.wx2.server.util.RedisCacheClient;
 import com.cisco.wx2.util.ObjectMappers;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.ciscospark.server.CiscoSparkServerProperties;
+import com.ciscospark.server.Wx2ConfigAdapter;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
@@ -81,6 +85,7 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
     @Autowired
     private Environment env;
 
+
     @Bean
     public FeatureClientFactory featureClientFactory() {
         return FeatureClientFactory.builder(configProperties)
@@ -105,8 +110,9 @@ public class HelloWorldApplication extends SpringBootServletInitializer {
 
     @Bean
     @Qualifier("store")
-    public Map<String, String> greetingStore(JedisPool jedisPool, MetricRegistry metricRegistry, CiscoSparkServerProperties props) {
-        return new RedisHashMap<>(jedisPool, props.getName() + "-store", defaultCacheTimeout(), ObjectMappers.getObjectMapper(), metricRegistry);
+    public Map<String, String> greetingStore(RedisDataSourceManager redisDataSourceManager, MetricRegistry metricRegistry, CiscoSparkServerProperties props) {
+        RedisDataSource redisDataSource = redisDataSourceManager.getRedisDataSource("helloworldapp");
+        return new RedisHashMap(redisDataSource, props.getName() + "-store", defaultCacheTimeout(), String.class, ObjectMappers.getObjectMapper(), metricRegistry);
     }
 
     @Bean
