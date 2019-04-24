@@ -106,11 +106,3 @@ publish:
   maven:
     modules:
     - client
-
-security-automation:
-  credentials-id: "hw-security.gen"
-  ipcentral-id: 192709214
-  corona-pid: 2568
-  enabled_scans: ['corona', 'ipcentral']
-  ctsm_jira_id: CTSM-43477
-  threat-model-id: 25358
