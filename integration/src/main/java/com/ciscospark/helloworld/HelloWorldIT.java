@@ -4,6 +4,7 @@ import com.ciscospark.integration.Tag;
 import com.cisco.wx2.client.ClientException;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.helloworld.client.HelloWorldClientFactory;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,10 @@ public class HelloWorldIT extends AbstractJUnit4SpringContextTests {
     @Test
     public void testGetGreeting() {
         // Testing that this works without authentication
-        helloWorldClientFactory.newHelloWorldClient().getGreeting("homer");
+        Greeting g = helloWorldClientFactory.newHelloWorldClient().getGreeting("homer");
+        //if message contains "fallback", it means there is some exception processing the request by hello-world service
+        //in the context of this particular test, we fail the test
+        Assert.assertTrue(!g.getMessage().contains("(fallback)"));
     }
 
     @Test
