@@ -5,6 +5,7 @@ import com.cisco.wx2.redis.operations.commands.RedisCommonCommands;
 import com.cisco.wx2.server.util.RedisCache;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -53,11 +54,10 @@ public class RedisHashMap<K, V> implements Map<K, V> {
     public V get(Object key) {
         Preconditions.checkNotNull(key);
         V v = redisCache.getIfPresent(String.valueOf(key.hashCode()));
-        if ( v !=null) {
-            String stringV = redisCommonCommands.getValue(String.valueOf(key.hashCode()));
-            if (stringV == null) {
-                throw new RuntimeException("two redis operation not in sync");
-            }
+        //try to verify again with another redis command
+        String v2 = redisCommonCommands.getValue(String.valueOf(key.hashCode()));
+        if (!Objects.equal(v, v2)) {
+            throw new RuntimeException("two redis operation not in sync");
         }
         return v;
     }
