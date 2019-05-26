@@ -114,7 +114,3 @@ security-automation:
   enabled_scans: ['corona', 'ipcentral']
   ctsm_jira_id: CTSM-43477
   threat-model-id: 25358
-
-csb-pr-owners: ['trpavaga', 'sgaikwad']
-
-
