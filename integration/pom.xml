@@ -97,6 +97,7 @@
                 <configuration>
                     <container>
                         <containerId>tomcat9x</containerId>
+                        <timeout>180000</timeout>
                     </container>
                     <configuration>
                         <type>standalone</type>
