@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
+
 @Service
 @RefreshScope
 public class GreetingService {
