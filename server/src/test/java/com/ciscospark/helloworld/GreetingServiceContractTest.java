@@ -1,7 +1,10 @@
 package com.ciscospark.helloworld;
 
 import com.cisco.wx2.dto.User;
+import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.cisco.wx2.server.auth.AuthInfo;
+import com.cisco.wx2.server.config.ConfigProperties;
+import com.cisco.wx2.util.ObjectMappers;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.junit.Before;
@@ -11,9 +14,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Optional;
@@ -56,6 +62,22 @@ import static org.mockito.Mockito.when;
 //@AutoConfigureStubRunner(workOffline = true, ids = "com.cisco.wx2:feature-server:+:stubs:8090") // Config for testing against stubs from local repository
 @AutoConfigureStubRunner(repositoryRoot = "http://engci-maven-master.cisco.com/artifactory/webex-cca-group", ids = "com.cisco.wx2:feature-server:+:stubs:8090")
 public class GreetingServiceContractTest {
+
+    @TestConfiguration
+    static class TestConfig {
+        @Autowired
+        private ConfigProperties configProperties;
+
+        @Bean
+        @Qualifier("featureClientFactory")
+        public FeatureClientFactory featureClientFactory() {
+            return FeatureClientFactory.builder(configProperties)
+                    .baseUrl(configProperties.getFeatureServicePublicUrl())
+                    .objectMapper(ObjectMappers.getObjectMapper())
+                    .build();
+        }
+
+    }
 
     static final String name = "hello-world";
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";

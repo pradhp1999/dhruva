@@ -1,19 +1,43 @@
 package com.ciscospark.helloworld;
 
+import com.cisco.wx2.client.commonidentity.CommonIdentityScimClientFactory;
 import com.cisco.wx2.server.config.ConfigProperties;
+import com.cisco.wx2.server.machineaccount.CommonIdentityScimAdapter;
+import com.cisco.wx2.server.machineaccount.CommonIdentityUserLoader;
+import com.cisco.wx2.server.machineaccount.MachineAccountUserLoader;
+import com.cisco.wx2.server.user.CommonIdentityUserCache;
+import com.cisco.wx2.server.user.PersonUserLoader;
+import com.cisco.wx2.server.user.UserCache;
+import com.cisco.wx2.server.user.UserLoader;
+import com.cisco.wx2.test.BaseTestConfig;
+import com.cisco.wx2.test.EUTestProperties;
+import com.cisco.wx2.test.TestProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static org.mockito.Mockito.mock;
 
 @TestConfiguration
-class TestConfig {
+class TestConfig extends BaseTestConfig {
+    @Autowired
+    private Environment env;
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
 
     @Bean
-    public ConfigProperties configProperties(Environment env) {
+    @Primary
+    public ConfigProperties configProperties() {
         return new ConfigProperties(env, "hello-world-tests");
     }
 
@@ -22,4 +46,26 @@ class TestConfig {
     public Map<String, String> greetingStore() {
         return new HashMap<>();
     }
+
+    @Bean
+    public PersonUserLoader commonIdentityUserLoader() {
+        return new PersonUserLoader(commonIdentityScimClientFactory(), userMetrics());
+    }
+
+    @Bean
+    public MachineAccountUserLoader machineAccountUserLoader() {
+        return new MachineAccountUserLoader(new CommonIdentityScimAdapter(commonIdentityScimClientFactory()), false);
+    }
+
+    @Bean
+    public UserLoader userLoader() {
+        return new CommonIdentityUserLoader(commonIdentityUserLoader(), machineAccountUserLoader());
+    }
+
+    @Bean
+    public UserCache userCache() {
+        return CommonIdentityUserCache.memoryBackedCache(userLoader(), 100, TimeUnit.SECONDS, log, configProperties().isCIMultiGetEnable());
+
+    }
+
 }
