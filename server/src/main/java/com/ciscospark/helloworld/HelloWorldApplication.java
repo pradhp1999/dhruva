@@ -1,34 +1,10 @@
 package com.ciscospark.helloworld;
 
-import com.cisco.wx2.client.health.ServiceHealthPinger;
-import com.cisco.wx2.dto.health.ServiceHealth;
-import com.cisco.wx2.dto.health.ServiceType;
-import com.cisco.wx2.redis.RedisDataSource;
-import com.cisco.wx2.redis.RedisDataSourceManager;
-import com.cisco.wx2.server.config.ConfigProperties;
-import com.cisco.wx2.server.health.MonitorableClientServiceMonitor;
-import com.cisco.wx2.server.health.ServiceMonitor;
-import com.cisco.wx2.server.user.UserCache;
-import com.cisco.wx2.util.ObjectMappers;
-import com.cisco.wx2.feature.client.FeatureClientFactory;
-import com.ciscospark.server.CiscoSparkServerProperties;
-import com.codahale.metrics.MetricRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
-
-import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /*
  * As of this writing, you cannot run the micro-service in IntelliJ via simply clicking on the "Play" button. You

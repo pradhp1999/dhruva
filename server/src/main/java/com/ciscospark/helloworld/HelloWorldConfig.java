@@ -7,7 +7,6 @@ import com.cisco.wx2.redis.RedisDataSourceManager;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.health.MonitorableClientServiceMonitor;
 import com.cisco.wx2.server.health.ServiceMonitor;
-import com.cisco.wx2.server.user.UserCache;
 import com.cisco.wx2.util.ObjectMappers;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import com.ciscospark.server.Wx2ConfigAdapter;
@@ -18,7 +17,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

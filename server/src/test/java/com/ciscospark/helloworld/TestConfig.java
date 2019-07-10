@@ -1,6 +1,5 @@
 package com.ciscospark.helloworld;
 
-import com.cisco.wx2.client.commonidentity.CommonIdentityScimClientFactory;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.machineaccount.CommonIdentityScimAdapter;
 import com.cisco.wx2.server.machineaccount.CommonIdentityUserLoader;
@@ -10,8 +9,6 @@ import com.cisco.wx2.server.user.PersonUserLoader;
 import com.cisco.wx2.server.user.UserCache;
 import com.cisco.wx2.server.user.UserLoader;
 import com.cisco.wx2.test.BaseTestConfig;
-import com.cisco.wx2.test.EUTestProperties;
-import com.cisco.wx2.test.TestProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +21,6 @@ import org.springframework.core.env.Environment;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Mockito.mock;
 
 @TestConfiguration
 class TestConfig extends BaseTestConfig {
