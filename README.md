@@ -77,11 +77,21 @@ Likewise, if you create a new branch, Jenkins will automatically start building 
 
 Please note that Jenkins and the build slaves are a shared resource. As much as possible, perform local validation of your changes before opening a PR or pushing to a branch. Relying on the slaves to run your tests as a matter of your development cycle unfairly impacts other teams that rely on that same pool of slaves. 
 
-### IPCentral
+### IPCentral and Security Automation
 
 Integration with IPCentral is enabled automatically for your service, but it will require you to follow through with any actions identified by the IPCentral tool. In your pipeline, your service's dependencies are captured and stored as an artifact of the build. This dependency tree is used to keep IPCentral's record of your dependencies synchronized with the dependencies you declare in your Maven poms.
 Threat Model: hello-world-service (25358) available at https://wwwin-tb.cisco.com/www/threatBuilder.html
 IP Central record: https://ipcentral.cisco.com/ipcentral/jsp/ipcentral.jsp?component=ProjectView&entityId=192709214
+
+However, note that this automation does *not* create an IP Central project. You will have to do that yourself in order to obtain an IP Central project ID. You can do so at [IPCentral](https://ipcentral.cisco.com/ipcentral/jsp/ipcentral.jsp). At the time of this writing IP Central is transitioning to TPSD, so YMMV if this 
+is much later than July 2019. Be sure to (a) set a version number and release number - it can be anything, just as long as it isn't blank - and (b) make sure that "Cisco Managed Service" is checked. 
+
+Also note that to run security automation, you will need to have a Corona project - this can be done with the [Corona Wizard](https://corona.cisco.com/wizard.html) - login with your CEC userid/password. You may also want a [security insights](https://wwwin-si.cisco.com/) project.
+
+Next, you'll also need a generic CEC account for running the security automation - you can create one using the [ADAM tool](http://adam.cisco.com/). However, you should probably (i.e., definitely) follow the instructions on the [Security Automation Wiki](https://confluence-eng-gpk2.cisco.com/conf/display/WBXT/Automation). This includes creating a generic global credentials setting in your build pipeline. You did read the doc, didn't you?
+A tip here - you'll notice that the key used for the credentials-id value in microservice.yml is "hw-security.gen". You don't *need* to change this (it's OK if you do), but if you don't change it, you must set the ID field in the pipeline global credentials to "hw-security.gen" - it is effectively an alias for your ID which, for (hopefully) obvious reasons, cannot be hw-security.gen. 
+
+
 
 ### API Documentation
 Refer: http://apidocs.cisco.com/apidocs/static/raml/hello-world-server-hello-world.html
