@@ -1,33 +1,10 @@
 package com.ciscospark.helloworld;
 
-import com.cisco.wx2.client.health.ServiceHealthPinger;
-import com.cisco.wx2.dto.health.ServiceHealth;
-import com.cisco.wx2.dto.health.ServiceType;
-import com.cisco.wx2.redis.RedisDataSource;
-import com.cisco.wx2.redis.RedisDataSourceManager;
-import com.cisco.wx2.server.config.ConfigProperties;
-import com.cisco.wx2.server.health.MonitorableClientServiceMonitor;
-import com.cisco.wx2.server.health.ServiceMonitor;
-import com.cisco.wx2.util.ObjectMappers;
-import com.cisco.wx2.feature.client.FeatureClientFactory;
-import com.ciscospark.server.CiscoSparkServerProperties;
-import com.codahale.metrics.MetricRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
-
-import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /*
  * As of this writing, you cannot run the micro-service in IntelliJ via simply clicking on the "Play" button. You
@@ -63,58 +40,8 @@ import java.util.concurrent.TimeUnit;
  * 4. service base public URL <-- http://localhost:8080/cisco-spark.server.api-path, or http://localhost:8080/api if not
  *    present.
  */
-@SpringBootApplication
-@EnableAutoConfiguration(exclude = WebMvcAutoConfiguration.class)
+@SpringBootApplication(exclude = WebMvcAutoConfiguration.class)
 public class HelloWorldApplication extends SpringBootServletInitializer {
-    private static final String DEFAULT_FEATURE_PUBLIC_URL = "http://localhost:8080/feature/api/v1";
-    private static final String FEATURE_URL_PROP = "featureServicePublicUrl";
-    private static final long DEFAULT_CACHE_TIMEOUT = 10;
-
-
-    @Autowired
-    private ConfigProperties configProperties;
-
-    @Autowired
-    private Environment env;
-
-
-    @Bean
-    public FeatureClientFactory featureClientFactory() {
-        return FeatureClientFactory.builder(configProperties)
-                .baseUrl(getFeatureServicePublicUrl())
-                .objectMapper(ObjectMappers.getObjectMapper())
-                .build();
-    }
-
-    /* Feature service currently does not implement ServiceHealthPinger, so we need to create one ourselves, hence
-     * the single-line closure for pinger ...
-     */
-    @Bean
-    @ConditionalOnMissingBean(name = "featureServiceServiceMonitor")
-    @ConditionalOnBean(name = {"featureClientFactory"})
-    @Autowired
-    public ServiceMonitor featureServiceServiceMonitor(@Qualifier("featureClientFactory") FeatureClientFactory clientFactory) {
-        ServiceHealthPinger pinger = () -> {
-            return (ServiceHealth) clientFactory.newClient().get(new Object[]{"ping"}).execute(ServiceHealth.class);
-        };
-        return MonitorableClientServiceMonitor.newMonitor("FeatureService", ServiceType.REQUIRED, pinger);
-    }
-
-    @Bean
-    @Qualifier("store")
-    public Map<String, String> greetingStore(RedisDataSourceManager redisDataSourceManager, MetricRegistry metricRegistry, CiscoSparkServerProperties props) {
-        RedisDataSource redisDataSource = redisDataSourceManager.getRedisDataSource("helloworldapp");
-        return new RedisHashMap(redisDataSource, props.getName() + "-store", defaultCacheTimeout(), String.class, ObjectMappers.getObjectMapper(), metricRegistry);
-    }
-
-    @Bean
-    public Integer defaultCacheTimeout() {
-        return (int)TimeUnit.MINUTES.toSeconds(DEFAULT_CACHE_TIMEOUT);
-    }
-
-    public URI getFeatureServicePublicUrl() {
-        return URI.create(env.getProperty(FEATURE_URL_PROP, DEFAULT_FEATURE_PUBLIC_URL));
-    }
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {

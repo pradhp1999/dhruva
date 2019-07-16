@@ -5,6 +5,7 @@ import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.auth.AuthInfo;
 import com.cisco.wx2.feature.client.FeatureClient;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
+import com.cisco.wx2.server.user.UserCache;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
+
 @Service
 @RefreshScope
 public class GreetingService {
@@ -30,15 +32,17 @@ public class GreetingService {
     private final Map<String, String> store;
     private final FeatureClientFactory featureClientFactory;
     private final CiscoSparkServerProperties serverProperties;
+    private final UserCache userCache;
 
     @Autowired
-    public GreetingService(HelloWorldProperties properties, FeatureClientFactory featureClientFactory, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties) {
+    public GreetingService(HelloWorldProperties properties, FeatureClientFactory featureClientFactory, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties, UserCache userCache) {
         this.defaultGreetingPrefix = properties.getDefaultGreetingPrefix();
         this.message = properties.getMessage();
         this.trailer = properties.getTrailer();
         this.featureClientFactory = featureClientFactory;
         this.store = store;
         this.serverProperties = serverProperties;
+        this.userCache = userCache;
     }
 
     Greeting getGreeting(String name, Optional<AuthInfo> authInfo) {
