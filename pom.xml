@@ -32,6 +32,8 @@
         <module>server</module>
         <module>client</module>
         <module>integration</module>
+        <module>jar-executor-tool</module>
+        <module>demo-python</module>
     </modules>
 
     <build>

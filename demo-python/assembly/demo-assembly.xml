@@ -1,0 +1,23 @@
+<assembly  xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/3.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/3.0.0 http://maven.apache.org/xsd/assembly-3.0.0.xsd">
+    <id>demo-assembly</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <files>
+            <file>
+                <source>src/main/python/tee4pydemo/README.md</source>
+            </file>
+            <file>
+                <source>src/main/python/tee4pydemo/main.py</source>
+            </file>
+            <file>
+                <source>src/main/python/tee4pydemo/script.py</source>
+            </file>
+            <file>
+                <source>src/main/python/tee4pydemo/requirements.txt</source>
+            </file>
+    </files>
+</assembly>
