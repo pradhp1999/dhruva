@@ -2,7 +2,6 @@ package com.ciscospark.helloworld;
 
 import com.ciscospark.jarexecutor.ApplicationTask;
 import com.ciscospark.jarexecutor.config.ApplicationTaskConfig;
-import com.google.common.util.concurrent.Uninterruptibles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import picocli.CommandLine;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 @CommandLine.Command(name = "java -jar <jarname>.jar echo_task", footerHeading = "%nSimple echo task\n\n")
 public class EchoTask implements ApplicationTask {
@@ -34,7 +32,7 @@ public class EchoTask implements ApplicationTask {
     @Override
     public void preExecute(String... args) throws Exception {
         log.info("----- Starting hello world echo task ------");
-        writeOutputToFile("----- Starting hello world echo task ------");
+        writeOutputToFile("----- Starting hello world echo task ------\n");
         CommandLine cmdLine = new CommandLine(this);
         cmdLine.parse(args);
     }
@@ -42,13 +40,11 @@ public class EchoTask implements ApplicationTask {
     @Override
     public void execute(String... args) throws Exception {
         log.info("The task argument was: " + echoInput);
-        writeOutputToFile("The task argument was: " + echoInput);
+        writeOutputToFile("The task argument was: " + echoInput + "\n");
     }
 
     @Override
-    public void postExecute(String... args) throws Exception {
-        Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
-    }
+    public void postExecute(String... args) throws Exception {}
 
     @Override
     public void printHelpMsg(String... args) {
