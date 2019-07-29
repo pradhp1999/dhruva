@@ -111,6 +111,10 @@ publish:
     modules:
     - client
 
+extrafiles:
+    - 'jar-executor-tool/target/hello-world-jar-executor-tool-1.0-SNAPSHOT.jar'
+    - 'demo-python/target/hello-world-demo-1.0-SNAPSHOT-demo-assembly.tar.gz'
+
 security-automation:
   credentials-id: "hw-security.gen"
   ipcentral-id: 192709214
@@ -118,3 +122,4 @@ security-automation:
   enabled_scans: ['corona', 'ipcentral']
   ctsm_jira_id: CTSM-43477
   threat-model-id: 25358
+
