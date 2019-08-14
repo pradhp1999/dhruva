@@ -5,11 +5,13 @@ import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.auth.AuthInfo;
 import com.cisco.wx2.feature.client.FeatureClient;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
+import com.cisco.wx2.server.logging.LogMarker;
 import com.cisco.wx2.server.user.UserCache;
 import com.ciscospark.helloworld.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.cisco.wx2.util.ContextConstants.LOG_LEVEL_MDC_KEY;
 import static java.util.Objects.requireNonNull;
 
 
@@ -51,8 +54,10 @@ public class GreetingService {
 
         if(authInfo.isPresent()) {
             log.info("Getting greeting for name : {}, userId : {}, orgId : {}", name, authInfo.get().getEffectiveUserId(), authInfo.get().getOrgId());
+            log.info(LogMarker.DYNAMIC_DEBUG.get(), "Forcing dynamic debug tag by using Marker");
+            log.debug("HW DEBUG log - Getting greeting for name : {}, userId : {}, orgId : {}", name, authInfo.get().getEffectiveUserId(), authInfo.get().getOrgId());
         }
-        
+
         try {
             return getEnhancedGreeting(name, authInfo);
         } catch (Exception e) {
