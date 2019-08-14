@@ -54,10 +54,9 @@ public class GreetingService {
 
         if(authInfo.isPresent()) {
             log.info("Getting greeting for name : {}, userId : {}, orgId : {}", name, authInfo.get().getEffectiveUserId(), authInfo.get().getOrgId());
-            log.info(LogMarker.DYNAMIC_DEBUG.get(), "Forcing dynamic debug tag by using Marker");
-            log.debug("HW DEBUG log - Getting greeting for name : {}, userId : {}, orgId : {}", name, authInfo.get().getEffectiveUserId(), authInfo.get().getOrgId());
+            log.info(LogMarker.LONGTERM.get(), "Log with Marker - Getting greeting for name : {}, userId : {}, orgId : {}", name, authInfo.get().getEffectiveUserId(), authInfo.get().getOrgId());
+            log.debug("DEBUG log - Getting greeting for name : {}, userId : {}, orgId : {}, isProxyUser: {}, clientId: {}", name, authInfo.get().getEffectiveUserId(), authInfo.get().getOrgId(), authInfo.get().isProxyingUser(), authInfo.get().getClientId());
         }
-
         try {
             return getEnhancedGreeting(name, authInfo);
         } catch (Exception e) {
