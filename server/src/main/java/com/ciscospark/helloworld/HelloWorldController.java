@@ -48,6 +48,7 @@ public class HelloWorldController {
     @RequestMapping(value = "/greetings/{name}", method = GET)
     public Greeting getGreeting(@PathVariable("name") String name, HttpServletRequest request) {
         AuthInfo authInfo = AuthUtil.getAuthInfo(request);
+        log.info("Hello '{}'", name);
         return greetingService.getGreeting(name, Optional.ofNullable(authInfo));
     }
 
