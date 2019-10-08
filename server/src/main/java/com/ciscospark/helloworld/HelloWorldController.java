@@ -49,6 +49,7 @@ public class HelloWorldController {
     public Greeting getGreeting(@PathVariable("name") String name, HttpServletRequest request) {
         AuthInfo authInfo = AuthUtil.getAuthInfo(request);
         log.info("Hello '{}'", name);
+        log.info("jedisPoolHealthCheckMonitorEnabled:'{}'", env.getProperty("jedisPoolHealthCheckMonitorEnabled"));
         return greetingService.getGreeting(name, Optional.ofNullable(authInfo));
     }
 
