@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.ciscospark.jarexecutor.ApplicationTask;
 import com.ciscospark.jarexecutor.config.ApplicationTaskConfig;

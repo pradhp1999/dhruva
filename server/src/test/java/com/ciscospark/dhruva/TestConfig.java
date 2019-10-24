@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.machineaccount.CommonIdentityScimAdapter;
@@ -33,7 +33,7 @@ class TestConfig extends BaseTestConfig {
     @Bean
     @Primary
     public ConfigProperties configProperties() {
-        return new ConfigProperties(env, "hello-world-tests");
+        return new ConfigProperties(env, "dhruva-tests");
     }
 
     @Bean

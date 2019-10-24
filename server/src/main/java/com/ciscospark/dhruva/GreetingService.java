@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.cisco.wx2.dto.wdm.FeatureToggle;
 import com.cisco.wx2.server.ServerException;
@@ -7,7 +7,7 @@ import com.cisco.wx2.feature.client.FeatureClient;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.cisco.wx2.server.logging.LogMarker;
 import com.cisco.wx2.server.user.UserCache;
-import com.ciscospark.helloworld.api.Greeting;
+import com.ciscospark.dhruva.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,7 @@ public class GreetingService {
     private final UserCache userCache;
 
     @Autowired
-    public GreetingService(HelloWorldProperties properties, FeatureClientFactory featureClientFactory, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties, UserCache userCache) {
+    public GreetingService(DhruvaProperties properties, FeatureClientFactory featureClientFactory, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties, UserCache userCache) {
         this.defaultGreetingPrefix = properties.getDefaultGreetingPrefix();
         this.message = properties.getMessage();
         this.trailer = properties.getTrailer();

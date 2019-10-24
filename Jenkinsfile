@@ -7,27 +7,5 @@ library identifier: 'sparkPipeline', changelog: false
  *     https://sqbu-github.cisco.com/WebExSquared/pipeline/blob/master/vars/sparkPipeline.txt
  */
 sparkPipeline {
-    notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vZmIyYWYyYTAtZmFkNi0xMWU2LWE4MzctZmQ5MjFlYjIzZDA5'
-    // rename-remove-begin
-    
-    // Other teams should NOT be keeping 100 master branch builds. This is strictly for hello-world, since
-    // it runs constantly as a canary.
-    numToKeep = this.isMasterBranch() ? 100 : 3
-    
-    // This allows hello-world to run without human intervention, for canary purposes.
-    integration.deployMode = 'deploy'
-    production.deployMode = 'deploy'
-    
-    // This is NOT needed for hello-world, but we add Cassandra in to be a pipeline canary check
-    // against containers.cisco.com
-     services = ['redis:3', 'containers.cisco.com/spark_pipelines/cassandra']
-
-    integration.postDeploySteps = [
-            'run-intb246-tests-post-deploy-step': {
-                this.build job: 'platform/pipeline/public-test/hello-world/test-hello-world-default-intb2'
-
-            }
-    ]
-    
-    // rename-remove-end
+    notifySparkRoomId = ''
 }

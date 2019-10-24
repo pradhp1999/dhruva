@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld.api;
+package com.ciscospark.dhruva.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;

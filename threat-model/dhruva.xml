@@ -1,5 +1,5 @@
 <threatModel>
-  <info name="hello-world" bu="SPARK" description="Base threat model to be used as an example for new services" cservProjectName="" cservProjectId="">
+  <info name="dhruva" bu="SPARK" description="Base threat model to be used as an example for new services" cservProjectName="" cservProjectId="">
     <history username="mamante" event="Created" dateEvent="20-Sep-2016 14:19:12"/>
     <history username="mamante" event="AutoSave" dateEvent="20-Sep-2016 15:35:10"/>
     <history username="mamante" event="Updated" dateEvent="22-Sep-2016 11:01:21"/>
@@ -22,7 +22,7 @@
         <data uid="rectDataStore" itemLabel="Cassandra" size="" shape="Data Store"/>
       </node>
       <node id="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0" dx="348.55" dy="140.40" width="182.00" height="119.00" groupID="1443700A-77BA-8DB7-F294-530E21DFDB05-node1" dataModelID="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0">
-        <data uid="circleProcess" itemLabel="hello-world" size="" shape="Process"/>
+        <data uid="circleProcess" itemLabel="dhruva" size="" shape="Process"/>
       </node>
       <data itemLabel="Spark Infrastructure"/>
     </group>
@@ -44,15 +44,15 @@
     </link>
   </diagram>
   <shapes>
-    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0" itemType="Process" itemLabel="hello-world" itemListLabel="null" itemDescription=""/>
+    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0" itemType="Process" itemLabel="dhruva" itemListLabel="null" itemDescription=""/>
     <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node1" itemType="External Entity" itemLabel="Common Identity" itemListLabel="null" itemDescription=""/>
     <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node3" itemType="Data Store" itemLabel="Redis" itemListLabel="null" itemDescription=""/>
     <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node4" itemType="Data Store" itemLabel="Cassandra" itemListLabel="null" itemDescription=""/>
     <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node5" itemType="External Entity" itemLabel="Clients" itemListLabel="null" itemDescription=""/>
-    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node5->E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0" itemType="Data Flow" itemLabel="Data Flow" itemListLabel="Client to/from hello-world" itemDescription="Default HTTP,Username,Password,Cryptographic Key,IP Address And URL Attribute Set To The Link"/>
-    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0->E1520148-E9DE-A2BC-42C6-49A629FED1DC-node1" itemType="Data Flow" itemLabel="Data Flow" itemListLabel="hello-world to/from Common Identity" itemDescription="Default HTTP,Username,Password,Cryptographic Key,IP Address And URL Attribute Set To The Link"/>
-    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0->E1520148-E9DE-A2BC-42C6-49A629FED1DC-node3" itemType="Data Flow" itemLabel="Data Flow" itemListLabel="hello-world to/from Redis" itemDescription="Default HTTP,Username,Password,Cryptographic Key,IP Address And URL Attribute Set To The Link"/>
-    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0->E1520148-E9DE-A2BC-42C6-49A629FED1DC-node4" itemType="Data Flow" itemLabel="Data Flow" itemListLabel="hello-world to/from Cassandra" itemDescription="Default HTTP,Username,Password,Cryptographic Key,IP Address And URL Attribute Set To The Link"/>
+    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node5->E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0" itemType="Data Flow" itemLabel="Data Flow" itemListLabel="Client to/from dhruva" itemDescription="Default HTTP,Username,Password,Cryptographic Key,IP Address And URL Attribute Set To The Link"/>
+    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0->E1520148-E9DE-A2BC-42C6-49A629FED1DC-node1" itemType="Data Flow" itemLabel="Data Flow" itemListLabel="dhruva to/from Common Identity" itemDescription="Default HTTP,Username,Password,Cryptographic Key,IP Address And URL Attribute Set To The Link"/>
+    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0->E1520148-E9DE-A2BC-42C6-49A629FED1DC-node3" itemType="Data Flow" itemLabel="Data Flow" itemListLabel="dhruva to/from Redis" itemDescription="Default HTTP,Username,Password,Cryptographic Key,IP Address And URL Attribute Set To The Link"/>
+    <shape itemId="E1520148-E9DE-A2BC-42C6-49A629FED1DC-node0->E1520148-E9DE-A2BC-42C6-49A629FED1DC-node4" itemType="Data Flow" itemLabel="Data Flow" itemListLabel="dhruva to/from Cassandra" itemDescription="Default HTTP,Username,Password,Cryptographic Key,IP Address And URL Attribute Set To The Link"/>
     <shape itemId="1443700A-77BA-8DB7-F294-530E21DFDB05-node0" itemType="Group" itemLabel="CI Infrastructure" itemListLabel="Boundary" itemDescription=""/>
     <shape itemId="1443700A-77BA-8DB7-F294-530E21DFDB05-node1" itemType="Group" itemLabel="Spark Infrastructure" itemListLabel="Boundary" itemDescription=""/>
   </shapes>

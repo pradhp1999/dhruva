@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.cisco.wx2.redis.RedisDataSource;
 import com.cisco.wx2.redis.operations.commands.RedisCommonCommands;

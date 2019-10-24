@@ -4,12 +4,12 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>hello-world-integration</artifactId>
+    <artifactId>dhruva-integration</artifactId>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>com.ciscospark</groupId>
-        <artifactId>hello-world</artifactId>
+        <artifactId>dhruva</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
@@ -23,7 +23,7 @@
     <dependencies>
         <dependency>
             <groupId>com.ciscospark</groupId>
-            <artifactId>hello-world-client</artifactId>
+            <artifactId>dhruva-client</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -32,7 +32,7 @@
         </dependency>
         <dependency>
             <groupId>com.ciscospark</groupId>
-            <artifactId>hello-world-server</artifactId>
+            <artifactId>dhruva-server</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>war</type>
             <scope>test</scope>
@@ -48,7 +48,7 @@
     </dependencies>
 
     <build>
-        <finalName>hello-world-integration-tests</finalName>
+        <finalName>dhruva-integration-tests</finalName>
         <plugins>
             <!--
                 Create a shaded jar that contains the integration tests so they can be run independently from
@@ -60,7 +60,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.ciscospark.integration.JUnitTestRunner</mainClass>
-                    <finalName>hello-world-integration-tests</finalName>
+                    <finalName>dhruva-integration-tests</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -110,7 +110,7 @@
                     <deployables>
                         <deployable>
                             <groupId>com.ciscospark</groupId>
-                            <artifactId>hello-world-server</artifactId>
+                            <artifactId>dhruva-server</artifactId>
                             <type>war</type>
                             <properties>
                                 <context>/</context>

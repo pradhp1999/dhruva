@@ -1,6 +1,6 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
-import com.ciscospark.helloworld.EchoTask;
+import com.ciscospark.dhruva.EchoTask;
 import com.ciscospark.jarexecutor.config.ApplicationTaskConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -8,13 +8,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 @Configuration
-public class HelloWorldTaskConfig {
+public class DhruvaTaskConfig {
 
     @Autowired
     @Lazy
     ApplicationTaskConfig applicationTaskConfig;
 
-    public HelloWorldTaskConfig() {
+    public DhruvaTaskConfig() {
         System.out.println("***** hey i got created******");
     }
 

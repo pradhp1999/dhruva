@@ -1,17 +1,17 @@
-package com.ciscospark.helloworld.client;
+package com.ciscospark.dhruva.client;
 
 import com.cisco.wx2.client.ClientFactory;
 
 import java.net.URI;
 
-public class HelloWorldClientFactory extends ClientFactory {
+public class DhruvaClientFactory extends ClientFactory {
 
-    private HelloWorldClientFactory(Builder builder) {
+    private DhruvaClientFactory(Builder builder) {
         super(builder);
     }
 
-    public HelloWorldClient newHelloWorldClient() {
-        return new HelloWorldClient(this, baseUrl);
+    public DhruvaClient newDhruvaClient() {
+        return new DhruvaClient(this, baseUrl);
     }
 
     public static Builder builder(ClientFactory.Properties props, URI baseUrl) {
@@ -25,8 +25,8 @@ public class HelloWorldClientFactory extends ClientFactory {
             super(props, baseUrl);
         }
 
-        public HelloWorldClientFactory build() {
-            return new HelloWorldClientFactory(this);
+        public DhruvaClientFactory build() {
+            return new DhruvaClientFactory(this);
         }
 
     }

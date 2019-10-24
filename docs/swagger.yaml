@@ -1,9 +1,9 @@
 swagger: '2.0'
 info:
-  title: Hello World API
+  title: Dhruva API
   description: Have you greeted someone today?
   version: v1
-host: hello-world-a.wbx2.com
+host: dhruva-a.wbx2.com
 schemes:
   - https
 securityDefinitions:
@@ -14,7 +14,7 @@ securityDefinitions:
     flow: accessCode
     scopes:
       '*any*': Any valid scope
-basePath: /hello-world/api/v1
+basePath: /dhruva/api/v1
 produces:
   - application/json
 paths:

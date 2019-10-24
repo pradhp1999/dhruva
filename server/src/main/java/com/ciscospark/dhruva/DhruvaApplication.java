@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,7 +9,7 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 /*
  * As of this writing, you cannot run the micro-service in IntelliJ via simply clicking on the "Play" button. You
  * need to create a run/debug configuration that uses a Tomcat container (or Jetty, but that is a royal PITA to set up),
- * and add the exploded hello-world-server jar to the configuration.
+ * and add the exploded dhruva-server jar to the configuration.
  *
  * Note that since this is a Spring Boot Application, this class is also a configuration class - there is generally
  * not a need to create a separate configuration class unless you specifically need to override some behavior that is
@@ -41,15 +41,15 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
  *    present.
  */
 @SpringBootApplication(exclude = WebMvcAutoConfiguration.class)
-public class HelloWorldApplication extends SpringBootServletInitializer {
+public class DhruvaApplication extends SpringBootServletInitializer {
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         setRegisterErrorPageFilter(false);
-        return application.sources(HelloWorldApplication.class);
+        return application.sources(DhruvaApplication.class);
     }
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(HelloWorldApplication.class, args);
+        SpringApplication.run(DhruvaApplication.class, args);
     }
 }

@@ -1,11 +1,11 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.cisco.wx2.dto.User;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.cisco.wx2.server.auth.AuthInfo;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.util.ObjectMappers;
-import com.ciscospark.helloworld.api.Greeting;
+import com.ciscospark.dhruva.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,9 +33,9 @@ import static org.mockito.Mockito.when;
  * in a jar and finally published, so they can be consumed from a local or remote repository.
  * <p>
  *  All stubs are created from contracts placed inside the Feature Service (Producer) by the
- * Hello World Service (Consumer). These contracts specify what Feature Toggle is returned for Authorised
- * and Non Authorised users. On this example, the Hello World Service looks for the feature key
- * “hello-world-adduserresponse”, which will be enabled for authorised users but disabled for not authorised.
+ * Dhruva Service (Consumer). These contracts specify what Feature Toggle is returned for Authorised
+ * and Non Authorised users. On this example, the Dhruva Service looks for the feature key
+ * “dhruva-adduserresponse”, which will be enabled for authorised users but disabled for not authorised.
  * <p>
  * Finally, note that in this tests real HTTP requests are being fired against a locally deployed version
  * of Feature Service - see localhost:8090. As could be seen down below, the tests use a real version of
@@ -46,9 +46,9 @@ import static org.mockito.Mockito.when;
         classes = TestConfig.class,
         properties = {
                 "cisco-spark.server.importLegacyServerConfig=false",
-                "hello-world.defaultGreetingPrefix=Doh!",
-                "hello-world.message=" + GreetingServiceTest.message,
-                "hello-world.trailer=" + GreetingServiceTest.trailer,
+                "dhruva.defaultGreetingPrefix=Doh!",
+                "dhruva.message=" + GreetingServiceTest.message,
+                "dhruva.trailer=" + GreetingServiceTest.trailer,
                 "featureServicePublicUrl=" + "http://localhost:8090/api/v1/"})
 /*
  * If you want to run this test against local changes to the stubs you will need to
@@ -78,7 +78,7 @@ public class GreetingServiceContractTest {
 
     }
 
-    static final String name = "hello-world";
+    static final String name = "dhruva";
     static final String message = "To alcohol! The cause of, and solution to, all of life's problems.";
     static final String trailer = " Proudly created by: ";
     private static final String JOE_RANDOM_TEST_USER = "Joe Random TestUser";
@@ -110,7 +110,7 @@ public class GreetingServiceContractTest {
 
     /**
      * GET that is done by an authorised user, which makes the Feature Service to return an enabled Feature Toggle and
-     * tells the Hello World to include the trailer in the greeting message.
+     * tells the Dhruva to include the trailer in the greeting message.
      * */
     @Test
     public void testGetDefaultWithTrailer() throws Exception {
@@ -129,7 +129,7 @@ public class GreetingServiceContractTest {
 
     /**
      * GET that is done by an non-authorised user, which makes the Feature Service to return an disabled Feature Toggle and
-     * tells the Hello World to not include the trailer in the greeting message.
+     * tells the Dhruva to not include the trailer in the greeting message.
      * */
     @Test
     public void testGetDefaultWithTrailerFalseToggle() throws Exception {

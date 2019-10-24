@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.cisco.wx2.dto.health.ServiceType;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @ConditionalOnWebApplication
-public class HelloWorldConfig extends Wx2ConfigAdapter {
+public class DhruvaConfig extends Wx2ConfigAdapter {
     private static final long DEFAULT_CACHE_TIMEOUT = 10;
 
     @Autowired
@@ -34,17 +34,17 @@ public class HelloWorldConfig extends Wx2ConfigAdapter {
 
     @Override
     public String getServiceName() {
-        return "Hello World";
+        return "Dhruva";
     }
 
     @Override
     public String getMetricsNamespace() {
-        return "hello-world";
+        return "dhruva";
     }
 
     @Override
     public String getUserAgent() {
-        return "Hello World/1.0";
+        return "Dhruva/1.0";
     }
 
 
@@ -67,7 +67,7 @@ public class HelloWorldConfig extends Wx2ConfigAdapter {
     @Bean
     @Qualifier("store")
     public Map<String, String> greetingStore(RedisDataSourceManager redisDataSourceManager, MetricRegistry metricRegistry, CiscoSparkServerProperties props) {
-        RedisDataSource redisDataSource = redisDataSourceManager.getRedisDataSource("helloworldapp");
+        RedisDataSource redisDataSource = redisDataSourceManager.getRedisDataSource("dhruvaapp");
         return new RedisHashMap(redisDataSource, props.getName() + "-store", defaultCacheTimeout(), String.class, ObjectMappers.getObjectMapper(), metricRegistry);
     }
 

@@ -56,7 +56,7 @@ timestamps {
                 usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
 
             stage("Update Version") {
-                // Convert the pipeline id into a repository name with the format WebExSquared/hello-world
+                // Convert the pipeline id into a repository name with the format WebExSquared/dhruva
                 sh "git clone -q https://${env.USERNAME}:${env.PASSWORD}@sqbu-github.cisco.com/WebExSquared/pipeline.git pipeline"
                 dir("pipeline/scripts") {
                     gitHubRepo = sh (

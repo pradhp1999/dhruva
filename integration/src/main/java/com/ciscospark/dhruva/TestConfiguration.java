@@ -1,8 +1,8 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.cisco.wx2.test.BaseTestConfig;
 import com.cisco.wx2.test.TestProperties;
-import com.ciscospark.helloworld.client.HelloWorldClientFactory;
+import com.ciscospark.dhruva.client.DhruvaClientFactory;
 import com.google.common.base.Preconditions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -18,7 +18,7 @@ import java.net.URI;
 public class TestConfiguration extends BaseTestConfig {
     @Component
     @ConfigurationProperties
-    static class HelloWorldTestProperties {
+    static class DhruvaTestProperties {
         @Value("${helloWorldPublicUrl:http://localhost:8080/api/v1}")
         private String helloWorldUrl;
 
@@ -28,8 +28,8 @@ public class TestConfiguration extends BaseTestConfig {
     }
 
     @Bean
-    public HelloWorldClientFactory helloWorldClientFactory(TestProperties testProperties, HelloWorldTestProperties helloWorldTestProperties) {
+    public DhruvaClientFactory helloWorldClientFactory(TestProperties testProperties, DhruvaTestProperties helloWorldTestProperties) {
         Preconditions.checkNotNull(testProperties);
-        return HelloWorldClientFactory.builder(testProperties, helloWorldTestProperties.helloWorldUrl()).build();
+        return DhruvaClientFactory.builder(testProperties, helloWorldTestProperties.helloWorldUrl()).build();
     }
 }

@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.cisco.wx2.dto.User;
 import com.cisco.wx2.dto.wdm.FeatureToggle;
@@ -7,7 +7,7 @@ import com.cisco.wx2.feature.client.FeatureClient;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.auth.AuthInfo;
-import com.ciscospark.helloworld.api.Greeting;
+import com.ciscospark.dhruva.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,9 +42,9 @@ import static org.mockito.Mockito.when;
         classes = TestConfig.class,
         properties = {
                 "cisco-spark.server.importLegacyServerConfig=false",
-                "hello-world.defaultGreetingPrefix=Doh!",
-                "hello-world.message=" + GreetingServiceTest.message,
-                "hello-world.trailer=" + GreetingServiceTest.trailer
+                "dhruva.defaultGreetingPrefix=Doh!",
+                "dhruva.message=" + GreetingServiceTest.message,
+                "dhruva.trailer=" + GreetingServiceTest.trailer
         })
 public class GreetingServiceTest {
 

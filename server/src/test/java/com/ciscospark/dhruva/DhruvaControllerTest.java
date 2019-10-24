@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.cisco.wx2.feature.client.FeatureClient;
 import com.cisco.wx2.feature.client.FeatureClientFactory;
@@ -6,7 +6,7 @@ import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.spring.ExceptionResolver;
 import com.cisco.wx2.util.ObjectMappers;
-import com.ciscospark.helloworld.api.Greeting;
+import com.ciscospark.dhruva.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,8 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * http://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-testing.html
  */
 @RunWith(SpringRunner.class)
-@WebMvcTest(HelloWorldController.class)
-public class HelloWorldControllerTest {
+@WebMvcTest(DhruvaController.class)
+public class DhruvaControllerTest {
 
     @TestConfiguration
     static class TestConfig extends WebMvcConfigurerAdapter {
@@ -57,8 +57,8 @@ public class HelloWorldControllerTest {
     }
 
     /* Even though they are not referenced or used in this test, the MockBean instances are needed in order to satisfy
-     * HelloWorldApplication's @Autowired beans, because the use of @TestConfiguration augments, as opposed to replaces
-     * the HelloWorldApplication context.
+     * DhruvaApplication's @Autowired beans, because the use of @TestConfiguration augments, as opposed to replaces
+     * the DhruvaApplication context.
      */
     @MockBean
     ConfigProperties configProperties;

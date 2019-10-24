@@ -1,4 +1,4 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import com.cisco.wx2.server.auth.AuthInfo;
 import com.cisco.wx2.server.auth.AuthUtil;
@@ -6,7 +6,7 @@ import com.cisco.wx2.server.auth.ng.Auth.Org;
 import com.cisco.wx2.server.auth.ng.Scope;
 import com.cisco.wx2.server.auth.ng.annotation.AuthorizeAnonymous;
 import com.cisco.wx2.server.auth.ng.annotation.AuthorizeWhen;
-import com.ciscospark.helloworld.api.Greeting;
+import com.ciscospark.dhruva.api.Greeting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +22,11 @@ import java.util.Optional;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 /**
- * The Hello World microservice.
+ * The Dhruva microservice.
  */
 @RestController
 @RequestMapping("${cisco-spark.server.api-path:/api}/v1")
-public class HelloWorldController {
+public class DhruvaController {
     private final GreetingService greetingService;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -34,7 +34,7 @@ public class HelloWorldController {
     private Environment env;
 
     @Autowired
-    public HelloWorldController(GreetingService greetingService) {
+    public DhruvaController(GreetingService greetingService) {
         this.greetingService = greetingService;
     }
 

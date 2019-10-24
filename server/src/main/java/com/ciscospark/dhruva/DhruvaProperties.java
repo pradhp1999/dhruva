@@ -1,16 +1,16 @@
-package com.ciscospark.helloworld;
+package com.ciscospark.dhruva;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Properties that are specific to the hello-world service.
+ * Properties that are specific to the dhruva service.
  * <p>
  * See also: http://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html
  */
-@ConfigurationProperties(prefix = "hello-world")
+@ConfigurationProperties(prefix = "dhruva")
 @Component
-public class HelloWorldProperties {
+public class DhruvaProperties {
     /**
      * The default greeting prefix if no specific greeting is found.
      */
@@ -26,7 +26,7 @@ public class HelloWorldProperties {
      */
     private String trailer = "Message lovingly crafted by";
 
-    public HelloWorldProperties() {
+    public DhruvaProperties() {
     }
 
     public String getDefaultGreetingPrefix() {
