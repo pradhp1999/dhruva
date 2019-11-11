@@ -1,17 +1,13 @@
 package com.ciscospark.dhruva;
 
-import com.cisco.wx2.dto.wdm.FeatureToggle;
 import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.auth.AuthInfo;
-import com.cisco.wx2.feature.client.FeatureClient;
-import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.cisco.wx2.server.logging.LogMarker;
 import com.cisco.wx2.server.user.UserCache;
 import com.ciscospark.dhruva.api.Greeting;
 import com.ciscospark.server.CiscoSparkServerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -20,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.cisco.wx2.util.ContextConstants.LOG_LEVEL_MDC_KEY;
 import static java.util.Objects.requireNonNull;
 
 
@@ -33,16 +28,14 @@ public class GreetingService {
     private final String message;
     private final String trailer;
     private final Map<String, String> store;
-    private final FeatureClientFactory featureClientFactory;
     private final CiscoSparkServerProperties serverProperties;
     private final UserCache userCache;
 
     @Autowired
-    public GreetingService(DhruvaProperties properties, FeatureClientFactory featureClientFactory, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties, UserCache userCache) {
+    public GreetingService(DhruvaProperties properties, @Qualifier("store") Map<String, String> store, CiscoSparkServerProperties serverProperties, UserCache userCache) {
         this.defaultGreetingPrefix = properties.getDefaultGreetingPrefix();
         this.message = properties.getMessage();
         this.trailer = properties.getTrailer();
-        this.featureClientFactory = featureClientFactory;
         this.store = store;
         this.serverProperties = serverProperties;
         this.userCache = userCache;
@@ -75,30 +68,30 @@ public class GreetingService {
             greeting = defaultGreetingPrefix + " " + name;
         }
 
-        /* Use the feature client to determine what the exact message is to return to the caller.
-         * This is simply an example of how to call another service. Note that we could have simply
-         * used an "orElse(message)" instead of "orElseGet(...)", but I wanted to include a debug
-         * statement here as an example.
-         */
-        String sendingMessage =
-                authInfo.flatMap(ai -> {
-                    String msg = message;
-                    FeatureClient client = featureClientFactory.newClient(ai.getAuthorization());
-                    String key = serverProperties.getName() + "-adduserresponse";
-                    FeatureToggle feature = client.getDeveloperFeatureOrNull(ai.getEffectiveUser().getId(), key);
-                    if (feature != null && feature.getBooleanValue()) {
-                        log.debug("Feature {} is set, adding trailer and username to response", key);
-                        msg += " " + trailer + ai.getEffectiveUser().getName();
-                    } else
-                        log.debug("Feature {} is not set, omitting trailer and username", key);
+//        /* Use the feature client to determine what the exact message is to return to the caller.
+//         * This is simply an example of how to call another service. Note that we could have simply
+//         * used an "orElse(message)" instead of "orElseGet(...)", but I wanted to include a debug
+//         * statement here as an example.
+//         */
+//        String sendingMessage =
+//                authInfo.flatMap(ai -> {
+//                    String msg = message;
+//                    FeatureClient client = featureClientFactory.newClient(ai.getAuthorization());
+//                    String key = serverProperties.getName() + "-adduserresponse";
+//                    FeatureToggle feature = client.getDeveloperFeatureOrNull(ai.getEffectiveUser().getId(), key);
+//                    if (feature != null && feature.getBooleanValue()) {
+//                        log.debug("Feature {} is set, adding trailer and username to response", key);
+//                        msg += " " + trailer + ai.getEffectiveUser().getName();
+//                    } else
+//                        log.debug("Feature {} is not set, omitting trailer and username", key);
+//
+//                    return Optional.of(msg);
+//                }).orElseGet(() -> {
+//                    log.debug("AuthInfo is not present, omitting trailer and username");
+//                    return message;
+//                });
 
-                    return Optional.of(msg);
-                }).orElseGet(() -> {
-                    log.debug("AuthInfo is not present, omitting trailer and username");
-                    return message;
-                });
-
-        return Greeting.builder().greeting(greeting).message(sendingMessage).build();
+        return Greeting.builder().greeting(greeting).message(message).build();
     }
 
     /* The fallback method will not invoke any network operations, so will return an uncustomized greeting */

@@ -1,7 +1,6 @@
 package com.ciscospark.dhruva;
 
 import com.cisco.wx2.dto.health.ServiceType;
-import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.cisco.wx2.redis.RedisDataSource;
 import com.cisco.wx2.redis.RedisDataSourceManager;
 import com.cisco.wx2.server.config.ConfigProperties;
@@ -29,8 +28,6 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
     @Autowired
     private ConfigProperties configProperties;
 
-    @Autowired
-    private FeatureClientFactory featureClientFactory;
 
     @Override
     public String getServiceName() {
@@ -47,22 +44,6 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
         return "Dhruva/1.0";
     }
 
-
-    @Bean
-    @Qualifier("featureClientFactory")
-    public FeatureClientFactory featureClientFactory() {
-        return FeatureClientFactory.builder(configProperties)
-                .baseUrl(configProperties.getFeatureServicePublicUrl())
-                .objectMapper(ObjectMappers.getObjectMapper())
-                .build();
-    }
-
-
-    @Bean
-    @ConditionalOnBean(name = {"featureClientFactory"})
-    public ServiceMonitor featureServiceMonitor() {
-        return MonitorableClientServiceMonitor.newMonitor(featureClientFactory, ServiceType.OPTIONAL);
-    }
 
     @Bean
     @Qualifier("store")

@@ -7,5 +7,5 @@ library identifier: 'sparkPipeline', changelog: false
  *     https://sqbu-github.cisco.com/WebExSquared/pipeline/blob/master/vars/sparkPipeline.txt
  */
 sparkPipeline {
-    notifySparkRoomId = ''
+    notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vNDU5NWUzNTAtZjYyMy0xMWU5LThmMWQtYmY3OTJhYmQ3MzY0'
 }

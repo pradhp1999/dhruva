@@ -15,7 +15,7 @@ id: dhruva
 # name - The name of the component in English.
 name: Dhruva
 # description - A short description of the component.
-description: A complete minimal microservice.
+description: A SIP Edge microservice.
 # version - The deployed version, populated automatically.
 version: "${project.version}"
 # deploy-file - The file used to deploy the component.
@@ -28,10 +28,10 @@ ping-path: ping
 #            Timezones like PDT or PST SHOULD not be used since they change seasonally.
 #            Here are some typical/valid values
 # timezone: Europe/Dublin  (or PT or Asia/Kolkata)
-timezone: America/Los_Angeles
+timezone: Asia/Kolkata
 # location - The primary location for the component team. It should work as a query
 #            to https://time.is/<location> and https://maps.google.com/?q=<location>
-location: Seattle, WA
+location: Bangalore
 # issues - The URL for the component's issue tracker.
 issues: https://sqbu-github.cisco.com/WebExSquared/dhruva/issues
 # wiki - The URL for the component's wiki.
@@ -61,7 +61,7 @@ owner:
   # email - the contact email address(es) of the owner.
   #         The format can be any of dict, list, or comma separated string
   #         It's recommended to use a dict mapping email to display name.
-  email: { sgaikwad : "Sachin Gaikwad" }
+  email: { arunsrin: "Arun Srinivasan", graivitt: "Guruprasad Rai V" }
   # pagerduty - the pagerduty.com URL for the component
   pagerduty: https://ciscospark.pagerduty.com/services/PZGV51T
   # pagerdutyemail - the pagerduty email alias for the component
@@ -72,10 +72,10 @@ owner:
 
   # spark - The spark room ID for automaic notifications. This will typically be
   #         the "Component Pipeline" room
-  spark: fb2af2a0-fad6-11e6-a837-fd921eb23d09
+  spark: Y2lzY29zcGFyazovL3VzL1JPT00vNDU5NWUzNTAtZjYyMy0xMWU5LThmMWQtYmY3OTJhYmQ3MzY0
   # askspark - The spark room ID for asking questions about the component. This will
   #            typically be the "Ask Component" room
-  askspark: 9ddb7ab0-6af4-11e6-8ceb-b9db98a3b15e
+  askspark: Y2lzY29zcGFyazovL3VzL1JPT00vZDY4NWJmMjAtMDQ0Ny0xMWVhLTg3OTQtODUwN2UzNDFmNTM1
 
 # Define tests to be run or consumed. See https://sqbu-github.cisco.com/WebExSquared/pipeline/wiki/Consumer-Tests#running-consumer-tests
 tests:

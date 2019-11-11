@@ -1,7 +1,5 @@
 package com.ciscospark.dhruva;
 
-import com.cisco.wx2.feature.client.FeatureClient;
-import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.cisco.wx2.server.spring.ExceptionResolver;
@@ -66,11 +64,6 @@ public class DhruvaControllerTest {
     @MockBean
     CiscoSparkServerProperties serverProperties;
 
-    @MockBean
-    FeatureClient featureClient;
-
-    @MockBean
-    FeatureClientFactory featureClientFactory;
 
     @Autowired
     MockMvc mvc;
