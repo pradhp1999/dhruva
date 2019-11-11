@@ -113,7 +113,6 @@ publish:
 
 extrafiles:
     - 'jar-executor-tool/target/dhruva-jar-executor-tool-1.0-SNAPSHOT.jar'
-    - 'demo-python/target/dhruva-demo-1.0-SNAPSHOT-demo-assembly.tar.gz'
 
 security-automation:
   credentials-id: "hw-security.gen"
