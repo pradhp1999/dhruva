@@ -1,10 +1,6 @@
 package com.ciscospark.dhruva;
 
 import com.cisco.wx2.dto.User;
-import com.cisco.wx2.dto.wdm.FeatureToggle;
-import com.cisco.wx2.dto.wdm.FeatureToggleType;
-import com.cisco.wx2.feature.client.FeatureClient;
-import com.cisco.wx2.feature.client.FeatureClientFactory;
 import com.cisco.wx2.server.ServerException;
 import com.cisco.wx2.server.auth.AuthInfo;
 import com.ciscospark.dhruva.api.Greeting;
@@ -59,11 +55,6 @@ public class GreetingServiceTest {
     @MockBean
     private CiscoSparkServerProperties serverProperties;
 
-    @MockBean
-    private FeatureClient featureClient;
-
-    @MockBean
-    private FeatureClientFactory featureClientFactory;
 
     @MockBean
     private HttpServletRequest servletRequest;
@@ -79,9 +70,6 @@ public class GreetingServiceTest {
         when(serverProperties.getName()).thenReturn(name);
 
         String n = serverProperties.getName() + "-adduserresponse";
-        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
-        when(featureClientFactory.newClient(anyString())).thenReturn(featureClient);
-
         User user = Mockito.mock(User.class);
         when(user.getName()).thenReturn(JOE_RANDOM_TEST_USER);
         when(user.getId()).thenReturn(UUID.randomUUID());
@@ -98,39 +86,6 @@ public class GreetingServiceTest {
                 .isEqualTo(expected);
     }
 
-    /* GET that is done with a login, and with the adduserresponse feature toggle set */
-    @Test
-    public void testGetDefaultWithTrailer() throws Exception {
-        String n = serverProperties.getName() + "-adduserresponse";
-        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, true, true, FeatureToggleType.DEV));
-        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
-
-        Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message + trailer + JOE_RANDOM_TEST_USER).build();
-        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
-                .isEqualTo(expected);
-    }
-
-    /* GET that is done with a login, and with the adduserresponse feature toggle set to false */
-    @Test
-    public void testGetDefaultWithTrailerFalseToggle() throws Exception {
-        String n = serverProperties.getName() + "-adduserresponse";
-        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(new FeatureToggle(n, false, true, FeatureToggleType.DEV));
-        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
-        Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
-        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
-                .isEqualTo(expected);
-    }
-
-    /* GET that is done with a login, and with the adduserresponse feature not present */
-    @Test
-    public void testGetDefaultWithTrailerNoToggle() throws Exception {
-        String n = serverProperties.getName() + "-adduserresponse";
-        when(featureClient.getDeveloperFeatureOrNull(any(), eq(n))).thenReturn(null);
-        when(servletRequest.getAttribute("AuthInfo")).thenReturn(authInfo);
-        Greeting expected = Greeting.builder().greeting("Doh! Homer Simpson").message(message).build();
-        assertThat(greetingService.getGreeting("Homer Simpson", Optional.of(authInfo)))
-                .isEqualTo(expected);
-    }
 
 
     @Test
