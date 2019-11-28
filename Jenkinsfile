@@ -7,5 +7,17 @@ library identifier: 'sparkPipeline', changelog: false
  *     https://sqbu-github.cisco.com/WebExSquared/pipeline/blob/master/vars/sparkPipeline.txt
  */
 sparkPipeline {
+
     notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vNDU5NWUzNTAtZjYyMy0xMWU5LThmMWQtYmY3OTJhYmQ3MzY0'
+
+    /*
+    * This next bit is temporary. Once we have the pipeline up in meet PaaS, revert to
+    * default. Without these changes, the 'default' postDeployTests are called, and since
+    * we've currently not deployed in any environment, the tests fail and we never get a
+    * successful build that ImageBuilder can pick up.
+    */
+    integration.postDeployTests = []
+    integration.runConsumerTests = false
+    integration.consumerTestsPromptAction = false
+
 }
