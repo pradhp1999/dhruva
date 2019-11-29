@@ -43,13 +43,13 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 @SpringBootApplication(exclude = WebMvcAutoConfiguration.class)
 public class DhruvaApplication extends SpringBootServletInitializer {
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        setRegisterErrorPageFilter(false);
-        return application.sources(DhruvaApplication.class);
-    }
+  @Override
+  protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+    setRegisterErrorPageFilter(false);
+    return application.sources(DhruvaApplication.class);
+  }
 
-    public static void main(String[] args) throws Exception {
-        SpringApplication.run(DhruvaApplication.class, args);
-    }
+  public static void main(String[] args) throws Exception {
+    SpringApplication.run(DhruvaApplication.class, args);
+  }
 }
