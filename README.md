@@ -1,7 +1,5 @@
 ## Dhruva, a service that greets you
 
-Test change
-
 Aside from serving very little real-world purpose, this service is the beginning of your Cisco Spark service.
 
 
