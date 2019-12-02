@@ -35,6 +35,12 @@
         <module>jar-executor-tool</module>
     </modules>
 
+    <properties>
+        <spotbugs.skip>false</spotbugs.skip>
+        <spotbugs.failOnError>true</spotbugs.failOnError>
+        <jacoco.version>0.8.2</jacoco.version>
+    </properties>
+
     <build>
         <plugins>
             <!-- Validate that AuthNG Spring and JAX-RS annotations are used correctly -->

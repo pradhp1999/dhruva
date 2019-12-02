@@ -10,6 +10,11 @@ sparkPipeline {
 
     notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vNDU5NWUzNTAtZjYyMy0xMWU5LThmMWQtYmY3OTJhYmQ3MzY0'
 
+    build = { services ->
+        this.sh "mvn versions:set -DnewVersion=${this.env.BUILD_VERSION} && mvn -Dmaven.test.failure.ignore verify"
+        this.step([$class: 'JacocoPublisher', changeBuildStatus: true, classPattern: 'server/target/classes,client/target/classes', execPattern: '**/target/**.exec', minimumInstructionCoverage: '1'])
+    }
+
     /*
     * This next bit is temporary. Once we have the pipeline up in meet PaaS, revert to
     * default. Without these changes, the 'default' postDeployTests are called, and since
