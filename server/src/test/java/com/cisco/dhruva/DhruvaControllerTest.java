@@ -1,4 +1,4 @@
-package com.ciscospark.dhruva;
+package com.cisco.dhruva;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;

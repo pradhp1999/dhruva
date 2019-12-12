@@ -1,5 +1,7 @@
-package com.ciscospark.dhruva;
+package com.cisco.dhruva;
 
+import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "dhruva")
 @Component
 public class DhruvaProperties {
+
   /** The default greeting prefix if no specific greeting is found. */
   private String defaultGreetingPrefix = "Hello";
 
@@ -21,7 +24,7 @@ public class DhruvaProperties {
   /** Something to optionally append to the greeting. */
   private String trailer = "Message lovingly crafted by";
 
-  public DhruvaProperties() {}
+  @Autowired private DhruvaSIPConfigProperties sipConfigProperties;
 
   public String getDefaultGreetingPrefix() {
     return this.defaultGreetingPrefix;

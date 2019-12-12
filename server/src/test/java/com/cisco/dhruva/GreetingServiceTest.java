@@ -1,4 +1,4 @@
-package com.ciscospark.dhruva;
+package com.cisco.dhruva;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
