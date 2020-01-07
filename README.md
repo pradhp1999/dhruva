@@ -8,10 +8,19 @@ It is deployed in Meetings Platform (meet-PaaS).
 
 ### Prerequisites
 - Redis is needed to run Integration tests.
-- Clone the repo in your IDE (IntelliJ recommended).
-- Setup [secure access to Cisco's artifactory](https://sqbu-github.cisco.com/pages/WebexSquared/docs/DeveloperTools/maven.html). 
+- Clone the repo in your IDE (IntelliJ Ultimate recommended (see below)).
+- Setup [secure access to Cisco's artifactory](https://sqbu-github.cisco.com/pages/WebexSquared/docs/DeveloperTools/maven.html).
+
+#### Intellij Ultimate
+
+- Use [this invitation for IntelliJ IDEA Ultimate by lbogard@cisco.com](https://account.jetbrains.com/a/4007hmtf) and create an account with your Cisco Email address.
+- You will receive a confirmation Email.
+- Confirm your account in the email, it will take you to jetbrains site to create your account.
+- Then you can see your license ID.
+- Go to Intellij Ultimate, under Help > Register..., enter your username and password.
+ 
 ### Build/Tests
-- `mnv clean verify` at the top level builds and runs all tests.
+- `mvn clean verify` at the top level builds and runs all tests.
 ### Running in Tomcat in Intellij IDE
 - Go to Run -> Edit Configurations
 - Click on + sign in new window and find Tomcat Server and select Local
