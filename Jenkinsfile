@@ -41,19 +41,21 @@ def initiateImageBuilderInMeetPaas() {
     try {
         def result
         result = retryBuild job: 'team/dhruva/MeetPaaS/router-publish-job-meet-paas',
-                parameters: [string(name: 'target_build', value: BUILD_NUMBER), string(name: 'artifact_url', value: JOB_URL), string(name: 'service', value: 'mmf')], promptForAction : false, indirect_build : true
+                parameters: [string(name: 'target_build', value: BUILD_NUMBER),
+                             string(name: 'artifact_url', value: JOB_URL),
+                             string(name: 'service', value: 'dhruva')],
+                promptForAction : false, indirect_build : true
 
         if (result.result == 'SUCCESS') {
             echo "SUCCESS triggering the image publisher router job"
         }
-
-        //Comment out the below section to fail the job, if publish to meet paas fails
-        /*
+        // Fail the current build in case the publish to meet paas fails.
+        // No point in continuing the deployment, since Dhruva is dedicated for meet-paas.
         if (result.result == 'FAILURE') {
             currentBuild.result = 'FAILURE'
             echo "ERROR triggering image builder router job"
             return
-        }*/
+        }
     } catch (Exception ex) {
         echo "ERROR: Could not trigger the image publisher router job"
     }
