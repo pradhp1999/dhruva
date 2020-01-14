@@ -54,9 +54,10 @@ def initiateImageBuilderInMeetPaas() {
         if (result.result == 'FAILURE') {
             currentBuild.result = 'FAILURE'
             echo "ERROR triggering image builder router job"
-            return
+            throw new SparkException("Failed to build and publish image for meetpaas.")
         }
     } catch (Exception ex) {
         echo "ERROR: Could not trigger the image publisher router job"
+        throw ex
     }
 }
