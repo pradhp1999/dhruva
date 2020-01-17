@@ -1,5 +1,6 @@
 #!groovy
-library identifier: 'sparkPipeline', changelog: false
+// Get the common library.
+@Library('sparkPipeline') _
 
 /**
  * sparkPipeline constructs a typical spark pipeline. Many options are available to alter the pipeline.
