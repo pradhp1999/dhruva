@@ -4,8 +4,6 @@
 
 package com.cisco.dhruva.transport;
 
-import com.cisco.dhruva.sip.bean.Transport;
-
 import java.util.concurrent.CompletableFuture;
 
 public interface Connection {
@@ -37,7 +35,7 @@ public interface Connection {
 
   public void closeConnection();
 
-    public enum STATE {
+  public enum STATE {
     NOTCONNECTED,
     CONNECTED,
     CLOSED

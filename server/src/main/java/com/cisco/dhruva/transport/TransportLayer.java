@@ -3,10 +3,9 @@
  * @author graivitt
  */
 
-
 package com.cisco.dhruva.transport;
-import com.cisco.dhruva.transport.config.NetworkConfig;
 
+import com.cisco.dhruva.transport.config.NetworkConfig;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;

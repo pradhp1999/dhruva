@@ -3,7 +3,7 @@ package com.cisco.dhruva.config.sip;
 import static org.mockito.Mockito.when;
 
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
-import com.cisco.dhruva.sip.bean.Transport;
+import com.cisco.dhruva.transport.Transport;
 import java.util.ArrayList;
 import java.util.List;
 import org.mockito.InjectMocks;

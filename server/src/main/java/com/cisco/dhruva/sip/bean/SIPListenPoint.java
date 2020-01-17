@@ -1,6 +1,7 @@
 package com.cisco.dhruva.sip.bean;
 
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
+import com.cisco.dhruva.transport.Transport;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.commons.lang3.builder.EqualsBuilder;
