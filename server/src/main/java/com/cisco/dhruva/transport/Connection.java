@@ -4,6 +4,8 @@
 
 package com.cisco.dhruva.transport;
 
+import com.cisco.dhruva.sip.bean.Transport;
+
 import java.util.concurrent.CompletableFuture;
 
 public interface Connection {
