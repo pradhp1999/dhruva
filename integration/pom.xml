@@ -98,6 +98,9 @@
                     <container>
                         <containerId>tomcat9x</containerId>
                         <timeout>180000</timeout>
+                        <zipUrlInstaller>
+                            <url>https://repo1.maven.org/maven2/org/apache/tomcat/tomcat/9.0.0.M15/tomcat-9.0.0.M15.zip</url>
+                        </zipUrlInstaller>
                     </container>
                     <configuration>
                         <type>standalone</type>
