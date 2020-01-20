@@ -1,5 +1,3 @@
 package com.cisco.dhruva.sip.DsSipObject;
 
-public abstract class DsSipMessage {
-
-}
+public abstract class DsSipMessage {}
