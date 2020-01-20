@@ -1,7 +1,7 @@
 package com.cisco.dhruva.config.sip;
 
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
-import com.cisco.dhruva.sip.bean.Transport;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.JsonUtilFactory;
 import com.cisco.dhruva.util.log.DhruvaLogger;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
