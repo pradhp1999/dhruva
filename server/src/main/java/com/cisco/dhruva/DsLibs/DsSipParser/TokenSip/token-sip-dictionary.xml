@@ -1,0 +1,705 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tokensip>
+    <dictionary name="1/com.sprintpcs/1">
+	    <section name="sip">
+    <entry>tok</entry>
+    <entry>tok-redir</entry>
+    <entry>sip</entry>
+    <entry>SIP</entry>
+    <entry>SIP/2.0</entry>
+    <entry>SIP/2.0/TCP</entry>
+    <entry>SIP/2.0/UDP</entry>
+    <entry>FALSE</entry>
+    <entry>False</entry>
+    <entry>false</entry>
+    <entry>TRUE</entry>
+    <entry>True</entry>
+    <entry>true</entry>
+    <entry>OK</entry>
+    <entry>Ok</entry>
+    <entry>application/sdp</entry>
+    <entry>text/plain</entry>
+    <entry>lr</entry>
+    <entry>maddr</entry>
+    <entry>RTP/AVP</entry>
+    <entry>expires</entry>
+    <entry>mandatory</entry>
+    <entry>optional</entry>
+    <entry>cnonce</entry>
+    <entry>nc</entry>
+    <entry>nextnonce</entry>
+    <entry>rspauth</entry>
+    <entry>domain</entry>
+    <entry>none</entry>
+    <entry>e2e</entry>
+    <entry>comp</entry>
+    <entry>sigcomp</entry>
+    <entry>0 0</entry>
+    <entry>0.0.0.0</entry>
+    <entry>100rel</entry>
+    <entry>3600</entry>
+    <entry>Accepted</entry>
+    <entry>ack</entry>
+    <entry>active</entry>
+    <entry>Address Incomplete</entry>
+    <entry>AKAv</entry>
+    <entry>AKAv1-MD5</entry>
+    <entry>alert</entry>
+    <entry>alg</entry>
+    <entry>algorithm</entry>
+    <entry>Alternative Service</entry>
+    <entry>Ambiguous</entry>
+    <entry>AMR</entry>
+    <entry>Anonymous</entry>
+    <entry>app</entry>
+    <entry>application</entry>
+    <entry>application/cpim-pidf+xml</entry>
+    <entry>application/mime</entry>
+    <entry>application/vnd.wap.coc</entry>
+    <entry>application/vnd.wap.sic</entry>
+    <entry>application/vnd.wap.slc</entry>
+    <entry>Apr</entry>
+    <entry>AS</entry>
+    <entry>audio</entry>
+    <entry>Aug</entry>
+    <entry>auth</entry>
+    <entry>auth-int</entry>
+    <entry>auts</entry>
+    <entry>Bad Event</entry>
+    <entry>Bad Extension</entry>
+    <entry>Bad Gateway</entry>
+    <entry>Bad Request</entry>
+    <entry>base64</entry>
+    <entry>branch</entry>
+    <entry>Busy Everywhere</entry>
+    <entry>Busy Here</entry>
+    <entry>Call Is Being Forwarded</entry>
+    <entry>Call/Transaction Does Not Exist</entry>
+    <entry>card</entry>
+    <entry>cat</entry>
+    <entry>cause</entry>
+    <entry>channels</entry>
+    <entry>charset</entry>
+    <entry>clear</entry>
+    <entry>conf</entry>
+    <entry>control</entry>
+    <entry>crc</entry>
+    <entry>critical</entry>
+    <entry>CT</entry>
+    <entry>curr</entry>
+    <entry>data</entry>
+    <entry>deactivated</entry>
+    <entry>Dec</entry>
+    <entry>Decline</entry>
+    <entry>des</entry>
+    <entry>Dialog Terminated</entry>
+    <entry>Digest</entry>
+    <entry>digest</entry>
+    <entry>digest-integrity</entry>
+    <entry>Does Not Exist Anywhere</entry>
+    <entry>duration</entry>
+    <entry>emergency</entry>
+    <entry>events</entry>
+    <entry>Extension Required</entry>
+    <entry>failure</entry>
+    <entry>Feb</entry>
+    <entry>fmtp</entry>
+    <entry>Forbidden</entry>
+    <entry>framerate</entry>
+    <entry>Fri</entry>
+    <entry>from-tag</entry>
+    <entry>giveup</entry>
+    <entry>GMT</entry>
+    <entry>Gone</entry>
+    <entry>group</entry>
+    <entry>handling</entry>
+    <entry>header</entry>
+    <entry>http</entry>
+    <entry>icon</entry>
+    <entry>id</entry>
+    <entry>im</entry>
+    <entry>image</entry>
+    <entry>IN IP4</entry>
+    <entry>IN IP6</entry>
+    <entry>inactive</entry>
+    <entry>info</entry>
+    <entry>interleaving</entry>
+    <entry>Interval Too Brief</entry>
+    <entry>ip</entry>
+    <entry>ipsec-3gpp</entry>
+    <entry>ipsec-ike</entry>
+    <entry>ipsec-man</entry>
+    <entry>Jan</entry>
+    <entry>Jul</entry>
+    <entry>Jun</entry>
+    <entry>key-mgmt</entry>
+    <entry>key-mgmt:mikey</entry>
+    <entry>keywds</entry>
+    <entry>lang</entry>
+    <entry>local</entry>
+    <entry>Loop Detected</entry>
+    <entry>mailto</entry>
+    <entry>Mar</entry>
+    <entry>maxptime</entry>
+    <entry>May</entry>
+    <entry>MD5</entry>
+    <entry>MD5-sess</entry>
+    <entry>message</entry>
+    <entry>Message Too Large</entry>
+    <entry>message/cpim</entry>
+    <entry>message/sip</entry>
+    <entry>message/sipfrag</entry>
+    <entry>method</entry>
+    <entry>Method Not Allowed</entry>
+    <entry>mid</entry>
+    <entry>mode-change-neighbor</entry>
+    <entry>mode-change-period</entry>
+    <entry>mode-set</entry>
+    <entry>Mon</entry>
+    <entry>Moved Permanently</entry>
+    <entry>Moved Temporarily</entry>
+    <entry>multipart</entry>
+    <entry>multipart/mixed</entry>
+    <entry>multipart/signed</entry>
+    <entry>Multiple Choices</entry>
+    <entry>nack</entry>
+    <entry>nonce</entry>
+    <entry>non-urgent</entry>
+    <entry>noresource</entry>
+    <entry>normal</entry>
+    <entry>Not Acceptable</entry>
+    <entry>Not Acceptable Here</entry>
+    <entry>Not Found</entry>
+    <entry>Not Implemented</entry>
+    <entry>Nov</entry>
+    <entry>Oct</entry>
+    <entry>octet-align</entry>
+    <entry>opaque</entry>
+    <entry>orient:landscape</entry>
+    <entry>orient:portrait</entry>
+    <entry>orient:seascape</entry>
+    <entry>path</entry>
+    <entry>Payment Required</entry>
+    <entry>pending</entry>
+    <entry>phone</entry>
+    <entry>pli</entry>
+    <entry>precondition</entry>
+    <entry>Precondition Failure</entry>
+    <entry>pref</entry>
+    <entry>pres</entry>
+    <entry>privacy</entry>
+    <entry>probation</entry>
+    <entry>prompt</entry>
+    <entry>Provide Referror Identity</entry>
+    <entry>Proxy Authentication Required</entry>
+    <entry>ptime</entry>
+    <entry>purpose</entry>
+    <entry>q</entry>
+    <entry>Q.850</entry>
+    <entry>qop</entry>
+    <entry>qos</entry>
+    <entry>quality</entry>
+    <entry>Queued</entry>
+    <entry>rate</entry>
+    <entry>realm</entry>
+    <entry>reason</entry>
+    <entry>received</entry>
+    <entry>recv</entry>
+    <entry>recvonly</entry>
+    <entry>refer</entry>
+    <entry>refresher</entry>
+    <entry>rejected</entry>
+    <entry>remote</entry>
+    <entry>render</entry>
+    <entry>replaces</entry>
+    <entry>Request Entity Too Large</entry>
+    <entry>Request Pending</entry>
+    <entry>Request Terminated</entry>
+    <entry>Request Timeout</entry>
+    <entry>Request-URI Too Long</entry>
+    <entry>required</entry>
+    <entry>response</entry>
+    <entry>retry-after</entry>
+    <entry>Ringing</entry>
+    <entry>robust-sorting</entry>
+    <entry>rpsi</entry>
+    <entry>rtcp-fb</entry>
+    <entry>RTP/AVPF</entry>
+    <entry>RTP/SAVP</entry>
+    <entry>rtpmap</entry>
+    <entry>Sat</entry>
+    <entry>sctp</entry>
+    <entry>SCTP</entry>
+    <entry>sdp</entry>
+    <entry>sdplang</entry>
+    <entry>sec-agree</entry>
+    <entry>Security Agreement Required</entry>
+    <entry>send</entry>
+    <entry>sendonly</entry>
+    <entry>sendrecv</entry>
+    <entry>Sep</entry>
+    <entry>Server Internal Error</entry>
+    <entry>Server Time-out</entry>
+    <entry>Service Unavailable</entry>
+    <entry>session</entry>
+    <entry>Session Interval Too Small</entry>
+    <entry>Session Progress</entry>
+    <entry>sipfrag</entry>
+    <entry>sips</entry>
+    <entry>sli</entry>
+    <entry>smime</entry>
+    <entry>stale</entry>
+    <entry>Sun</entry>
+    <entry>tag</entry>
+    <entry>TCP</entry>
+    <entry>tcp</entry>
+    <entry>tel</entry>
+    <entry>telephone-event</entry>
+    <entry>Temporarily Unavailable</entry>
+    <entry>terminated</entry>
+    <entry>text</entry>
+    <entry>Thu</entry>
+    <entry>timeout</entry>
+    <entry>timer</entry>
+    <entry>tls</entry>
+    <entry>TLS</entry>
+    <entry>tone</entry>
+    <entry>Too Many Hops</entry>
+    <entry>tool</entry>
+    <entry>to-tag</entry>
+    <entry>transport</entry>
+    <entry>true</entry>
+    <entry>TRUE</entry>
+    <entry>True</entry>
+    <entry>Trying</entry>
+    <entry>ttl</entry>
+    <entry>ttr-int</entry>
+    <entry>Tue</entry>
+    <entry>type:broadcast</entry>
+    <entry>type:H.332</entry>
+    <entry>type:meeting</entry>
+    <entry>type:moderated</entry>
+    <entry>type:recvonly</entry>
+    <entry>type:test</entry>
+    <entry>uac</entry>
+    <entry>uas</entry>
+    <entry>UDP</entry>
+    <entry>udp</entry>
+    <entry>Unauthorized</entry>
+    <entry>Undecipherable</entry>
+    <entry>unknown</entry>
+    <entry>Unsupported Media Type</entry>
+    <entry>Unsupported URI Scheme</entry>
+    <entry>urgent</entry>
+    <entry>uri</entry>
+    <entry>Use Proxy</entry>
+    <entry>user</entry>
+    <entry>username</entry>
+    <entry>Version Not Supported</entry>
+    <entry>video</entry>
+    <entry>Wed</entry>
+    <entry>xml</entry>
+        </section>
+	    <section name="local">
+    <entry type="reserved"/>
+            <entry>sprintpcs.com</entry>
+            <entry>ptt.sprintpcs.com</entry>
+    <entry>sip:sprintpcs.com</entry>
+    <entry>sip:ptt.sprintpcs.com</entry>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+            <entry>ptt_tf</entry>
+            <entry>ptt_ti</entry>
+            <entry>ptt_tc</entry>
+            <entry>ptt_tp</entry>
+            <entry>ptt_fd</entry>
+            <entry>mdn</entry>
+            <entry>App-ID</entry>
+            <entry>PTTI</entry>
+            <entry>PTTG</entry>
+            <entry>CM</entry>
+            <entry>Winphoria</entry>
+            <entry>97 EVRC</entry>
+            <entry>0 97</entry>
+            <entry type="reserved"/>
+            <entry type="reserved"/>
+            <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+            <entry>%40</entry>
+            <entry>mip-expire</entry>
+            <entry>application/cpim-pidf+wbxml</entry>
+            <entry>application/vnd.dynamicsoft.doapi+wbxml</entry>
+            <entry>application/watcherinfo+wbxml</entry>
+            <entry>application/notification_policy+wbxml</entry>
+            <entry>buddylist</entry>
+            <entry>dm</entry>
+            <entry>presence</entry>
+            <entry>presence.winfo</entry>
+            <entry>im</entry>
+            <entry>wap</entry>
+            <entry>wap.126</entry>
+            <entry>0.5</entry>
+            <entry>number</entry>
+            <entry>total</entry>
+        </section>
+	</dictionary>
+    <dictionary name="1/com.sprintpcs/2">
+	    <section name="sip">
+            <entry>tok</entry>
+            <entry>tok-redir</entry>
+            <entry>sip</entry>
+            <entry>SIP</entry>
+            <entry>SIP/2.0</entry>
+            <entry>SIP/2.0/TCP</entry>
+            <entry>SIP/2.0/UDP</entry>
+            <entry>FALSE</entry>
+            <entry>False</entry>
+            <entry>false</entry>
+            <entry>TRUE</entry>
+            <entry>True</entry>
+            <entry>true</entry>
+            <entry>OK</entry>
+            <entry>Ok</entry>
+            <entry>application/sdp</entry>
+            <entry>text/plain</entry>
+            <entry>lr</entry>
+            <entry>maddr</entry>
+            <entry>RTP/AVP</entry>
+            <entry>expires</entry>
+            <entry>mandatory</entry>
+            <entry>optional</entry>
+            <entry>cnonce</entry>
+            <entry>nc</entry>
+            <entry>nextnonce</entry>
+            <entry>rspauth</entry>
+            <entry>domain</entry>
+            <entry>none</entry>
+            <entry>e2e</entry>
+            <entry>comp</entry>
+            <entry>sigcomp</entry>
+            <entry>0 0</entry>
+            <entry>0.0.0.0</entry>
+            <entry>100rel</entry>
+            <entry>3600</entry>
+            <entry>Accepted</entry>
+            <entry>ack</entry>
+            <entry>active</entry>
+            <entry>Address Incomplete</entry>
+            <entry>AKAv</entry>
+            <entry>AKAv1-MD5</entry>
+            <entry>alert</entry>
+            <entry>alg</entry>
+            <entry>algorithm</entry>
+            <entry>Alternative Service</entry>
+            <entry>Ambiguous</entry>
+            <entry>AMR</entry>
+            <entry>Anonymous</entry>
+            <entry>app</entry>
+            <entry>application</entry>
+            <entry>application/cpim-pidf+xml</entry>
+            <entry>application/mime</entry>
+            <entry>application/vnd.wap.coc</entry>
+            <entry>application/vnd.wap.sic</entry>
+            <entry>application/vnd.wap.slc</entry>
+            <entry>Apr</entry>
+            <entry>AS</entry>
+            <entry>audio</entry>
+            <entry>Aug</entry>
+            <entry>auth</entry>
+            <entry>auth-int</entry>
+            <entry>auts</entry>
+            <entry>Bad Event</entry>
+            <entry>Bad Extension</entry>
+            <entry>Bad Gateway</entry>
+            <entry>Bad Request</entry>
+            <entry>base64</entry>
+            <entry>branch</entry>
+            <entry>Busy Everywhere</entry>
+            <entry>Busy Here</entry>
+            <entry>Call Is Being Forwarded</entry>
+            <entry>Call/Transaction Does Not Exist</entry>
+            <entry>card</entry>
+            <entry>cat</entry>
+            <entry>cause</entry>
+            <entry>channels</entry>
+            <entry>charset</entry>
+            <entry>clear</entry>
+            <entry>conf</entry>
+            <entry>control</entry>
+            <entry>crc</entry>
+            <entry>critical</entry>
+            <entry>CT</entry>
+            <entry>curr</entry>
+            <entry>data</entry>
+            <entry>deactivated</entry>
+            <entry>Dec</entry>
+            <entry>Decline</entry>
+            <entry>des</entry>
+            <entry>Dialog Terminated</entry>
+            <entry>Digest</entry>
+            <entry>digest</entry>
+            <entry>digest-integrity</entry>
+            <entry>Does Not Exist Anywhere</entry>
+            <entry>duration</entry>
+            <entry>emergency</entry>
+            <entry>events</entry>
+            <entry>Extension Required</entry>
+            <entry>failure</entry>
+            <entry>Feb</entry>
+            <entry>fmtp</entry>
+            <entry>Forbidden</entry>
+            <entry>framerate</entry>
+            <entry>Fri</entry>
+            <entry>from-tag</entry>
+            <entry>giveup</entry>
+            <entry>GMT</entry>
+            <entry>Gone</entry>
+            <entry>group</entry>
+            <entry>handling</entry>
+            <entry>header</entry>
+            <entry>http</entry>
+            <entry>icon</entry>
+            <entry>id</entry>
+            <entry>im</entry>
+            <entry>image</entry>
+            <entry>IN IP4</entry>
+            <entry>IN IP6</entry>
+            <entry>inactive</entry>
+            <entry>info</entry>
+            <entry>interleaving</entry>
+            <entry>Interval Too Brief</entry>
+            <entry>ip</entry>
+            <entry>ipsec-3gpp</entry>
+            <entry>ipsec-ike</entry>
+            <entry>ipsec-man</entry>
+            <entry>Jan</entry>
+            <entry>Jul</entry>
+            <entry>Jun</entry>
+            <entry>key-mgmt</entry>
+            <entry>key-mgmt:mikey</entry>
+            <entry>keywds</entry>
+            <entry>lang</entry>
+            <entry>local</entry>
+            <entry>Loop Detected</entry>
+            <entry>mailto</entry>
+            <entry>Mar</entry>
+            <entry>maxptime</entry>
+            <entry>May</entry>
+            <entry>MD5</entry>
+            <entry>MD5-sess</entry>
+            <entry>message</entry>
+            <entry>Message Too Large</entry>
+            <entry>message/cpim</entry>
+            <entry>message/sip</entry>
+            <entry>message/sipfrag</entry>
+            <entry>method</entry>
+            <entry>Method Not Allowed</entry>
+            <entry>mid</entry>
+            <entry>mode-change-neighbor</entry>
+            <entry>mode-change-period</entry>
+            <entry>mode-set</entry>
+            <entry>Mon</entry>
+            <entry>Moved Permanently</entry>
+            <entry>Moved Temporarily</entry>
+            <entry>multipart</entry>
+            <entry>multipart/mixed</entry>
+            <entry>multipart/signed</entry>
+            <entry>Multiple Choices</entry>
+            <entry>nack</entry>
+            <entry>nonce</entry>
+            <entry>non-urgent</entry>
+            <entry>noresource</entry>
+            <entry>normal</entry>
+            <entry>Not Acceptable</entry>
+            <entry>Not Acceptable Here</entry>
+            <entry>Not Found</entry>
+            <entry>Not Implemented</entry>
+            <entry>Nov</entry>
+            <entry>Oct</entry>
+            <entry>octet-align</entry>
+            <entry>opaque</entry>
+            <entry>orient:landscape</entry>
+            <entry>orient:portrait</entry>
+            <entry>orient:seascape</entry>
+            <entry>path</entry>
+            <entry>Payment Required</entry>
+            <entry>pending</entry>
+            <entry>phone</entry>
+            <entry>pli</entry>
+            <entry>precondition</entry>
+            <entry>Precondition Failure</entry>
+            <entry>pref</entry>
+            <entry>pres</entry>
+            <entry>privacy</entry>
+            <entry>probation</entry>
+            <entry>prompt</entry>
+            <entry>Provide Referror Identity</entry>
+            <entry>Proxy Authentication Required</entry>
+            <entry>ptime</entry>
+            <entry>purpose</entry>
+            <entry>q</entry>
+            <entry>Q.850</entry>
+            <entry>qop</entry>
+            <entry>qos</entry>
+            <entry>quality</entry>
+            <entry>Queued</entry>
+            <entry>rate</entry>
+            <entry>realm</entry>
+            <entry>reason</entry>
+            <entry>received</entry>
+            <entry>recv</entry>
+            <entry>recvonly</entry>
+            <entry>refer</entry>
+            <entry>refresher</entry>
+            <entry>rejected</entry>
+            <entry>remote</entry>
+            <entry>render</entry>
+            <entry>replaces</entry>
+            <entry>Request Entity Too Large</entry>
+            <entry>Request Pending</entry>
+            <entry>Request Terminated</entry>
+            <entry>Request Timeout</entry>
+            <entry>Request-URI Too Long</entry>
+            <entry>required</entry>
+            <entry>response</entry>
+            <entry>retry-after</entry>
+            <entry>Ringing</entry>
+            <entry>robust-sorting</entry>
+            <entry>rpsi</entry>
+            <entry>rtcp-fb</entry>
+            <entry>RTP/AVPF</entry>
+            <entry>RTP/SAVP</entry>
+            <entry>rtpmap</entry>
+            <entry>Sat</entry>
+            <entry>sctp</entry>
+            <entry>SCTP</entry>
+            <entry>sdp</entry>
+            <entry>sdplang</entry>
+            <entry>sec-agree</entry>
+            <entry>Security Agreement Required</entry>
+            <entry>send</entry>
+            <entry>sendonly</entry>
+            <entry>sendrecv</entry>
+            <entry>Sep</entry>
+            <entry>Server Internal Error</entry>
+            <entry>Server Time-out</entry>
+            <entry>Service Unavailable</entry>
+            <entry>session</entry>
+            <entry>Session Interval Too Small</entry>
+            <entry>Session Progress</entry>
+            <entry>sipfrag</entry>
+            <entry>sips</entry>
+            <entry>sli</entry>
+            <entry>smime</entry>
+            <entry>stale</entry>
+            <entry>Sun</entry>
+            <entry>tag</entry>
+            <entry>TCP</entry>
+            <entry>tcp</entry>
+            <entry>tel</entry>
+            <entry>telephone-event</entry>
+            <entry>Temporarily Unavailable</entry>
+            <entry>terminated</entry>
+            <entry>text</entry>
+            <entry>Thu</entry>
+            <entry>timeout</entry>
+            <entry>timer</entry>
+            <entry>tls</entry>
+            <entry>TLS</entry>
+            <entry>tone</entry>
+            <entry>Too Many Hops</entry>
+            <entry>tool</entry>
+            <entry>to-tag</entry>
+            <entry>transport</entry>
+            <entry>true</entry>
+            <entry>TRUE</entry>
+            <entry>True</entry>
+            <entry>Trying</entry>
+            <entry>ttl</entry>
+            <entry>ttr-int</entry>
+            <entry>Tue</entry>
+            <entry>type:broadcast</entry>
+            <entry>type:H.332</entry>
+            <entry>type:meeting</entry>
+            <entry>type:moderated</entry>
+            <entry>type:recvonly</entry>
+            <entry>type:test</entry>
+            <entry>uac</entry>
+            <entry>uas</entry>
+            <entry>UDP</entry>
+            <entry>udp</entry>
+            <entry>Unauthorized</entry>
+            <entry>Undecipherable</entry>
+            <entry>unknown</entry>
+            <entry>Unsupported Media Type</entry>
+            <entry>Unsupported URI Scheme</entry>
+            <entry>urgent</entry>
+            <entry>uri</entry>
+            <entry>Use Proxy</entry>
+            <entry>user</entry>
+            <entry>username</entry>
+            <entry>Version Not Supported</entry>
+            <entry>video</entry>
+            <entry>Wed</entry>
+            <entry>xml</entry>
+        </section>
+	    <section name="local">
+            <entry type="reserved"/>
+            <entry>sprintpcs.com</entry>
+            <entry>ptt.sprintpcs.com</entry>
+            <entry>sip:sprintpcs.com</entry>
+            <entry>sip:ptt.sprintpcs.com</entry>
+            <entry>1x.bell.ca</entry>
+            <entry>services5.1x.bell.ca</entry>
+            <entry>sip:1x.bell.ca</entry>
+            <entry>sip:services5.1x.bell.ca</entry>
+    <entry type="reserved"/>
+            <entry type="reserved"/>
+            <entry>ptt_tf</entry>
+            <entry>ptt_ti</entry>
+            <entry>ptt_tc</entry>
+            <entry>ptt_tp</entry>
+            <entry>ptt_fd</entry>
+    <entry>mdn</entry>
+    <entry>App-ID</entry>
+    <entry>PTTI</entry>
+    <entry>PTTG</entry>
+    <entry>CM</entry>
+    <entry>Winphoria</entry>
+    <entry>97 EVRC</entry>
+    <entry>0 97</entry>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry type="reserved"/>
+    <entry>%40</entry>
+    <entry>mip-expire</entry>
+    <entry>application/cpim-pidf+wbxml</entry>
+    <entry>application/vnd.dynamicsoft.doapi+wbxml</entry>
+    <entry>application/watcherinfo+wbxml</entry>
+    <entry>application/notification_policy+wbxml</entry>
+    <entry>buddylist</entry>
+    <entry>dm</entry>
+    <entry>presence</entry>
+    <entry>presence.winfo</entry>
+    <entry>im</entry>
+    <entry>wap</entry>
+    <entry>wap.126</entry>
+    <entry>0.5</entry>
+    <entry>number</entry>
+    <entry>total</entry>
+        </section>
+	</dictionary>
+</tokensip>

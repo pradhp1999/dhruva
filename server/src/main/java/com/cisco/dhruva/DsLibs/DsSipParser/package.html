@@ -1,0 +1,40 @@
+<HTML>
+<BODY>
+
+The SIP User Agent Java provides a model for parsing SIP messages, headers, and URLs.
+There has been a dramatic change in parsing philosophy from the 5.x version of the SIP
+User Agent Java to the 6.0 version. In older versions, the parsing and objects created
+were linked together. Now, there is a clear separation between parsing and creating the
+objects from the tokens that the parser recognized.
+<p>
+The parser simply recognizes components of SIP messages and elements of SIP headers and
+URLs and reports them through the various listener interfaces. You can ignore the
+details of this by using the convenience methods provided in <b>DsSipMessage</b> and by the
+<b>DsSipHeaders</b>, since these objects implement all of the listeners and behave accordingly.
+<p>
+This new philosophy changes the way user-defined headers and methods are registered with
+the message parser. Instead of registering default constructors, you register just the
+name of the header along with a parser. (Parsers for the known grammars have been provided
+and can be reused as is.) Then, it is up to you to interact properly with the events that
+the registered parser fires during a parse. So, it allows the flexibility to create the
+appropriate object type at parse time.
+<p>
+The new model also allows you to determine, at parse time, the level of lazy parsing.
+For example, the first Via header can now be deeply parsed, leaving the remaining Via
+headers lazily parsed, which is different than the "all or none" strategy that was in
+place in older versions.
+<p>
+For more information about registering your own headers, methods, and element IDs,
+see the example programs:
+
+<blockquote>
+    DsDynamicHeaderEx6<br>
+    DynamicMethodEx7<br>
+    DsDynamicHeaderWithParserEx8<br>
+</blockquote>
+<p>
+@since SIP User Agent Java v6.0
+
+</BODY>
+</HTML>
+
