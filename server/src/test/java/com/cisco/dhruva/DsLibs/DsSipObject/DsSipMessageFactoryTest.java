@@ -1,12 +1,9 @@
 package com.cisco.dhruva.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.DsLibs.DsSipParser.DsSipParserException;
-import com.cisco.dhruva.DsLibs.DsSipParser.DsSipParserListenerException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import java.util.concurrent.ExecutionException;
 
 public class DsSipMessageFactoryTest {
 
@@ -22,9 +19,7 @@ public class DsSipMessageFactoryTest {
       DsSipMessage msg = mf.createMessage(buf, 0, buf.length, true, true);
     } catch (Exception e) {
       if (e instanceof DsSipParserException) {
-        Assert.fail(
-                "Exception thrown in parser" + e.getCause().getMessage(),
-                e.getCause());
+        Assert.fail("Exception thrown in parser" + e.getCause().getMessage(), e.getCause());
       }
       Assert.fail("Exception thrown in parse" + e.getMessage(), e);
       e.printStackTrace();
