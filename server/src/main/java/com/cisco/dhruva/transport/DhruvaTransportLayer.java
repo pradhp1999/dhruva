@@ -5,46 +5,47 @@
 
 package com.cisco.dhruva.transport;
 
-import com.cisco.dhruva.transport.config.NetworkConfig;
+import com.cisco.dhruva.config.network.NetworkConfig;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 public class DhruvaTransportLayer implements TransportLayer {
 
-    @Override
-    public CompletableFuture startListening(Transport transportType, NetworkConfig transportConfig, InetAddress address, int port, MessageHandler handler) {
+  @Override
+  public CompletableFuture startListening(
+      Transport transportType,
+      NetworkConfig transportConfig,
+      InetAddress address,
+      int port,
+      MessageForwarder messageForwarder) {
 
-        CompletableFuture serverStartFuture = new CompletableFuture();
-
-
-        if(transportType == null) {
-            serverStartFuture.completeExceptionally(new NullPointerException("TransportType passed to NettyTransportLayer.startListening is null"));
-            return serverStartFuture;
-        }
-
-        switch (transportType) {
-            case UDP:
-                ServerFactory.getInstance(transportType).startListening(transportConfig,address, port,serverStartFuture);
-                break;
-            case TCP:
-                break;
-            case TLS:
-                break;
-
-            default:
-                throw new IllegalStateException("Unexpected value: " + transportType);
-        }
-
+    CompletableFuture serverStartFuture = new CompletableFuture();
+    if (transportType == null || address == null || messageForwarder == null) {
+      serverStartFuture.completeExceptionally(
+          new NullPointerException(
+              "TransportType or address or messageForwarder passed to NettyTransportLayer.startListening is null"));
+      return serverStartFuture;
     }
+    ServerFactory.getInstance()
+        .getServer(transportType, messageForwarder, transportConfig)
+        .startListening(address, port, serverStartFuture);
+    return serverStartFuture;
+  }
 
-    @Override
-    public CompletableFuture<Connection> getConnection(NetworkConfig networkConfig, Transport transportType, InetAddress localAddress, int localPort, InetAddress remoteAddress, int remotePort) {
-        return null;
-    }
+  @Override
+  public CompletableFuture<Connection> getConnection(
+      NetworkConfig networkConfig,
+      Transport transportType,
+      InetAddress localAddress,
+      int localPort,
+      InetAddress remoteAddress,
+      int remotePort) {
+    return null;
+  }
 
-    @Override
-    public HashMap<Transport, Integer> getConnectionSummary() {
-        return null;
-    }
+  @Override
+  public HashMap<Transport, Integer> getConnectionSummary() {
+    return null;
+  }
 }

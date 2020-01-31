@@ -6,7 +6,10 @@
 package com.cisco.dhruva.transport;
 
 public enum Transport {
+  NONE,
   UDP,
   TCP,
-  TLS
+  MULTICAST,
+  TLS,
+  SCTP
 }

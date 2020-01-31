@@ -4,7 +4,9 @@
 
 package com.cisco.dhruva.transport;
 
-public interface MessageHandler {
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 
-  public void processMessage(byte[] messageBytes);
+public interface MessageForwarder {
+
+  public void processMessage(byte[] messageBytes, DsBindingInfo bindingInfo);
 }

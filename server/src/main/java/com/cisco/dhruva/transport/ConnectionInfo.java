@@ -58,8 +58,12 @@ public class ConnectionInfo {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof ConnectionInfo)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ConnectionInfo)) {
+      return false;
+    }
     ConnectionInfo that = (ConnectionInfo) o;
     return getLocalPort() == that.getLocalPort()
         && getTransport() == that.getTransport()

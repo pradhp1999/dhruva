@@ -1,75 +1,75 @@
-// Copyright (c) 2005-2006 by Cisco Systems, Inc.
-// All rights reserved.
+/*
+ * Copyright (c) 2020  by Cisco Systems, Inc.All Rights Reserved.
+ * @author graivitt
+ */
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.Serializable;
 import java.net.InetAddress;
 
-
 /**
- * This class is a container for holding onto port, address and protocol information.
- * When data arrives at the transport layer, this class is used to capture the port
- * and address on which the data arrived.  The transaction manager, then, passes the
- * information forward to the message.  When a new passive connection is established,
- * binding info is used as a key to the table which stores connection data for reuse.
- * When an active connection is sought, this class is used to address a message.
+ * This class is a container for holding onto port, address and protocol information. When data
+ * arrives at the transport layer, this class is used to capture the port and address on which the
+ * data arrived. The transaction manager, then, passes the information forward to the message. When
+ * a new passive connection is established, binding info is used as a key to the table which stores
+ * connection data for reuse. When an active connection is sought, this class is used to address a
+ * message.
  */
-public class DsBindingInfo implements Cloneable, Serializable
-{
+public class DsBindingInfo implements Cloneable, Serializable {
   /** Indicates an unspecified local port. */
   // changed its value to 0 as it is used by JDK Socket classes.
-  public final static int LOCAL_PORT_UNSPECIFIED = 0;
+  public static final int LOCAL_PORT_UNSPECIFIED = 0;
   /** Indicates an unspecified remote port. */
-  public final static int REMOTE_PORT_UNSPECIFIED = 0;
+  public static final int REMOTE_PORT_UNSPECIFIED = 0;
   /** Indicates an unspecified transport. */
-  public final static int BINDING_TRANSPORT_UNSPECIFIED = -1;
+  public static final int BINDING_TRANSPORT_UNSPECIFIED = -1;
 
   /** Indicates that there is no local address or port. */
-  public final static byte NO_LOCAL_ADDR_PORT = 0;
+  public static final byte NO_LOCAL_ADDR_PORT = 0;
   /** Indicates that there is a port address only. */
-  public final static byte LOCAL_ADDR_ONLY = 1;
+  public static final byte LOCAL_ADDR_ONLY = 1;
   /** Indicates that there is a local address only. */
-  public final static byte LOCAL_PORT_ONLY = 2;
+  public static final byte LOCAL_PORT_ONLY = 2;
   /** Indicates that there is both a local address and port. */
-  public final static byte LOCAL_ADDR_PORT = 3;
-
+  public static final byte LOCAL_ADDR_PORT = 3;
 
   /** Constant representing an empty binding info object. */
-  public final static DsBindingInfo EMPTY_INFO = new DsBindingInfo();
-
-
+  public static final DsBindingInfo EMPTY_INFO = new DsBindingInfo();
 
   /////////////   instance data
-
 
   private byte m_localBinding = NO_LOCAL_ADDR_PORT;
   private boolean isBindingInfoValid;
 
-  private boolean     m_IsTrying;
-  private String      m_RemoteAddressStr;
+  private boolean m_IsTrying;
+  private String m_RemoteAddressStr;
   private InetAddress m_RemoteAddress;
-  private int         m_RemotePort;
+  private int m_RemotePort;
   private InetAddress m_LocalAddress;
-  private int         m_LocalPort=LOCAL_PORT_UNSPECIFIED;
-  private int         m_LocalEphemeralPort = m_LocalPort;
-  private int         m_Transport=BINDING_TRANSPORT_UNSPECIFIED;
-  private boolean     m_PendingClosure;
-  private boolean     m_Compress;
+  private int m_LocalPort = LOCAL_PORT_UNSPECIFIED;
+  private int m_LocalEphemeralPort = m_LocalPort;
+  private int m_Transport = BINDING_TRANSPORT_UNSPECIFIED;
+  private boolean m_PendingClosure;
+  private boolean m_Compress;
 
-  private byte        m_Network;
+  private byte m_Network;
   private DsByteString m_strConnectionId;
-
+  private Logger logger = DhruvaLoggerFactory.getLogger(DsBindingInfo.class);
 
   /**
    * Constructs the binding info with the specified remote address, port and transport.
-   * @param remote_addr  remote InetAddress
-   * @param remote_port  remote port
+   *
+   * @param remote_addr remote InetAddress
+   * @param remote_port remote port
    * @param transport transport
-   * @param pending_closure  if set to <code>true</code> the connection is closing
+   * @param pending_closure if set to <code>true</code> the connection is closing
    */
-  public DsBindingInfo(InetAddress remote_addr, int remote_port, int transport, boolean pending_closure)
-  {
+  public DsBindingInfo(
+      InetAddress remote_addr, int remote_port, int transport, boolean pending_closure) {
     m_IsTrying = false;
     m_LocalAddress = null;
     m_LocalPort = LOCAL_PORT_UNSPECIFIED;
@@ -84,11 +84,10 @@ public class DsBindingInfo implements Cloneable, Serializable
   }
 
   /**
-   * Constructs the binding info and it needs the binding info to be set by
-   * using the relevant setter methods.
+   * Constructs the binding info and it needs the binding info to be set by using the relevant
+   * setter methods.
    */
-  public DsBindingInfo()
-  {
+  public DsBindingInfo() {
     m_IsTrying = false;
     m_LocalAddress = null;
     m_LocalPort = LOCAL_PORT_UNSPECIFIED;
@@ -112,23 +111,32 @@ public class DsBindingInfo implements Cloneable, Serializable
    * @param remote_port the remote port number
    * @param transport the transport protocol
    */
-  public DsBindingInfo(InetAddress local_addr, int local_port, InetAddress remote_addr, int remote_port, int transport)
-  {
+  public DsBindingInfo(
+      InetAddress local_addr,
+      int local_port,
+      InetAddress remote_addr,
+      int remote_port,
+      int transport) {
     this(local_addr, local_port, remote_addr, remote_port, transport, false, false);
   }
 
   /**
    * Constructs the binding info with the specified local and remote address information.
    *
-   * @param remote_addr  remote InetAddress
-   * @param remote_port  remote port
-   * @param local_addr  local InetAddress
-   * @param local_port  local port
+   * @param remote_addr remote InetAddress
+   * @param remote_port remote port
+   * @param local_addr local InetAddress
+   * @param local_port local port
    * @param transport transport
-   * @param pending_closure  if set to <code>true</code> the connection is closing
+   * @param pending_closure if set to <code>true</code> the connection is closing
    */
-  public DsBindingInfo(InetAddress local_addr, int local_port, InetAddress remote_addr, int remote_port, int transport, boolean pending_closure)
-  {
+  public DsBindingInfo(
+      InetAddress local_addr,
+      int local_port,
+      InetAddress remote_addr,
+      int remote_port,
+      int transport,
+      boolean pending_closure) {
     m_IsTrying = false;
     m_LocalAddress = local_addr;
     m_LocalPort = local_port;
@@ -141,7 +149,6 @@ public class DsBindingInfo implements Cloneable, Serializable
     m_Network = DsNetwork.NONE;
   }
 
-
   /**
    * Constructs the binding info with the specified remote address information.
    *
@@ -149,8 +156,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    * @param remote_port remote port
    * @param transport the transport protocol
    */
-  public DsBindingInfo(InetAddress remote_addr, int remote_port, int transport)
-  {
+  public DsBindingInfo(InetAddress remote_addr, int remote_port, int transport) {
     this(remote_addr, remote_port, transport, false, false);
   }
 
@@ -161,8 +167,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    * @param port the remote port number
    * @param transport the transport protocol
    */
-  public DsBindingInfo(String addr, int port, int transport)
-  {
+  public DsBindingInfo(String addr, int port, int transport) {
     m_IsTrying = false;
     m_LocalAddress = null;
     m_LocalPort = LOCAL_PORT_UNSPECIFIED;
@@ -176,7 +181,6 @@ public class DsBindingInfo implements Cloneable, Serializable
     m_Network = DsNetwork.NONE;
   }
 
-
   /**
    * Constructs the binding info with the specified address information.
    *
@@ -186,8 +190,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    * @param port the remote port number
    * @param transport the transport protocol
    */
-  public DsBindingInfo(InetAddress lAddr, int lPort, String addr, int port, int transport)
-  {
+  public DsBindingInfo(InetAddress lAddr, int lPort, String addr, int port, int transport) {
     m_IsTrying = false;
     m_LocalAddress = lAddr;
     m_LocalPort = lPort;
@@ -201,18 +204,22 @@ public class DsBindingInfo implements Cloneable, Serializable
     m_Network = DsNetwork.NONE;
   }
 
-
   /**
    * Constructs the binding info with the specified remote address, port and transport.
-   * @param remote_addr  remote InetAddress
-   * @param remote_port  remote port
+   *
+   * @param remote_addr remote InetAddress
+   * @param remote_port remote port
    * @param transport transport
-   * @param pending_closure  if set to <code>true</code> the connection is closing
-   * @param compress if <code>true</code>, and the transport layer is capable,
-   *        the message will be compressed on transmission.
+   * @param pending_closure if set to <code>true</code> the connection is closing
+   * @param compress if <code>true</code>, and the transport layer is capable, the message will be
+   *     compressed on transmission.
    */
-  public DsBindingInfo(InetAddress remote_addr, int remote_port, int transport, boolean pending_closure, boolean compress)
-  {
+  public DsBindingInfo(
+      InetAddress remote_addr,
+      int remote_port,
+      int transport,
+      boolean pending_closure,
+      boolean compress) {
     m_IsTrying = false;
     m_LocalAddress = null;
     m_LocalPort = LOCAL_PORT_UNSPECIFIED;
@@ -226,23 +233,26 @@ public class DsBindingInfo implements Cloneable, Serializable
     m_Network = DsNetwork.NONE;
   }
 
-
-
   /**
    * Constructs the binding info with the specified local and remote address information.
    *
-   * @param remote_addr  remote InetAddress
-   * @param remote_port  remote port
-   * @param local_addr  local InetAddress
-   * @param local_port  local port
+   * @param remote_addr remote InetAddress
+   * @param remote_port remote port
+   * @param local_addr local InetAddress
+   * @param local_port local port
    * @param transport transport
-   * @param pending_closure  if set to <code>true</code> the connection is closing
-   * @param compress if <code>true</code>, and the transport layer is capable,
-   *        the message will be compressed on transmission.
+   * @param pending_closure if set to <code>true</code> the connection is closing
+   * @param compress if <code>true</code>, and the transport layer is capable, the message will be
+   *     compressed on transmission.
    */
-  public DsBindingInfo(InetAddress local_addr, int local_port, InetAddress remote_addr, int remote_port, int transport, boolean pending_closure,
-      boolean compress)
-  {
+  public DsBindingInfo(
+      InetAddress local_addr,
+      int local_port,
+      InetAddress remote_addr,
+      int remote_port,
+      int transport,
+      boolean pending_closure,
+      boolean compress) {
     m_IsTrying = false;
     m_LocalAddress = local_addr;
     m_LocalPort = local_port;
@@ -256,68 +266,39 @@ public class DsBindingInfo implements Cloneable, Serializable
   }
 
   /**
-   * Returns the string describing the information contained in this binding info.
+   * TODO:DHRUVA , commenting for now have to take care if needed.
+   *
+   * <p>/** Returns the string describing the information contained in this binding info.
    *
    * @return the string representation of this class.
+   *     <p>public String toString() { String local_info = ""; String remote_info = ""; String
+   *     transport; String connId = ", Connection ID = ";
+   *     <p>switch (m_Transport) {
+   *     <p>case DsSipTransportType.UDP: transport = "UDP";
+   *     <p>break;
+   *     <p>case DsSipTransportType.TCP: transport = "TCP";
+   *     <p>break;
+   *     <p>case DsSipTransportType.MULTICAST: transport = "MULTICAST";
+   *     <p>break;
+   *     <p>case DsSipTransportType.TLS: transport = "TLS";
+   *     <p>break; default: transport = "UNKNOWN PROTOCOL"; }
+   *     <p>remote_info = " remote[[ port = " + m_RemotePort + " (" + ( getRemoteAddressStr() !=
+   *     null ? m_RemoteAddressStr : "?") + ") ]]";
+   *     <p>if (m_LocalAddress != null) { local_info = " local[[ port = " + m_LocalPort + " (" +
+   *     ((DsString.getHostAddress(m_LocalAddress) != null) ?
+   *     DsString.getHostAddress(m_LocalAddress) : "?") + ")]]"; } else { local_info = " local[[
+   *     port = " + m_LocalPort + "(?)]]"; }
+   *     <p>String nw = getNetwork() == null ? "null" : ("" + getNetwork().isTSIPEnabled()); return
+   *     transport + local_info + remote_info + connId + m_strConnectionId + ", network = " +
+   *     DsNetwork.getNetwork(m_Network) + ", TSIP = " + nw ; }
    */
-  public String toString()
-  {
-    String  local_info = "";
-    String  remote_info = "";
-    String  transport;
-    String connId = ", Connection ID = ";
-
-    switch (m_Transport)
-    {
-
-      case DsSipTransportType.UDP:
-        transport = "UDP";
-
-        break;
-
-      case DsSipTransportType.TCP:
-        transport = "TCP";
-
-        break;
-
-      case DsSipTransportType.MULTICAST:
-        transport = "MULTICAST";
-
-        break;
-
-      case DsSipTransportType.TLS:
-        transport = "TLS";
-
-        break;
-      default:
-        transport = "UNKNOWN PROTOCOL";
-    }
-
-    remote_info = " remote[[ port = " + m_RemotePort + " (" + ( getRemoteAddressStr() != null ? m_RemoteAddressStr  : "?") + ") ]]";
-
-    if (m_LocalAddress != null)
-    {
-      local_info = " local[[ port = " + m_LocalPort + " (" + ((DsString.getHostAddress(m_LocalAddress) != null) ? DsString.getHostAddress(m_LocalAddress) : "?") + ")]]";
-    }
-    else
-    {
-      local_info = " local[[ port = " + m_LocalPort + "(?)]]";
-    }
-
-    String nw = getNetwork() == null
-        ? "null"
-        : ("" + getNetwork().isTSIPEnabled());
-    return transport + local_info + remote_info + connId + m_strConnectionId + ", network = " + DsNetwork.getNetwork(m_Network) + ", TSIP = " + nw ;
-  }
 
   /**
    * Returns true if Pending Closure, false otherwise.
    *
-   *
    * @return true if Pending Closure, false otherwise
    */
-  public final boolean isPendingClosure()
-  {
+  public final boolean isPendingClosure() {
     return m_PendingClosure;
   }
 
@@ -326,106 +307,86 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @return true if this message should be compressed
    */
-  public final boolean compress()
-  {
+  public final boolean compress() {
     return m_Compress;
   }
-
 
   /**
    * Tell the transport layer that message should be compressed.
    *
-   * @param compress if <code>true</code>, and the transport layer is capable,
-   *        the message will be compressed on transmission.
+   * @param compress if <code>true</code>, and the transport layer is capable, the message will be
+   *     compressed on transmission.
    */
-  public final void compress(boolean compress)
-  {
+  public final void compress(boolean compress) {
     m_Compress = compress;
   }
 
   /**
    * Sets the network type.
+   *
    * @param network the integer value representing the network type
-   * @throws IllegalArgumentException if the network passed in does not represent
-   * an existing network in the system.
-   * @deprecated use {@link setNetwork(DsNetwork network)
+   * @throws IllegalArgumentException if the network passed in does not represent an existing
+   *     network in the system.
+   * @deprecated use setNetwork(DsNetwork network)
    */
-  public final void setNetwork(int network)
-  {
-    if (DsNetwork.getNetwork((byte)network) != null)
-    {
-      m_Network = (byte)network;
-    }
-    else
-    {
-      throw new IllegalArgumentException(
-          "Trying to set network with invalid network identifier.");
+  public final void setNetwork(int network) {
+    if (DsNetwork.getNetwork((byte) network) != null) {
+      m_Network = (byte) network;
+    } else {
+      throw new IllegalArgumentException("Trying to set network with invalid network identifier.");
     }
   }
 
   /**
    * Sets the network type.
+   *
    * @param network a network object containing the integer value representing the network type
    */
-  public final void setNetwork(DsNetwork network)
-  {
-    if (network == null)
-    {
+  public final void setNetwork(DsNetwork network) {
+    if (network == null) {
       m_Network = DsNetwork.NONE;
-    }
-    else
-    {
+    } else {
       m_Network = network.getNumber();
     }
   }
-
 
   /**
    * Returns the network associated with this object.
    *
    * @return the network associated with this object.
    */
-  public final DsNetwork getNetwork()
-  {
+  public final DsNetwork getNetwork() {
     return DsNetwork.getNetwork(m_Network);
   }
 
-
   /**
-   * Returns the network associated with this object or the default system network if
-   * there is no network associated with this object.
+   * Returns the network associated with this object or the default system network if there is no
+   * network associated with this object.
    *
-   * @return the network associated with this object or the default system network if
-   * this object does not have a network associated with it.
+   * @return the network associated with this object or the default system network if this object
+   *     does not have a network associated with it.
    */
-  public final DsNetwork getNetworkReliably()
-  {
+  public final DsNetwork getNetworkReliably() {
     DsNetwork network = DsNetwork.getNetwork(m_Network);
-    if (network == null)
-      return DsNetwork.getDefault();
-    else
-      return network;
+    if (network == null) return DsNetwork.getDefault();
+    else return network;
   }
-
 
   /**
    * Returns the remote port in the binding info.
    *
    * @return the remote port.
-   *
    */
-  public final int getRemotePort()
-  {
+  public final int getRemotePort() {
     return m_RemotePort;
   }
 
   /**
    * Method used to retrieve the transport type.
+   *
    * @return the type of protocol used
    */
-
-  public final int getTransport()
-  {
+  public final int getTransport() {
     return m_Transport;
   }
 
@@ -434,32 +395,23 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @param transport the new transport type.
    */
-  public final void setTransport(int transport)
-  {
+  public final void setTransport(int transport) {
     m_Transport = transport;
   }
 
   /**
    * Method used to retrieve the InetAddress from where the message was received.
+   *
    * @return the remote address.
    */
-  public final InetAddress getRemoteAddress()
-  {
+  public final InetAddress getRemoteAddress() {
     // don't want to set the address to the local address as a side effect
     // of getting it!
-    if ((m_RemoteAddress == null) && (m_RemoteAddressStr != null))
-    {
-      try
-      {
+    if ((m_RemoteAddress == null) && (m_RemoteAddressStr != null)) {
+      try {
         m_RemoteAddress = InetAddress.getByName(m_RemoteAddressStr);
-      }
-      catch(Throwable t)
-      {
-        if (DsLog4j.resolvCat.isEnabled(Level.WARN))
-        {
-          DsLog4j.resolvCat.warn("Exception while resolving the remote hostname in the Binding Info", t);
-        }
-        // oh well,  something happened return null.
+      } catch (Throwable t) {
+        logger.warn("Exception while resolving the remote hostname in the Binding Info", t);
       }
     }
     return m_RemoteAddress;
@@ -470,11 +422,9 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @return the remote address
    */
-  public final String getRemoteAddressStr()
-  {
-    if ((m_RemoteAddressStr == null) && (m_RemoteAddress != null))
-    {
-      m_RemoteAddressStr = DsString.getHostAddress(m_RemoteAddress);
+  public final String getRemoteAddressStr() {
+    if ((m_RemoteAddressStr == null) && (m_RemoteAddress != null)) {
+      m_RemoteAddressStr = m_RemoteAddress.getHostAddress();
     }
 
     return m_RemoteAddressStr;
@@ -485,8 +435,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @return local address
    */
-  public final InetAddress getLocalAddress()
-  {
+  public final InetAddress getLocalAddress() {
     return m_LocalAddress;
   }
 
@@ -495,24 +444,20 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @return the local port.
    */
-  public final int getLocalPort()
-  {
+  public final int getLocalPort() {
     return m_LocalPort;
   }
 
-  public final int getLocalEphemeralPort()
-  {
+  public final int getLocalEphemeralPort() {
     return m_LocalEphemeralPort;
   }
-
 
   /**
    * Set the local address.
    *
    * @param addr the new local address
    */
-  public final void setLocalAddress(InetAddress addr)
-  {
+  public final void setLocalAddress(InetAddress addr) {
     m_LocalAddress = addr;
   }
 
@@ -521,13 +466,11 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @param port the new port number
    */
-  public final void setLocalPort(int port)
-  {
+  public final void setLocalPort(int port) {
     m_LocalPort = port;
   }
 
-  public final void setLocalEphemeralPort(int port)
-  {
+  public final void setLocalEphemeralPort(int port) {
     m_LocalEphemeralPort = port;
   }
 
@@ -536,21 +479,19 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @param addr the new remote address
    */
-  public final void setRemoteAddress(InetAddress addr)
-  {
+  public final void setRemoteAddress(InetAddress addr) {
     m_RemoteAddress = addr;
     m_RemoteAddressStr = null;
   }
 
   /**
-   * Sets the remote address to an address specified by the string value <code>addr</code>.
-   * It first tries look for the host address specified in the string. If no such host found then
-   * throws the UnknownHostException.
+   * Sets the remote address to an address specified by the string value <code>addr</code>. It first
+   * tries look for the host address specified in the string. If no such host found then throws the
+   * UnknownHostException.
    *
    * @param addr the new remote address
    */
-  public final void setRemoteAddress(String addr)
-  {
+  public final void setRemoteAddress(String addr) {
     m_RemoteAddressStr = addr;
     m_RemoteAddress = null;
   }
@@ -560,19 +501,16 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @param port the new port.
    */
-  public final void setRemotePort(int port)
-  {
+  public final void setRemotePort(int port) {
     m_RemotePort = port;
   }
-
 
   /**
    * Checks if the remote address is already set in the binding info.
    *
    * @return true if set, false otherwise
    */
-  public boolean isRemoteAddressSet()
-  {
+  public boolean isRemoteAddressSet() {
     return !((m_RemoteAddress == null) && (m_RemoteAddressStr == null));
   }
 
@@ -581,8 +519,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @return true if set, false otherwise
    */
-  public boolean isLocalAddressSet()
-  {
+  public boolean isLocalAddressSet() {
     return m_LocalAddress != null;
   }
 
@@ -591,8 +528,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @return true if set, false otherwise
    */
-  public boolean isLocalPortSet()
-  {
+  public boolean isLocalPortSet() {
     return m_LocalPort != LOCAL_PORT_UNSPECIFIED;
   }
 
@@ -601,8 +537,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @return true if set, false otherwise
    */
-  public boolean isRemotePortSet()
-  {
+  public boolean isRemotePortSet() {
     return m_RemotePort != REMOTE_PORT_UNSPECIFIED;
   }
 
@@ -611,48 +546,38 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @return true if set, false otherwise
    */
-  public boolean isTransportSet()
-  {
+  public boolean isTransportSet() {
     return m_Transport != BINDING_TRANSPORT_UNSPECIFIED;
   }
 
   /**
    * Sets local binding flag which is used to create proper connection.
+   *
    * @deprecated it is not intended to be used by user code and might be removed.
    */
-  public void determineLocalBindingFlag()
-  {
-    if (m_LocalAddress == null)
-    {
-      if (m_LocalPort == LOCAL_PORT_UNSPECIFIED)
-      {
+  public void determineLocalBindingFlag() {
+    if (m_LocalAddress == null) {
+      if (m_LocalPort == LOCAL_PORT_UNSPECIFIED) {
         m_localBinding = NO_LOCAL_ADDR_PORT;
-      }
-      else
-      {
+      } else {
         m_localBinding = LOCAL_PORT_ONLY;
       }
-    }
-    else //if m_LocalAddress != null
+    } else // if m_LocalAddress != null
     {
-      if (m_LocalPort == LOCAL_PORT_UNSPECIFIED)
-      {
+      if (m_LocalPort == LOCAL_PORT_UNSPECIFIED) {
         m_localBinding = LOCAL_ADDR_ONLY;
-      }
-      else
-      {
+      } else {
         m_localBinding = LOCAL_ADDR_PORT;
       }
     }
   }
 
-
   /**
    * Gets the local binding flag.
+   *
    * @return the local binding flag
    */
-  public int getLocalBindingFlag()
-  {
+  public int getLocalBindingFlag() {
     return m_localBinding;
   }
 
@@ -660,12 +585,11 @@ public class DsBindingInfo implements Cloneable, Serializable
    * Calculates and return the hash code for this class.
    *
    * @return the hash code.
-   *
    */
-  public int hashCode()
-  {
+  public int hashCode() {
     int local_code = (m_LocalAddress == null ? 0 : m_LocalAddress.hashCode()) + m_LocalPort;
-    int remote_code = (m_RemoteAddress == null ? 0 : (m_RemoteAddress.hashCode() >> 2)) + m_RemotePort >> 2;
+    int remote_code =
+        (m_RemoteAddress == null ? 0 : (m_RemoteAddress.hashCode() >> 2)) + m_RemotePort >> 2;
 
     return local_code + remote_code;
   }
@@ -674,13 +598,11 @@ public class DsBindingInfo implements Cloneable, Serializable
    * Compares this object to the specified object <code>other_object</code>.
    *
    * @param other_object the object to compare with
-   *
    * @return true if the objects are the same; false otherwise
    */
-  public boolean equals(Object other_object)
-  {
+  public boolean equals(Object other_object) {
     boolean ret_value = false;
-    DsBindingInfo other = (DsBindingInfo) other_object ;
+    DsBindingInfo other = (DsBindingInfo) other_object;
 
     /*
      * !XOR means they are they are either both null or both !null
@@ -688,19 +610,20 @@ public class DsBindingInfo implements Cloneable, Serializable
     boolean remote_null_agree = !((m_RemoteAddress == null) ^ (other.m_RemoteAddress == null));
     boolean local_null_agree = !((m_LocalAddress == null) ^ (other.m_LocalAddress == null));
 
-    if (!(remote_null_agree && local_null_agree))
-    {
+    if (!(remote_null_agree && local_null_agree)) {
       ret_value = false;
-    }
-    else
-    {
+    } else {
 
       /* if one addr is not null at this point they are both not null */
-      ret_value = ((m_Transport == other.m_Transport) && (m_LocalAddress != null ? m_LocalAddress.equals(other.m_LocalAddress) : true) && (m_RemoteAddress != null ? m_RemoteAddress.equals(other.m_RemoteAddress) : true) && (m_LocalPort == other.m_LocalPort) && (m_RemotePort == other.m_RemotePort));
+      ret_value =
+          ((m_Transport == other.m_Transport)
+              && (m_LocalAddress != null ? m_LocalAddress.equals(other.m_LocalAddress) : true)
+              && (m_RemoteAddress != null ? m_RemoteAddress.equals(other.m_RemoteAddress) : true)
+              && (m_LocalPort == other.m_LocalPort)
+              && (m_RemotePort == other.m_RemotePort));
     }
 
     return ret_value;
-
   }
 
   /**
@@ -708,8 +631,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @return true if trying to connect, false otherwise
    */
-  public final boolean isTrying()
-  {
+  public final boolean isTrying() {
     return m_IsTrying;
   }
 
@@ -717,10 +639,8 @@ public class DsBindingInfo implements Cloneable, Serializable
    * Sets the "trying" status flag.
    *
    * @param trying the "trying" status flag.
-   *
    */
-  public final void setTrying(boolean trying)
-  {
+  public final void setTrying(boolean trying) {
     m_IsTrying = trying;
   }
 
@@ -729,8 +649,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @param new_info the source binding info
    */
-  public void update(DsBindingInfo new_info)
-  {
+  public void update(DsBindingInfo new_info) {
     m_IsTrying = new_info.m_IsTrying;
     m_RemoteAddressStr = new_info.m_RemoteAddressStr;
     m_RemoteAddress = new_info.m_RemoteAddress;
@@ -754,8 +673,7 @@ public class DsBindingInfo implements Cloneable, Serializable
    *
    * @param new_info the source object
    */
-  protected void clone(DsBindingInfo new_info)
-  {
+  protected void clone(DsBindingInfo new_info) {
     new_info.m_IsTrying = m_IsTrying;
     new_info.m_RemoteAddressStr = m_RemoteAddressStr;
     new_info.m_RemoteAddress = m_RemoteAddress;
@@ -773,10 +691,9 @@ public class DsBindingInfo implements Cloneable, Serializable
   /**
    * Returns a new copy of this object.
    *
-   * @return  a new copy of this object
+   * @return a new copy of this object
    */
-  public Object clone()
-  {
+  public Object clone() {
     DsBindingInfo new_info = new DsBindingInfo();
     clone(new_info);
     return new_info;
@@ -784,76 +701,73 @@ public class DsBindingInfo implements Cloneable, Serializable
 
   /**
    * Sets the Connection ID parameter for this binding information.
-   * @param connectionId The Connection ID parameter that needs to set for
-   *          this binding information.
+   *
+   * @param connectionId The Connection ID parameter that needs to set for this binding information.
    */
-  public void setConnectionId(DsByteString connectionId)
-  {
+  public void setConnectionId(DsByteString connectionId) {
     m_strConnectionId = connectionId;
   }
 
   /**
    * Returns the Connection ID parameter for this binding information.
+   *
    * @return the Connection ID parameter for this binding information.
    */
-  public DsByteString getConnectionId()
-  {
+  public DsByteString getConnectionId() {
     return m_strConnectionId;
   }
 
-  public void updateBindingInfo(DsSocket socketInfo) {
-
-    if (this.isBindingInfoValid || socketInfo == null ) {
-      return;
-    }
-    if (this.getLocalEphemeralPort() != socketInfo.getLocalPort()) {
-      this.setLocalEphemeralPort(socketInfo.getLocalPort());
-    }
-    if (this.getRemotePort() != socketInfo.getRemotePort()) {
-      this.setRemotePort(socketInfo.getRemotePort());
-    }
-    if ( (socketInfo.getLocalAddress() != null ) && ( this.getLocalAddress() == null || !this.getLocalAddress().equals(socketInfo.getLocalAddress()))) {
-      this.setLocalAddress(socketInfo.getLocalAddress());
-    }
-    if ((socketInfo.getRemoteInetAddress() != null) && ( this.getRemoteAddress() == null || !this.getRemoteAddress().equals(socketInfo.getRemoteInetAddress()))) {
-      this.setRemoteAddress(socketInfo.getRemoteInetAddress());
-    }
-    this.isBindingInfoValid = true;
+  /**
+   * Returns a string representation of the object. In general, the {@code toString} method returns
+   * a string that "textually represents" this object. The result should be a concise but
+   * informative representation that is easy for a person to read. It is recommended that all
+   * subclasses override this method.
+   *
+   * <p>The {@code toString} method for class {@code Object} returns a string consisting of the name
+   * of the class of which the object is an instance, the at-sign character `{@code @}', and the
+   * unsigned hexadecimal representation of the hash code of the object. In other words, this method
+   * returns a string equal to the value of:
+   *
+   * <blockquote>
+   *
+   * <pre>
+   * getClass().getName() + '@' + Integer.toHexString(hashCode())
+   * </pre>
+   *
+   * </blockquote>
+   *
+   * @return a string representation of the object.
+   */
+  @Override
+  public String toString() {
+    return new StringBuilder()
+        .append("Transport= ")
+        .append(getTransport())
+        .append(" LocalIP= ")
+        .append(getLocalAddress())
+        .append(" LocalPort= ")
+        .append(getLocalPort())
+        .append(" RemoteIPAddress= ")
+        .append(getRemoteAddress())
+        .append(" RemotePort= ")
+        .append(getRemotePort())
+        .toString();
   }
 
-  /*
-   * public  final static void main(String args[]) {
+  /**
+   * TODO:DHRUVA , commenting for now have to take care if needed.
    *
-   * try
-   * {
-   * InetAddress localhost = InetAddress.getByName("localhost");
-   * InetAddress remotehost = InetAddress.getByName("localhost");
+   * <p>public void updateBindingInfo(DsSocket socketInfo) {
    *
-   * DsBindingInfo binfo_a = new DsBindingInfo(localhost, 8080, remotehost, 8989, DsSipTransportType.TCP, false);
-   * DsBindingInfo binfo_b = new DsBindingInfo(localhost, 8080, remotehost, 8989, DsSipTransportType.TCP, false);
-   * System.out.println(binfo_a.hashCode() + " " + binfo_b.hashCode());
-   * System.out.println(binfo_a.equals(binfo_b));
-   *
-   * binfo_a = new DsBindingInfo(localhost, 8080, remotehost, 8989, DsSipTransportType.TCP, false);
-   * binfo_b = new DsBindingInfo(localhost, 8080, null, 8989, DsSipTransportType.TCP, false);
-   * System.out.println(binfo_a.hashCode() + " " + binfo_b.hashCode());
-   * System.out.println(binfo_a.equals(binfo_b));
-   *
-   * binfo_a = new DsBindingInfo(localhost, 8080, null, 8989, DsSipTransportType.TCP, false);
-   * binfo_b = new DsBindingInfo(localhost, 8080, null, 8989, DsSipTransportType.TCP, false);
-   * System.out.println(binfo_a.hashCode() + " " + binfo_b.hashCode());
-   * System.out.println(binfo_a.equals(binfo_b));
-   *
-   * DsBindingInfo info_a  = new DsBindingInfo();
-   * DsBindingInfo info_b = new DsBindingInfo();
-   * System.out.println(binfo_a.hashCode() + " " + binfo_b.hashCode());
-   * System.out.println(binfo_a.equals(binfo_b));
-   *
-   * }
-   * catch (UnknownHostException uhe)
-   * {
-   * System.out.println("UnknownHostException");
-   * }
-   * }
+   * <p>if (this.isBindingInfoValid || socketInfo == null ) { return; } if
+   * (this.getLocalEphemeralPort() != socketInfo.getLocalPort()) {
+   * this.setLocalEphemeralPort(socketInfo.getLocalPort()); } if (this.getRemotePort() !=
+   * socketInfo.getRemotePort()) { this.setRemotePort(socketInfo.getRemotePort()); } if (
+   * (socketInfo.getLocalAddress() != null ) && ( this.getLocalAddress() == null ||
+   * !this.getLocalAddress().equals(socketInfo.getLocalAddress()))) {
+   * this.setLocalAddress(socketInfo.getLocalAddress()); } if ((socketInfo.getRemoteInetAddress() !=
+   * null) && ( this.getRemoteAddress() == null ||
+   * !this.getRemoteAddress().equals(socketInfo.getRemoteInetAddress()))) {
+   * this.setRemoteAddress(socketInfo.getRemoteInetAddress()); } this.isBindingInfoValid = true; }
    */
 }

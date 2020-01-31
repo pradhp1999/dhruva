@@ -1,22 +1,56 @@
 package com.cisco.dhruva.util.log;
 
-import org.slf4j.Logger;
+public class DhruvaLogger implements Logger {
 
-public class DhruvaLogger {
+  private org.slf4j.Logger logger;
 
-  private Logger logger;
-
-  public DhruvaLogger(Logger logger) {
+  public DhruvaLogger(org.slf4j.Logger logger) {
     this.logger = logger;
   }
 
+  @Override
   public void error(String message, Throwable throwable) {
 
     logger.error(message, throwable);
   }
 
-  public void info(String message, Object object) {
+  @Override
+  public void error(String message) {
+    logger.error(message);
+  }
 
+  @Override
+  public void info(String message, Object object) {
     logger.info(message, object);
+  }
+
+  @Override
+  public void info(String message) {
+    logger.info(message);
+  }
+
+  @Override
+  public void info(String format, Object arg1, Object arg2) {
+    logger.info(format, arg1, arg2);
+  }
+
+  @Override
+  public void info(String format, Object... arguments) {
+    logger.info(format, arguments);
+  }
+
+  @Override
+  public void warn(String message, Throwable throwable) {
+    logger.warn(message, throwable);
+  }
+
+  @Override
+  public void error(String format, Object arg1, Object arg2) {
+    logger.error(format, arg1, arg2);
+  }
+
+  @Override
+  public void error(String format, Object... arguments) {
+    logger.error(format, arguments);
   }
 }
