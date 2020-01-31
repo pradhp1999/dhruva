@@ -29,7 +29,7 @@ It is deployed in Meetings Platform (meet-PaaS).
 - Optionally uncheck "After launch" under the "Open browser" section.
 - Set the URL as `http://localhost:8080/dhruva_server_war_exploded/`
 - In VM options field enter: `-Xmx2048m -Xms1024m`, and `-DexternalUrlProtocol=http`.
-- Now go to the deployment tab.
+- Now go to the deployment tab
 - Use + button to add the artifact `dhruva-server-exploded.war` (pick one with 'exploded' word in name, it will speedup your tomcat run)
 - Now run the application. You should be able to curl `http://localhost:8080/dhruva_server_war_exploded/api/v1/greetings/testuser`
 ## References
