@@ -67,9 +67,7 @@
         <dependency>
             <groupId>Acme</groupId>
             <artifactId>Acme</artifactId>
-            <scope>system</scope>
-            <systemPath>/Users/rgowrimo/.m2/repository/Acme/Acme/2.1.1/Acme.jar</systemPath>
-            <version>2.1.1</version>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -90,6 +88,12 @@
             <groupId>xerces</groupId>
             <artifactId>xercesImpl</artifactId>
             <version>2.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.14.3</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
