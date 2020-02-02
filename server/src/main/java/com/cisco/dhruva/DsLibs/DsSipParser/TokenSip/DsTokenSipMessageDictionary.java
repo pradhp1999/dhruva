@@ -12,7 +12,6 @@
 
 package com.cisco.dhruva.DsLibs.DsSipParser.TokenSip;
 
-import Acme.Crypto.Crc16Hash;
 import com.cisco.dhruva.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.util.log.Trace;
 import java.io.*;

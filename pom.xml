@@ -11,11 +11,6 @@
             <id>webex-cca-release</id>
             <url>http://engci-maven.cisco.com/artifactory/webex-cca-group</url>
         </repository>
-        <repository>
-            <id>central</id>
-            <name>bms-artifactory-blr-releases</name>
-            <url>https://engci-maven.cisco.com/artifactory/CloudProxy-thirdparty</url>
-        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
