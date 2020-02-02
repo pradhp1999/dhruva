@@ -26,7 +26,8 @@ public class ServerFactory {
   }
 
   public Server getServer(
-      Transport transport, MessageForwarder messageForwarder, NetworkConfig networkConfig) {
+      Transport transport, MessageForwarder messageForwarder, NetworkConfig networkConfig)
+      throws Exception {
     Server server = null;
     switch (transport) {
       case UDP:
@@ -38,6 +39,8 @@ public class ServerFactory {
           }
         }
         server = udpServer;
+        break;
+      default: throw new Exception("Transport "+transport.name()+" not supported");
     }
     return server;
   }

@@ -27,9 +27,13 @@ public class DhruvaTransportLayer implements TransportLayer {
               "TransportType or address or messageForwarder passed to NettyTransportLayer.startListening is null"));
       return serverStartFuture;
     }
-    ServerFactory.getInstance()
-        .getServer(transportType, messageForwarder, transportConfig)
-        .startListening(address, port, serverStartFuture);
+    try {
+      ServerFactory.getInstance()
+          .getServer(transportType, messageForwarder, transportConfig)
+          .startListening(address, port, serverStartFuture);
+    } catch (Exception e) {
+      serverStartFuture.completeExceptionally(e);
+    }
     return serverStartFuture;
   }
 

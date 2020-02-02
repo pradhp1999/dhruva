@@ -6,6 +6,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.io.Serializable;
@@ -742,7 +743,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
   public String toString() {
     return new StringBuilder()
         .append("Transport= ")
-        .append(getTransport())
+        .append(Transport.valueOf(getTransport()).get())
         .append(" LocalIP= ")
         .append(getLocalAddress())
         .append(" LocalPort= ")
