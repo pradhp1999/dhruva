@@ -83,9 +83,9 @@ public class DsTokenSipMessageDictionary implements Serializable {
 
     int lastStringEnd = 0;
 
-    Crc16Hash hash = new Crc16Hash();
-    hash.add("1/com.sprintpcs/1".getBytes());
-    int dictionarySignature = DsTokenSipInteger.read16Bit(hash.get());
+    Crc16Hasher hasher = new Crc16Hasher();
+    hasher.add("1/com.sprintpcs/1".getBytes());
+    int dictionarySignature = DsTokenSipInteger.read16Bit(hasher.hash());
 
     for (int x = 0; x < numEntries; x++) {
       if (dictionarySignature == dictionary.signature.intValue()) {

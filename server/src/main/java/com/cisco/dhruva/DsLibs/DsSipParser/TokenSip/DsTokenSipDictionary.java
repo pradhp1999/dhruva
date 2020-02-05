@@ -33,9 +33,8 @@ public class DsTokenSipDictionary implements Serializable {
 
   DsTokenSipDictionary(DsByteString name) {
     this.name = name;
-    Crc16Hash hash = new Crc16Hash();
-    hash.add(name.toByteArray());
-    signature = new Integer(DsTokenSipInteger.read16Bit(hash.get()));
+    Crc16Hasher h = new Crc16Hasher();
+    signature = DsTokenSipInteger.read16Bit(h.genSignature(name.toByteArray()));
   }
 
   public DsByteString getName() {

@@ -122,9 +122,9 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
     MsgBytes mb = new MsgBytes(msg, offset, count);
 
-    Crc16Hash hash = new Crc16Hash();
-    hash.add("1/com.sprintpcs/1".getBytes());
-    int dictionarySignature = DsTokenSipInteger.read16Bit(hash.get());
+    Crc16Hasher hasher = new Crc16Hasher();
+    hasher.add("1/com.sprintpcs/1".getBytes());
+    int dictionarySignature = DsTokenSipInteger.read16Bit(hasher.hash());
     if (mb.msg[mb.i] == TOKEN_SIP_PREFIX1) {
       mb.i++;
       if (Log.isDebugEnabled()) Log.debug("Found the 0x80 encoded SIP message prefix");
