@@ -14,6 +14,9 @@ import java.util.Properties;
 and contain malformed and valid SIP messages as defined in RFC 4475.
 We intend to have a liberal parser in Dhruva, so feel free to move testcases
 from the malformedMessages tests to the validMessages test if needed.
+
+For troubleshooting, the X-Test-Info header in each message gives a description
+of what the test is intending to catch.
 */
 
 public class DsSipMessageFactoryTest {
@@ -24,12 +27,9 @@ public class DsSipMessageFactoryTest {
       dataProvider = "validMessages",
       enabled = false,
       description = "Test parsing of raw, valid sip messages")
-  public void testSipMessage(byte[] buf) {
-    try {
-      DsSipMessage msg = mf.createMessage(buf);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+  public void testSipMessage(byte[] buf) throws DsSipParserListenerException, DsSipParserException {
+    System.out.println("Test message:\n" + new String(buf));
+    DsSipMessage msg = mf.createMessage(buf);
   }
 
   @Test(
@@ -39,6 +39,7 @@ public class DsSipMessageFactoryTest {
       description = "Test parsing of malformed sip messages")
   public void testMalformedSipMessage(byte[] buf)
       throws DsSipParserListenerException, DsSipParserException {
+    System.out.println("Test message:\n" + new String(buf));
     DsSipMessage msg = mf.createMessage(buf);
   }
 
@@ -54,7 +55,7 @@ public class DsSipMessageFactoryTest {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    Object[][] result = new Object[props.size()][props.size()];
+    Object[][] result = new Object[props.size()][1];
     Enumeration e = props.propertyNames();
     int index = 0;
     while (e.hasMoreElements()) {
