@@ -1,116 +1,78 @@
 package com.cisco.dhruva.sip.DsSipObject;
 
-import static org.testng.Assert.*;
-
+import com.cisco.dhruva.sip.DsSipParser.DsSipParserException;
+import com.cisco.dhruva.sip.DsSipParser.DsSipParserListenerException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Properties;
+
+/* Many of these tests are from [voiper](https://github.com/gremwell/voiper.git)
+and contain malformed and valid SIP messages as defined in RFC 4475.
+We intend to have a liberal parser in Dhruva, so feel free to move testcases
+from the malformedMessages tests to the validMessages test if needed.
+
+For troubleshooting, the X-Test-Info header in each message gives a description
+of what the test is intending to catch.
+*/
 
 public class DsSipMessageFactoryTest {
 
   DsSipMessageFactory mf;
 
   @Test(
-      dataProvider = "dataProviders",
+      dataProvider = "validMessages",
       enabled = false,
-      description = "Test parsing of raw sip message")
-  public void testSipMessage(byte[] buf) {
-    try {
-      DsSipMessage msg = mf.createMessage(buf);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+      description = "Test parsing of raw, valid sip messages")
+  public void testSipMessage(byte[] buf) throws DsSipParserListenerException, DsSipParserException {
+    System.out.println("Test message:\n" + new String(buf));
+    DsSipMessage msg = mf.createMessage(buf);
   }
 
-  @DataProvider(name = "dataProviders")
-  public Object[][] dataProvider() {
-    return new Object[][] {
-      {
-        ("INVITE sip:1234567@alpha.webex.com:5060 SIP/2.0\n"
-                + "Via: SIP/2.0/TLS 10.78.98.22:5060;branch=z9hG4bK22OUz2jVIUJvqqCzTbFXXA~~13\n"
-                + "Via: SIP/2.0/TLS 10.78.98.22:7777;branch=z9hG4bK-25058-1-0\n"
-                + "Max-Forwards: 69\n"
-                + "Route: <sip:10.78.98.22:5081;transport=tls;lr>\n"
-                + "Record-Route: <sip:rr$n=sip1@10.78.98.22:5060;transport=tls;lr>\n"
-                + "To: service <sip:service@10.78.98.22:5060>\n"
-                + "From: sipp <sip:sipp@10.78.98.22:7777>;tag=25058SIPpTag001\n"
-                + "Contact: sip:sipp@10.78.98.22:7777\n"
-                + "Call-ID: 1-25058@10.78.98.22\n"
-                + "CSeq: 1 INVITE\n"
-                + "Subject: Performance Test\n"
-                + "messed-up:\n"
-                + "\n"
-                + "Content-Type: application/sdp\n"
-                + "Content-Length: 133\n"
-                + "Session-ID: 9a1e37dd952331e29a1a4c6c940528fd;remote=00000000000000000000000000000000\n"
-                + "\n"
-                + "v=0\n"
-                + "o=user1 53655765 2353687637 IN IP4 10.78.98.22\n"
-                + "s=-\n"
-                + "c=IN IP4 10.78.98.22\n"
-                + "t=0 0\n"
-                + "m=audio 6001 RTP/AVP 0\n"
-                + "a=rtpmap:0 PCMU/8000\n"
-                + "")
-            .getBytes()
-      },
-      {
-        ("ACK sip:1234567@alpha.webex.com:5060 SIP/2.0\n"
-                + "Via: SIP/2.0/TLS 10.78.98.22:5060;branch=z9hG4bK22OUz2jVIUJvqqCzTbFXXA~~13\n"
-                + "Via: SIP/2.0/TLS 10.78.98.22:7777;branch=z9hG4bK-25058-1-0\n"
-                + "Max-Forwards: 69\n"
-                + "Route: <sip:10.78.98.22:5081;transport=tls;lr>\n"
-                + "Record-Route: <sip:rr$n=sip1@10.78.98.22:5060;transport=tls;lr>\n"
-                + "To: service <sip:service@10.78.98.22:5060>\n"
-                + "From: sipp <sip:sipp@10.78.98.22:7777>;tag=25058SIPpTag001\n"
-                + "Contact: sip:sipp@10.78.98.22:7777\n"
-                + "Call-ID: 1-25058@10.78.98.22\n"
-                + "CSeq: 1 INVITE\n"
-                + "Subject: Performance Test\n"
-                + "messed-up:\n"
-                + "\n"
-                + "Content-Type: application/sdp\n"
-                + "Content-Length: 133\n"
-                + "Session-ID: 9a1e37dd952331e29a1a4c6c940528fd;remote=00000000000000000000000000000000\n"
-                + "\n"
-                + "v=0\n"
-                + "o=user1 53655765 2353687637 IN IP4 10.78.98.22\n"
-                + "s=-\n"
-                + "c=IN IP4 10.78.98.22\n"
-                + "t=0 0\n"
-                + "m=audio 6001 RTP/AVP 0\n"
-                + "a=rtpmap:0 PCMU/8000\n"
-                + "")
-            .getBytes()
-      },
-      {
-        ("REFER sip:1234567@alpha.webex.com:5060 SIP/2.0\n"
-                + "Via: SIP/2.0/TLS 10.78.98.22:5060;branch=z9hG4bK22OUz2jVIUJvqqCzTbFXXA~~13\n"
-                + "Via: SIP/2.0/TLS 10.78.98.22:7777;branch=z9hG4bK-25058-1-0\n"
-                + "Max-Forwards: 69\n"
-                + "Route: <sip:10.78.98.22:5081;transport=tls;lr>\n"
-                + "Record-Route: <sip:rr$n=sip1@10.78.98.22:5060;transport=tls;lr>\n"
-                + "To: service <sip:service@10.78.98.22:5060>\n"
-                + "From: sipp <sip:sipp@10.78.98.22:7777>;tag=25058SIPpTag001\n"
-                + "Contact: sip:sipp@10.78.98.22:7777\n"
-                + "Call-ID: 1-25058@10.78.98.22\n"
-                + "CSeq: 1 INVITE\n"
-                + "Subject: Performance Test\n"
-                + "messed-up:\n"
-                + "\n"
-                + "Content-Type: application/sdp\n"
-                + "Content-Length: 133\n"
-                + "Session-ID: 9a1e37dd952331e29a1a4c6c940528fd;remote=00000000000000000000000000000000\n"
-                + "\n"
-                + "v=0\n"
-                + "o=user1 53655765 2353687637 IN IP4 10.78.98.22\n"
-                + "s=-\n"
-                + "c=IN IP4 10.78.98.22\n"
-                + "t=0 0\n"
-                + "m=audio 6001 RTP/AVP 0\n"
-                + "a=rtpmap:0 PCMU/8000\n"
-                + "")
-            .getBytes()
-      }
-    };
+  @Test(
+      dataProvider = "malformedMessages",
+      expectedExceptions = DsSipParserException.class,
+      enabled = false,
+      description = "Test parsing of malformed sip messages")
+  public void testMalformedSipMessage(byte[] buf)
+      throws DsSipParserListenerException, DsSipParserException {
+    System.out.println("Test message:\n" + new String(buf));
+    DsSipMessage msg = mf.createMessage(buf);
+  }
+
+  private Object[][] readPropFile(String propFileName) {
+    /* Reads a property file that has valid or malformed sip messages
+    and returns it as an Object[][] that the DataProvider can use */
+    Properties props = new Properties();
+    try {
+      FileReader f = new FileReader(propFileName);
+      System.out.println(f);
+      props.load(new FileReader(propFileName));
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    Object[][] result = new Object[props.size()][1];
+    Enumeration e = props.propertyNames();
+    int index = 0;
+    while (e.hasMoreElements()) {
+      String key = (String) e.nextElement();
+      result[index][0] = props.getProperty(key).getBytes();
+      index += 1;
+    }
+    return result;
+  }
+
+  @DataProvider(name = "validMessages")
+  public Object[][] validMessages() {
+    return readPropFile("src/test/resources/validMessages.properties");
+  }
+
+  @DataProvider(name = "malformedMessages")
+  public Object[][] malformedMessages() {
+    return readPropFile("src/test/resources/malformedMessages.properties");
   }
 }
