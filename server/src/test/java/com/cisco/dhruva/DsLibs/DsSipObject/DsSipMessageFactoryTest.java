@@ -22,26 +22,28 @@ of what the test is intending to catch.
 
 public class DsSipMessageFactoryTest {
 
-  DsSipMessageFactory mf;
+  DsSipMessageFactory mf = DsSipDefaultMessageFactory.getInstance();
 
   @Test(
           dataProvider = "validMessages",
-          enabled = false,
+          enabled = true,
           description = "Test parsing of raw, valid sip messages")
   public void testSipMessage(byte[] buf) throws DsSipParserListenerException, DsSipParserException {
     System.out.println("Test message:\n" + new String(buf));
-    DsSipMessage msg = mf.createMessage(buf);
+
+    DsSipMessage msg = mf.createMessage(buf, 0, buf.length, true, true);
   }
 
   @Test(
           dataProvider = "malformedMessages",
-          expectedExceptions = DsSipParserException.class,
-          enabled = false,
+          expectedExceptions = {DsSipParserException.class,DsSipMessageValidationException.class,
+                  DsSipVersionValidationException.class, DsSipKeyValidationException.class},
+          enabled = true,
           description = "Test parsing of malformed sip messages")
   public void testMalformedSipMessage(byte[] buf)
           throws DsSipParserListenerException, DsSipParserException {
     System.out.println("Test message:\n" + new String(buf));
-    DsSipMessage msg = mf.createMessage(buf);
+    DsSipMessage msg = mf.createMessage(buf, 0, buf.length, true, true);
   }
 
   private Object[][] readPropFile(String propFileName) {
