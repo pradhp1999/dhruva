@@ -5,19 +5,23 @@
 
 package com.cisco.dhruva.transport;
 
-import com.cisco.dhruva.transport.config.NetworkConfig;
+import com.cisco.dhruva.config.network.NetworkConfig;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 public interface TransportLayer {
 
-  public CompletableFuture<Boolean> startListening(
+  public static NetworkConfig networkConfig() {
+    return null;
+  }
+
+  public CompletableFuture startListening(
       Transport transportType,
       NetworkConfig transportConfig,
       InetAddress address,
       int port,
-      MessageHandler handler);
+      MessageForwarder handler);
 
   public CompletableFuture<Connection> getConnection(
       NetworkConfig networkConfig,
