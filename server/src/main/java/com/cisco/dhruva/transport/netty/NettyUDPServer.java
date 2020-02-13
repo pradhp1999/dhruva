@@ -23,17 +23,14 @@ public class NettyUDPServer implements Server {
   private MessageForwarder messageForwarder;
   private NetworkConfig networkConfig;
 
-  public NettyUDPServer(
-      MessageForwarder messageForwarder, NetworkConfig networkConfig, Bootstrap bootstrap) {
+  public NettyUDPServer(MessageForwarder messageForwarder, NetworkConfig networkConfig) {
     this.networkConfig = networkConfig;
     channelInitializer =
         ChannelInitializerFactory.getInstance()
             .getChannelInitializer(Transport.UDP, messageForwarder);
-    this.udpBootstrap = bootstrap;
-    udpBootstrap
-        .channel(NioDatagramChannel.class)
-        .handler(channelInitializer)
-        .group(EventLoopGroupFactory.getInstance(Transport.UDP, networkConfig));
+    this.udpBootstrap =
+        BootStrapFactory.getInstance()
+            .getServerBootStrap(Transport.UDP, networkConfig, channelInitializer);
   }
 
   @Override
@@ -45,8 +42,7 @@ public class NettyUDPServer implements Server {
             Channel channel = ((ChannelFuture) bindFuture).channel();
             serverStartFuture.complete(channel);
           } else {
-            Throwable causeForBindFailure = bindFuture.cause();
-            serverStartFuture.completeExceptionally(causeForBindFailure);
+            serverStartFuture.completeExceptionally(bindFuture.cause());
           }
         });
   }

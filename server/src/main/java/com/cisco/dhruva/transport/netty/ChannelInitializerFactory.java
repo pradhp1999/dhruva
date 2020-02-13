@@ -30,7 +30,7 @@ public class ChannelInitializerFactory {
             if (udpChannelInitializer == null) {
               udpChannelInitializer = new BaseChannelInitializer();
               udpChannelInitializer.messageHandler(
-                  ChannelHandlerFactory.getInstance(Transport.UDP, messageForwarder));
+                  ChannelHandlerFactory.getInstance().getChannelHandler(Transport.UDP, messageForwarder));
             }
           }
         }

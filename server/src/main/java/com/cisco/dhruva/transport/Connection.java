@@ -4,6 +4,7 @@
 
 package com.cisco.dhruva.transport;
 
+import io.netty.channel.ChannelFuture;
 import java.util.concurrent.CompletableFuture;
 
 public interface Connection {
@@ -33,11 +34,12 @@ public interface Connection {
    */
   public void onConnectionError(Throwable cause);
 
-  public void closeConnection();
+  public ChannelFuture closeConnection();
+
+  boolean shouldClose();
 
   public enum STATE {
-    NOTCONNECTED,
-    CONNECTED,
-    CLOSED
+    ACTIVE,
+    INACTIVE
   }
 }

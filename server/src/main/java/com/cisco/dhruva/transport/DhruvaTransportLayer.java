@@ -6,11 +6,24 @@
 package com.cisco.dhruva.transport;
 
 import com.cisco.dhruva.config.network.NetworkConfig;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 public class DhruvaTransportLayer implements TransportLayer {
+
+  private MessageForwarder messageForwarder;
+
+  private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaTransportLayer.class);
+
+  private ConnectionCache connectionCache = ConnectionCache.getInstance();
+
+  public DhruvaTransportLayer(MessageForwarder messageForwarder) {
+    this.messageForwarder = messageForwarder;
+  }
 
   @Override
   public CompletableFuture startListening(
@@ -26,6 +39,10 @@ public class DhruvaTransportLayer implements TransportLayer {
           new NullPointerException(
               "TransportType or address or messageForwarder passed to NettyTransportLayer.startListening is null"));
       return serverStartFuture;
+    }
+
+    if (messageForwarder == null) {
+      messageForwarder = this.messageForwarder;
     }
     try {
       ServerFactory.getInstance()
@@ -45,7 +62,67 @@ public class DhruvaTransportLayer implements TransportLayer {
       int localPort,
       InetAddress remoteAddress,
       int remotePort) {
-    return null;
+
+    if (transportType == null || remoteAddress == null) {
+      return exceptionallyCompletedFuture(
+          new NullPointerException(
+              "transportType or remoteAddress passed to DhruvaTransportLayer.getConnection is null "));
+    }
+
+    try {
+
+      InetSocketAddress remoteSocketAddress = new InetSocketAddress(remoteAddress, remotePort);
+      InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
+
+      CompletableFuture<Connection> connectionCompletableFuture =
+          connectionCache.get(localSocketAddress, remoteSocketAddress, transportType);
+
+      if (connectionCompletableFuture != null) {
+        if (connectionCompletableFuture.isDone()
+            && connectionCompletableFuture.isCompletedExceptionally()) {
+          connectionCache.remove(localSocketAddress, remoteSocketAddress, transportType);
+        } else {
+          logger.info("Returning Connection {} from cache ", connectionCompletableFuture.get());
+          return connectionCompletableFuture;
+        }
+      }
+
+      Client client =
+          ClientFactory.getInstance().getClient(transportType, networkConfig, messageForwarder);
+      connectionCompletableFuture =
+          connectionCache.computeIfAbsent(
+              localSocketAddress,
+              remoteSocketAddress,
+              Transport.UDP,
+              o -> {
+                CompletableFuture<Connection> connectionFuture =
+                    client.getConnection(localSocketAddress, remoteSocketAddress);
+                connectionFuture.whenComplete(
+                    (connection, throwable) -> {
+                      if (throwable != null) {
+                        connectionCache.remove(
+                            localSocketAddress, remoteSocketAddress, transportType);
+                      }
+                    });
+
+                return connectionFuture;
+              });
+
+      logger.info(
+          "Returning a new connection for localAddress {} remoteAddress {} , connectionfuture is {} ",
+          localSocketAddress,
+          remoteSocketAddress,
+          connectionCompletableFuture);
+      return connectionCompletableFuture;
+    } catch (Exception e) {
+      return exceptionallyCompletedFuture(e);
+    }
+  }
+
+  private CompletableFuture exceptionallyCompletedFuture(Throwable e) {
+    CompletableFuture exceptionFuture = new CompletableFuture();
+    exceptionFuture.completeExceptionally(e);
+    return exceptionFuture;
   }
 
   @Override

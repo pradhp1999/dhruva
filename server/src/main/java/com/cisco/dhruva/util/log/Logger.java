@@ -24,4 +24,6 @@ public interface Logger {
   public void error(String format, Object arg1, Object arg2);
 
   public void error(String format, Object... arguments);
+
+  public void warn(String format, Object arg1, Object arg2);
 }

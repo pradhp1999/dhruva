@@ -30,7 +30,7 @@ public class EventLoopGroupFactory {
               ThreadFactory threadFactory =
                   new DefaultThreadFactory(DhruvaThreadNames.getUdpEventloopThreadName());
               eventLoopGroup =
-                  new NioEventLoopGroup(networkConfig.UDPEventPoolThreadCount(), threadFactory);
+                  new NioEventLoopGroup(networkConfig.udpEventPoolThreadCount(), threadFactory);
             }
           }
         }
