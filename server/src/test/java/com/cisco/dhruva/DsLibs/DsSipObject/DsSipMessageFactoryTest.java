@@ -1,15 +1,13 @@
 package com.cisco.dhruva.DsLibs.DsSipObject;
 
-
 import com.cisco.dhruva.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.DsLibs.DsSipParser.DsSipParserListenerException;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Properties;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /* Many of these tests are from [voiper](https://github.com/gremwell/voiper.git)
 and contain malformed and valid SIP messages as defined in RFC 4475.
@@ -25,9 +23,9 @@ public class DsSipMessageFactoryTest {
   DsSipMessageFactory mf = DsSipDefaultMessageFactory.getInstance();
 
   @Test(
-          dataProvider = "validMessages",
-          enabled = true,
-          description = "Test parsing of raw, valid sip messages")
+      dataProvider = "validMessages",
+      enabled = true,
+      description = "Test parsing of raw, valid sip messages")
   public void testSipMessage(byte[] buf) throws DsSipParserListenerException, DsSipParserException {
     System.out.println("Test message:\n" + new String(buf));
 
@@ -35,13 +33,17 @@ public class DsSipMessageFactoryTest {
   }
 
   @Test(
-          dataProvider = "malformedMessages",
-          expectedExceptions = {DsSipParserException.class,DsSipMessageValidationException.class,
-                  DsSipVersionValidationException.class, DsSipKeyValidationException.class},
-          enabled = true,
-          description = "Test parsing of malformed sip messages")
+      dataProvider = "malformedMessages",
+      expectedExceptions = {
+        DsSipParserException.class,
+        DsSipMessageValidationException.class,
+        DsSipVersionValidationException.class,
+        DsSipKeyValidationException.class
+      },
+      enabled = true,
+      description = "Test parsing of malformed sip messages")
   public void testMalformedSipMessage(byte[] buf)
-          throws DsSipParserListenerException, DsSipParserException {
+      throws DsSipParserListenerException, DsSipParserException {
     System.out.println("Test message:\n" + new String(buf));
     DsSipMessage msg = mf.createMessage(buf, 0, buf.length, true, true);
   }

@@ -40,7 +40,8 @@ public class ServerFactory {
         }
         server = udpServer;
         break;
-      default: throw new Exception("Transport "+transport.name()+" not supported");
+      default:
+        throw new Exception("Transport " + transport.name() + " not supported");
     }
     return server;
   }

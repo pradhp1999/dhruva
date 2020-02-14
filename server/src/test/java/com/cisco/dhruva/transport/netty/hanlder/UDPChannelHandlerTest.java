@@ -9,7 +9,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.testng.Assert.*;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.transport.netty.ChannelHandlerFactory;
