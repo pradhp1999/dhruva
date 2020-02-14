@@ -66,7 +66,13 @@ public class DhruvaTransportLayer implements TransportLayer {
     if (transportType == null || remoteAddress == null) {
       return exceptionallyCompletedFuture(
           new NullPointerException(
-              "transportType or remoteAddress passed to DhruvaTransportLayer.getConnection is null "));
+              "transportType or remoteAddress passed to DhruvaTransportLayer.getConnection is null transport = "
+                  + transportType + " , remoteAddress = " + remoteAddress));
+    }
+
+    if (remotePort <= 0) {
+      return exceptionallyCompletedFuture(
+          new Exception("Invalid remoteport  value in DhruvaTransportLayer.getConnection , remotePort = "+remotePort));
     }
 
     try {
@@ -80,7 +86,8 @@ public class DhruvaTransportLayer implements TransportLayer {
       if (connectionCompletableFuture != null) {
         if (connectionCompletableFuture.isDone()
             && connectionCompletableFuture.isCompletedExceptionally()) {
-          connectionCache.remove(localSocketAddress, remoteSocketAddress, transportType);
+          connectionCache.remove(localSocketAddress, remoteSocketAddress, transportType,
+              connectionCompletableFuture);
         } else {
           logger.info("Returning Connection {} from cache ", connectionCompletableFuture.get());
           return connectionCompletableFuture;
@@ -97,16 +104,19 @@ public class DhruvaTransportLayer implements TransportLayer {
               o -> {
                 CompletableFuture<Connection> connectionFuture =
                     client.getConnection(localSocketAddress, remoteSocketAddress);
-                connectionFuture.whenComplete(
-                    (connection, throwable) -> {
-                      if (throwable != null) {
-                        connectionCache.remove(
-                            localSocketAddress, remoteSocketAddress, transportType);
-                      }
-                    });
-
                 return connectionFuture;
               });
+
+      // If establishing the connection fails remove the connection from connection cache
+      CompletableFuture<Connection> finalConnectionCompletableFuture = connectionCompletableFuture;
+      connectionCompletableFuture.whenComplete(
+          (connection, throwable) -> {
+            if (throwable != null) {
+              connectionCache.remove(
+                  localSocketAddress, remoteSocketAddress, transportType,
+                  finalConnectionCompletableFuture);
+            }
+          });
 
       logger.info(
           "Returning a new connection for localAddress {} remoteAddress {} , connectionfuture is {} ",
