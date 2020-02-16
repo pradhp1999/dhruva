@@ -16,6 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -23,6 +24,8 @@ public class ConnectionCache {
 
   private static ConnectionCache connectionCache = new ConnectionCache();
   private Logger logger = DhruvaLoggerFactory.getLogger(ConnectionCache.class);
+  private int connectionSweeperInterval = 60;
+  private TimeUnit connectionSweeperIntervalTimeUnit = TimeUnit.MINUTES;
 
   private ConcurrentHashMap<ConnectionKey, CompletableFuture<Connection>> connectionMap =
       new ConcurrentHashMap();
@@ -30,37 +33,49 @@ public class ConnectionCache {
   private ScheduledExecutorService connectionSweeperSchedulerService =
       Executors.newSingleThreadScheduledExecutor();
 
-  public static ConnectionCache getInstance() {
+  public static ConnectionCache getInstance(
+      int connectionSweeperInterval, TimeUnit connectionSweeperIntervalTimeUnit) {
+    connectionCache.connectionSweeperInterval = connectionSweeperInterval;
+    connectionCache.connectionSweeperIntervalTimeUnit = connectionSweeperIntervalTimeUnit;
+    ScheduledFuture scheduledFuture =
+        connectionCache.connectionSweeperSchedulerService.scheduleAtFixedRate(
+            connectionCache.connectionSweeperTask,
+            connectionCache.connectionSweeperInterval,
+            connectionCache.connectionSweeperInterval,
+            connectionCache.connectionSweeperIntervalTimeUnit);
     return connectionCache;
   }
 
   private Runnable connectionSweeperTask =
       () -> {
-        Collection collection = connectionMap.values();
-        Iterator iterator = collection.iterator();
-        while (iterator.hasNext()) {
-          CompletableFuture<Connection> connectionFuture = ((CompletableFuture) iterator.next());
-          if (connectionFuture.isDone() && !connectionFuture.isCompletedExceptionally()) {
-            try {
-              Connection connection = connectionFuture.get();
-              if (connection.shouldClose()) {
-                iterator.remove();
-                connection.closeConnection();
-                connection = null;
+        try {
+          Collection collection = connectionMap.values();
+          Iterator iterator = collection.iterator();
+          while (iterator.hasNext()) {
+            CompletableFuture<Connection> connectionFuture = ((CompletableFuture) iterator.next());
+            if (connectionFuture.isDone() && !connectionFuture.isCompletedExceptionally()) {
+              try {
+                Connection connection = connectionFuture.get();
+                if (connection.shouldClose()) {
+                  logger.warn(
+                      "Removing connection {} from cache in the ConnectionSweeper", connection);
+                  iterator.remove();
+                  connection.closeConnection();
+                  connection = null;
+                }
+              } catch (Exception e) {
+                logger.error(
+                    "Error getting connection from future in Connection Sweeper task exception is ",
+                    e);
               }
-            } catch (Exception e) {
-              logger.error(
-                  "Error getting connection from future in Connection Sweeper task exception is ",
-                  e);
             }
           }
+        } catch (Exception e) {
+          logger.error("Unhandled Exception Connection Sweeper task exception is ", e);
         }
       };
 
-  private ConnectionCache() {
-    connectionSweeperSchedulerService.scheduleAtFixedRate(
-        connectionSweeperTask, 60, 60, TimeUnit.MINUTES);
-  }
+  private ConnectionCache() {}
 
   public void add(
       InetSocketAddress localAddress,
@@ -105,7 +120,10 @@ public class ConnectionCache {
   }
 
   public void remove(
-      InetSocketAddress localAddress, InetSocketAddress remoteAddress, Transport transport) {
+      InetSocketAddress localAddress,
+      InetSocketAddress remoteAddress,
+      Transport transport,
+      CompletableFuture<Connection> connectionCompletableFuture) {
     ConnectionKey connectionKey =
         new ConnectionKey(
             localAddress.getAddress(),
@@ -113,7 +131,11 @@ public class ConnectionCache {
             remoteAddress.getAddress(),
             remoteAddress.getPort(),
             transport);
-    connectionMap.remove(connectionKey);
+    connectionMap.remove(connectionKey, connectionCompletableFuture);
+  }
+
+  protected void clear() {
+    connectionMap.clear();
   }
 
   class ConnectionKey {

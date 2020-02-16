@@ -8,7 +8,6 @@ package com.cisco.dhruva.transport.netty;
 import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.transport.Client;
 import com.cisco.dhruva.transport.Connection;
-import com.cisco.dhruva.transport.ConnectionCache;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
 import io.netty.bootstrap.Bootstrap;
@@ -21,7 +20,6 @@ public class NettyUDPClient implements Client {
   private BaseChannelInitializer channelInitializer;
   private Bootstrap bootstrap;
   private NetworkConfig networkConfig;
-  private ConnectionCache connectionCache;
 
   public NettyUDPClient(NetworkConfig networkConfig, MessageForwarder messageForwarder) {
     this.networkConfig = networkConfig;
@@ -31,7 +29,6 @@ public class NettyUDPClient implements Client {
     bootstrap =
         BootStrapFactory.getInstance()
             .getClientBootStrap(Transport.UDP, networkConfig, channelInitializer);
-    connectionCache = ConnectionCache.getInstance();
   }
 
   @Override

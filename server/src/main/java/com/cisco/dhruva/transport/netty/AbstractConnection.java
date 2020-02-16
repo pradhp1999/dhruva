@@ -6,28 +6,44 @@
 package com.cisco.dhruva.transport.netty;
 
 import com.cisco.dhruva.config.network.NetworkConfig;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.transport.Connection;
-import com.cisco.dhruva.transport.ConnectionInfo;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractConnection implements Connection {
 
   Channel channel;
-  private AtomicInteger m_ReferenceCount;
+  private AtomicInteger m_ReferenceCount = new AtomicInteger(0);
   private NetworkConfig networkConfig;
   protected long m_Timeout;
   private long m_TimeStamp;
+  private DsBindingInfo connectionBindingInfo;
+  private InetSocketAddress localSocketAddress;
+  private InetSocketAddress remoteSocketAddress;
+  Transport transport;
   private Logger logger = DhruvaLoggerFactory.getLogger(AbstractConnection.class);
 
-  public AbstractConnection(Channel channel, NetworkConfig networkConfig) {
+  public AbstractConnection(Channel channel, NetworkConfig networkConfig, Transport transport) {
     this.channel = channel;
     this.networkConfig = networkConfig;
     m_Timeout = networkConfig.connectionCacheConnectionIdleTimeout();
+    this.localSocketAddress = (InetSocketAddress) channel.localAddress();
+    this.remoteSocketAddress = (InetSocketAddress) channel.remoteAddress();
+    this.transport = transport;
+    connectionBindingInfo =
+        new DsBindingInfo(
+            localSocketAddress.getAddress(),
+            localSocketAddress.getPort(),
+            remoteSocketAddress.getAddress(),
+            remoteSocketAddress.getPort(),
+            this.transport.ordinal());
   }
 
   /**
@@ -56,6 +72,7 @@ public abstract class AbstractConnection implements Connection {
   }
 
   /** Increments the reference count for this connection. */
+  @Override
   public void addReference() {
     m_ReferenceCount.incrementAndGet();
   }
@@ -63,6 +80,7 @@ public abstract class AbstractConnection implements Connection {
   /**
    * Decrement the reference count, and if it falls to zero, update the timestamp on the connection
    */
+  @Override
   public void removeReference() {
 
     m_ReferenceCount.decrementAndGet();
@@ -90,8 +108,8 @@ public abstract class AbstractConnection implements Connection {
    * @return <code>true</code> if this connection should be closed and removed, otherwise returns
    *     <code>false</code>.
    */
+  @Override
   public boolean shouldClose() {
-
     long current_time = System.currentTimeMillis();
     return m_ReferenceCount.get() == 0 && (m_Timeout < (current_time - m_TimeStamp) / 1000);
   }
@@ -108,8 +126,8 @@ public abstract class AbstractConnection implements Connection {
   }
 
   @Override
-  public ConnectionInfo getConnectionInfo() {
-    return null;
+  public DsBindingInfo getConnectionInfo() {
+    return connectionBindingInfo;
   }
 
   @Override
@@ -127,5 +145,10 @@ public abstract class AbstractConnection implements Connection {
   @Override
   public ChannelFuture closeConnection() {
     return channel.close();
+  }
+
+  @Override
+  public String toString() {
+    return "localAddress " + channel.localAddress() + " , remoteAddress " + channel.remoteAddress();
   }
 }

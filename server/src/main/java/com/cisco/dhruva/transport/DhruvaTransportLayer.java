@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class DhruvaTransportLayer implements TransportLayer {
 
@@ -19,7 +20,9 @@ public class DhruvaTransportLayer implements TransportLayer {
 
   private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaTransportLayer.class);
 
-  private ConnectionCache connectionCache = ConnectionCache.getInstance();
+  private int connectionSweepInterval = 60;
+  private ConnectionCache connectionCache =
+      ConnectionCache.getInstance(connectionSweepInterval, TimeUnit.MINUTES);
 
   public DhruvaTransportLayer(MessageForwarder messageForwarder) {
     this.messageForwarder = messageForwarder;
@@ -67,12 +70,16 @@ public class DhruvaTransportLayer implements TransportLayer {
       return exceptionallyCompletedFuture(
           new NullPointerException(
               "transportType or remoteAddress passed to DhruvaTransportLayer.getConnection is null transport = "
-                  + transportType + " , remoteAddress = " + remoteAddress));
+                  + transportType
+                  + " , remoteAddress = "
+                  + remoteAddress));
     }
 
     if (remotePort <= 0) {
       return exceptionallyCompletedFuture(
-          new Exception("Invalid remoteport  value in DhruvaTransportLayer.getConnection , remotePort = "+remotePort));
+          new Exception(
+              "Invalid remoteport  value in DhruvaTransportLayer.getConnection , remotePort = "
+                  + remotePort));
     }
 
     try {
@@ -84,14 +91,8 @@ public class DhruvaTransportLayer implements TransportLayer {
           connectionCache.get(localSocketAddress, remoteSocketAddress, transportType);
 
       if (connectionCompletableFuture != null) {
-        if (connectionCompletableFuture.isDone()
-            && connectionCompletableFuture.isCompletedExceptionally()) {
-          connectionCache.remove(localSocketAddress, remoteSocketAddress, transportType,
-              connectionCompletableFuture);
-        } else {
-          logger.info("Returning Connection {} from cache ", connectionCompletableFuture.get());
-          return connectionCompletableFuture;
-        }
+        logger.info("Returning Connection {} from cache ", connectionCompletableFuture);
+        return connectionCompletableFuture;
       }
 
       Client client =
@@ -113,7 +114,9 @@ public class DhruvaTransportLayer implements TransportLayer {
           (connection, throwable) -> {
             if (throwable != null) {
               connectionCache.remove(
-                  localSocketAddress, remoteSocketAddress, transportType,
+                  localSocketAddress,
+                  remoteSocketAddress,
+                  transportType,
                   finalConnectionCompletableFuture);
             }
           });
@@ -138,5 +141,10 @@ public class DhruvaTransportLayer implements TransportLayer {
   @Override
   public HashMap<Transport, Integer> getConnectionSummary() {
     return null;
+  }
+
+  @Override
+  public void clearConnectionCache() {
+    connectionCache.clear();
   }
 }

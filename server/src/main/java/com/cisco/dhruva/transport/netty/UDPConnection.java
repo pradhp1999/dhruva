@@ -22,13 +22,13 @@ public class UDPConnection extends AbstractConnection {
   Logger logger = DhruvaLoggerFactory.getLogger(UDPConnection.class);
 
   public UDPConnection(Channel channel, NetworkConfig networkConfig) {
-    super(channel, networkConfig);
+    super(channel, networkConfig, Transport.UDP);
   }
 
   /** @return transport type of this connection */
   @Override
   public Transport getConnectionType() {
-    return Transport.UDP;
+    return this.transport;
   }
 
   @Override
@@ -55,17 +55,11 @@ public class UDPConnection extends AbstractConnection {
         future -> {
           if (channelFuture.isSuccess()) {
             writeFuture.complete(true);
-            System.out.println("bytebuf ref count " + byteBuf.refCnt());
           } else {
             writeFuture.completeExceptionally(future.cause());
           }
         });
 
     return writeFuture;
-  }
-
-  @Override
-  public String toString() {
-    return "localAddress " + channel.localAddress() + " , remoteAddress " + channel.remoteAddress();
   }
 }

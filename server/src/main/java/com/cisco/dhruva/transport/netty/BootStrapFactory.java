@@ -42,7 +42,6 @@ public class BootStrapFactory {
     return null;
   }
 
-
   public Bootstrap getServerBootStrap(
       Transport transport,
       NetworkConfig networkConfig,

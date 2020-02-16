@@ -12,7 +12,6 @@ import com.cisco.dhruva.transport.Transport;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.socket.nio.NioDatagramChannel;
 import java.net.InetAddress;
 import java.util.concurrent.CompletableFuture;
 
