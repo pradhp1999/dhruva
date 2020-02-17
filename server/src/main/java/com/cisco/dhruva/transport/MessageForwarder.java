@@ -4,7 +4,7 @@
 
 package com.cisco.dhruva.transport;
 
-import com.cisco.dhruva.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 
 public interface MessageForwarder {
 

@@ -1,10 +1,10 @@
 package com.cisco.dhruva.util.cac;
 
-import com.cisco.dhruva.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.DsLibs.DsSipObject.DsSipHeaderInterface;
-import com.cisco.dhruva.DsLibs.DsSipObject.DsSipMessage;
-import com.cisco.dhruva.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderInterface;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.util.log.Trace;
 import java.util.UUID;
 

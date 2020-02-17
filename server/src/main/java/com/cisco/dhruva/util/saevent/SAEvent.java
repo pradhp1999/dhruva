@@ -1,6 +1,6 @@
 package com.cisco.dhruva.util.saevent;
 
-import com.cisco.dhruva.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.util.JSONBuilder;
 import com.cisco.dhruva.util.saevent.dataparam.DataParam;
 import com.fasterxml.jackson.core.JsonProcessingException;

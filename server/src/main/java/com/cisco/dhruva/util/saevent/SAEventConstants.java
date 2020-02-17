@@ -1,6 +1,6 @@
 package com.cisco.dhruva.util.saevent;
 
-import com.cisco.dhruva.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 
 public final class SAEventConstants {
 

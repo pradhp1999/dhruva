@@ -1,6 +1,5 @@
 package com.cisco.dhruva.common.executor;
 
-
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import com.google.common.collect.Maps;
@@ -15,13 +14,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-
 /**
- * All the servers and services requiring executors should fetch it from this class
- * This maintains mapping to the executor service to consumer
- * Provides a layer of abstraction for tracking , debugging
+ * All the servers and services requiring executors should fetch it from this class This maintains
+ * mapping to the executor service to consumer Provides a layer of abstraction for tracking ,
+ * debugging
  */
-
 public class ExecutorService {
 
   private Logger LOG = DhruvaLoggerFactory.getLogger(ExecutorService.class);
@@ -32,6 +29,7 @@ public class ExecutorService {
 
   /**
    * Default constructor
+   *
    * @param servername
    */
   public ExecutorService(final String servername) {
@@ -40,10 +38,10 @@ public class ExecutorService {
 
   /**
    * provide the thread name that you want to assign
+   *
    * @param name Name of thread
    * @param maxThreads Accepts the max threads to be configured as input
    */
-
   public void startExecutorService(String name, int maxThreads) {
     Executor e =
         this.executorMap.compute(
@@ -79,13 +77,13 @@ public class ExecutorService {
 
   /**
    * Use this API to fetch the executor based on the type
+   *
    * @param type Executor type for which the executor thread pool was created
    * @return Executor object that was already created
    */
   Executor getExecutor(final ExecutorType type) {
     return getExecutor(type.getExecutorName(this.servername));
   }
-
 
   Executor getExecutor(String name) {
     Executor executor = this.executorMap.get(name);
@@ -105,10 +103,7 @@ public class ExecutorService {
     startExecutorService(name, maxThreads);
   }
 
-  /**
-   * Dhruva Executor
-   * Wraps the native executor
-   */
+  /** Dhruva Executor Wraps the native executor */
   static class Executor {
     static final long keepAliveTimeInMillis = 1000;
     final CustomThreadPoolExecutor threadPoolExecutor;
@@ -153,8 +148,8 @@ public class ExecutorService {
       }
 
       /**
-       * Middleware for keeping track of tasks
-       * Can customize in future based on needs
+       * Middleware for keeping track of tasks Can customize in future based on needs
+       *
        * @param r
        * @param t
        */
@@ -166,6 +161,7 @@ public class ExecutorService {
 
       /**
        * Pre execution call
+       *
        * @param t
        * @param r
        */
@@ -178,6 +174,7 @@ public class ExecutorService {
 
       /**
        * Fetch the map holding the runnable job and associated thread
+       *
        * @return
        */
       public ConcurrentMap<Thread, Runnable> getRunningTasks() {

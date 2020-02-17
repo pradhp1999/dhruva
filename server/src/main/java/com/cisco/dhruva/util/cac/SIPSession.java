@@ -1,9 +1,9 @@
 package com.cisco.dhruva.util.cac;
 
-import com.cisco.dhruva.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.DsLibs.DsUtil.DsTrackingException;
-import com.cisco.dhruva.DsLibs.DsUtil.EndPoint;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.EndPoint;
 import com.cisco.dhruva.util.log.Trace;
 import java.util.Date;
 import java.util.LinkedList;
