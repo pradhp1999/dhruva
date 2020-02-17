@@ -37,4 +37,6 @@ public interface TransportLayer {
    * @return Map of Transport type and Number of connections for the transport
    */
   public HashMap<Transport, Integer> getConnectionSummary();
+
+  void clearConnectionCache();
 }

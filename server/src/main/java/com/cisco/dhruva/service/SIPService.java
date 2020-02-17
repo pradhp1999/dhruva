@@ -44,10 +44,23 @@ public class SIPService {
 
     List<SIPListenPoint> sipListenPoints = dhruvaSIPConfigProperties.getListeningPoints();
 
+<<<<<<< HEAD
     executorService = new ExecutorService("DhruvaSipServer");
     executorService.startExecutorService(ExecutorType.SIP_TRANSACTION_PROCESSOR, 10);
     sipPacketProcessor = new SipPacketProcessor(executorService);
     sipTransactionManager = new SipTransactionManager();
+=======
+    // dummy implementation of MessageForwarder
+
+    messageForwarder =
+        ((messageBytes, bindingInfo) -> {
+          String receivedMessage = new String(messageBytes);
+          logger.info(
+              "Received Message from {} ,in MessageForwarder ,message is {} ",
+              bindingInfo,
+              receivedMessage);
+        });
+>>>>>>> master
 
     initTransportLayer(sipListenPoints);
   }
@@ -56,7 +69,11 @@ public class SIPService {
 
     logger.info("Starting Dhruva Transport Layer");
     DhruvaTransportLayer dhruvaTransportLayer =
+<<<<<<< HEAD
         (DhruvaTransportLayer) TransportLayerFactory.getInstance().getTransportLayer();
+=======
+        (DhruvaTransportLayer) TransportLayerFactory.getInstance().getTransportLayer(null);
+>>>>>>> master
 
     ArrayList<CompletableFuture> listenPointFutures = new ArrayList<CompletableFuture>();
 
@@ -69,7 +86,11 @@ public class SIPService {
               networkConfig,
               InetAddress.getByName(sipListenPoint.getHostIPAddress()),
               sipListenPoint.getPort(),
+<<<<<<< HEAD
               sipPacketProcessor);
+=======
+              messageForwarder);
+>>>>>>> master
       listenPointFutures.add(listenPointFuture);
     }
 

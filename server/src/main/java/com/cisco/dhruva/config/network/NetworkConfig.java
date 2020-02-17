@@ -14,6 +14,9 @@ public class NetworkConfig {
 
   private static final String UDP_EVENTLOOP_THREAD_COUNT = "dhruva.network.udpEventloopThreadCount";
   private static final Integer DEFAULT_UDP_EVENTLOOP_THREAD_COUNT = 1;
+  private static final String CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_SECONDS =
+      "dhruva.network.connectionCache.connectionIdleTimeout";
+  private static final Integer DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES = 14400;
 
   @Autowired
   public NetworkConfig(Environment env) {
@@ -22,8 +25,15 @@ public class NetworkConfig {
 
   private final Environment env;
 
-  public int UDPEventPoolThreadCount() {
+  public int udpEventPoolThreadCount() {
     return env.getProperty(
         UDP_EVENTLOOP_THREAD_COUNT, Integer.class, DEFAULT_UDP_EVENTLOOP_THREAD_COUNT);
+  }
+
+  public int connectionCacheConnectionIdleTimeout() {
+    return env.getProperty(
+        CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_SECONDS,
+        Integer.class,
+        DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES);
   }
 }

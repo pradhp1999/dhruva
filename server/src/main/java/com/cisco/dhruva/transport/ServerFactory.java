@@ -7,12 +7,10 @@ package com.cisco.dhruva.transport;
 
 import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.transport.netty.NettyUDPServer;
-import io.netty.bootstrap.Bootstrap;
 
 public class ServerFactory {
 
   private Server udpServer;
-  private Bootstrap udpBootstrap = new Bootstrap();
   private Object lock = new Object();
   private static ServerFactory serverFactory = new ServerFactory();
 
@@ -34,7 +32,7 @@ public class ServerFactory {
         if (udpServer == null) {
           synchronized (lock) {
             if (udpServer == null) {
-              udpServer = new NettyUDPServer(messageForwarder, networkConfig, udpBootstrap);
+              udpServer = new NettyUDPServer(messageForwarder, networkConfig);
             }
           }
         }
@@ -44,9 +42,5 @@ public class ServerFactory {
         throw new Exception("Transport " + transport.name() + " not supported");
     }
     return server;
-  }
-
-  public void setUDPBootstrap(Bootstrap bootstrap) {
-    this.udpBootstrap = bootstrap;
   }
 }

@@ -15,11 +15,11 @@ public class TransportLayerFactory {
     return transportLayerFactory;
   }
 
-  public TransportLayer getTransportLayer() {
+  public TransportLayer getTransportLayer(MessageForwarder messageForwarder) {
     if (dhruvaTransportLayer == null) {
       synchronized (lock) {
         if (dhruvaTransportLayer == null) {
-          dhruvaTransportLayer = new DhruvaTransportLayer();
+          dhruvaTransportLayer = new DhruvaTransportLayer(messageForwarder);
         }
       }
     }
