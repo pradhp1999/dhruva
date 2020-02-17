@@ -23,7 +23,6 @@ import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import retrofit2.http.HEAD;
 
 @Service
 public class SIPService {
