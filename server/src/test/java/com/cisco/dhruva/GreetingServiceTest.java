@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -33,6 +34,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * parameter for a @Component (or @Resource, or @Service or spring stereotype).
  */
 @RunWith(SpringRunner.class)
+@Ignore
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
     classes = TestConfig.class,
