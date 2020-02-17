@@ -5,11 +5,14 @@
 
 package com.cisco.dhruva.service;
 
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.SipPacketProcessor;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.SipTransactionManager;
 import com.cisco.dhruva.transport.DhruvaTransportLayer;
-import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.TransportLayerFactory;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
@@ -30,13 +33,23 @@ public class SIPService {
 
   @Autowired private NetworkConfig networkConfig;
 
-  private MessageForwarder messageForwarder;
+  private SipPacketProcessor sipPacketProcessor;
+
+  private SipTransactionManager sipTransactionManager;
+
+  private ExecutorService executorService;
 
   @PostConstruct
   public void init() throws Exception {
 
     List<SIPListenPoint> sipListenPoints = dhruvaSIPConfigProperties.getListeningPoints();
 
+<<<<<<< HEAD
+    executorService = new ExecutorService("DhruvaSipServer");
+    executorService.startExecutorService(ExecutorType.SIP_TRANSACTION_PROCESSOR, 10);
+    sipPacketProcessor = new SipPacketProcessor(executorService);
+    sipTransactionManager = new SipTransactionManager();
+=======
     // dummy implementation of MessageForwarder
 
     messageForwarder =
@@ -47,6 +60,7 @@ public class SIPService {
               bindingInfo,
               receivedMessage);
         });
+>>>>>>> master
 
     initTransportLayer(sipListenPoints);
   }
@@ -55,7 +69,11 @@ public class SIPService {
 
     logger.info("Starting Dhruva Transport Layer");
     DhruvaTransportLayer dhruvaTransportLayer =
+<<<<<<< HEAD
+        (DhruvaTransportLayer) TransportLayerFactory.getInstance().getTransportLayer();
+=======
         (DhruvaTransportLayer) TransportLayerFactory.getInstance().getTransportLayer(null);
+>>>>>>> master
 
     ArrayList<CompletableFuture> listenPointFutures = new ArrayList<CompletableFuture>();
 
@@ -68,7 +86,11 @@ public class SIPService {
               networkConfig,
               InetAddress.getByName(sipListenPoint.getHostIPAddress()),
               sipListenPoint.getPort(),
+<<<<<<< HEAD
+              sipPacketProcessor);
+=======
               messageForwarder);
+>>>>>>> master
       listenPointFutures.add(listenPointFuture);
     }
 

@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2020  by Cisco Systems, Inc.All Rights Reserved.
- * @author graivitt
- */
-
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
@@ -754,6 +749,8 @@ public class DsBindingInfo implements Cloneable, Serializable {
         .append(getRemotePort())
         .toString();
   }
+
+  public void updateBindingInfo(DsSocket socket) {}
 
   /**
    * TODO:DHRUVA , commenting for now have to take care if needed.
