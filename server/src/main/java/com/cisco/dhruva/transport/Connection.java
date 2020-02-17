@@ -4,11 +4,13 @@
 
 package com.cisco.dhruva.transport;
 
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import io.netty.channel.ChannelFuture;
 import java.util.concurrent.CompletableFuture;
 
 public interface Connection {
 
-  public ConnectionInfo getConnectionInfo();
+  public DsBindingInfo getConnectionInfo();
 
   /** @return transport type of this connection */
   public Transport getConnectionType();
@@ -33,11 +35,16 @@ public interface Connection {
    */
   public void onConnectionError(Throwable cause);
 
-  public void closeConnection();
+  public ChannelFuture closeConnection();
+
+  void addReference();
+
+  void removeReference();
+
+  boolean shouldClose();
 
   public enum STATE {
-    NOTCONNECTED,
-    CONNECTED,
-    CLOSED
+    ACTIVE,
+    INACTIVE
   }
 }

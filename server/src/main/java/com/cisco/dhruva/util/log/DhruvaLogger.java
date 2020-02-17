@@ -45,6 +45,11 @@ public class DhruvaLogger implements Logger {
   }
 
   @Override
+  public void warn(String message, Object... arguments) {
+    logger.warn(message, arguments);
+  }
+
+  @Override
   public void error(String format, Object arg1, Object arg2) {
     logger.error(format, arg1, arg2);
   }
@@ -52,5 +57,10 @@ public class DhruvaLogger implements Logger {
   @Override
   public void error(String format, Object... arguments) {
     logger.error(format, arguments);
+  }
+
+  @Override
+  public void warn(String format, Object arg1, Object arg2) {
+    logger.warn(format, arg1, arg2);
   }
 }

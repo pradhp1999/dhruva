@@ -12,14 +12,30 @@ import io.netty.channel.ChannelHandler;
 
 public class ChannelHandlerFactory {
 
+  private static ChannelHandlerFactory channelHandlerFactory = new ChannelHandlerFactory();
+
   private static ChannelHandler udpChannelHander = new UDPChannelHandler();
 
-  public static ChannelHandler getInstance(Transport transport, MessageForwarder messageForwarder) {
+  public static ChannelHandlerFactory getInstance() {
+    return channelHandlerFactory;
+  }
+
+  public ChannelHandler getChannelHandler(Transport transport, MessageForwarder messageForwarder) {
     ChannelHandler channelHandler = null;
     switch (transport) {
       case UDP:
         channelHandler = udpChannelHander;
         ((UDPChannelHandler) channelHandler).messageForwarder(messageForwarder);
+        break;
+    }
+    return channelHandler;
+  }
+
+  public ChannelHandler getChannelHandler(Transport transport) {
+    ChannelHandler channelHandler = null;
+    switch (transport) {
+      case UDP:
+        channelHandler = udpChannelHander;
         break;
     }
     return channelHandler;

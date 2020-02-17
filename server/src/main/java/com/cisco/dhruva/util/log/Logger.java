@@ -21,7 +21,11 @@ public interface Logger {
 
   public void warn(String message, Throwable throwable);
 
+  public void warn(String message, Object... arguments);
+
   public void error(String format, Object arg1, Object arg2);
 
   public void error(String format, Object... arguments);
+
+  public void warn(String format, Object arg1, Object arg2);
 }

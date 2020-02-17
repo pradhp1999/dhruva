@@ -23,8 +23,6 @@ public enum Transport {
   }
 
   public static Optional<Transport> valueOf(int value) {
-    return Arrays.stream(values())
-        .filter(tarnsport -> tarnsport.value == value)
-        .findFirst();
+    return Arrays.stream(values()).filter(tarnsport -> tarnsport.value == value).findFirst();
   }
 }

@@ -7,17 +7,27 @@ package com.cisco.dhruva.transport;
 
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.testng.Assert.*;
 
 import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.transport.netty.BaseChannelInitializer;
+import com.cisco.dhruva.transport.netty.BootStrapFactory;
+import com.cisco.dhruva.transport.netty.ChannelHandlerFactory;
+import com.cisco.dhruva.transport.netty.ChannelInitializerFactory;
 import com.cisco.dhruva.transport.netty.hanlder.UDPChannelHandler;
+import com.cisco.dhruva.util.SIPMessageGenerator;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.channel.socket.DatagramPacket;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -25,9 +35,12 @@ import java.util.concurrent.ExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class DhruvaTransportLayerTest {
@@ -37,21 +50,47 @@ public class DhruvaTransportLayerTest {
 
   @Mock Environment env = new MockEnvironment();
 
+  NetworkConfig networkConfig = new NetworkConfig(env);
+
+  Bootstrap bootstrap;
+
+  BaseChannelInitializer channelInitializer;
+
+  @BeforeClass
+  public void init() {
+
+    handler = mock(MessageForwarder.class);
+    channelInitializer =
+        ChannelInitializerFactory.getInstance().getChannelInitializer(Transport.UDP, handler);
+    bootstrap =
+        spy(
+            BootStrapFactory.getInstance()
+                .getServerBootStrap(Transport.UDP, networkConfig, channelInitializer));
+    BootStrapFactory.getInstance().setUdpBootstrap(bootstrap);
+  }
+
+  @AfterMethod
+  public void cleanup() {
+    if (transportLayer != null) {
+      transportLayer.clearConnectionCache();
+    }
+
+    reset(bootstrap);
+  }
+
   @Test(
       enabled = true,
       description =
           "Testing the Server Socket creating success scenario for UDP and receiving a Message in handler")
   public void testStartListeningSuccessUDP() {
-    NetworkConfig networkConfig = new NetworkConfig(env);
+
     try {
 
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port = 5060;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer();
-      Bootstrap bootstrap = spy(Bootstrap.class);
-      handler = mock(MessageForwarder.class);
       EmbeddedChannel embeddedChannel = new EmbeddedChannel();
       ChannelFuture bindFuture = mock(ChannelFuture.class);
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(handler);
 
       // Return success future when bind is called
       doAnswer(
@@ -62,23 +101,16 @@ public class DhruvaTransportLayerTest {
           .when(bootstrap)
           .bind(localAddress, port);
 
-      // Argument capture to validate if the ChannelInitializer is called with proper values
-      ArgumentCaptor<BaseChannelInitializer> argumentCaptor =
-          ArgumentCaptor.forClass(BaseChannelInitializer.class);
-
-      ServerFactory.newInstance().setUDPBootstrap(bootstrap);
-
       CompletableFuture startListenFuture =
           transportLayer.startListening(Transport.UDP, networkConfig, localAddress, port, handler);
 
       Boolean isBindComplete = startListenFuture.isDone();
       Object returnedChannel = startListenFuture.get();
 
-      verify(bootstrap).handler(argumentCaptor.capture());
-      BaseChannelInitializer capturedBaseChannelInitializer = argumentCaptor.getValue();
       assertEquals(
-          capturedBaseChannelInitializer.getMessageHandler().getClass(),
-          UDPChannelHandler.class,
+          handler,
+          ((UDPChannelHandler) ChannelHandlerFactory.getInstance().getChannelHandler(Transport.UDP))
+              .messageForwarder(),
           "Message handler initialized is incorrect ");
       assertEquals(isBindComplete, Boolean.TRUE, "TransportLayer.startListening returned false");
       assertEquals(returnedChannel, embeddedChannel, "Returned channel is not matching");
@@ -102,10 +134,7 @@ public class DhruvaTransportLayerTest {
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       String exceptionError = "Bind failed";
       int port = 5060;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer();
-      Bootstrap bootstrap = spy(Bootstrap.class);
-      handler = mock(MessageForwarder.class);
-
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null);
       // Return Future which failed when bind is called
       doAnswer(
               invocation -> {
@@ -116,12 +145,6 @@ public class DhruvaTransportLayerTest {
               })
           .when(bootstrap)
           .bind(localAddress, port);
-
-      // Argument capture to validate if the ChannelInitializer is called with proper values
-      ArgumentCaptor<BaseChannelInitializer> argumentCaptor =
-          ArgumentCaptor.forClass(BaseChannelInitializer.class);
-
-      ServerFactory.newInstance().setUDPBootstrap(bootstrap);
 
       CompletableFuture startListenFuture =
           transportLayer.startListening(Transport.UDP, networkConfig, localAddress, port, handler);
@@ -137,11 +160,10 @@ public class DhruvaTransportLayerTest {
                 "Exception error string is not matching for bind failure");
           });
 
-      verify(bootstrap).handler(argumentCaptor.capture());
-      BaseChannelInitializer capturedBaseChannelInitializer = argumentCaptor.getValue();
       assertEquals(
-          capturedBaseChannelInitializer.getMessageHandler().getClass(),
-          UDPChannelHandler.class,
+          handler,
+          ((UDPChannelHandler) ChannelHandlerFactory.getInstance().getChannelHandler(Transport.UDP))
+              .messageForwarder(),
           "Message handler initialized is incorrect ");
       assertEquals(
           isCompletedExceptionally,
@@ -164,7 +186,7 @@ public class DhruvaTransportLayerTest {
     try {
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port = 5060;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer();
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null);
       CompletableFuture startListenFuture =
           transportLayer.startListening(Transport.UDP, networkConfig, null, port, handler);
 
@@ -200,9 +222,8 @@ public class DhruvaTransportLayerTest {
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port1 = 5060;
       int port2 = 5070;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer();
-      Bootstrap bootstrap = spy(Bootstrap.class);
-      handler = mock(MessageForwarder.class);
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null);
+
       EmbeddedChannel embeddedChannel1 = new EmbeddedChannel();
       EmbeddedChannel embeddedChannel2 = new EmbeddedChannel();
 
@@ -226,12 +247,6 @@ public class DhruvaTransportLayerTest {
           .when(bootstrap)
           .bind(localAddress, port2);
 
-      // Argument capture to validate if the ChannelInitializer is called with proper values
-      ArgumentCaptor<BaseChannelInitializer> argumentCaptor =
-          ArgumentCaptor.forClass(BaseChannelInitializer.class);
-
-      ServerFactory.newInstance().setUDPBootstrap(bootstrap);
-
       CompletableFuture startListenFuture1 =
           transportLayer.startListening(Transport.UDP, networkConfig, localAddress, port1, handler);
 
@@ -244,11 +259,10 @@ public class DhruvaTransportLayerTest {
       Boolean isBindComplete2 = startListenFuture2.isDone();
       Object returnedChannel2 = startListenFuture2.get();
 
-      verify(bootstrap).handler(argumentCaptor.capture());
-      BaseChannelInitializer capturedBaseChannelInitializer = argumentCaptor.getValue();
       assertEquals(
-          capturedBaseChannelInitializer.getMessageHandler().getClass(),
-          UDPChannelHandler.class,
+          handler,
+          ((UDPChannelHandler) ChannelHandlerFactory.getInstance().getChannelHandler(Transport.UDP))
+              .messageForwarder(),
           "Message handler initialized is incorrect ");
       assertEquals(isBindComplete1, Boolean.TRUE, "TransportLayer.startListening returned false");
       assertEquals(returnedChannel1, embeddedChannel1, "Returned channel is not matching");
@@ -264,24 +278,254 @@ public class DhruvaTransportLayerTest {
     }
   }
 
-  @Test(enabled = false, description = "Tests TransportLayer.getConnection() for UDP transport")
-  public void testGetConnectionSuccess() {
-    NetworkConfig networkConfig = new NetworkConfig(env);
+  @Test(
+      enabled = true,
+      description =
+          "Tests TransportLayer.getConnection() and Sending message using the connection for UDP transport")
+  public void testGetConnectionAndSendMessageSuccess() {
     try {
+
+      InetAddress localAddress = InetAddress.getByName("10.78.98.21");
+      InetAddress remoteAddress = InetAddress.getByName("10.78.98.22");
+      int localPort = 5070, remotePort = 5060;
+      InetSocketAddress remoteSocketAddress = new InetSocketAddress(remoteAddress, remotePort);
+      InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
+      byte[] inviteMessageToSend = SIPMessageGenerator.getInviteMessage("graivitt").getBytes();
+      byte[] receivedMessage;
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+
+      EmbeddedChannel channel = spy(EmbeddedChannel.class);
+
+      // mocking the netty channel
+      doAnswer(
+              invocation -> {
+                return remoteSocketAddress;
+              })
+          .when(channel)
+          .remoteAddress();
+      doAnswer(
+              invocation -> {
+                return localSocketAddress;
+              })
+          .when(channel)
+          .localAddress();
+
+      // Argument capture to validate if the Datagram packet sent in the channel has proper content
+      // and address set
+      ArgumentCaptor<DatagramPacket> argumentCaptor = ArgumentCaptor.forClass(DatagramPacket.class);
+
+      // Return success future when connect is called
+      doAnswer(
+              invocation -> {
+                ChannelFuture channelFuture = channel.newSucceededFuture();
+                return channelFuture;
+              })
+          .when(bootstrap)
+          .connect(remoteSocketAddress, localSocketAddress);
+
       CompletableFuture<Connection> connectionFuture =
           transportLayer.getConnection(
-              networkConfig,
-              Transport.UDP,
-              InetAddress.getByName("0.0.0.0"),
-              5060,
-              InetAddress.getByName("1.1.1.1"),
-              5060);
+              networkConfig, Transport.UDP, localAddress, localPort, remoteAddress, remotePort);
+
       Connection udpConnection = connectionFuture.get();
-      Assert.assertNotNull(udpConnection, "udpConnection object is null");
+
+      CompletableFuture writeFuture = udpConnection.send(inviteMessageToSend);
+
+      // wait for the send to complete
+      writeFuture.get();
+
+      verify(channel).writeAndFlush(argumentCaptor.capture());
+
+      DatagramPacket packetAtChannel = argumentCaptor.getValue();
+      ByteBuf receivedByteBuf = packetAtChannel.content();
+      receivedMessage = new byte[receivedByteBuf.readableBytes()];
+      receivedByteBuf.readBytes(receivedMessage);
+
+      // assert the message sent and message at channel are same
+      assertEquals(receivedMessage, inviteMessageToSend);
+      assertEquals(packetAtChannel.recipient(), remoteSocketAddress);
+      assertEquals(packetAtChannel.sender(), localSocketAddress);
 
     } catch (Exception e) {
       Assert.fail("UnExpected Exception in TransportLayer.getConnection ", e);
     }
+  }
+
+  @Test(
+      enabled = true,
+      description = "Tests TransportLayer.getConnection() and connection creation fails",
+      expectedExceptions = Exception.class)
+  public void testGetConnectionConnectionFail()
+      throws InterruptedException, ExecutionException, UnknownHostException {
+    try {
+
+      InetAddress localAddress = InetAddress.getByName("10.78.98.21");
+      InetAddress remoteAddress = InetAddress.getByName("10.78.98.22");
+      int localPort = 5070, remotePort = 5060;
+      InetSocketAddress remoteSocketAddress = new InetSocketAddress(remoteAddress, remotePort);
+      InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+
+      // Return failure future when connect is called
+      EmbeddedChannel channel = new EmbeddedChannel();
+      doAnswer(
+              invocation -> {
+                ChannelFuture channelFuture =
+                    channel.newFailedFuture(new IOException("Bind Failure"));
+                return channelFuture;
+              })
+          .when(bootstrap)
+          .connect(remoteSocketAddress, localSocketAddress);
+
+      CompletableFuture<Connection> connectionFuture =
+          transportLayer.getConnection(
+              networkConfig, Transport.UDP, localAddress, localPort, remoteAddress, remotePort);
+
+      Connection udpConnection = connectionFuture.get();
+
+    } catch (Exception e) {
+      assertEquals(e.getCause().getClass(), IOException.class);
+      assertEquals(e.getCause().getMessage(), "Bind Failure");
+      System.out.println("guru");
+      System.out.println(e);
+      throw e;
+    }
+  }
+
+  @Test(
+      enabled = true,
+      description =
+          "Tests TransportLayer.getConnection() and Sending message using the connection for UDP transport")
+  public void testGetMultipleConnectionToSameDestination() {
+    try {
+
+      InetAddress localAddress = InetAddress.getByName("10.78.98.21");
+      InetAddress remoteAddress = InetAddress.getByName("10.78.98.22");
+      int localPort = 5070, remotePort = 5060;
+      InetSocketAddress remoteSocketAddress = new InetSocketAddress(remoteAddress, remotePort);
+      InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
+      byte[] inviteMessageToSend = SIPMessageGenerator.getInviteMessage("graivitt").getBytes();
+      byte[] receivedMessage;
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+
+      EmbeddedChannel channel = spy(EmbeddedChannel.class);
+
+      // mocking the netty channel
+      doAnswer(
+              invocation -> {
+                return remoteSocketAddress;
+              })
+          .when(channel)
+          .remoteAddress();
+      doAnswer(
+              invocation -> {
+                return localSocketAddress;
+              })
+          .when(channel)
+          .localAddress();
+
+      // Argument capture to validate if the Datagram packet sent in the channel has proper content
+      // and address set
+      ArgumentCaptor<DatagramPacket> argumentCaptor = ArgumentCaptor.forClass(DatagramPacket.class);
+
+      // Return success future when connect is called
+      doAnswer(
+              invocation -> {
+                ChannelFuture channelFuture = channel.newSucceededFuture();
+                return channelFuture;
+              })
+          .when(bootstrap)
+          .connect(remoteSocketAddress, localSocketAddress);
+
+      CompletableFuture<Connection> connectionFuture1 =
+          transportLayer.getConnection(
+              networkConfig, Transport.UDP, localAddress, localPort, remoteAddress, remotePort);
+
+      CompletableFuture<Connection> connectionFuture2 =
+          transportLayer.getConnection(
+              networkConfig, Transport.UDP, localAddress, localPort, remoteAddress, remotePort);
+
+      Connection connection1 = connectionFuture1.get();
+      Connection connection2 = connectionFuture2.get();
+
+      assertEquals(connection1, connection2);
+      assertEquals(connection1.getConnectionInfo().getLocalAddress(), localAddress);
+      assertEquals(connection1.getConnectionInfo().getLocalPort(), localPort);
+      assertEquals(connection1.getConnectionInfo().getRemoteAddress(), remoteAddress);
+      assertEquals(connection1.getConnectionInfo().getRemotePort(), remotePort);
+
+      // Check if its only invoked once , second connection should come from cache
+      verify(bootstrap, Mockito.times(1)).connect(remoteSocketAddress, localSocketAddress);
+    } catch (Exception e) {
+      Assert.fail("UnExpected Exception in TransportLayer.getConnection ", e);
+    }
+  }
+
+  @Test(
+      enabled = true,
+      description =
+          "Tests TransportLayer.getConnection() with remote adress null, "
+              + "returned Future should have nullPointer exception")
+  public void testGetConnectionWithRemoteAddressNull() {
+
+    Exception receivedException = null;
+    try {
+
+      InetAddress localAddress = InetAddress.getByName("10.78.98.21");
+      InetAddress remoteAddress = null; // remote address is null for this test
+      int localPort = 5070, remotePort = 5060;
+      InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+
+      CompletableFuture<Connection> connectionFuture =
+          transportLayer.getConnection(
+              networkConfig, Transport.UDP, localAddress, localPort, remoteAddress, remotePort);
+
+      Connection udpConnection = connectionFuture.get();
+
+    } catch (Exception e) {
+      receivedException = e;
+    }
+
+    String expectedExceptionMessage =
+        "transportType or remoteAddress passed to DhruvaTransportLayer.getConnection is null transport = "
+            + Transport.UDP
+            + " , remoteAddress = null";
+    assertEquals(receivedException.getCause().getClass(), NullPointerException.class);
+    assertEquals(receivedException.getCause().getMessage(), expectedExceptionMessage);
+  }
+
+  @Test(
+      enabled = true,
+      description =
+          "Tests TransportLayer.getConnection() with remote adress null, "
+              + "returned Future should have nullPointer exception")
+  public void testGetConnectionWithInvalidRemotePort() {
+    int localPort = 5070, remotePort = 0;
+    Exception receivedException = null;
+    try {
+
+      InetAddress localAddress = InetAddress.getByName("10.78.98.21");
+      InetAddress remoteAddress = InetAddress.getByName("10.78.98.22");
+      ; // remote address is null for this test
+      InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+
+      CompletableFuture<Connection> connectionFuture =
+          transportLayer.getConnection(
+              networkConfig, Transport.UDP, localAddress, localPort, remoteAddress, remotePort);
+
+      Connection udpConnection = connectionFuture.get();
+
+    } catch (Exception e) {
+      receivedException = e;
+    }
+
+    String expectedExceptionMessage =
+        "Invalid remoteport  value in DhruvaTransportLayer.getConnection , remotePort = "
+            + remotePort;
+    assertEquals(receivedException.getCause().getClass(), Exception.class);
+    assertEquals(receivedException.getCause().getMessage(), expectedExceptionMessage);
   }
 
   @Test(

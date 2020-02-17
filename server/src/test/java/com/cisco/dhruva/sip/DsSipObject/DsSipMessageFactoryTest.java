@@ -2,13 +2,12 @@ package com.cisco.dhruva.sip.DsSipObject;
 
 import com.cisco.dhruva.sip.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.DsSipParser.DsSipParserListenerException;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Properties;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /* Many of these tests are from [voiper](https://github.com/gremwell/voiper.git)
 and contain malformed and valid SIP messages as defined in RFC 4475.

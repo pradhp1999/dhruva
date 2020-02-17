@@ -120,4 +120,8 @@ public class UDPChannelHandler implements ChannelInboundHandler {
     this.messageForwarder = messageForwarder;
     return this;
   }
+
+  public MessageForwarder messageForwarder() {
+    return this.messageForwarder;
+  }
 }
