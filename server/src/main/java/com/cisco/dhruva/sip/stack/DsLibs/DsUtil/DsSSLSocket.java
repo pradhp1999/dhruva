@@ -6,14 +6,16 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.DsCertificateHelper;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.*;
-import javax.net.ssl.*;
+import java.util.ArrayList;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 import org.apache.logging.log4j.Level;
 
 /**
@@ -319,41 +321,12 @@ public class DsSSLSocket extends DsSocket {
           ArrayList<ArrayList<String>> certParsedInfo = DsCertificateHelper.getCertsInfo(certs);
           /*As of now isPeerNameAuthenticated is set to false.
           Create a new story to determine if the peer principal name is actually being authenticated.*/
-          ConnectionSAEventBuilder.logTlsConnectionEvent(
-              false,
-              sslsession.getPeerPrincipal().toString(),
-              x509cert.getSerialNumber().toString(16),
-              sslsession.getProtocol(),
-              sslsession.getCipherSuite(),
-              Integer.toHexString(clientcert.hashCode()),
-              getLocalAddress(),
-              getLocalPort(),
-              getRemoteInetAddress(),
-              getRemotePort(),
-              certParsedInfo);
+          // TODO saevent-restructure log a TlsConnectionEvent here with peer certinfo
         } else {
-          ConnectionSAEventBuilder.logTlsConnectionEvent(
-              false,
-              "NA",
-              "NA",
-              sslsession.getProtocol(),
-              sslsession.getCipherSuite(),
-              "NA",
-              getLocalAddress(),
-              getLocalPort(),
-              getRemoteInetAddress(),
-              getRemotePort(),
-              null);
+          // TODO saevent-restructure log a TlsConnectionEvent here without peer certinfo
         }
       } catch (IOException e) {
-        ConnectionSAEventBuilder.logTLSConnectionErrorEvent(
-            e.getMessage(),
-            getLocalAddress(),
-            getLocalPort(),
-            getRemoteInetAddress(),
-            getRemotePort(),
-            SAEventConstants.IN,
-            SAEventConstants.TLS_HANDSHAKE_FAILED);
+        // TODO saevent-restructure log a TLSConnectionErrorEvent here for handshake failure
         throw e;
       }
     }

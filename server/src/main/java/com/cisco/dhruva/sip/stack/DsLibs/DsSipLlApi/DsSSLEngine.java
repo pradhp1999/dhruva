@@ -2,7 +2,6 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.util.log.Trace;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -192,13 +191,7 @@ public class DsSSLEngine {
             logger.debug("DsSSLEngine() :BUFFER_OVERFLOW while writing");
             if (writeCount == 0) {
               close();
-              ConnectionSAEventBuilder.logTlsSendBufferFull(
-                  "SSLException",
-                  channel.socket().getLocalAddress(),
-                  channel.socket().getLocalPort(),
-                  channel.socket().getInetAddress(),
-                  channel.socket().getPort(),
-                  "TLS Send buffer full");
+              // TODO saevent-restructure Log a logTlsSendBufferFull message here
               throw new IOException("DsSSLEngine():TLS NIO Send buffer full");
             }
 

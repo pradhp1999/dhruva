@@ -3,53 +3,15 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAllowHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipCancelMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipDialogID;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderList;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipKeyValidationException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMaxForwardsHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessageValidationException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipPRACKMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRouteFixInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransactionKey;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipURL;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipVersionValidationException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBuckets;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageStatistics;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsQueueInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsThrottle;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTlsUtil;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsUnitOfWork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsWorkQueue;
 import com.cisco.dhruva.util.log.Trace;
-import com.cisco.dhruva.util.saevent.DiscardSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -60,8 +22,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
 
 /**
  * A single instance of this class manages all the transactions for a given lower layer. This class
@@ -392,8 +352,7 @@ public class DsSipTransactionManager {
       String currentState = operationalState.toString();
       operationalState = OperationalState.RUNNING;
       //        	LicenseChecker.setSuspendState(false);
-      DsSipTransactionManager.operationsEvent(
-          SAEventConstants.CLOUDPROXY_RESUME_ALARM, currentState, operationalState.toString());
+      // TODO saevent-restructure add an alarm here for Resume state
     }
   }
 
@@ -1299,8 +1258,7 @@ public class DsSipTransactionManager {
     String currentState = operationalState.toString();
     operationalState = OperationalState.SUSPENDED;
     //    	LicenseChecker.setSuspendState(true);
-    DsSipTransactionManager.operationsEvent(
-        SAEventConstants.CLOUDPROXY_SUSPEND_ALARM, currentState, operationalState.toString());
+    // TODO saevent-restructure add an alarm here for moving to Suspend state
   }
 
   /**
@@ -1787,26 +1745,8 @@ public class DsSipTransactionManager {
     String badMessageReason = null;
     int code = 0;
 
+    // TODO: log a 'tooLargeSipMessageSAEventAlarm' here.
     try {
-      if (msgBytes.m_msgBytes.length > DsConfigManager.getsipMessagePolicyMaxSize()) {
-        DiscardSAEventBuilder.tooLargeSipMessageSAEventAlarm(
-            DsSipTransportType.getTypeAsString(msgBytes.m_bindingInfo.getTransport()),
-            msgBytes.m_bindingInfo.getRemoteAddress().toString(),
-            msgBytes.m_bindingInfo.getRemotePort(),
-            msgBytes.m_bindingInfo.getLocalAddress().toString(),
-            msgBytes.m_bindingInfo.getLocalPort(),
-            msgBytes.m_msgBytes.length);
-        if (cat.isEnabled(Level.INFO)) {
-          cat.log(
-              Level.INFO,
-              "processMessageBytes: Message is too Large. size : "
-                  + msgBytes.m_msgBytes.length
-                  + ", "
-                  + " Dropping this SIP packet : "
-                  + msgBytes.m_bindingInfo);
-        }
-        return;
-      }
 
       if (DsPerf.ON) DsPerf.start(DsPerf.PARSE);
       message = DsSipMessage.createMessage(msgBytes.getMessageBytes(), true, true);

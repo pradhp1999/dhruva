@@ -4,19 +4,9 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSocket;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.NetObjectsFactory;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
@@ -52,14 +42,7 @@ public class DsTlsNBListener extends DsSslListener implements DsSelectable {
     if (sc == null) return null;
 
     DsSocket socket = new DsSocket(sc.socket(), m_network);
-    ConnectionSAEventBuilder.logConnectionEvent(
-        SAEventConstants.CONNECT,
-        SAEventConstants.TLS,
-        SAEventConstants.IN,
-        socket.getLocalAddress(),
-        socket.getLocalPort(),
-        socket.getRemoteInetAddress(),
-        socket.getRemotePort());
+    // TODO saevent-restructure log a ConnectionEvent here.
     DsConnection conn =
         m_ConnectionFactory.createConnection(
             socket, m_context); // get Connection from conenction factory
@@ -261,14 +244,7 @@ public class DsTlsNBListener extends DsSslListener implements DsSelectable {
       DsSocket socket = new DsSocket(sc.socket(), m_network);
       DsConnection conn = m_ConnectionFactory.createConnection(socket, m_context);
       conn.setTimeout(m_IncomingSocketTimeout);
-      ConnectionSAEventBuilder.logConnectionEvent(
-          SAEventConstants.CONNECT,
-          SAEventConstants.TLS,
-          SAEventConstants.IN,
-          socket.getLocalAddress(),
-          socket.getLocalPort(),
-          socket.getRemoteInetAddress(),
-          socket.getRemotePort());
+      // TODO saevent-restructure log a ConnectionEvent here.
     } catch (Exception ie) {
       DsLog4j.connectionCat.debug(
           "DsTlsNBListener():Error while processing TLS Handshake {}", () -> ie);
