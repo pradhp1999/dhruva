@@ -4,20 +4,11 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.DsCertificateHelper;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.DsCertificateRevocationChecker;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipBufferStream;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSocket;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTlsUtil;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.NetObjectsFactory;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
 import com.cisco.dhruva.util.saevent.SAEventConstants;
 import java.io.IOException;
@@ -30,7 +21,6 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -691,20 +681,6 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
           }
         } else if (m_engine.getHandshakeException() != null) {
           throw m_engine.getHandshakeException();
-        }
-      }
-      if (IS_CRLCHECK_ENABLED
-          && ((m_engine.getEngineCore().getUseClientMode()
-                  && m_bindingInfo.getNetwork().getSSLContext().getIsServerAuthEnabled())
-              || (!m_engine.getEngineCore().getUseClientMode()
-                  && m_engine.getEngineCore().getNeedClientAuth()))) {
-        SSLSession ssl = m_engine.getSSLSession();
-        Certificate[] certs = ssl.getPeerCertificates();
-        try {
-          DsCertificateRevocationChecker.applyRevocationCheck(certs);
-        } catch (CertificateException e) {
-          cat.warn("Certificate Revoked:", e);
-          throw new IOException(e);
         }
       }
     }

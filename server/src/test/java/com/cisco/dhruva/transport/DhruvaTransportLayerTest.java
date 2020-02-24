@@ -5,6 +5,9 @@
 
 package com.cisco.dhruva.transport;
 
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.assertEquals;
+
 import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.transport.netty.BaseChannelInitializer;
 import com.cisco.dhruva.transport.netty.BootStrapFactory;
@@ -17,6 +20,14 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.socket.DatagramPacket;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -27,18 +38,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.assertEquals;
 
 public class DhruvaTransportLayerTest {
 

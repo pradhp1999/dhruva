@@ -3,34 +3,17 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.DsCertificateRevocationChecker;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsEOFException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamClosedEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamErrorEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamEventListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLSocket;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSocket;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTlsUtil;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsUnitOfWork;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.Executor;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
 import org.apache.logging.log4j.Level;
 
 /**
@@ -211,15 +194,6 @@ public abstract class DsMessageReader implements Runnable {
           DsSSLBindingInfo sslBinding = (DsSSLBindingInfo) bindingInfo;
           bindingInfo.updateBindingInfo(socket);
           sslSocket.startHandshake();
-          if (IS_CRLCHECK_ENABLED
-              && ((((SSLSocket) socket.getSocket()).getUseClientMode()
-                      && sslBinding.getNetwork().getSSLContext().getIsServerAuthEnabled())
-                  || (!((SSLSocket) socket.getSocket()).getUseClientMode()
-                      && ((SSLSocket) socket.getSocket()).getNeedClientAuth()))) {
-            SSLSession ssl = sslSocket.getSession();
-            Certificate[] certs = ssl.getPeerCertificates();
-            DsCertificateRevocationChecker.applyRevocationCheck(certs);
-          }
 
           sslBinding.setSession(sslSocket.getSession());
           DsTlsUtil.setPeerVerificationStatus(sslSocket.getSession(), sslBinding, true);
@@ -274,37 +248,6 @@ public abstract class DsMessageReader implements Runnable {
 
       notifySocketClosedEventListeners(this);
 
-      return;
-    } catch (CertificateException ce) {
-      if (DsLog4j.wireCat.isEnabled(Level.ERROR))
-        DsLog4j.wireCat.error("Certificate has been revoked ", ce);
-      if (((SSLSocket) socket.getSocket()).getUseClientMode()) {
-        ConnectionSAEventBuilder.logTLSConnectionErrorEvent(
-            ce.getMessage(),
-            socket.getLocalAddress(),
-            socket.getLocalPort(),
-            socket.getRemoteInetAddress(),
-            socket.getRemotePort(),
-            SAEventConstants.OUT,
-            SAEventConstants.CERT_REVOKED);
-      } else {
-        ConnectionSAEventBuilder.logTLSConnectionErrorEvent(
-            ce.getMessage(),
-            socket.getLocalAddress(),
-            socket.getLocalPort(),
-            socket.getRemoteInetAddress(),
-            socket.getRemotePort(),
-            SAEventConstants.IN,
-            SAEventConstants.CERT_REVOKED);
-      }
-      try {
-        stream.close();
-        socket.close();
-      } catch (Exception e) {
-        if (DsLog4j.wireCat.isEnabled(Level.ERROR))
-          DsLog4j.wireCat.error("Exception while closing the socket:", e);
-      }
-      notifySocketClosedEventListeners(this);
       return;
     } catch (EOFException e) {
       if (DsLog4j.wireCat.isEnabled(Level.ERROR)) {
