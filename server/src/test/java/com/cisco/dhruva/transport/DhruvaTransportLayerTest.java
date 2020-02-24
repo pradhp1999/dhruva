@@ -5,12 +5,8 @@
 
 package com.cisco.dhruva.transport;
 
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.testng.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.assertEquals;
 
 import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.transport.netty.BaseChannelInitializer;
@@ -285,8 +281,8 @@ public class DhruvaTransportLayerTest {
   public void testGetConnectionAndSendMessageSuccess() {
     try {
 
-      InetAddress localAddress = InetAddress.getByName("10.78.98.21");
-      InetAddress remoteAddress = InetAddress.getByName("10.78.98.22");
+      InetAddress localAddress = InetAddress.getByName("127.0.0.1");
+      InetAddress remoteAddress = InetAddress.getByName("127.0.0.1");
       int localPort = 5070, remotePort = 5060;
       InetSocketAddress remoteSocketAddress = new InetSocketAddress(remoteAddress, remotePort);
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);

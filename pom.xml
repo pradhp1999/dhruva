@@ -32,7 +32,6 @@
         <module>server</module>
         <module>client</module>
         <module>integration</module>
-        <module>jar-executor-tool</module>
     </modules>
 
     <properties>
