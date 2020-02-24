@@ -5,13 +5,6 @@
 
 package com.cisco.dhruva.transport;
 
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.testng.Assert.*;
-
 import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.transport.netty.BaseChannelInitializer;
 import com.cisco.dhruva.transport.netty.BootStrapFactory;
@@ -24,14 +17,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.socket.DatagramPacket;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -42,6 +27,18 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.assertEquals;
 
 public class DhruvaTransportLayerTest {
 
@@ -285,8 +282,8 @@ public class DhruvaTransportLayerTest {
   public void testGetConnectionAndSendMessageSuccess() {
     try {
 
-      InetAddress localAddress = InetAddress.getByName("10.78.98.21");
-      InetAddress remoteAddress = InetAddress.getByName("10.78.98.22");
+      InetAddress localAddress = InetAddress.getByName("127.0.0.1");
+      InetAddress remoteAddress = InetAddress.getByName("127.0.0.1");
       int localPort = 5070, remotePort = 5060;
       InetSocketAddress remoteSocketAddress = new InetSocketAddress(remoteAddress, remotePort);
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
