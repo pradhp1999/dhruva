@@ -13,7 +13,7 @@ It is deployed in Meetings Platform (meet-PaaS).
 
 #### Intellij Ultimate
 
-- Use [this invitation for IntelliJ IDEA Ultimate by lbogard@cisco.com](https://account.jetbrains.com/a/4007hmtf) and create an account with your Cisco Email address.
+- Talk to your manager for an IntelliJ Ultimate referral link, and create an account with your Cisco Email address.
 - You will receive a confirmation Email.
 - Confirm your account in the email, it will take you to jetbrains site to create your account.
 - Then you can see your license ID.
