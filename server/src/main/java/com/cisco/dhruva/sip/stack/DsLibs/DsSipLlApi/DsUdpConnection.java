@@ -5,8 +5,10 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import org.apache.logging.log4j.Level;
 
 /**
@@ -323,9 +325,7 @@ public class DsUdpConnection extends DsAbstractConnection {
     }
 
     try {
-      if (DsPerf.ON) DsPerf.start(DsPerf.SOCKET_SEND);
       m_socket.send(aPacket);
-      if (DsPerf.ON) DsPerf.stop(DsPerf.SOCKET_SEND);
     } catch (DsSigcompNackException sne) {
       throw sne;
     } catch (SocketException se) {

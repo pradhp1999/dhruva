@@ -7,7 +7,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipElementListener;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -155,7 +154,6 @@ public class DsTelURL extends DsURI implements Serializable {
    * @throws IOException if there is an I/O error while writing to the stream
    */
   public void write(OutputStream out, boolean escape) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.URI_WRITE);
     DsByteString bs = null;
     bs = getName();
     if (bs != null) {
@@ -163,7 +161,6 @@ public class DsTelURL extends DsURI implements Serializable {
     }
     out.write((int) B_COLON);
     writeValue(out, escape);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.URI_WRITE);
   }
 
   /**
@@ -232,12 +229,10 @@ public class DsTelURL extends DsURI implements Serializable {
    * @return the cloned tel URL object.
    */
   public Object clone() {
-    if (DsPerf.ON) DsPerf.start(DsPerf.URI_CLONE);
     DsTelURL clone = (DsTelURL) super.clone();
     if (m_telSubscriber != null) {
       clone.m_telSubscriber = (DsSipTelephoneSubscriber) m_telSubscriber.clone();
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.URI_CLONE);
     return clone;
   }
 

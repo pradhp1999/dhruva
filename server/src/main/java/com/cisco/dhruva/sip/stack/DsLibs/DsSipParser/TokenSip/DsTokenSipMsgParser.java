@@ -7,15 +7,15 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsHexEncoding;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
 import com.cisco.dhruva.util.log.Trace;
+import org.apache.logging.log4j.Level;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.StringTokenizer;
-import org.apache.logging.log4j.Level;
 
 /*
 Todo:
@@ -30,58 +30,7 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
   private static final int SIP_DATE_LENGTH = 29;
 
-  /** DsPerf constant. */
-  private static final int ENTIRE_PARSE;
-  /** DsPerf constant. */
-  private static final int PARSE_START_LINE;
-  /** DsPerf constant. */
-  private static final int PARSE_HEADERS;
-  /** DsPerf constant. */
-  private static final int PARSE_VIA;
-  /** DsPerf constant. */
-  private static final int PARSE_BODY;
-
-  /** DsPerf constant. */
-  private static final int PARSE_INT;
-  /** DsPerf constant. */
-  private static final int PARSE_LONG;
-  /** DsPerf constant. */
-  private static final int PARSE_FLOAT;
-
-  /** DsPerf constant. */
-  private static final int PARSE_SIP_URL_DATA;
-  /** DsPerf constant. */
-  private static final int PARSE_TEL_URL_DATA;
-
-  /** DsPerf constant. */
-  private static final int FIRE_ELEMENT;
-  /** DsPerf constant. */
-  private static final int FIRE_PARAMETER;
-  /** DsPerf constant. */
-  private static final int PARSE_URL_HEADER;
-  /** DsPerf constant. */
-  private static final int PARSE_NAME_ADDR;
-  /** DsPerf constant. */
-  private static final int DEEP_PARSE_HEADERS;
-
   static {
-
-    // DsPerf register
-    ENTIRE_PARSE = DsPerf.addType("\nEntire Msg Parse               ");
-    PARSE_START_LINE = DsPerf.addType("  Parse Start Line             ");
-    PARSE_HEADERS = DsPerf.addType("  Parse Headers                ");
-    DEEP_PARSE_HEADERS = DsPerf.addType("    Deep Parse Headers         ");
-    FIRE_ELEMENT = DsPerf.addType("    Fire Element               ");
-    FIRE_PARAMETER = DsPerf.addType("    Fire Parameter             ");
-    PARSE_VIA = DsPerf.addType("    Parse Via                  ");
-    PARSE_BODY = DsPerf.addType("  Parse Body                   ");
-    PARSE_INT = DsPerf.addType("Parse Int                      ");
-    PARSE_LONG = DsPerf.addType("Parse Long                     ");
-    PARSE_FLOAT = DsPerf.addType("Parse Float                    ");
-    PARSE_SIP_URL_DATA = DsPerf.addType("Parse SIP URL Data             ");
-    PARSE_TEL_URL_DATA = DsPerf.addType("Parse TEL URL Data             ");
-    PARSE_URL_HEADER = DsPerf.addType("Parse URL Header               ");
-    PARSE_NAME_ADDR = DsPerf.addType("Parse Name Addr                ");
   }
 
   // Set the logging category
@@ -120,7 +69,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
   public static DsSipMessageListener parse(
       DsSipMessageListenerFactory msgFactory, byte msg[], int offset, int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(ENTIRE_PARSE);
 
     if (Log.isDebugEnabled()) Log.debug("\n" + DsString.toSnifferDisplay(msg));
 
@@ -169,7 +117,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
     try {
       DsSipHeaderListener headerListener = messageListener.getHeaderListener();
 
-      if (DsPerf.ON) DsPerf.start(PARSE_HEADERS);
       HeaderEncodingTypeHolder headerId;
       int numHeaders = 0;
 
@@ -210,7 +157,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
           // }
         }
       }
-      if (DsPerf.ON) DsPerf.stop(PARSE_HEADERS);
       if (Log.isDebugEnabled()) Log.debug("Number of headers parsed - " + numHeaders);
       if (Log.isDebugEnabled()) Log.debug("Index into the message is now " + mb.i);
 
@@ -222,8 +168,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       }
 
       // todo find out how malformed requests are rejected normally.
-
-      if (DsPerf.ON) DsPerf.stop(ENTIRE_PARSE);
 
       if (Log.isDebugEnabled()) Log.debug("\nDONE PARSING\n");
 
@@ -254,7 +198,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       MsgBytes mb,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_START_LINE);
 
     DsSipMessageListener sipMsg;
     try {
@@ -327,7 +270,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
           if (sipMsg == null) {
             // nothing left to do, the caller does not want this message parsed yet
-            if (DsPerf.ON) DsPerf.stop(PARSE_START_LINE);
             return null;
           }
 
@@ -523,7 +465,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       MsgBytes data,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(DEEP_PARSE_HEADERS);
 
     if (Log.isEnabled(Level.DEBUG)) {
       // Log.debug("Starting parseHeader headerType =
@@ -757,7 +698,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       default:
         break;
     }
-    if (DsPerf.ON) DsPerf.stop(DEEP_PARSE_HEADERS);
   }
 
   /**
@@ -775,7 +715,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       DsTokenSipMessageDictionary messageDictionary,
       boolean hasContentLength)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_BODY);
     if (Log.isDebugEnabled()) Log.debug("parsing some kind of body");
 
     switch (mb.msg[mb.i]) {
@@ -865,7 +804,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
         sipMsg.messageFound(DsByteString.BS_EMPTY_STRING.data(), 0, 0, true);
         break;
     }
-    if (DsPerf.ON) DsPerf.stop(PARSE_BODY);
   }
 
   /**
@@ -887,7 +825,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       int offset,
       int count)
       throws DsSipParserListenerException {
-    if (DsPerf.ON) DsPerf.start(FIRE_ELEMENT);
 
     if (element != null) {
       DsSipElementListener subElement = null;
@@ -968,8 +905,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
       element.elementFound(contextId, elementId, buffer, offset, count, isElementValid);
     }
-
-    if (DsPerf.ON) DsPerf.stop(FIRE_ELEMENT);
   }
 
   private static void fireParameter(
@@ -981,7 +916,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       int valueOffset,
       int valueCount)
       throws DsSipParserListenerException {
-    if (DsPerf.ON) DsPerf.start(FIRE_PARAMETER);
 
     // if (Log.isEnabledFor(Priority.DEBUG))
     // {
@@ -995,8 +929,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
     }
 
     element.parameterFound(contextId, buffer, nameOffset, nameCount, valueOffset, valueCount);
-
-    if (DsPerf.ON) DsPerf.stop(FIRE_PARAMETER);
   }
 
   // To
@@ -1015,7 +947,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       MsgBytes mb,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_URL_HEADER);
     if (Log.isDebugEnabled()) {
       Log.debug(
           "Starting urlHeader parse for "
@@ -1538,7 +1469,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       MsgBytes mb,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_VIA);
     if (Log.isDebugEnabled()) Log.debug("Starting Via parse");
     int start = mb.i;
 
@@ -1678,7 +1608,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
         if (Log.isDebugEnabled())
           Log.debug("Leaving Via parse.  With token after " + (mb.i - start));
 
-        if (DsPerf.ON) DsPerf.stop(PARSE_VIA);
       } // done fixed format
       else {
         // generic (AKA slow) via parsing
@@ -2764,11 +2693,9 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       DsTokenSipNameAddressEncoder nameAddrFlags,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_NAME_ADDR);
 
     try {
       if (element == null) {
-        if (DsPerf.ON) DsPerf.stop(PARSE_NAME_ADDR);
         throw generateDsSipParserException(
             null, "Cannot do a lazy parse of encoded messages", 0, mb.msg, 0, mb.msg.length);
       }
@@ -2790,7 +2717,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
       parseURI(dictionary, element, mb, headerType, nameAddrFlags, messageDictionary);
 
-      if (DsPerf.ON) DsPerf.stop(PARSE_NAME_ADDR);
     } catch (DsSipParserListenerException e) {
       throw e;
     } catch (Exception e) {

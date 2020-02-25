@@ -4,9 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import gnu.trove.TLinkable;
 import gnu.trove.TLinkedList;
 import java.io.IOException;
@@ -578,7 +576,6 @@ public class DsSipHeaderList extends TLinkedList
    */
   public void validate(int num, boolean start)
       throws DsSipParserException, DsSipParserListenerException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_LIST_VALIDATE);
     // try to split if its not unknown.
     if (m_bType != UNKNOWN_HEADER) split(num, start);
 
@@ -612,7 +609,6 @@ public class DsSipHeaderList extends TLinkedList
         link = (DsSipHeaderInterface) link.getPrevious();
       }
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_LIST_VALIDATE);
   }
   /**
    * Tells the form of this header.<br>

@@ -14,7 +14,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMasterDi
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessions;
 import java.io.IOException;
@@ -134,7 +133,6 @@ public class DsSipResponse extends DsSipMessage {
       boolean cloneHeaders,
       boolean copyRecordRoute) {
     super();
-    if (DsPerf.ON) DsPerf.start(DsPerf.NEW_RESPONSE);
     m_StatusCode = code;
     m_strPhrase = DsSipResponseCode.getBSReasonPhrase(code);
     DsBindingInfo bi = sipRequest.getBindingInfo();
@@ -201,7 +199,6 @@ public class DsSipResponse extends DsSipMessage {
     }
 
     setBody(body, contentType);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.NEW_RESPONSE);
   }
 
   /**
@@ -237,7 +234,6 @@ public class DsSipResponse extends DsSipMessage {
   public static byte[] createResponseByteBuffer(
       int code, DsSipRequest sipRequest, byte[] body, DsByteString contentType) {
     byte[] buffer2Array = null;
-    if (DsPerf.ON) DsPerf.start(DsPerf.NEW_RESPONSE_BYTES);
 
     try (ByteBuffer buffer = ByteBuffer.newInstance(2048)) {
       if (sipRequest.isEncoded()) {
@@ -356,7 +352,6 @@ public class DsSipResponse extends DsSipMessage {
         }
       }
 
-      if (DsPerf.ON) DsPerf.stop(DsPerf.NEW_RESPONSE_BYTES);
       buffer2Array = buffer.toByteArray();
     } catch (IOException ie) {
 

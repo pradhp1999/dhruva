@@ -1,11 +1,6 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipMime;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsMsgParserBase;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipHeaderListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.MsgBytes;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 
 /**
  * The MIME message parser.
@@ -58,7 +53,6 @@ public class DsMimeMsgParser extends DsMsgParserBase {
    */
   static void parse(DsMimeEntity mimeEntity, byte msg[], int offset, int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(ENTIRE_PARSE);
 
     int origOffset = offset;
     int origCount = count;
@@ -90,7 +84,6 @@ public class DsMimeMsgParser extends DsMsgParserBase {
       if (hasHeaders) {
         DsSipHeaderListener headerListener = mimeEntity.getHeaderListener();
 
-        if (DsPerf.ON) DsPerf.start(PARSE_HEADERS);
         // keep parsing until the body is found
         while (true) {
           try {
@@ -106,12 +99,10 @@ public class DsMimeMsgParser extends DsMsgParserBase {
             }
           }
         }
-        if (DsPerf.ON) DsPerf.stop(PARSE_HEADERS);
       }
 
       parseBody(mimeEntity, mb);
 
-      if (DsPerf.ON) DsPerf.stop(ENTIRE_PARSE);
     } catch (DsSipParserListenerException e) {
       throw e;
     } catch (Exception e) {

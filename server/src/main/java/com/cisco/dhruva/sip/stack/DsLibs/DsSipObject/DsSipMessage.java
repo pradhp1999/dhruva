@@ -7,29 +7,10 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.SubjectAltName;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipMime.DsMimeEntity;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.ReadOnly.DsSipReadOnlyElement;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.ReadOnly.DsSipURIElements;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipElementListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipFrameStream;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSDPMsgParser;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstants;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipHeaderDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipInteger;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMethodDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsHexEncoding;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
 import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessionID;
 import com.cisco.dhruva.util.cac.SIPSessions;
@@ -38,12 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
@@ -833,7 +809,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @throws IOException if there is an exception in writing to the stream
    */
   public void write(OutputStream out) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_WRITE);
     if (m_bFinalized) {
       m_strValue.write(out);
     } else {
@@ -843,7 +818,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
       writeHeadersAndBody(out);
     }
     out.flush();
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_WRITE);
   }
 
   /**
@@ -853,7 +827,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @throws IOException if there is an exception in writing to the stream
    */
   public void writeEncoded(DsTokenSipDictionary dictionary, OutputStream out) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_WRITE);
     if (m_bFinalized) {
       m_strValue.write(out);
     } else {
@@ -873,7 +846,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
         writeEncodedBody(out);
       }
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_WRITE);
   }
 
   /**
@@ -882,7 +854,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @return a deep clone of this object
    */
   public Object clone() {
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_CLONE);
     DsSipMessage clone = null;
     try {
       clone = (DsSipMessage) super.clone();
@@ -926,7 +897,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
         clone.headerType[len] = subList;
       }
     } // _if
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_CLONE);
     return clone;
   }
 
@@ -1093,7 +1063,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    */
   public final DsSipTransactionKey createKey() {
     // we probably want 2 key timers here
-    if (DsPerf.ON) DsPerf.start(DsPerf.TRANS_KEY);
 
     boolean created = false;
     DsSipViaHeader via = null;
@@ -1110,7 +1079,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
           key.setCSeqMethod(m_strCSeq);
           m_key = key;
           created = true;
-          if (DsPerf.ON) DsPerf.stop(DsPerf.TRANS_KEY);
         }
       } catch (Exception exc) {
         if (DsLog4j.messageCat.isEnabled(Level.ERROR)) {
@@ -1160,7 +1128,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
               "Exception while creating Classic Key. Message-[" + strValue.toString() + "]\n", exc);
         }
       }
-      if (DsPerf.ON) DsPerf.stop(DsPerf.TRANS_KEY);
     }
 
     return m_key;

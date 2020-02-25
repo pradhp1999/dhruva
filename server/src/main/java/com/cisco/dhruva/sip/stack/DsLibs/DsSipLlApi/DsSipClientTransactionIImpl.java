@@ -3,32 +3,8 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipCancelMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContactHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipPRACKMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRouteHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransactionKey;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipURL;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerMgr;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageStatistics;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException.TrackingExceptions;
 import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessionID;
@@ -150,48 +126,32 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
       try {
         switch (m_stateTable.getState()) {
           case DS_INITIAL:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_INITIAL);
             initial(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_INITIAL);
             break;
           case DS_CALLING:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_CALLING);
             calling(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_CALLING);
             break;
           case DS_PROCEEDING:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_PROCEEDING);
             proceeding(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_PROCEEDING);
             break;
           case DS_COMPLETED:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_COMPLETED);
             completed(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_COMPLETED);
             break;
           case DS_TERMINATED:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_TEMINATED);
             terminated(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_TEMINATED);
             break;
             // CAFFEINE 2.0 DEVELOPMENT - (EDCS-295391) PRACK Support
           case DS_CTI_RELPROCEEDING:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_RELPROCEEDING);
             reliableProceeding(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_RELPROCEEDING);
             break;
 
             /* we start by switch from xinitial state to xcompleted, so
             no need to handle DS_XINITIAL */
           case DS_XCOMPLETED:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_XCOMPLETED);
             xcompleted(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_XCOMPLETED);
             break;
           case DS_XTERMINATED:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_XTEMINATED);
             xterminated(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_XTEMINATED);
             break;
           default:
             break;

@@ -9,9 +9,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerExceptio
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
 import com.cisco.dhruva.util.log.Trace;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -22,6 +19,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
 
 /**
  * A single instance of this class manages all the transactions for a given lower layer. This class
@@ -382,7 +381,6 @@ public class DsSipTransactionManager {
    */
   public static DsSipConnection getRequestConnection(DsSipRequest request)
       throws IOException, DsException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_REQUEST_CONNECTION_R);
     Logger cat = generalCat;
     DsSipConnection ret_connection = null;
     if (cat.isEnabled(Level.DEBUG)) cat.log(Level.DEBUG, "getRequestConnection(DsSipMessage)");
@@ -400,7 +398,6 @@ public class DsSipTransactionManager {
 
     ret_connection = getConnection(routeTo, request.getBindingInfo());
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.TM_GET_REQUEST_CONNECTION_R);
     return ret_connection;
   }
 
@@ -423,7 +420,6 @@ public class DsSipTransactionManager {
    */
   public static DsSipConnection getRequestConnection(DsSipMessage message, DsSipResolver resolver)
       throws SocketException, DsException, UnknownHostException, IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_REQUEST_CONNECTION_MS);
 
     Logger cat = generalCat;
     if (cat.isEnabled(Level.DEBUG)) {
@@ -557,7 +553,6 @@ public class DsSipTransactionManager {
     ret_connection =
         getSRVConnection(network, localAddr, localPort, host_str, port, transport, resolver);
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.TM_GET_REQUEST_CONNECTION_MS);
     return ret_connection;
   }
 
@@ -583,7 +578,6 @@ public class DsSipTransactionManager {
   protected static DsSipConnection getSRVConnection(
       DsNetwork network, InetAddress lAddr, int lPort, DsSipURL url, DsSipResolver resolver)
       throws SocketException, DsException, UnknownHostException, IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_SRV_CONNECTION_IiUS);
 
     DsSipConnection ret_connection = null;
 
@@ -610,8 +604,6 @@ public class DsSipTransactionManager {
     } else {
       resolver.initialize(network, lAddr, lPort, url);
     }
-
-    if (DsPerf.ON) DsPerf.stop(DsPerf.TM_GET_SRV_CONNECTION_IiUS);
 
     return ret_connection;
   }
@@ -645,7 +637,6 @@ public class DsSipTransactionManager {
       int transport,
       DsSipResolver resolver)
       throws SocketException, DsException, UnknownHostException, IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_SRV_CONNECTION_IiSiiS);
     DsSipConnection ret_connection = null;
 
     if (!resolver.shouldSearch(host, port, transport)) {
@@ -702,8 +693,6 @@ public class DsSipTransactionManager {
       resolver.initialize(network, lAddr, lPort, host, port, transport);
     }
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.TM_GET_SRV_CONNECTION_IiSiiS);
-
     return ret_connection;
   }
 
@@ -728,7 +717,6 @@ public class DsSipTransactionManager {
   protected static DsSipConnection getSRVConnection(
       DsNetwork network, String host, int port, int transport, DsSipResolver resolver)
       throws SocketException, DsException, UnknownHostException, IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_SRV_CONNECTION_SiiS);
 
     DsSipConnection ret_connection = null;
 
@@ -746,7 +734,6 @@ public class DsSipTransactionManager {
       resolver.initialize(network, host, port, transport);
     }
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.TM_GET_SRV_CONNECTION_SiiS);
     return ret_connection;
   }
 
@@ -811,7 +798,6 @@ public class DsSipTransactionManager {
   protected static DsSipConnection getSRVConnection(
       DsNetwork network, DsSipURL url, DsSipResolver resolver)
       throws SocketException, DsException, UnknownHostException, IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_SRV_CONNECTION_US);
 
     DsSipConnection ret_connection = null;
 
@@ -838,7 +824,6 @@ public class DsSipTransactionManager {
       resolver.initialize(network, url);
     }
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.TM_GET_SRV_CONNECTION_US);
     return ret_connection;
   }
 
@@ -852,7 +837,6 @@ public class DsSipTransactionManager {
    * @throws IOException if thrown by the underlying connection
    */
   public static DsSipConnection getConnection(DsURI uri, DsBindingInfo info) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_CONNECTION_UB);
 
     // Check for the connection ID
     if (info != null) {
@@ -942,7 +926,6 @@ public class DsSipTransactionManager {
     } catch (Exception exc) {
       throw new IOException(exc.getMessage());
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.TM_GET_CONNECTION_UB);
     return ret_connection;
   }
 
@@ -968,14 +951,12 @@ public class DsSipTransactionManager {
    */
   public static DsSipConnection getConnection(DsSipMessage message)
       throws SocketException, DsException, UnknownHostException, IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_CONNECTION_M);
     Logger cat = generalCat;
 
     DsSipConnection ret_connection = null;
     if (cat.isEnabled(Level.INFO)) cat.log(Level.INFO, "getConnection(DsSipMessage)");
 
     if (message.isRequest()) {
-      if (DsPerf.ON) DsPerf.stop(DsPerf.TM_GET_CONNECTION_M);
       ret_connection = getRequestConnection((DsSipRequest) message);
     } else // Response
     {
@@ -993,8 +974,6 @@ public class DsSipTransactionManager {
 
       ret_connection = getConnection(message.getBindingInfo(), viaHeader);
     }
-
-    if (DsPerf.ON) DsPerf.stop(DsPerf.TM_GET_CONNECTION_M);
 
     return ret_connection;
   }
@@ -1748,10 +1727,8 @@ public class DsSipTransactionManager {
     // TODO: log a 'tooLargeSipMessageSAEventAlarm' here.
     try {
 
-      if (DsPerf.ON) DsPerf.start(DsPerf.PARSE);
       message = DsSipMessage.createMessage(msgBytes.getMessageBytes(), true, true);
       message.setTimestamp(msgBytes.getTimestamp());
-      if (DsPerf.ON) DsPerf.stop(DsPerf.PARSE);
       DsLog4j.logSessionId(message);
 
     } catch (DsSipParserException pe) {
@@ -1885,7 +1862,6 @@ public class DsSipTransactionManager {
     // add the binding info to the message
     message.setBindingInfo(bi);
 
-    if (DsPerf.ON) DsPerf.start(DsPerf.TM);
     // send the message through the transaction manager
     try {
       processMessage(message, badMessageReason, code);
@@ -1897,7 +1873,6 @@ public class DsSipTransactionManager {
         cat.log(Level.ERROR, "processMessageBytes: exception in processMessage:\n", exc);
       }
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.TM);
   }
 
   /**
@@ -2068,7 +2043,6 @@ public class DsSipTransactionManager {
    * @param response the response to be processed
    */
   private void processResponse(DsSipResponse response, String badResponseReason) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.PROC_RESP);
     Logger cat = respCat;
     DsSipTransactionKey key = response.getKey();
     DsSipClientTransaction retrievedTransaction = null;
@@ -2121,9 +2095,7 @@ public class DsSipTransactionManager {
                     + retrievedTransaction);
           }
           // Passing response to client transaction
-          if (DsPerf.ON) DsPerf.start(DsPerf.ON_RESP);
           retrievedTransaction.onResponse(response);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.ON_RESP);
         } else // Client transaction not found
         {
           // Create key without To tag
@@ -2153,9 +2125,7 @@ public class DsSipTransactionManager {
                         + retrievedTransaction);
               }
               // Passing response to retrieved client transaction
-              if (DsPerf.ON) DsPerf.start(DsPerf.ON_RESP);
               retrievedTransaction.onResponse(response);
-              if (DsPerf.ON) DsPerf.stop(DsPerf.ON_RESP);
             } else // Final response
             {
               DsByteString retrievedTransactionToTag = retrievedTransaction.getToTag();
@@ -2171,9 +2141,7 @@ public class DsSipTransactionManager {
                           + retrievedTransaction);
                 }
                 // Passing response to client transaction
-                if (DsPerf.ON) DsPerf.start(DsPerf.ON_RESP);
                 retrievedTransaction.onResponse(response);
-                if (DsPerf.ON) DsPerf.stop(DsPerf.ON_RESP);
               } else // retrieved client transaction has To tag
               {
                 // If retrieved client transaction To tag matches response To tag
@@ -2186,9 +2154,7 @@ public class DsSipTransactionManager {
                             + retrievedTransaction);
                   }
                   // Passing response to client transaction
-                  if (DsPerf.ON) DsPerf.start(DsPerf.ON_RESP);
                   retrievedTransaction.onResponse(response);
-                  if (DsPerf.ON) DsPerf.stop(DsPerf.ON_RESP);
                 } else // retrieved client transaction To tag doesn't match response To tag
                 {
                   // If multiple final responses are enabled for this transaction
@@ -2225,9 +2191,7 @@ public class DsSipTransactionManager {
                           "processResponse(): Multiple final response received but not enabled. Original client transaction found; calling onResponse and returning");
                     }
                     // Passing response to client transaction
-                    if (DsPerf.ON) DsPerf.start(DsPerf.ON_RESP);
                     retrievedTransaction.onResponse(response);
-                    if (DsPerf.ON) DsPerf.stop(DsPerf.ON_RESP);
                   }
                 }
               }
@@ -2270,9 +2234,7 @@ public class DsSipTransactionManager {
                     + retrievedTransaction);
           }
           // Passing response to client transaction
-          if (DsPerf.ON) DsPerf.start(DsPerf.ON_RESP);
           retrievedTransaction.onResponse(response);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.ON_RESP);
         } else // Client transaction not found
         {
           // Create key without To tag
@@ -2309,9 +2271,7 @@ public class DsSipTransactionManager {
             // Set To tag of transaction to response To tag
             retrievedTransaction.setToTag(responseToTag);
             // Passing response to retrieved client transaction
-            if (DsPerf.ON) DsPerf.start(DsPerf.ON_RESP);
             retrievedTransaction.onResponse(response);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.ON_RESP);
           } else // client transaction not found
           {
             passResponseToStrayMessageInterface(response);
@@ -2351,15 +2311,12 @@ public class DsSipTransactionManager {
                   + retrievedTransaction);
         }
         // Passing response to retrieved client transaction
-        if (DsPerf.ON) DsPerf.start(DsPerf.ON_RESP);
         retrievedTransaction.onResponse(response);
-        if (DsPerf.ON) DsPerf.stop(DsPerf.ON_RESP);
       } else // client transaction not found
       {
         passResponseToStrayMessageInterface(response);
       }
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.PROC_RESP);
   } // End processResponse
 
   private void passResponseToStrayMessageInterface(DsSipResponse response) {
@@ -2385,7 +2342,6 @@ public class DsSipTransactionManager {
    */
   private DsSipServerTransaction processRequest(
       DsSipRequest request, DsByteString method, String badRequestReason, int code) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.PROC_REQ);
     Logger cat = reqCat;
     DsSipServerTransaction transaction = null;
 
@@ -2438,7 +2394,6 @@ public class DsSipTransactionManager {
           DsMessageLoggingInterface.DIRECTION_IN,
           request);
 
-      if (DsPerf.ON) DsPerf.stop(DsPerf.PROC_REQ);
       return transaction;
     }
 
@@ -2501,8 +2456,6 @@ public class DsSipTransactionManager {
           }
         }
 
-        if (DsPerf.ON) DsPerf.stop(DsPerf.PROC_REQ);
-
         return null;
       } else {
         synchronized (aLock) {
@@ -2519,7 +2472,6 @@ public class DsSipTransactionManager {
       // Log the received malformed request and
       // send a 400 response.
       sendErrorResponse(transaction, request, badRequestReason, code);
-      if (DsPerf.ON) DsPerf.stop(DsPerf.PROC_REQ);
       return null;
     }
 
@@ -2554,7 +2506,6 @@ public class DsSipTransactionManager {
                 e);
           }
         }
-        if (DsPerf.ON) DsPerf.stop(DsPerf.PROC_REQ);
         return null;
       }
     }
@@ -2600,9 +2551,6 @@ public class DsSipTransactionManager {
           cat.error("processRequest(): error sending 405 (METHOD_NOT_ALLOWED) response", ioe);
       }
 
-      if (DsPerf.ON) {
-        DsPerf.stop(DsPerf.PROC_REQ);
-      }
       return null;
     }
 
@@ -2646,25 +2594,16 @@ public class DsSipTransactionManager {
 
       if (processForMaintenance(transaction)) {
 
-        if (DsPerf.ON) {
-          DsPerf.stop(DsPerf.PROC_REQ);
-        }
         return null;
       }
 
       if (request.getMethodID() == DsSipConstants.OPTIONS && processOptionsRequest(transaction)) {
 
-        if (DsPerf.ON) {
-          DsPerf.stop(DsPerf.PROC_REQ);
-        }
         return null;
       }
 
       if (processMaxForwards(transaction, null)) {
 
-        if (DsPerf.ON) {
-          DsPerf.stop(DsPerf.PROC_REQ);
-        }
         return null;
       }
 
@@ -2677,14 +2616,8 @@ public class DsSipTransactionManager {
       cat.debug(
           "processRequest(): No auto response; calling user code's registered request interface");
 
-      if (DsPerf.ON) {
-        DsPerf.start(DsPerf.REQUEST_INTERFACE);
-      }
-
       requestInterface.request(transaction);
-      if (DsPerf.ON) {
-        DsPerf.stop(DsPerf.REQUEST_INTERFACE);
-      }
+
     } catch (DsException dse) {
       if (cat.isEnabled(Level.ERROR))
         cat.error("processRequest(): error on call to requestInterface.request(request)", dse);
@@ -2693,7 +2626,6 @@ public class DsSipTransactionManager {
         cat.error("processRequest(): error on call to requestInterface.request(request)", ioe);
     }
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.PROC_REQ);
     return null;
   } // End processRequest()
 
@@ -3468,7 +3400,6 @@ public class DsSipTransactionManager {
    * @param request the request to process
    */
   private DsSipServerTransaction processAck(DsSipAckMessage request) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.PROC_ACK);
     Logger cat = ackCat;
     DsSipServerTransaction transaction = null;
     DsSipTransactionKey transactionKey = null;
@@ -3527,7 +3458,6 @@ public class DsSipTransactionManager {
           DsMessageLoggingInterface.REASON_REGULAR,
           DsMessageLoggingInterface.DIRECTION_IN,
           request);
-      if (DsPerf.ON) DsPerf.stop(DsPerf.PROC_ACK);
       return transaction;
     }
 
@@ -3570,7 +3500,6 @@ public class DsSipTransactionManager {
           DsMessageLoggingInterface.REASON_REGULAR,
           DsMessageLoggingInterface.DIRECTION_IN,
           request);
-      if (DsPerf.ON) DsPerf.stop(DsPerf.PROC_ACK);
       return transaction;
     }
 
@@ -3642,7 +3571,6 @@ public class DsSipTransactionManager {
       }
     }
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.PROC_ACK);
     return null;
   } // End processAck()
 
