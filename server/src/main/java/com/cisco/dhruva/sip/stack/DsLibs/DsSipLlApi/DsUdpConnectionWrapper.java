@@ -5,7 +5,6 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import java.io.IOException;
@@ -80,13 +79,8 @@ class DsUdpConnectionWrapper extends DsAbstractConnection implements DsSipConnec
 
     byte buffer[];
 
-    DsTokenSipDictionary dictionary = message.shouldEncode();
     message.setTimestamp();
-    if (dictionary != null) {
-      buffer = message.toEncodedByteString(dictionary).toByteArray();
-    } else {
-      buffer = message.toByteArray();
-    }
+    buffer = message.toByteArray();
 
     sendTo(buffer, getInetAddress(), getPortNo());
 
