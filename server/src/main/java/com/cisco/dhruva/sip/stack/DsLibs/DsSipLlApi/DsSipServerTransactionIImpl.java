@@ -3,25 +3,8 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipDialogID;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTag;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipToHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransactionKey;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerMgr;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerTask;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageStatistics;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.IOException;
 import org.apache.logging.log4j.Level;
 
@@ -223,58 +206,38 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
           // if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_INITIAL);
           // break;
         case DS_CALLING:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_CALLING);
           calling(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_CALLING);
           break;
         case DS_PROCEEDING:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_PROCEEDING);
           proceeding(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_PROCEEDING);
           break;
         case DS_COMPLETED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_COMPLETED);
           completed(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_COMPLETED);
           break;
         case DS_CONFIRMED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_CONFIRMED);
           confirmed(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_CONFIRMED);
           break;
         case DS_TERMINATED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_TEMINATED);
           terminated(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_TEMINATED);
           break;
           // CAFFEINE 2.0 DEVELOPMENT - (EDCS-295391) PRACK Support
         case DS_WAIT_PRACK:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_WAIT_PRACK);
           waitPrack(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_WAIT_PRACK);
           break;
         case DS_STI_RELPROCEEDING:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_RELPROCEEDING);
           reliableProceeding(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_RELPROCEEDING);
           break;
 
           /* we start by switch from xinitial state to xcompleted, so
           no need to handle DS_XINITIAL */
         case DS_XCOMPLETED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_XCOMPLETED);
           xcompleted(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_XCOMPLETED);
           break;
         case DS_XCONFIRMED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_XCONFIRMED);
           xconfirmed(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_XCONFIRMED);
           break;
         case DS_XTERMINATED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_XTEMINATED);
           xterminated(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_XTEMINATED);
           break;
         default:
           break;
@@ -556,16 +519,13 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         // completed state is equivalent to final state in old bis
         // fall through
       case DS_CALLING | DS_ST_IN_3TO6XX:
-        if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_COMPLETED_FROM_CALLING);
         m_connection.getResponseConnection();
         initializeTimers();
-        if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_COMPLETED_FROM_CALLING);
         // fall through
       case DS_PROCEEDING | DS_ST_IN_3TO6XX:
         // CAFFEINE 2.0 DEVELOPMENT - (EDCS-295391) PRACK Support
       case DS_WAIT_PRACK | DS_ST_IN_3TO6XX:
       case DS_STI_RELPROCEEDING | DS_ST_IN_3TO6XX:
-        if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_COMPLETED_FROM_PROCEEDING);
         sendCurrentResponse();
         updateResponseStat(false, false);
         logResponse(DsMessageLoggingInterface.REASON_REGULAR);
@@ -576,7 +536,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         }
         m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
 
-        if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_COMPLETED_FROM_PROCEEDING);
         break;
       case DS_COMPLETED | DS_ST_IN_REQUEST:
         // no need to collect stat for the request. TM already did it.
@@ -767,7 +726,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
 
   private void send2XXResponse(int transition) throws DsException, IOException {
     // terminated state is equivalent to final in old bis for invite 2XX
-    if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_TERMINATED_FROM_PROCEEDING);
 
     // switch statement style is being ruined here
     // please fix me and do not propogate this style
@@ -834,8 +792,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         m_TimerTaskTn = DsDiscreteTimerMgr.scheduleNoQ(m_sipTimers.TU1Value, this, IN_Tn);
       }
     }
-
-    if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_TERMINATED_FROM_PROCEEDING);
   }
 
   /**

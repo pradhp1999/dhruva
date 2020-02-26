@@ -5,7 +5,6 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
@@ -47,7 +46,6 @@ public class DsSipHeaderFactory implements DsSipConstants {
    * @return a new DsSipHeader of the proper subclass.
    */
   public DsSipHeader newInstance(int headerId) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_CREATE);
     DsSipHeader header;
 
     // Optimize this - when we settle on a header list order, make sure that
@@ -374,7 +372,6 @@ public class DsSipHeaderFactory implements DsSipConstants {
         break;
     }
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_CREATE);
     return header;
   }
 

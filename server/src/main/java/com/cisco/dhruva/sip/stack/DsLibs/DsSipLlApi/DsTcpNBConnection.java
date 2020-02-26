@@ -7,14 +7,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipBufferStream;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSocket;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.NetObjectsFactory;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -126,14 +119,7 @@ public class DsTcpNBConnection extends DsAbstractConnection implements DsSelecta
         // localport is coming zero if we use bindinginfo so socket is
         // used and if we use socket for local ip its coming zero so
         // bindinginfo is used
-        ConnectionSAEventBuilder.logConnectionEvent(
-            SAEventConstants.DISCONNECT,
-            SAEventConstants.TCP,
-            null,
-            m_bindingInfo.getLocalAddress(),
-            localPort,
-            m_bindingInfo.getRemoteAddress(),
-            m_bindingInfo.getRemotePort());
+        // TODO saevent-restructure log a ConnectionEvent here to notify a disconnect
 
         if (DsLog4j.connectionCat.isEnabled(Level.INFO)) {
           DsLog4j.connectionCat.info("closeSocket() - socket" + socketInfo + " closed");
@@ -341,14 +327,7 @@ public class DsTcpNBConnection extends DsAbstractConnection implements DsSelecta
       }
       m_bindingInfo.updateBindingInfo(m_socket);
       m_bindingInfo.setNetwork(network);
-      ConnectionSAEventBuilder.logConnectionEvent(
-          SAEventConstants.CONNECT,
-          SAEventConstants.TCP,
-          SAEventConstants.OUT,
-          m_socket.getLocalAddress(),
-          m_socket.getLocalPort(),
-          m_socket.getRemoteInetAddress(),
-          m_socket.getRemotePort());
+      // TODO saevent-restructure log a ConnectionEvent here
 
       m_channel.finishConnect();
       m_channel.configureBlocking(false);
@@ -360,14 +339,7 @@ public class DsTcpNBConnection extends DsAbstractConnection implements DsSelecta
         DsLog4j.connectionCat.log(Level.DEBUG, "DsTcpNBConnection():end");
       }
     } catch (SocketException se) {
-      ConnectionSAEventBuilder.logConnectionErrorEvent(
-          se.getMessage(),
-          SAEventConstants.TCP,
-          m_bindingInfo.getLocalAddress(),
-          m_bindingInfo.getLocalPort(),
-          m_bindingInfo.getRemoteAddress(),
-          m_bindingInfo.getRemotePort(),
-          SAEventConstants.OUT);
+      // TODO saevent-restructure log a ConnectionErrorEvent here
       DsLog4j.connectionCat.log(Level.ERROR, "DsTcpNBConnection(): Socket Exception", se);
       try {
         if (m_channel != null) {
@@ -385,15 +357,7 @@ public class DsTcpNBConnection extends DsAbstractConnection implements DsSelecta
       //      se.addSuppressed(tcpConnectException);
       throw se;
     } catch (IOException e) {
-      ConnectionSAEventBuilder.logConnectionErrorEvent(
-          e.getMessage(),
-          SAEventConstants.TCP,
-          m_bindingInfo.getLocalAddress(),
-          m_bindingInfo.getLocalPort(),
-          m_bindingInfo.getRemoteAddress(),
-          m_bindingInfo.getRemotePort(),
-          SAEventConstants.OUT);
-
+      // TODO saevent-restructure log a ConnectionErrorEvent here
       if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {
         DsLog4j.connectionCat.log(Level.WARN, "DsTcpNBConnection(): I/O Exception: ", e);
       }
@@ -912,14 +876,7 @@ public class DsTcpNBConnection extends DsAbstractConnection implements DsSelecta
       m_queuedInBB.put(bb);
     }
     if (m_queuedInBB != null && m_queuedInBB.position() > maxsize_m_queuedInBB) {
-      ConnectionSAEventBuilder.logConnectionErrorEvent(
-          EVENTREASON,
-          SAEventConstants.TCP,
-          m_bindingInfo.getLocalAddress(),
-          m_bindingInfo.getLocalPort(),
-          m_bindingInfo.getRemoteAddress(),
-          m_bindingInfo.getRemotePort(),
-          SAEventConstants.IN);
+      // TODO saevent-restructure log a ConnectionErrorEvent here
 
       m_queuedInBB = null;
     }

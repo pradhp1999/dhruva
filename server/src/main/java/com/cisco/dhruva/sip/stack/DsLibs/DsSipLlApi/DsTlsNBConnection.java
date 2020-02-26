@@ -3,14 +3,11 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.DsCertificateHelper;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipBufferStream;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -87,14 +84,7 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
           // localport is coming zero if we use bindinginfo so socket is
           // used and if we use socket for local ip its coming zero so
           // bindinginfo is used
-          ConnectionSAEventBuilder.logConnectionEvent(
-              SAEventConstants.DISCONNECT,
-              SAEventConstants.TLS_TCP,
-              null,
-              m_bindingInfo.getLocalAddress(),
-              localPort,
-              m_bindingInfo.getRemoteAddress(),
-              m_bindingInfo.getRemotePort());
+          // TODO saevent-restructure log a ConnectionEvent here to indicate disconnect
         }
         if (DsLog4j.connectionCat.isEnabled(Level.INFO)) {
           DsLog4j.connectionCat.info("closeSocket() - socket" + socketInfo + " closed");
@@ -297,31 +287,9 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
                   + " "
                   + m_channel.getRemoteAddress()
                   + "]");
-          ConnectionSAEventBuilder.logTlsConnectionEvent(
-              m_context.getNeedClientAuth(),
-              sslSession.getPeerHost(),
-              clientCert.getSerialNumber().toString(16),
-              sslSession.getProtocol(),
-              sslSession.getCipherSuite(),
-              Integer.toHexString(clientCert.hashCode()),
-              m_channel.socket().getLocalAddress(),
-              m_channel.socket().getLocalPort(),
-              m_channel.socket().getInetAddress(),
-              m_channel.socket().getPort(),
-              DsCertificateHelper.getCertsInfo(sslSession.getPeerCertificates()));
+          // TODO saevent-restructure log a TlsConnectionEvent here with peer certinfo
         } else {
-          ConnectionSAEventBuilder.logTlsConnectionEvent(
-              false,
-              "NA",
-              "NA",
-              sslSession.getProtocol(),
-              sslSession.getCipherSuite(),
-              "NA",
-              m_channel.socket().getLocalAddress(),
-              m_channel.socket().getLocalPort(),
-              m_channel.socket().getInetAddress(),
-              m_channel.socket().getPort(),
-              null);
+          // TODO saevent-restructure log a TlsConnectionEvent here without peer certinfo
         }
       } catch (IOException e) {
         Throwable th = e;
@@ -331,14 +299,7 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
           }
         }
         Exception rootException = new Exception(th);
-        ConnectionSAEventBuilder.logTLSConnectionErrorEvent(
-            rootException.getMessage(),
-            m_channel.socket().getLocalAddress(),
-            m_channel.socket().getLocalPort(),
-            m_channel.socket().getInetAddress(),
-            m_channel.socket().getPort(),
-            SAEventConstants.IN,
-            SAEventConstants.TLS_HANDSHAKE_FAILED);
+        // TODO saevent-restructure log a TLSConnectionErrorEvent here
         if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {
           DsLog4j.connectionCat.log(Level.WARN, "DsTlsNBConnection(): I/O Exception: ", e);
         }
@@ -378,31 +339,9 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
                 + " "
                 + m_channel.getRemoteAddress()
                 + "]");
-        ConnectionSAEventBuilder.logTlsConnectionEvent(
-            m_context.getNeedClientAuth(),
-            sslSession.getPeerHost(),
-            clientCert.getSerialNumber().toString(16),
-            sslSession.getProtocol(),
-            sslSession.getCipherSuite(),
-            Integer.toHexString(clientCert.hashCode()),
-            m_channel.socket().getLocalAddress(),
-            m_channel.socket().getLocalPort(),
-            m_channel.socket().getInetAddress(),
-            m_channel.socket().getPort(),
-            DsCertificateHelper.getCertsInfo(sslSession.getPeerCertificates()));
+        // TODO saevent-restructure log a TLSConnectionEvent here with peercert info
       } else {
-        ConnectionSAEventBuilder.logTlsConnectionEvent(
-            false,
-            "NA",
-            "NA",
-            sslSession.getProtocol(),
-            sslSession.getCipherSuite(),
-            "NA",
-            m_channel.socket().getLocalAddress(),
-            m_channel.socket().getLocalPort(),
-            m_channel.socket().getInetAddress(),
-            m_channel.socket().getPort(),
-            null);
+        // TODO saevent-restructure log a TLSConnectionEvent here without peercert info
       }
 
       // register the channel once handshake is completed
@@ -415,14 +354,7 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
         }
       }
       Exception rootException = new Exception(th);
-      ConnectionSAEventBuilder.logTLSConnectionErrorEvent(
-          rootException.getMessage(),
-          m_channel.socket().getLocalAddress(),
-          m_channel.socket().getLocalPort(),
-          m_channel.socket().getInetAddress(),
-          m_channel.socket().getPort(),
-          SAEventConstants.OUT,
-          SAEventConstants.TLS_HANDSHAKE_FAILED);
+      // TODO saevent-restructure log a TLSConnectionErrorEvent here for handshake failure
       if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {
         DsLog4j.connectionCat.log(Level.WARN, "DsTlsNBConnection(): I/O Exception: ", e);
       }
@@ -496,14 +428,7 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
       // m_channel.connect(new InetSocketAddress(rInetAddress, rPortNo));
       socket.connect(
           new InetSocketAddress(rInetAddress, rPortNo), network.getTcpConnectionTimeout());
-      ConnectionSAEventBuilder.logConnectionEvent(
-          SAEventConstants.CONNECT,
-          SAEventConstants.TLS_TCP,
-          SAEventConstants.OUT,
-          socket.getLocalAddress(),
-          socket.getLocalPort(),
-          socket.getInetAddress(),
-          socket.getPort());
+      // TODO saevent-restructure log a ConnectionEvent here
       m_socket = new DsSocket(socket, network);
       if (m_bindingInfo == null) {
         m_bindingInfo =
@@ -544,31 +469,9 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
                 + m_channel.getRemoteAddress()
                 + "]");
         // Currently no direct way to get if serverAuth is enabled
-        ConnectionSAEventBuilder.logTlsConnectionEvent(
-            false,
-            sslSession.getPeerHost(),
-            serverCert.getSerialNumber().toString(16),
-            sslSession.getProtocol(),
-            sslSession.getCipherSuite(),
-            Integer.toHexString(serverCert.hashCode()),
-            m_channel.socket().getLocalAddress(),
-            m_channel.socket().getLocalPort(),
-            m_channel.socket().getInetAddress(),
-            m_channel.socket().getPort(),
-            DsCertificateHelper.getCertsInfo(sslSession.getPeerCertificates()));
+        // TODO saevent-restructure log a TlsConnectionEvent here with peer certinfo
       } else {
-        ConnectionSAEventBuilder.logTlsConnectionEvent(
-            false,
-            sslSession.getPeerHost(),
-            "NA",
-            sslSession.getProtocol(),
-            sslSession.getCipherSuite(),
-            "NA",
-            m_channel.socket().getLocalAddress(),
-            m_channel.socket().getLocalPort(),
-            m_channel.socket().getInetAddress(),
-            m_channel.socket().getPort(),
-            DsCertificateHelper.getCertsInfo(sslSession.getPeerCertificates()));
+        // TODO saevent-restructure log a TlsConnectionEvent here without peer certinfo
       }
 
       if (DsLog4j.connectionCat.isEnabled(Level.DEBUG)) {
@@ -576,14 +479,7 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
       }
 
     } catch (SocketException se) {
-      ConnectionSAEventBuilder.logConnectionErrorEvent(
-          se.getMessage(),
-          SAEventConstants.TLS,
-          m_bindingInfo.getLocalAddress(),
-          m_bindingInfo.getLocalPort(),
-          m_bindingInfo.getRemoteAddress(),
-          m_bindingInfo.getRemotePort(),
-          SAEventConstants.OUT);
+      // TODO saevent-restructure log a ConnectionErrorEvent here
       if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {
         DsLog4j.connectionCat.log(Level.WARN, "DsTlsNBConnection(): Socket Exception: ", se);
       }
@@ -614,14 +510,7 @@ public class DsTlsNBConnection extends DsTcpNBConnection {
         }
       }
       Exception rootException = new Exception(th);
-      ConnectionSAEventBuilder.logTLSConnectionErrorEvent(
-          rootException.getMessage(),
-          m_channel.socket().getLocalAddress(),
-          m_channel.socket().getLocalPort(),
-          m_channel.socket().getInetAddress(),
-          m_channel.socket().getPort(),
-          SAEventConstants.OUT,
-          SAEventConstants.TLS_HANDSHAKE_FAILED);
+      // TODO saevent-restructure log a TLSConnectionErrorEvent here
       if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {
         DsLog4j.connectionCat.log(Level.WARN, "DsTlsNBConnection(): I/O Exception: ", e);
       }

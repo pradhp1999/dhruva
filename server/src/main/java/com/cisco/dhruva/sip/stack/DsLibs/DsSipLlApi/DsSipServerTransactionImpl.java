@@ -3,40 +3,9 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipCancelMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipDialogID;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipExpiresHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipPRACKMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRSeqHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequireHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRouteFixInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransactionKey;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipUnsupportedHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerMgr;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerTask;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageStatistics;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsUnitOfWork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsWorkQueue;
 import com.cisco.dhruva.util.cac.SIPSessions;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -1084,29 +1053,19 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           // if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_INITIAL);
           // break;
         case DS_CALLING:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_CALLING);
           calling(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_CALLING);
           break;
         case DS_PROCEEDING:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_PROCEEDING);
           proceeding(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_PROCEEDING);
           break;
         case DS_COMPLETED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_COMPLETED);
           completed(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_COMPLETED);
           break;
         case DS_CONFIRMED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_CONFIRMED);
           confirmed(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_CONFIRMED);
           break;
         case DS_TERMINATED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_TEMINATED);
           terminated(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_TEMINATED);
           break;
         default:
           break;
@@ -2105,7 +2064,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       }
       switch (type) {
         case (CB_ACK):
-          if (DsPerf.ON) DsPerf.start(DsPerf.CB_ACK);
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_ACK: ");
             cbCat.debug(m_key);
@@ -2127,7 +2085,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
 
           cb.ack(DsSipServerTransactionImpl.this, (DsSipAckMessage) request);
           request = null;
-          if (DsPerf.ON) DsPerf.stop(DsPerf.CB_ACK);
           break;
         case (CB_CANCEL):
           if (cbCat.isEnabled(Level.DEBUG)) {

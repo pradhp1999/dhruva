@@ -9,7 +9,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipURIGenericEncoder;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -275,7 +274,6 @@ public class DsURI implements Cloneable, Serializable, DsSipElementListener, DsS
    * @throws IOException if there is an error while writing to the output stream.
    */
   public void write(OutputStream out) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.URI_WRITE);
     DsByteString bs = null;
     bs = getName();
     if (bs != null) {
@@ -283,7 +281,6 @@ public class DsURI implements Cloneable, Serializable, DsSipElementListener, DsS
     }
     out.write(B_COLON);
     writeValue(out);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.URI_WRITE);
   }
 
   /**
@@ -430,8 +427,6 @@ public class DsURI implements Cloneable, Serializable, DsSipElementListener, DsS
   // todo finish this!!!
   public void writeEncoded(OutputStream out, DsTokenSipMessageDictionary md) throws IOException {
 
-    if (DsPerf.ON) DsPerf.start(DsPerf.URI_WRITE);
-
     DsTokenSipURIGenericEncoder uriEncoding = new DsTokenSipURIGenericEncoder(this);
     out.write(uriEncoding.getFlags());
 
@@ -442,7 +437,6 @@ public class DsURI implements Cloneable, Serializable, DsSipElementListener, DsS
     }
     out.write(B_COLON);
     writeValue(out);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.URI_WRITE);
   }
 
   public void writeEncodedParameters(OutputStream out, DsTokenSipMessageDictionary md)

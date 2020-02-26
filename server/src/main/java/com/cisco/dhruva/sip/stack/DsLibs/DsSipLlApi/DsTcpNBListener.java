@@ -4,12 +4,12 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.NetObjectsFactory;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
-import java.io.*;
+import java.io.IOException;
 import java.net.*;
-import java.nio.channels.*;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import org.apache.logging.log4j.Level;
 
 /**
@@ -166,15 +166,7 @@ public class DsTcpNBListener extends DsTcpListener implements DsSelectable {
     connection.setTimeout(m_IncomingSocketTimeout);
     m_ConnectionTable.put(connection);
     // Notify the acceptance of tcp connection
-    ConnectionSAEventBuilder.logConnectionEvent(
-        SAEventConstants.CONNECT,
-        SAEventConstants.TCP,
-        SAEventConstants.IN,
-        socket.getLocalAddress(),
-        socket.getLocalPort(),
-        socket.getRemoteInetAddress(),
-        socket.getRemotePort());
-
+    // TODO saevent-restructure add a ConnectionEvent here
     return connection;
   }
 

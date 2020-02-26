@@ -4,11 +4,9 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.NetObjectsFactory;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.SocketException;
 import org.apache.logging.log4j.Level;
 
 /**
@@ -161,14 +159,7 @@ public class DsTlsConnection extends DsTcpConnection {
       }
       m_bindingInfo.setNetwork(network);
       m_bindingInfo.updateBindingInfo(m_socket);
-      ConnectionSAEventBuilder.logConnectionEvent(
-          SAEventConstants.CONNECT,
-          SAEventConstants.TLS,
-          SAEventConstants.OUT,
-          m_socket.getLocalAddress(),
-          m_socket.getLocalPort(),
-          m_socket.getRemoteInetAddress(),
-          m_socket.getRemotePort());
+      // TODO saevent-restructure add a ConnectionEvent here
       // Notify Tls connection open
       m_bindingInfo.setLocalAddress(m_socket.getLocalAddress());
       tcpOutStream = m_socket.getOutputStream();
@@ -189,26 +180,9 @@ public class DsTlsConnection extends DsTcpConnection {
         if (m_socket != null) {
           socketLocalAddress = m_socket.getLocalAddress();
         }
-        localAddress =
-            ConnectionSAEventBuilder.getDefaultLocalAddress(
-                socketLocalAddress, m_bindingInfo.getLocalAddress(), lInetAddress);
-        ConnectionSAEventBuilder.logConnectionErrorEvent(
-            e.getMessage(),
-            SAEventConstants.TLS,
-            localAddress,
-            m_bindingInfo.getLocalPort(),
-            m_bindingInfo.getRemoteAddress(),
-            m_bindingInfo.getRemotePort(),
-            SAEventConstants.OUT);
+        // TODO saevent-restructure log a ConnectionErrorEvent here
       } else {
-        ConnectionSAEventBuilder.logConnectionErrorEvent(
-            e.getMessage(),
-            SAEventConstants.TLS,
-            lInetAddress,
-            lPort,
-            anInetAddress,
-            aPortNo,
-            SAEventConstants.OUT);
+        // TODO saevent-restructure log a ConnectionErrorEvent here too
       }
 
       // REFACTOR

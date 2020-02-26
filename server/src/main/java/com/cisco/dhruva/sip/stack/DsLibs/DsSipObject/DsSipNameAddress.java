@@ -8,7 +8,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -220,7 +219,6 @@ public class DsSipNameAddress
    * @return the cloned object
    */
   public Object clone() {
-    if (DsPerf.ON) DsPerf.start(DsPerf.CLONE_NAME_ADDR);
     DsSipNameAddress address = null;
 
     try {
@@ -232,7 +230,6 @@ public class DsSipNameAddress
       address.m_URI = (DsURI) m_URI.clone();
     }
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.CLONE_NAME_ADDR);
     return address;
   }
 

@@ -2,23 +2,10 @@
 // All rights reserved.
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsPreParseData;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIoThreadPool;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageStatistics;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSocket;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import gnu.trove.TLinkable;
 import gnu.trove.TLinkedList;
 import java.io.IOException;
@@ -124,15 +111,8 @@ public class DsTcpConnection extends DsAbstractConnection {
       // localport is coming zero if we use bindinginfo so socket is
       // used and if we use socket for local ip its coming zero so
       // bindinginfo is used
-      ConnectionSAEventBuilder.logConnectionEvent(
-          SAEventConstants.DISCONNECT,
-          SAEventConstants.TLS,
-          null,
-          m_bindingInfo.getLocalAddress(),
-          localPort,
-          m_bindingInfo.getRemoteAddress(),
-          m_bindingInfo.getRemotePort());
 
+      // TODO saevent-restructure log a connectionEvent here to notify closed socket
       m_socket = null;
     }
   }
@@ -263,18 +243,7 @@ public class DsTcpConnection extends DsAbstractConnection {
       m_threshold = network.getThreshold();
 
     } catch (IOException e) {
-      ConnectionSAEventBuilder.logConnectionErrorEvent(
-          e.getMessage(),
-          SAEventConstants.TCP,
-          m_bindingInfo.getLocalAddress(),
-          m_bindingInfo.getLocalPort(),
-          m_bindingInfo.getRemoteAddress(),
-          m_bindingInfo.getRemotePort(),
-          SAEventConstants.OUT);
-      // REFACTOR
-      //      DsProxyTcpConnectException tcpConnectException =
-      //          new DsProxyTcpConnectException(e, m_bindingInfo);
-      //      e.addSuppressed(tcpConnectException);
+      // TODO saevent-restructure log a ConnectionErrorEvent here
       throw e;
     }
   }

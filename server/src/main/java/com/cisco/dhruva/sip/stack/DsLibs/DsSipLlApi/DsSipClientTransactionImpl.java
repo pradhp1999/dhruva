@@ -913,30 +913,20 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       try {
         switch (m_stateTable.getState()) {
           case DS_INITIAL:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_INITIAL);
             initial(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_INITIAL);
             break;
           case DS_CALLING:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_CALLING);
             calling(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_CALLING);
             break;
           case DS_PROCEEDING:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_PROCEEDING);
             proceeding(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_PROCEEDING);
             break;
           case DS_COMPLETED:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_COMPLETED);
             completed(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_COMPLETED);
             break;
 
           case DS_TERMINATED:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_TEMINATED);
             terminated(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_TEMINATED);
             break;
           default:
             break;

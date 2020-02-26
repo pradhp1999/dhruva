@@ -6,7 +6,6 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ListIterator;
@@ -126,12 +125,10 @@ public abstract class DsSipParametricHeader extends DsSipHeader {
    *     otherwise returns <code>null</code>.
    */
   public DsByteString getParameter(DsByteString name) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_GET_PARAM);
     DsByteString value = null;
     if (m_paramTable != null && !m_paramTable.isEmpty()) {
       value = m_paramTable.get(name);
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_GET_PARAM);
     return value;
   }
 
@@ -145,12 +142,10 @@ public abstract class DsSipParametricHeader extends DsSipHeader {
    *     otherwise returns <code>null</code>.
    */
   public DsByteString getParameter(String name) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_GET_PARAM);
     DsByteString value = null;
     if (m_paramTable != null && !m_paramTable.isEmpty()) {
       value = m_paramTable.get(name);
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_GET_PARAM);
     return value;
   }
 
@@ -162,12 +157,10 @@ public abstract class DsSipParametricHeader extends DsSipHeader {
    * @param value the value of the parameter
    */
   public void setParameter(DsByteString name, DsByteString value) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_SET_PARAM);
     if (m_paramTable == null) {
       m_paramTable = new DsParameters(getStartsWithDelimeter());
     }
     m_paramTable.put(name, value);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_SET_PARAM);
   }
 
   /**
@@ -184,11 +177,9 @@ public abstract class DsSipParametricHeader extends DsSipHeader {
    * @param name the name of the parameter that needs to be removed
    */
   public void removeParameter(DsByteString name) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_REM_PARAM);
     if (m_paramTable != null) {
       m_paramTable.remove(name);
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_REM_PARAM);
   }
 
   public int getParamCount() {
