@@ -111,9 +111,6 @@ publish:
     modules:
     - client
 
-extrafiles:
-    - 'jar-executor-tool/target/dhruva-jar-executor-tool-1.0-SNAPSHOT.jar'
-
 security-automation:
   credentials-id: "hw-security.gen"
   ipcentral-id: 192709214
