@@ -7,10 +7,22 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.SubjectAltName;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipMime.DsMimeEntity;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.ReadOnly.DsSipReadOnlyElement;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.ReadOnly.DsSipURIElements;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipElementListener;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipDictionary;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipHeaderDictionary;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
 import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessionID;
 import com.cisco.dhruva.util.cac.SIPSessions;
@@ -19,7 +31,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
@@ -191,22 +208,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   }
 
   /**
-   * Parses and Creates a DsSipMessage from the specified <code>in</code> input stream.
-   *
-   * @param in the input stream where from bytes need to be read for parsing SIP message.
-   * @return the parsed SIP Message.
-   * @throws DsSipParserException if there is an error while parsing the specified byte array as a
-   *     SIP Message.
-   * @throws DsSipParserListenerException if there is an error condition detected by the SIP Message
-   *     listener, while parsing.
-   * @throws IOException if there is an error while reading from the specified input stream.
-   */
-  public static DsSipMessage createMessage(DsSipFrameStream in)
-      throws DsSipParserListenerException, DsSipParserException, IOException {
-    return DsSipDefaultMessageFactory.getInstance().createMessage(in);
-  }
-
-  /**
    * Parses and Creates a DsSipMessage from the specified <code>bytes</code> byte array. If the
    * specified flag <code>createKey</code> is <code>true</code> then the message key will also be
    * parsed while parsing the message. Similarly if the specified flag <code>validate</code> is
@@ -231,28 +232,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
       throws DsSipParserListenerException, DsSipParserException {
     return DsSipDefaultMessageFactory.getInstance()
         .createMessage(bytes, offset, count, createKey, validate);
-  }
-
-  /**
-   * Parses and Creates a DsSipMessage from the specified <code>in</code> input stream. If the
-   * specified flag <code>createKey</code> is <code>true</code> then the message key will also be
-   * parsed while parsing the message. Similarly if the specified flag <code>validate</code> is
-   * <code>true</code> then the parsed message will also be validated.
-   *
-   * @param in the input stream where from bytes need to be read for parsing SIP message.
-   * @param createKey if <code>true</code>, the message key will also be generated while parsing the
-   *     message.
-   * @param validate if <code>true</code> then the message will also be validated after parsing.
-   * @return the parsed SIP Message.
-   * @throws DsSipParserException if there is an error while parsing the specified byte array as a
-   *     SIP Message.
-   * @throws DsSipParserListenerException if there is an error condition detected by the SIP Message
-   *     listener, while parsing.
-   * @throws IOException if there is an error while reading from the specified input stream.
-   */
-  public static DsSipMessage createMessage(DsSipFrameStream in, boolean createKey, boolean validate)
-      throws DsSipParserListenerException, DsSipParserException, IOException {
-    return DsSipDefaultMessageFactory.getInstance().createMessage(in, createKey, validate);
   }
 
   /** Default constructor. */
@@ -287,81 +266,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
      The following methods were moved to DsSipMessageBase:
       public abstract int getMethodID();
       public abstract void writeStartLine(OutputStream out) throws IOException;
-  */
-  /**
-   * Serializes the binary encoded start line of this message to the specified <code>out</code>
-   * output stream. This method must be implemented by the subclass.
-   *
-   * @param out the output stream where the start line needs to be serialized.
-   * @throws IOException if there is an error while writing to the output stream.
-   */
-  public abstract void writeEncodedStartLine(OutputStream out) throws IOException;
-
-  /* CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
-     The following methods were moved to DsSipMessageBase:
-      public abstract boolean equalsStartLine(DsSipMessage message);
-  */
-
-  /* CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
-     The following methods were moved to DsMimeEntity:
-      public final void addHeader(DsSipHeaderInterface header)
-      public final void addHeader(DsSipHeaderInterface header, boolean start)
-      public final void addHeader(DsSipHeaderInterface header, boolean start, boolean clone)
-      public final void addHeaders(DsSipHeaderList headers)
-      public final void addHeaders(DsSipHeaderList headers, boolean start)
-      public final void addHeaders(DsSipHeaderList headers, boolean start, boolean clone)
-      public final DsSipHeaderInterface removeHeader(DsByteString header)
-      public final DsSipHeaderInterface removeHeader(DsByteString header, boolean start)
-      public final DsSipHeaderInterface removeHeader(int id)
-      public DsSipHeaderInterface removeHeader(int id, boolean start)
-      public final DsSipHeaderInterface removeHeader(DsSipHeaderInterface header)
-      public final DsSipHeaderInterface removeHeaders(int id)
-      public final DsSipHeaderInterface removeHeaders(DsByteString name)
-      public final DsSipHeaderInterface updateHeader(DsSipHeaderInterface header)
-      public final DsSipHeaderInterface updateHeader(DsSipHeaderInterface header, boolean clone)
-      public final DsSipHeaderInterface updateHeaders(DsSipHeaderList headers)
-      public final DsSipHeaderInterface updateHeaders(DsSipHeaderList headers, boolean clone)
-      public final boolean hasHeaders(DsByteString name)
-      public final boolean hasHeaders(int id)
-      public final DsSipHeaderInterface getHeader(int id)
-      public final DsSipHeaderInterface getHeader(int id, boolean start)
-      public final DsSipHeaderInterface getHeader(DsByteString name)
-      public final DsSipHeaderInterface getHeader(DsByteString name, boolean start)
-      public final DsSipHeader getHeaderValidate(int id)
-      public final DsSipHeader getHeaderValidate(int id, boolean start)
-      public final DsSipHeader getHeaderValidate(DsByteString name)
-      public final DsSipHeader getHeaderValidate(DsByteString name, boolean start)
-      public DsSipHeader getHeaderValidate(int id, DsByteString name, boolean start)
-      public final DsSipHeaderList getHeaders(int id)
-      public DsSipHeaderList getHeaders(DsByteString name)
-      public DsSipHeaderList getHeadersValidate(int id, int num, boolean start)
-      public DsSipHeaderList getHeadersValidate(DsByteString name, int num, boolean start)
-      public DsSipHeaderList getHeadersValidate(int id)
-      public DsSipHeaderList getHeadersValidate(DsByteString name)
-      public DsSipHeaderList getHeaders()
-      public boolean hasHeaders()
-      public Map getHeadersMap()
-  */
-
-  //////////////////////////////////////////////////////////////////////////////////
-  //  The following set of methods are convenience functions that can be used
-  //  in place of the more general getHeader() and getHeaders() method.
-  //////////////////////////////////////////////////////////////////////////////////
-
-  /* CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
-     The following methods were moved to DsSipMessageBase:
-      public DsSipHeaderInterface getContactHeader()
-      public DsSipContactHeader getContactHeaderValidate()
-      public DsSipHeaderList getContactHeaders()
-      public DsSipHeaderInterface getContentTypeHeader()
-      public DsSipContentTypeHeader getContentTypeHeaderValidate()
-      public DsSipHeaderInterface getFromHeader()
-      public DsSipFromHeader getFromHeaderValidate()
-      public DsSipHeaderInterface getToHeader()
-      public DsSipToHeader getToHeaderValidate()
-      public DsSipHeaderInterface getViaHeader()
-      public DsSipViaHeader getViaHeaderValidate()
-      public DsSipHeaderList getViaHeaders()
   */
 
   /**
@@ -410,24 +314,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
       m_lCSeq = cseq;
     }
   }
-
-  /* CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
-     The following methods were moved to DsMimeEntity:
-      public final int getContentLength()
-      public DsByteString getBody()
-      public void setBody(DsByteString body, DsByteString type)
-      public void setBody (byte[] body, DsByteString type )
-      public DsByteString getBodyType()
-      public int getBodyLength()
-      public boolean hasBody()
-  */
-
-  /* CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
-     The following methods were moved to DsSipMessageBase:
-      public int getVersionHigh()
-      public int getVersionLow()
-      public void setVersion(int high, int low)
-  */
 
   /**
    * For an outgoing message, retrieves the destination address. For an incoming message retrieves
@@ -748,60 +634,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
     return (!isRequest());
   }
 
-  public void writeEncodedBody(OutputStream out) throws IOException {
-    try {
-      DsSipContentTypeHeader contentType = this.getContentTypeHeaderValidate();
-
-      if (contentType != null) {
-        if (contentType.hasParameters()) {
-          contentType.writeEncoded(out, m_messageDictionary);
-        }
-
-        if (contentType.getSubType().compareTo(DsSipConstants.BS_SDP) != 0) {
-          out.write(DsTokenSDPMsgParser.TOKEN_SIP_CONTENT_GENERIC);
-          if (contentType.hasParameters() == false) {
-            m_messageDictionary.getEncoding(contentType.getMediaType()).write(out);
-          }
-
-          int contentIndex = 0;
-          int bodyLength = getBodyLength();
-
-          while (contentIndex < bodyLength) {
-            out.write(DsTokenSipConstants.TOKEN_SIP_MESSAGE_BODY_CONTENT);
-
-            int bytesRemaining = bodyLength - contentIndex;
-            int bytesToWrite =
-                (bytesRemaining > DsTokenSipConstants.GENERIC_CONTENT_MAX_SIZE)
-                    ? DsTokenSipConstants.GENERIC_CONTENT_MAX_SIZE
-                    : bytesRemaining;
-
-            if (Log.isDebugEnabled())
-              Log.debug("Writing raw message body, number of bytes " + bytesToWrite);
-            out.write(bytesToWrite);
-            out.write(getBody().toByteArray(contentIndex, bytesToWrite));
-            contentIndex += bytesToWrite;
-          }
-        } else {
-          out.write(DsTokenSDPMsgParser.TOKEN_SIP_CONTENT_SDP_DEPRECATED);
-          // REFACTOR
-          //          try {
-          //            DsSdpMsg messageBody = new DsSdpMsg(getBody().toByteArray());
-          //
-          //            DsTokenSipSDPEncoder sdpEncoder = new DsTokenSipSDPEncoder(messageBody);
-          //            sdpEncoder.write(out, m_messageDictionary);
-          //
-          //          } catch (DsSdpMsgException e) {
-          //            Log.error("Exception while writing SDP Content", e);
-          //            throw new IOException(e.getMessage());
-          //          }
-        }
-      }
-    } catch (DsSipParserException e) {
-    } catch (DsSipParserListenerException e) {
-    } catch (IOException e) {
-    }
-  }
-
   /**
    * Writes the message to the output stream, and then calls flush().
    *
@@ -809,6 +641,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @throws IOException if there is an exception in writing to the stream
    */
   public void write(OutputStream out) throws IOException {
+    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_WRITE);
     if (m_bFinalized) {
       m_strValue.write(out);
     } else {
@@ -818,34 +651,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
       writeHeadersAndBody(out);
     }
     out.flush();
-  }
-
-  /**
-   * Writes the message to the output stream, and then calls flush().
-   *
-   * @param out the output stream
-   * @throws IOException if there is an exception in writing to the stream
-   */
-  public void writeEncoded(DsTokenSipDictionary dictionary, OutputStream out) throws IOException {
-    if (m_bFinalized) {
-      m_strValue.write(out);
-    } else {
-      ensureMaxForwards();
-      m_messageDictionary = new DsTokenSipMessageDictionary(dictionary);
-      writeEncodedStartLine(out);
-      writeEncodedHeaders(out);
-
-      if (getBodyLength() != 0) {
-        if (Log.isDebugEnabled())
-          Log.debug(
-              "found a message body.  It's length is "
-                  + getBody().length()
-                  + " and the value is <"
-                  + getBody()
-                  + ">");
-        writeEncodedBody(out);
-      }
-    }
+    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_WRITE);
   }
 
   /**
@@ -854,6 +660,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @return a deep clone of this object
    */
   public Object clone() {
+    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_CLONE);
     DsSipMessage clone = null;
     try {
       clone = (DsSipMessage) super.clone();
@@ -897,6 +704,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
         clone.headerType[len] = subList;
       }
     } // _if
+    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_CLONE);
     return clone;
   }
 
@@ -941,45 +749,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
       public byte[] toByteArray()
       public DsByteString toByteString()
   */
-
-  /**
-   * Returns the whole message as a DsByteString. A new DsByteString object is created every time
-   * unless this message is finalized. If finalised, then we should have the whole message as
-   * DsByteString already. In that case, that DsByteString object will be returned. To finalise the
-   * message, call {@link #setFinalised(boolean)} method.
-   *
-   * @return this message as a byte string representation.
-   */
-  public DsByteString toEncodedByteString(DsTokenSipDictionary dictionary) {
-    if (Log.isDebugEnabled()) Log.debug("Entering toEncodedByteString() NOW");
-    // If we have finalized all the individual items (headers and body)
-    // Then we should have the whole message in m_strValue object
-    if (m_bFinalized) {
-      return m_strValue;
-    }
-    ByteBuffer buffer = ByteBuffer.newInstance(1024);
-    ByteBuffer dictionaryBuffer = null;
-    byte[] messageBytes;
-    try {
-      debugIndex = 0;
-      dictionaryBuffer = ByteBuffer.newInstance(1024);
-      writeEncoded(dictionary, buffer);
-      // m_messageDictionary.dump(System.out);
-      // m_messageDictionary.dumpBytes(System.out);
-
-      messageBytes = buffer.toByteArray();
-
-      m_messageDictionary.write(dictionaryBuffer);
-      dictionaryBuffer.write(messageBytes);
-    } catch (IOException e) {
-      // We may never get this exception as we are writing to the
-      // byte buffer. Even if we enter here, it may be possible that
-      // some of the bytes are already written to this buffer, so
-      // just return those bytes only.
-    }
-
-    return dictionaryBuffer.getByteString();
-  }
 
   /**
    * Returns a String representation of this message.
@@ -1063,6 +832,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    */
   public final DsSipTransactionKey createKey() {
     // we probably want 2 key timers here
+    if (DsPerf.ON) DsPerf.start(DsPerf.TRANS_KEY);
 
     boolean created = false;
     DsSipViaHeader via = null;
@@ -1079,6 +849,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
           key.setCSeqMethod(m_strCSeq);
           m_key = key;
           created = true;
+          if (DsPerf.ON) DsPerf.stop(DsPerf.TRANS_KEY);
         }
       } catch (Exception exc) {
         if (DsLog4j.messageCat.isEnabled(Level.ERROR)) {
@@ -1128,6 +899,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
               "Exception while creating Classic Key. Message-[" + strValue.toString() + "]\n", exc);
         }
       }
+      if (DsPerf.ON) DsPerf.stop(DsPerf.TRANS_KEY);
     }
 
     return m_key;
@@ -1159,12 +931,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
     if (mtu == Integer.MAX_VALUE) return false;
 
     DsByteString strValue;
-
-    if (isEncoded()) {
-      strValue = toEncodedByteString(shouldEncode());
-    } else {
-      strValue = toByteString();
-    }
+    strValue = toByteString();
 
     if ((mtu - strValue.length()) < 200) {
       return true;
@@ -1347,141 +1114,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
       private void writeHeaders(OutputStream out) throws IOException
   */
 
-  /**
-   * Serializes the headers in this message to the specified <code>out</code> output stream.
-   *
-   * @param out the output stream where the headers need to be serialized.
-   * @throws IOException if there is an error while writing to the output stream.
-   */
-  private void writeEncodedHeaders(OutputStream out) throws IOException {
-    int len = headerType.length - 1;
-    // int len = DsSipConstants.MAX_KNOWN_HEADER;
-    // TJR -  DsSipHeaderInterface l = null;
-
-    DsSipHeaderInterface l = null;
-
-    for (int type = 0; type < len; type++) {
-      switch (type) {
-        case CSEQ:
-        case CALL_ID:
-        case CONTENT_LENGTH:
-          break;
-        default:
-          if (DsTokenSipHeaderDictionary.isBlockedHeader(type) == false) {
-            writeEncodedHeaderType(type, out);
-          } else {
-            if (Log.isDebugEnabled()) Log.debug("Header " + type + " is blocked");
-          }
-          break;
-      }
-    } // _for
-    // Write in-built headers
-
-    writeEncodedCallId(out);
-    writeEncodedCSeq(out);
-    writeEncodedContentLength(out);
-
-    if (Log.isDebugEnabled()) Log.debug("At the last header block");
-
-    DsSipHeaderList list = (DsSipHeaderList) headerType[len];
-    if (null != list) {
-      l = (DsSipHeaderInterface) list.getFirst();
-
-      if (Log.isDebugEnabled())
-        Log.debug(list.size() + " number of headers present in the last header block");
-
-      while (l != null) {
-        writeEncodedHeaderType(l, out);
-        l = (DsSipHeaderInterface) l.getNext();
-      }
-    }
-    // headers are finished - add the empty header to separate body
-  }
-
-  private void writeEncodedHeaderType(int type, OutputStream out) throws IOException {
-    try {
-      if (isSingular(type)) {
-        DsSipHeader header = getHeaderValidate(type);
-
-        if (null != header) {
-          if (DsTokenSipHeaderDictionary.isBlockedHeader(header.getHeaderID()) == false) {
-            writeEncodedSingleHeader(header, out);
-          }
-        } // _if
-      } else // list of headers
-      {
-        DsSipHeaderList list = getHeadersValidate(type);
-        if (list == null) {
-          return;
-        }
-
-        DsSipHeader header;
-        Iterator i = list.iterator();
-
-        while (i.hasNext()) {
-          header = (DsSipHeader) i.next();
-          if (DsTokenSipHeaderDictionary.isBlockedHeader(header.getHeaderID()) == false) {
-            writeEncodedSingleHeader(header, out);
-          }
-        }
-      }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  private void writeEncodedHeaderType(DsSipHeaderInterface l, OutputStream out) {
-    try {
-      switch (l.getForm()) {
-        case DsSipHeaderInterface.HEADER:
-          if (DsTokenSipHeaderDictionary.isBlockedHeader(((DsSipHeader) l).getHeaderID())
-              == false) {
-            writeEncodedSingleHeader((DsSipHeader) l, out);
-          }
-          break;
-        case DsSipHeaderInterface.STRING:
-          DsSipHeaderString str = (DsSipHeaderString) l;
-          DsSipHeader myHeader = DsSipHeader.newInstance(l.getHeaderID(), l.getToken());
-          myHeader.parse(str.data(), str.offset(), str.length());
-          if (DsTokenSipHeaderDictionary.isBlockedHeader(myHeader.getHeaderID()) == false) {
-            writeEncodedSingleHeader(myHeader, out);
-            ((DsSipHeaderList) headerType[headerType.length - 1]).replace(l, myHeader);
-          }
-          break;
-        case DsSipHeaderInterface.LIST:
-          ((DsSipHeaderList) l).validate();
-
-          DsSipHeaderList headerList = (DsSipHeaderList) l;
-          DsSipHeader listHeader = (DsSipHeader) headerList.getFirst();
-
-          while (listHeader != null) {
-            if (DsTokenSipHeaderDictionary.isBlockedHeader(listHeader.getHeaderID()) == false) {
-              writeEncodedSingleHeader(listHeader, out);
-            }
-            listHeader = (DsSipHeader) listHeader.getNext();
-          }
-          break;
-        default:
-          throw new DsSipParserException(
-              "Invalid header interface type returned in writeEncodedHeaderType");
-      }
-    } catch (Exception e) {
-      Log.error("Error writing non-preferred headers", e);
-    }
-  }
-
-  private final void writeEncodedSingleHeader(DsSipHeader header, OutputStream out)
-      throws IOException {
-    if (header.getHeaderID() != UNKNOWN_HEADER) {
-      header.writeEncoded(out, m_messageDictionary);
-    } else {
-      out.write(DsTokenSipConstants.TOKEN_SIP_UNKNOWN_HEADER);
-      m_messageDictionary.getEncoding(header.getToken()).write(out);
-      m_messageDictionary.getEncoding(header.getValue()).write(out);
-    }
-  }
-
   /* CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
      The following methods were moved to DsSipMessageBase:
       public DsByteString getToTag()
@@ -1533,34 +1165,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
     }
   }
 
-  public void writeEncodedCallId(OutputStream out) throws IOException {
-    int seperator = this.m_strCallId.indexOf('@');
-
-    if (seperator > 0) {
-      // pick client or server style
-
-      try {
-        if (seperator == 8) {
-          byte[] clientStyle =
-              DsHexEncoding.fromHex(m_strCallId.substring(0, seperator).toString());
-          out.write(DsTokenSipConstants.TOKEN_SIP_FIXED_FORMAT_CALLID1_HEADER);
-          out.write(clientStyle);
-          m_messageDictionary.getEncoding((this.m_strCallId.substring(seperator + 1))).write(out);
-          return;
-        }
-      } catch (DsException e) {
-        // wasn't a valid hex string
-      }
-
-      out.write(DsTokenSipConstants.TOKEN_SIP_FIXED_FORMAT_CALLID2_HEADER);
-      m_messageDictionary.getEncoding((this.m_strCallId.substring(0, seperator))).write(out);
-      m_messageDictionary.getEncoding((this.m_strCallId.substring(seperator + 1))).write(out);
-    } else {
-      out.write(DsTokenSipConstants.TOKEN_SIP_FIXED_FORMAT_CALLID2_HEADER);
-      m_messageDictionary.getEncoding(this.m_strCallId).write(out);
-    }
-  }
-
   /**
    * Serializes the CSeq header to the specified <code>out</code> output stream.
    *
@@ -1578,41 +1182,10 @@ public abstract class DsSipMessage extends DsSipMessageBase {
     BS_EOH.write(out);
   }
 
-  public void writeEncodedCSeq(OutputStream out) throws IOException {
-    out.write(DsTokenSipConstants.TOKEN_SIP_FIXED_FORMAT_CSEQ_HEADER);
-    DsTokenSipInteger.write32Bit(out, this.m_lCSeq);
-
-    // todo Is it necessary we look at the CSeq method?   Can we check the transaction type???
-    int methodId = DsTokenSipMethodDictionary.getEncoding(getMethodID());
-
-    if (methodId != DsTokenSipMethodDictionary.UNKNOWN) {
-      out.write(methodId);
-    } else {
-      // todo why can't I get the method name from response objects???
-      if ((getMethodID() == DsSipConstants.UNKNOWN) && (isRequest())) {
-
-        methodId = DsTokenSipMethodDictionary.getEncoding(((DsSipRequest) this).getMethod());
-        out.write(methodId);
-
-        if (methodId == DsTokenSipMethodDictionary.UNKNOWN) {
-          m_messageDictionary.getEncoding(((DsSipRequest) this).getMethod()).write(out);
-        }
-      } else {
-        out.write(DsTokenSipMethodDictionary.UNKNOWN);
-        m_messageDictionary.getEncoding(this.m_strCSeq).write(out);
-      }
-    }
-  }
-
   /* CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
      The following methods were moved to DsMimeEntity:
       public void writeContentLength(OutputStream out) throws IOException
   */
-
-  public static void writeEncodedContentLength(OutputStream out) throws IOException {
-    // do nothing
-    // todo do something???
-  }
 
   /* CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
      The following methods were moved to DsSipMessageBase:
@@ -1790,7 +1363,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   private boolean m_canEncode = false;
   private boolean m_isEncoded = false;
   private DsTokenSipMessageDictionary m_messageDictionary = null;
-  int debugIndex = 0;
   protected Calendar m_timestamp;
 
   /**
