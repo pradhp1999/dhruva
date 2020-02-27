@@ -2,7 +2,10 @@
 // All rights reserved.
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsPreParseData;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
@@ -642,29 +645,8 @@ public class DsTcpConnection extends DsAbstractConnection {
         try {
           DsPreParseData ppData = DsSipMsgParser.preParse(msgBytes);
 
-          if (ppData.isRequest()) {
-            DsMessageStatistics.logRequest(
-                DsMessageLoggingInterface.REASON_STREAM_CLOSED,
-                DsMessageLoggingInterface.DIRECTION_OUT,
-                msgBytes,
-                DsSipMsgParser.getMethod(ppData.getMethod()),
-                m_bindingInfo);
-          } else {
-            DsMessageStatistics.logResponse(
-                DsMessageLoggingInterface.REASON_STREAM_CLOSED,
-                DsMessageLoggingInterface.DIRECTION_OUT,
-                msgBytes,
-                ppData.getResponseCode().parseInt(),
-                DsSipConstants.UNKNOWN,
-                m_bindingInfo);
-          }
-        } catch (DsSipParserException pe) {
-          DsMessageStatistics.logRequest(
-              DsMessageLoggingInterface.REASON_STREAM_CLOSED,
-              DsMessageLoggingInterface.DIRECTION_OUT,
-              msgBytes,
-              DsSipConstants.UNKNOWN,
-              m_bindingInfo);
+        } catch (DsSipParserException ignored) {
+
         }
       }
     } finally {

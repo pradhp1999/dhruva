@@ -315,8 +315,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         initializeTimers();
 
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
 
         // Set timer for all transports
         if (cat.isEnabled(Level.DEBUG)) {
@@ -343,8 +341,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
 
             if (!DsSipTransportType.intern(m_connection.getTransport()).isReliable()) {
               sendCurrentResponse(); // Retransmit the 1xx
-              updateResponseStat(false, false);
-              logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
             }
 
             // Set timer for all transports
@@ -361,12 +357,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
                 DsSipResponse.createResponseBytes(
                     DsSipResponseCode.DS_RESPONSE_GATEWAY_TIMEOUT, m_sipRequest, null, null);
             sendResponse(responseBytes, DsSipResponseCode.DS_RESPONSE_GATEWAY_TIMEOUT);
-            // no need to update stat as the cancel transaction will do it
-            logResponse(
-                DsMessageLoggingInterface.REASON_AUTO,
-                DsSipResponseCode.DS_RESPONSE_GATEWAY_TIMEOUT,
-                m_method,
-                responseBytes);
             execute(DS_ST_IN_T1_EXPIRED);
           }
         }
@@ -379,12 +369,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
                   DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED, m_sipRequest, null, null);
           sendResponse(
               txnCancelledResponseBytes, DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED);
-          // no need to update stat as the cancel transaction will do it
-          logResponse(
-              DsMessageLoggingInterface.REASON_AUTO,
-              DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED,
-              m_method,
-              txnCancelledResponseBytes);
         }
         new ServerTransactionCallback(
                 ServerTransactionCallback.CB_CANCEL, m_cancelMessage, m_serverInterface)
@@ -440,12 +424,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
                   DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED, m_sipRequest, null, null);
           sendResponse(
               txnCancelledResponseBytes, DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED);
-          // no need to update stat as the cancel transaction will do it
-          logResponse(
-              DsMessageLoggingInterface.REASON_AUTO,
-              DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED,
-              m_method,
-              txnCancelledResponseBytes);
         }
         new ServerTransactionCallback(
                 ServerTransactionCallback.CB_CANCEL, m_cancelMessage, m_serverInterface)
@@ -464,8 +442,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
 
             if (!DsSipTransportType.intern(m_connection.getTransport()).isReliable()) {
               sendCurrentResponse();
-              updateResponseStat(true, false);
-              logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
             }
 
             // Set timer for all transports
@@ -478,20 +454,12 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
                 DsSipResponse.createResponseBytes(
                     DsSipResponseCode.DS_RESPONSE_GATEWAY_TIMEOUT, m_sipRequest, null, null);
             sendResponse(responseBytes, DsSipResponseCode.DS_RESPONSE_GATEWAY_TIMEOUT);
-            // no need to update stat as the cancel transaction will do it
-            logResponse(
-                DsMessageLoggingInterface.REASON_AUTO,
-                DsSipResponseCode.DS_RESPONSE_GATEWAY_TIMEOUT,
-                m_method,
-                responseBytes);
             execute(DS_ST_IN_T1_EXPIRED);
           }
         }
         break;
       case DS_STI_RELPROCEEDING | DS_ST_IN_NEXT_CLIENT:
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
       case DS_STI_RELPROCEEDING | DS_ST_IN_IO_EXCEPTION:
         if (m_connection.getNextConnection()) {
           execute(DS_ST_IN_NEXT_CLIENT);
@@ -527,8 +495,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
       case DS_WAIT_PRACK | DS_ST_IN_3TO6XX:
       case DS_STI_RELPROCEEDING | DS_ST_IN_3TO6XX:
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
 
         // Set timer for all transports
         if (cat.isEnabled(Level.DEBUG)) {
@@ -540,8 +506,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
       case DS_COMPLETED | DS_ST_IN_REQUEST:
         // no need to collect stat for the request. TM already did it.
         sendCurrentResponse();
-        updateResponseStat(true, false);
-        logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
         break;
       case DS_COMPLETED | DS_ST_IN_3TO6XX:
         // DG - should possibly be an exception all of the time?
@@ -564,8 +528,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
 
           if (!DsSipTransportType.intern(m_connection.getTransport()).isReliable()) {
             sendCurrentResponse();
-            updateResponseStat(true, false);
-            logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
           }
 
           // Set timer for all transports
@@ -580,8 +542,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
       case DS_COMPLETED | DS_ST_IN_NEXT_CLIENT:
         // m_connection.getResponseConnection();
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
 
         // Set timer for all transports
         if (cat.isEnabled(Level.DEBUG)) {
@@ -617,7 +577,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         //   has a Route
         boolean null_callback = (m_ackMessage.getHeader(DsSipConstants.ROUTE) != null);
 
-        DsMessageStatistics.updateStats(m_ackMessage, false, true);
         new ServerTransactionCallback(
                 ServerTransactionCallback.CB_ACK, m_ackMessage, m_serverInterface)
             .call();
@@ -643,7 +602,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
       case DS_CONFIRMED | DS_ST_IN_T1:
         break;
       case DS_CONFIRMED | DS_ST_IN_ACK:
-        DsMessageStatistics.updateStats(m_ackMessage, true, true);
         m_ackMessage = null;
         break;
       case DS_CONFIRMED | DS_ST_IN_IO_EXCEPTION:
@@ -745,8 +703,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
       // both proxy server itself and UA must do failover. UA alone doing it is not enough.
       // Will implement it together with proxy
       sendCurrentResponse();
-      updateResponseStat(false, false);
-      logResponse(DsMessageLoggingInterface.REASON_REGULAR);
       nullRefs(true);
       releaseConnections();
     } else // non-proxy || x200 extended transaction
@@ -772,8 +728,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         return;
       }
 
-      updateResponseStat(false, false);
-      logResponse(DsMessageLoggingInterface.REASON_REGULAR);
       // use STIX table for endpoint 2XX
       // CAFFEINE 2.0 DEVELOPMENT - Moved to new class DsSipStateMachineTransitions
       m_stateTable.setStateTable(DsSipStateMachineTransitions.STIX_TRANSITIONS);
@@ -807,8 +761,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
       switch (transition) {
         case DS_XCOMPLETED | DS_ST_IN_2XX:
           sendCurrentResponse();
-          updateResponseStat(false, false);
-          logResponse(DsMessageLoggingInterface.REASON_REGULAR);
           break;
         default:
           m_stateTable.throwException(transition);
@@ -818,8 +770,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         case DS_XCOMPLETED | DS_ST_IN_REQUEST:
           // no need to collect stat for the request. TM already did it.
           sendCurrentResponse();
-          updateResponseStat(true, false);
-          logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
           break;
         case DS_XCOMPLETED | DS_ST_IN_2XX:
           // endpoint can not send another 2XX
@@ -840,8 +790,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
 
             if (!DsSipTransportType.intern(m_connection.getTransport()).isReliable()) {
               sendCurrentResponse();
-              updateResponseStat(true, false);
-              logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
             }
 
             // Set timer for all transports
@@ -856,9 +804,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         case DS_XCOMPLETED | DS_ST_IN_NEXT_CLIENT:
           // m_connection.getResponseConnection();
           sendCurrentResponse();
-          updateResponseStat(false, false);
-          logResponse(DsMessageLoggingInterface.REASON_REGULAR);
-
           // Set timer for all transports
           if (cat.isEnabled(Level.DEBUG)) {
             debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
@@ -896,14 +841,11 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
           break;
         case DS_XCONFIRMED | DS_ST_IN_2XX:
           sendCurrentResponse();
-          updateResponseStat(false, false);
-          logResponse(DsMessageLoggingInterface.REASON_REGULAR);
           break;
         case DS_XCOMPLETED | DS_ST_IN_ACK:
           // it is OK to null our reference to the user code if the ACK message
           //   has a Route
           boolean null_callback = (m_ackMessage.getHeader(DsSipConstants.ROUTE) != null);
-          DsMessageStatistics.updateStats(m_ackMessage, false, true);
           new ServerTransactionCallback(
                   ServerTransactionCallback.CB_ACK, m_ackMessage, m_serverInterface)
               .call();
@@ -927,7 +869,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
           //   has a Route
           boolean null_callback = (m_ackMessage.getHeader(DsSipConstants.ROUTE) != null);
 
-          DsMessageStatistics.updateStats(m_ackMessage, false, true);
           new ServerTransactionCallback(
                   ServerTransactionCallback.CB_ACK, m_ackMessage, m_serverInterface)
               .call();
@@ -953,7 +894,6 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         case DS_XCONFIRMED | DS_ST_IN_T1:
           break;
         case DS_XCONFIRMED | DS_ST_IN_ACK:
-          DsMessageStatistics.updateStats(m_ackMessage, true, true);
           m_ackMessage = null;
           break;
         case DS_XCONFIRMED | DS_ST_IN_IO_EXCEPTION:

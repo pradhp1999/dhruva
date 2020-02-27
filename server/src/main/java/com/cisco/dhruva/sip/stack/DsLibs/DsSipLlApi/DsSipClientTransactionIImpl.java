@@ -9,10 +9,11 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException.TrackingExce
 import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessionID;
 import com.cisco.dhruva.util.cac.SIPSessions;
-import java.io.IOException;
-import java.net.UnknownHostException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
 
 /**
  * Implements the client side of the low level INVITE state machine.
@@ -332,14 +333,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
     switch (transition) {
       case DS_CALLING | DS_CT_IN_PROVISIONAL:
         boolean rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         new ClientTransactionCallback(
                 ClientTransactionCallback.CB_PROVISIONAL_RESPONSE, m_sipResponse, m_clientInterface)
             .call();
@@ -376,14 +369,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
       case DS_PROCEEDING | DS_CT_IN_REL_PROVISIONAL:
       case DS_CTI_RELPROCEEDING | DS_CT_IN_REL_PROVISIONAL:
         boolean rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipRelProvisionalResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipRelProvisionalResponse,
-            m_sipRequest);
         // PRACK: Per the RFC3262, "A UAC SHOULD NOT retransmit
         // the PRACK request when it receives a
         // retransmitssion of the provisional response being acknologed"
@@ -418,14 +403,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
         break;
       case DS_CTI_RELPROCEEDING | DS_CT_IN_2XX:
         boolean rtx2 = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx2, true);
-        DsMessageStatistics.logResponse(
-            (rtx2
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         new ClientTransactionCallback(
                 ClientTransactionCallback.CB_FINAL_RESPONSE, m_sipResponse, m_clientInterface)
             .call();
@@ -470,14 +447,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
       case DS_CALLING | DS_CT_IN_3TO6XX:
       case DS_PROCEEDING | DS_CT_IN_3TO6XX:
         rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         new ClientTransactionCallback(
                 ClientTransactionCallback.CB_FINAL_RESPONSE, m_sipResponse, m_clientInterface)
             .call();
@@ -496,14 +465,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
         // CAFFEINE 2.0 DEVELOPMENT - (EDCS-295391) PRACK Support
       case DS_CTI_RELPROCEEDING | DS_CT_IN_3TO6XX:
         rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         new ClientTransactionCallback(
                 ClientTransactionCallback.CB_FINAL_RESPONSE, m_sipResponse, m_clientInterface)
             .call();
@@ -527,10 +488,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
           }
           getAckConnection();
           sendAck();
-          DsMessageStatistics.updateStats(m_ackMessage, false, false);
-          DsMessageStatistics.logRequest(
-              reason, DsMessageLoggingInterface.DIRECTION_OUT, m_ackMessage);
-
           nullRefs();
           firstAckToNon2XX = false;
         } else if (!m_isProxyServerMode) {
@@ -545,14 +502,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
         // CAFFEINE 2.0 DEVELOPMENT - (EDCS-295391) PRACK Support
       case DS_COMPLETED | DS_CT_IN_REL_PROVISIONAL:
         rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         break;
 
       case DS_COMPLETED | DS_CT_IN_SERVICE_UNAVAILABLE:
@@ -571,20 +520,8 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
         if (!firstAckToNon2XX) // already acked
         {
           sendAck();
-          logRequest(
-              DsMessageLoggingInterface.REASON_RETRANSMISSION, DsSipConstants.ACK, m_ackBytes);
-          DsMessageStatistics.updateRequestStat(
-              DsSipConstants.ACK, true, false, m_connection.getBindingInfo());
         }
         rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         break;
       default:
         m_stateTable.throwException(transition);
@@ -614,14 +551,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
         // CAFFEINE 2.0 DEVELOPMENT - (EDCS-295391) PRACK Support
       case DS_CTI_RELPROCEEDING | DS_CT_IN_2XX:
         boolean rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         new ClientTransactionCallback(
                 ClientTransactionCallback.CB_FINAL_RESPONSE, m_sipResponse, m_clientInterface)
             .call();
@@ -676,8 +605,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
           sendAck();
           SIPSession sipSession = SIPSessions.getActiveSession(m_ackMessage.getCallId().toString());
           sipSession.sessionAttrib.setRemoteUuid(SIPSessionID.getNillsessionid());
-          DsMessageStatistics.updateStats(m_ackMessage, false, false);
-          logRequest(reason, m_ackMessage);
           AckNon2xxInTerminated = false;
           cleanup();
         } else // if (!m_isProxyServerMode)
@@ -738,20 +665,10 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
           }
           getAckConnection();
           sendAck();
-          DsMessageStatistics.updateStats(m_ackMessage, false, false);
-          logRequest(reason, m_ackMessage);
           nullRefs();
           break;
         case DS_XCOMPLETED | DS_CT_IN_2XX:
           rtx = findAndUpdateRetransmission();
-          DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-          DsMessageStatistics.logResponse(
-              (rtx
-                  ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                  : DsMessageLoggingInterface.REASON_REGULAR),
-              DsMessageLoggingInterface.DIRECTION_IN,
-              m_sipResponse,
-              m_sipRequest);
           new ClientTransactionCallback(
                   ClientTransactionCallback.CB_FINAL_RESPONSE, m_sipResponse, m_clientInterface)
               .call();
@@ -760,14 +677,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
           // CAFFEINE 2.0 DEVELOPMENT - (EDCS-295391) PRACK Support
         case DS_XCOMPLETED | DS_CT_IN_REL_PROVISIONAL:
           rtx = findAndUpdateRetransmission();
-          DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-          DsMessageStatistics.logResponse(
-              (rtx
-                  ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                  : DsMessageLoggingInterface.REASON_REGULAR),
-              DsMessageLoggingInterface.DIRECTION_IN,
-              m_sipResponse,
-              m_sipRequest);
           break;
       }
     } else {
@@ -781,14 +690,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
           // CAFFEINE 2.0 DEVELOPMENT - (EDCS-295391) PRACK Support
         case DS_XCOMPLETED | DS_CT_IN_REL_PROVISIONAL:
           rtx = findAndUpdateRetransmission();
-          DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-          DsMessageStatistics.logResponse(
-              (rtx
-                  ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                  : DsMessageLoggingInterface.REASON_REGULAR),
-              DsMessageLoggingInterface.DIRECTION_IN,
-              m_sipResponse,
-              m_sipRequest);
           break;
         case DS_XCOMPLETED | DS_CT_IN_ACK:
           if (firstAckTo2XX) {
@@ -798,8 +699,6 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
             }
             getAckConnection();
             sendAck();
-            DsMessageStatistics.updateStats(m_ackMessage, false, false);
-            logRequest(reason, m_ackMessage);
             nullRefs();
             firstAckTo2XX = false;
           } else {
@@ -808,20 +707,8 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
           break;
         case DS_XCOMPLETED | DS_CT_IN_2XX:
           rtx = findAndUpdateRetransmission();
-          DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-          DsMessageStatistics.logResponse(
-              (rtx
-                  ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                  : DsMessageLoggingInterface.REASON_REGULAR),
-              DsMessageLoggingInterface.DIRECTION_IN,
-              m_sipResponse,
-              m_sipRequest);
           if (!firstAckTo2XX) {
             sendAck();
-            DsMessageStatistics.updateRequestStat(
-                DsSipConstants.ACK, true, false, m_connection.getBindingInfo());
-            logRequest(
-                DsMessageLoggingInterface.REASON_RETRANSMISSION, DsSipConstants.ACK, m_ackBytes);
           }
           break;
         default:

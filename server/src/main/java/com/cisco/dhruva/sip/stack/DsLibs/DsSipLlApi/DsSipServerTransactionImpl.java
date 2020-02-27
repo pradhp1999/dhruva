@@ -303,18 +303,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
   }
 
   /**
-   * Update thte message stats for a response.
-   *
-   * @param duplicate <code>true</code> if this was a duplicate response.
-   * @param incoming <code>true</code> if this was in incoming response, <code>false</code> for
-   *     outgoing.
-   */
-  protected void updateResponseStat(boolean duplicate, boolean incoming) {
-    DsMessageStatistics.updateResponseStat(
-        m_statusCode, m_method, duplicate, incoming, m_connection.getInetAddress());
-  }
-
-  /**
    * This constructor calculates the transaction's keys and sets the server transaction interface.
    * It is designed to do minimal work.
    *
@@ -800,7 +788,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           DsSipUnsupportedHeader unsupportedHeader = new DsSipUnsupportedHeader(BS_100REL);
           response420.addHeader(unsupportedHeader);
           sendResponse(response420);
-          logResponse(DsMessageLoggingInterface.REASON_AUTO, response420);
           throw new DsException(
               "UAC requires 100rel, but UAS does not support 100rel. 100rel negotiation failed");
         }
@@ -1117,7 +1104,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
             new DsSipResponse(DsSipResponseCode.DS_RESPONSE_OK, m_cancelMessage, null, null);
         cancelResponse.setApplicationReason(DsMessageLoggingInterface.REASON_AUTO);
         m_cancelTransaction.sendResponse(cancelResponse);
-        logResponse(DsMessageLoggingInterface.REASON_AUTO, cancelResponse);
         m_cancelTransaction = null;
         // fall through
       case DS_CALLING | DS_ST_IN_CANCEL:
@@ -1131,11 +1117,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           m_connection.getResponseConnection();
           sendResponse(
               txnCancelledResponseBytes, DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED);
-          logResponse(
-              DsMessageLoggingInterface.REASON_AUTO,
-              DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED,
-              DsSipConstants.CANCEL,
-              txnCancelledResponseBytes);
         }
         new ServerTransactionCallback(
                 ServerTransactionCallback.CB_CANCEL, m_cancelMessage, m_serverInterface)
@@ -1148,8 +1129,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         // CAFFEINE 2.0 DEVELOPMENT - required by handling reliable response.
       case DS_STI_RELPROCEEDING | DS_ST_IN_2XX:
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         nullRefs();
         cancelTn(); // transaction will terminate normally
         break;
@@ -1190,22 +1169,16 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         initializeTimers();
 
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         break;
       case DS_PROCEEDING | DS_ST_IN_REQUEST:
         // no need to collect stat for the request. TM already did it.
         sendCurrentResponse();
-        updateResponseStat(true, false);
-        logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
         break;
       case DS_PROCEEDING | DS_ST_IN_TPROVISIONAL:
         // do nothing: provisional has been sent
         break;
       case DS_PROCEEDING | DS_ST_IN_PROVISIONAL:
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         break;
       case DS_PROCEEDING | DS_ST_IN_CANCEL:
         // no need to collect stat for this cancel. TM already did it.
@@ -1215,12 +1188,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
                   DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED, m_sipRequest, null, null);
           sendResponse(
               txnCancelledResponseBytes, DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED);
-          // no need to update stat as the cancel transaction will do it
-          logResponse(
-              DsMessageLoggingInterface.REASON_AUTO,
-              DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED,
-              m_method,
-              txnCancelledResponseBytes);
         }
         new ServerTransactionCallback(
                 ServerTransactionCallback.CB_CANCEL, m_cancelMessage, m_serverInterface)
@@ -1238,8 +1205,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       case DS_PROCEEDING | DS_ST_IN_NEXT_CLIENT:
         // m_connection.getResponseConnection();
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
       case DS_PROCEEDING | DS_ST_IN_IO_EXCEPTION:
         if (m_connection.getNextConnection()) {
           execute(DS_ST_IN_NEXT_CLIENT);
@@ -1277,8 +1242,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       case DS_PROCEEDING | DS_ST_IN_2XX:
       case DS_PROCEEDING | DS_ST_IN_3TO6XX:
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         nullRefs();
         if (m_To == 0) // directly go to TERMINATED without using timer
         {
@@ -1294,8 +1257,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       case DS_COMPLETED | DS_ST_IN_REQUEST:
         // no need to collect stat for the request. TM already did it.
         sendCurrentResponse();
-        updateResponseStat(true, false);
-        logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
         break;
       case DS_COMPLETED | DS_ST_IN_2XX:
       case DS_COMPLETED | DS_ST_IN_3TO6XX:
@@ -1315,8 +1276,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       case DS_COMPLETED | DS_ST_IN_NEXT_CLIENT:
         // m_connection.getResponseConnection();
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         nullRefs();
         if (m_To == 0) // directly go to TERMINATED without using timer
         {
@@ -1418,59 +1377,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       if (genCat.isEnabled(Level.WARN))
         genCat.warn("run(): state machine exception processing timer event", sme);
     }
-  }
-
-  /**
-   * Tell user about responses we send automatically. Wrapper around the logging interface.
-   *
-   * @param reason the reason this message is being logged
-   */
-  protected final void logResponse(int reason) {
-    reason = getReason(m_sipResponse, reason);
-    if (m_sipResponse != null) {
-      DsMessageStatistics.logResponse(
-          reason, DsMessageLoggingInterface.DIRECTION_OUT, m_sipResponse, m_sipRequest);
-    } else {
-      DsMessageStatistics.logResponse(
-          reason,
-          DsMessageLoggingInterface.DIRECTION_OUT,
-          m_sipResponseBytes,
-          m_statusCode,
-          m_method,
-          m_connection.getBindingInfo(),
-          m_sipRequest);
-    }
-  }
-
-  /**
-   * Tell user about responses we send automatically. Wrapper around the logging interface.
-   *
-   * @param reason the reason this message is being logged
-   * @param code the response code
-   * @param method the method name of the transaction that is canceled.
-   * @param bytes the response bytes to log.
-   */
-  protected final void logResponse(int reason, int code, int method, byte[] bytes) {
-    reason = getReason(null, reason);
-    DsMessageStatistics.logResponse(
-        reason,
-        DsMessageLoggingInterface.DIRECTION_OUT,
-        bytes,
-        code,
-        method,
-        m_connection.getBindingInfo(),
-        m_sipRequest);
-  }
-
-  /**
-   * Tell user about responses we send automatically. Wrapper around the logging interface.
-   *
-   * @param reason the reason this message is being logged
-   * @param response the message to log
-   */
-  protected final void logResponse(int reason, DsSipResponse response) {
-    reason = getReason(response, reason);
-    DsMessageStatistics.logResponse(reason, DsMessageLoggingInterface.DIRECTION_OUT, response);
   }
 
   /**
