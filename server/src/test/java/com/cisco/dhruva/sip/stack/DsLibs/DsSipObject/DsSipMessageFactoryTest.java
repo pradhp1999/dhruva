@@ -2,12 +2,14 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
+import org.junit.Assert;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Properties;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
 /* Many of these tests are from [voiper](https://github.com/gremwell/voiper.git)
 and contain malformed and valid SIP messages as defined in RFC 4475.
@@ -27,9 +29,9 @@ public class DsSipMessageFactoryTest {
       enabled = true,
       description = "Test parsing of raw, valid sip messages")
   public void testSipMessage(byte[] buf) throws DsSipParserListenerException, DsSipParserException {
-    System.out.println("Test message:\n" + new String(buf));
-
     DsSipMessage msg = mf.createMessage(buf, 0, buf.length, true, true);
+    // Input and toString() of output should be identical
+    Assert.assertEquals(new String(buf), msg.toString());
   }
 
   @Test(
