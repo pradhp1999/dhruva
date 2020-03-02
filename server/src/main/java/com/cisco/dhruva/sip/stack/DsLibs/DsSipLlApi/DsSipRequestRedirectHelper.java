@@ -3,17 +3,10 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContactHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageStatistics;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsUnitOfWork;
 import java.io.IOException;
 import org.apache.logging.log4j.Level;
@@ -206,11 +199,6 @@ public class DsSipRequestRedirectHelper extends DsSipRequestQueueHelper {
                 null);
         response.addHeader(constructContactHeader(m_serverTransaction.getRequest()));
         m_serverTransaction.sendResponse(response);
-        DsMessageStatistics.logResponse(
-            DsMessageLoggingInterface.REASON_AUTO,
-            DsMessageLoggingInterface.DIRECTION_OUT,
-            response,
-            m_serverTransaction.getRequest());
       } catch (DsException dse) {
         if (DsLog4j.transMCat.isEnabled(Level.WARN))
           DsLog4j.transMCat.warn("QueueHelperUOW.abort: Exception sending redirect", dse);

@@ -1678,15 +1678,6 @@ public class DsSipTransactionManager {
 
       // the via header gets set in the creation of the response
       transaction.sendResponse(response);
-      DsMessageStatistics.logRequest(
-          DsMessageLoggingInterface.REASON_SHUTDOWN,
-          DsMessageLoggingInterface.DIRECTION_IN,
-          request);
-      DsMessageStatistics.logResponse(
-          DsMessageLoggingInterface.REASON_AUTO,
-          DsMessageLoggingInterface.DIRECTION_OUT,
-          response,
-          request);
     } catch (Exception e) {
       if (cat.isEnabled(Level.ERROR)) {
         cat.error("processForiListenerShutdown(): Exception when sending Response", e);
@@ -2385,30 +2376,12 @@ public class DsSipTransactionManager {
                 + method);
       }
 
-      // Updating the message statistics to record the message metrics,
-      // that in turn can be queried either through SNMP or CLI.
-      // duplicate request received.
-      DsMessageStatistics.updateStats(request, true, true);
-      DsMessageStatistics.logRequest(
-          DsMessageLoggingInterface.REASON_RETRANSMISSION,
-          DsMessageLoggingInterface.DIRECTION_IN,
-          request);
-
       return transaction;
     }
 
-    // Updating the message statistics to record the message metrics,
-    // that in turn can be queried either through SNMP or CLI.
-    // regular or merged request received.
-    DsMessageStatistics.updateStats(request, merge_detected, true);
     // since running status can only be changed by configure, no synchronization here
     if (buckets != null && buckets.isRunning() && request.getMethodID() != DsSipConstants.BYE) {
       if (!buckets.isOK()) {
-        // Log incoming request that is going to be dropped because of throttling
-        DsMessageStatistics.logRequest(
-            DsMessageLoggingInterface.REASON_REGULAR,
-            DsMessageLoggingInterface.DIRECTION_IN,
-            request);
         if (Level_INFO) {
           cat.log(Level.INFO, "processRequest(): sending 503 for new request b/c of throttling");
         }
@@ -2422,26 +2395,11 @@ public class DsSipTransactionManager {
                 DsSipResponse.createResponseBytes(
                     DsSipResponseCode.DS_RESPONSE_SERVICE_UNAVAILABLE, request, null, null);
             transaction.sendResponse(bytes, DsSipResponseCode.DS_RESPONSE_SERVICE_UNAVAILABLE);
-            // Log the sent response
-            DsMessageStatistics.logResponse(
-                DsMessageLoggingInterface.REASON_AUTO,
-                DsMessageLoggingInterface.DIRECTION_OUT,
-                bytes,
-                DsSipResponseCode.DS_RESPONSE_SERVICE_UNAVAILABLE,
-                request.getMethodID(),
-                null,
-                request);
           } else {
             DsSipResponse res =
                 new DsSipResponse(
                     DsSipResponseCode.DS_RESPONSE_SERVICE_UNAVAILABLE, request, null, null);
             transaction.sendResponse(res);
-            // Log the sent response
-            DsMessageStatistics.logResponse(
-                DsMessageLoggingInterface.REASON_AUTO,
-                DsMessageLoggingInterface.DIRECTION_OUT,
-                res,
-                request);
           }
         } catch (Exception e) {
           if (cat.isEnabled(Level.ERROR)) {
@@ -2490,15 +2448,6 @@ public class DsSipTransactionManager {
           // always a merged request at UA level, never a loop
           response.setReasonPhrase(new DsByteString("Merged Request"));
           transaction.sendResponse(response);
-          DsMessageStatistics.logRequest(
-              DsMessageLoggingInterface.REASON_MERGED,
-              DsMessageLoggingInterface.DIRECTION_IN,
-              request);
-          DsMessageStatistics.logResponse(
-              DsMessageLoggingInterface.REASON_AUTO,
-              DsMessageLoggingInterface.DIRECTION_OUT,
-              response,
-              request);
         } catch (Exception e) {
           if (cat.isEnabled(Level.ERROR)) {
             cat.error(
@@ -2534,15 +2483,6 @@ public class DsSipTransactionManager {
       addAllowHeaders(response, addPrack);
       try {
         transaction.sendResponse(response);
-        DsMessageStatistics.logRequest(
-            DsMessageLoggingInterface.REASON_NO_HANDLER,
-            DsMessageLoggingInterface.DIRECTION_IN,
-            request);
-        DsMessageStatistics.logResponse(
-            DsMessageLoggingInterface.REASON_AUTO,
-            DsMessageLoggingInterface.DIRECTION_OUT,
-            response,
-            request);
       } catch (DsException dse) {
         if (cat.isEnabled(Level.ERROR))
           cat.error("processRequest(): error sending 405 (METHOD_NOT_ALLOWED) response", dse);
@@ -2553,10 +2493,6 @@ public class DsSipTransactionManager {
 
       return null;
     }
-
-    // Log the received regular request.
-    DsMessageStatistics.logRequest(
-        DsMessageLoggingInterface.REASON_REGULAR, DsMessageLoggingInterface.DIRECTION_IN, request);
 
     DsLog4j.logSessionId(request);
 
@@ -2581,15 +2517,6 @@ public class DsSipTransactionManager {
         //
         // this must be set after the pre-normalization execution
         request.setNormalizationState(SipMsgNormalizationState.PRE_NORMALIZED);
-
-        /**
-         * Log the normalized request. see SIPMessageLoggerMBeanImpl#logRequest(int, byte,
-         * DsSipRequest)
-         */
-        DsMessageStatistics.logRequest(
-            DsMessageLoggingInterface.REASON_REGULAR,
-            DsMessageLoggingInterface.DIRECTION_IN,
-            request);
       }
 
       if (processForMaintenance(transaction)) {
@@ -2816,14 +2743,6 @@ public class DsSipTransactionManager {
               m_transactionTable.findOrCreateCancelTransaction(request, m_transactionFactory);
       // Handle CANCEL retransmission
       if (!cancelTransaction.isNew()) {
-        // Updating the message statistics to record the message metrics,
-        // that in turn can be queried either through SNMP or CLI.
-        // duplicate CANCEL
-        DsMessageStatistics.updateStats(request, true, true);
-        DsMessageStatistics.logRequest(
-            DsMessageLoggingInterface.REASON_RETRANSMISSION,
-            DsMessageLoggingInterface.DIRECTION_IN,
-            request);
 
         if (cat.isEnabled(Level.INFO)) {
           cat.log(
@@ -2838,13 +2757,6 @@ public class DsSipTransactionManager {
             e);
       }
     }
-
-    // Updating the message statistics to record the message metrics,
-    // that in turn can be queried either through SNMP or CLI.
-    // CANCEL
-    DsMessageStatistics.updateStats(request, false, true);
-    DsMessageStatistics.logRequest(
-        DsMessageLoggingInterface.REASON_REGULAR, DsMessageLoggingInterface.DIRECTION_IN, request);
 
     //
     //      -construct V-B-'N'
@@ -3056,13 +2968,6 @@ public class DsSipTransactionManager {
             transaction.sendResponse(
                 responseBytes,
                 DsSipResponseCode.DS_RESPONSE_CALL_LEG_OR_TRANSACTION_DOES_NOT_EXIST);
-            DsMessageStatistics.logResponse(
-                DsMessageLoggingInterface.REASON_AUTO,
-                DsMessageLoggingInterface.DIRECTION_OUT,
-                responseBytes,
-                DsSipResponseCode.DS_RESPONSE_CALL_LEG_OR_TRANSACTION_DOES_NOT_EXIST,
-                DsSipConstants.CANCEL,
-                null);
           } else {
             DsSipResponse response =
                 new DsSipResponse(
@@ -3072,10 +2977,6 @@ public class DsSipTransactionManager {
                     null);
             response.setApplicationReason(DsMessageLoggingInterface.REASON_AUTO);
             transaction.sendResponse(response);
-            DsMessageStatistics.logResponse(
-                DsMessageLoggingInterface.REASON_AUTO,
-                DsMessageLoggingInterface.DIRECTION_OUT,
-                response);
           }
         } else {
           // here, if we are configured not to respond
@@ -3128,15 +3029,6 @@ public class DsSipTransactionManager {
               m_transactionTable.findOrCreatePrackTransaction(request, m_transactionFactory);
       // Handle PRACK retransmission
       if (!prackTransaction.isNew()) {
-        // Updating the message statistics to record the message metrics,
-        // that in turn can be queried either through SNMP or CLI.
-        // duplicate PRACK
-        // For now, the re-transmit will be ignored.
-        DsMessageStatistics.updateStats(request, true, true);
-        DsMessageStatistics.logRequest(
-            DsMessageLoggingInterface.REASON_RETRANSMISSION,
-            DsMessageLoggingInterface.DIRECTION_IN,
-            request);
 
         if (cat.isEnabled(Level.INFO)) {
           cat.info("processPrack(): Received a PRACK retransmission; returning to caller");
@@ -3150,13 +3042,6 @@ public class DsSipTransactionManager {
             e);
       }
     }
-
-    // Updating the message statistics to record the message metrics,
-    // that in turn can be queried either through SNMP or CLI.
-    // PRACK
-    DsMessageStatistics.updateStats(request, false, true);
-    DsMessageStatistics.logRequest(
-        DsMessageLoggingInterface.REASON_REGULAR, DsMessageLoggingInterface.DIRECTION_IN, request);
 
     //
     //      -construct V-B-'N'
@@ -3269,15 +3154,6 @@ public class DsSipTransactionManager {
       addAllowHeaders(response, false);
       try {
         transactionToBePracked.sendResponse(response);
-        DsMessageStatistics.logRequest(
-            DsMessageLoggingInterface.REASON_NO_HANDLER,
-            DsMessageLoggingInterface.DIRECTION_IN,
-            request);
-        DsMessageStatistics.logResponse(
-            DsMessageLoggingInterface.REASON_AUTO,
-            DsMessageLoggingInterface.DIRECTION_OUT,
-            response,
-            request);
       } catch (DsException dse) {
         if (cat.isEnabled(Level.ERROR)) {
           cat.error("processPrack(): error sending 405 (METHOD_NOT_ALLOWED) response", dse);
@@ -3342,13 +3218,6 @@ public class DsSipTransactionManager {
                 null);
         transaction.sendResponse(
             responseBytes, DsSipResponseCode.DS_RESPONSE_CALL_LEG_OR_TRANSACTION_DOES_NOT_EXIST);
-        DsMessageStatistics.logResponse(
-            DsMessageLoggingInterface.REASON_AUTO,
-            DsMessageLoggingInterface.DIRECTION_OUT,
-            responseBytes,
-            DsSipResponseCode.DS_RESPONSE_CALL_LEG_OR_TRANSACTION_DOES_NOT_EXIST,
-            DsSipConstants.PRACK,
-            null);
       } else {
         DsSipResponse response =
             new DsSipResponse(
@@ -3358,10 +3227,6 @@ public class DsSipTransactionManager {
                 null);
         response.setApplicationReason(DsMessageLoggingInterface.REASON_AUTO);
         transaction.sendResponse(response);
-        DsMessageStatistics.logResponse(
-            DsMessageLoggingInterface.REASON_AUTO,
-            DsMessageLoggingInterface.DIRECTION_OUT,
-            response);
       }
 
       if (m_StrayMessageInterface != null) {
@@ -3453,11 +3318,6 @@ public class DsSipTransactionManager {
             Level.INFO,
             "processAck(): found transaction being ACK'ed: matched a merged transaction");
       }
-      // Log incoming ACK request.
-      DsMessageStatistics.logRequest(
-          DsMessageLoggingInterface.REASON_REGULAR,
-          DsMessageLoggingInterface.DIRECTION_IN,
-          request);
       return transaction;
     }
 
@@ -3495,11 +3355,6 @@ public class DsSipTransactionManager {
       if (cat.isEnabled(Level.INFO)) {
         cat.log(Level.INFO, "processAck(): found transaction being ACK'ed by transKey");
       }
-      // Log incoming ACK request.
-      DsMessageStatistics.logRequest(
-          DsMessageLoggingInterface.REASON_REGULAR,
-          DsMessageLoggingInterface.DIRECTION_IN,
-          request);
       return transaction;
     }
 
@@ -3520,11 +3375,6 @@ public class DsSipTransactionManager {
         if (cat.isEnabled(Level.INFO)) {
           cat.log(Level.INFO, "processAck(): found transaction being ACK'ed by dialogID ");
         }
-        // Log incoming ACK request.
-        DsMessageStatistics.logRequest(
-            DsMessageLoggingInterface.REASON_REGULAR,
-            DsMessageLoggingInterface.DIRECTION_IN,
-            request);
         return aServerTxn;
       }
     }
@@ -3532,13 +3382,6 @@ public class DsSipTransactionManager {
     if (cat.isEnabled(Level.INFO)) {
       cat.log(Level.INFO, "processAck(): Received a Stray ACK.  Calling strayAck() interface.");
     }
-
-    // Updating the message statistics to record the message metrics,
-    // that in turn can be queried either through SNMP or CLI.
-    // stray ACK as no corresponding transaction exists.
-    DsMessageStatistics.updateStats(request, false, true);
-    DsMessageStatistics.logRequest(
-        DsMessageLoggingInterface.REASON_STRAY, DsMessageLoggingInterface.DIRECTION_IN, request);
 
     if (operationalState == OperationalState.SHUTDOWN) {
       // since we are in shutdown mode, there is no need to pass stray ACK
@@ -3597,15 +3440,6 @@ public class DsSipTransactionManager {
       response.setBody(new DsByteString(reason), new DsByteString("text/plain"));
       transaction.sendResponse(response);
 
-      DsMessageStatistics.logRequest(
-          DsMessageLoggingInterface.REASON_MALFORMED,
-          DsMessageLoggingInterface.DIRECTION_IN,
-          request);
-      DsMessageStatistics.logResponse(
-          DsMessageLoggingInterface.REASON_AUTO,
-          DsMessageLoggingInterface.DIRECTION_OUT,
-          response,
-          request);
     } catch (Exception e) {
       if (cat.isEnabled(Level.ERROR)) {
         cat.error("sendErrorResponse(): Exception sending " + code + " response", e);
@@ -3723,15 +3557,6 @@ public class DsSipTransactionManager {
           }
 
           transactionWithVia.sendResponse(response);
-          DsMessageStatistics.logRequest(
-              DsMessageLoggingInterface.REASON_MAXHOPS,
-              DsMessageLoggingInterface.DIRECTION_IN,
-              request);
-          DsMessageStatistics.logResponse(
-              DsMessageLoggingInterface.REASON_AUTO,
-              DsMessageLoggingInterface.DIRECTION_OUT,
-              response,
-              request);
         } catch (Exception e) {
           if (cat.isEnabled(Level.ERROR)) {
             cat.error(
@@ -3763,28 +3588,6 @@ public class DsSipTransactionManager {
 
   // /////////////////////////////////////////////////
   // Protected methods
-
-  /**
-   * Set a logging interface.
-   *
-   * @param loggingInterface implementation of DsMessageLoggingInterface
-   * @see DsMessageLoggingInterface
-   * @deprecated Use {@link
-   *     DsMessageStatistics#setMessageLoggingInterface(DsMessageLoggingInterface)}
-   */
-  public void setMessageLoggingInterface(DsMessageLoggingInterface loggingInterface) {}
-
-  /**
-   * Get the message logger.
-   *
-   * @return the DsSipMessageLogger
-   * @see DsSipMessageLogger
-   * @deprecated No more supported. Refer {@link
-   *     DsMessageStatistics#setMessageLoggingInterface(DsMessageLoggingInterface)}
-   */
-  public DsSipMessageLogger getMessageLogger() {
-    return null;
-  }
 
   /**
    * Set the Stray Message interface.
