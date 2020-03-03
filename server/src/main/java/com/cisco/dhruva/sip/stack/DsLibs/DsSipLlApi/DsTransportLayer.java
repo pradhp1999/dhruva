@@ -29,7 +29,6 @@ import java.util.Enumeration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Level;
-import retrofit2.http.HEAD;
 
 /**
  * Handles all of the reading and writing of messages to and from sockets. You can specify the port
@@ -390,7 +389,6 @@ public abstract class DsTransportLayer
               + remotePort,
           " Transport " + transport,
           exception);
-
     }
     return createSIPConnectionFromDhruvaTransportLayerConnection(connection);
   }

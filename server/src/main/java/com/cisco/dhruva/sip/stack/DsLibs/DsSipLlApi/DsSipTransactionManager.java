@@ -2,6 +2,7 @@
 // All rights reserved.
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
+
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAllowHeader;
@@ -1271,8 +1272,7 @@ public class DsSipTransactionManager {
    * This method is used to suspend the transactionManager basically closing the SIP stack. Any new
    * requests will be rejected.
    *
-   *
-   *     Requests after this timeout.
+   * <p>Requests after this timeout.
    */
   public static synchronized void maintenanceSuspend() {
     String currentState = operationalState.toString();
@@ -2980,7 +2980,7 @@ public class DsSipTransactionManager {
    * cancels, send a 481 response else, remove the CANCEL server transaction to prevent a memory
    * leak.
    *
-   *  server transaction for the CANCEL request
+   * <p>server transaction for the CANCEL request
    */
   void processStrayCancel(DsSipServerTransaction transaction) {
     Logger cat = cancelCat;

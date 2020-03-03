@@ -9,7 +9,6 @@ import com.cisco.dhruva.transport.Connection;
 import java.io.IOException;
 import java.net.InetAddress;
 import org.apache.logging.log4j.Level;
-import retrofit2.http.HEAD;
 
 public class DsSipUdpConnection extends DsUdpConnection implements DsSipConnection {
 
