@@ -11,14 +11,13 @@ public class DsInputStreamErrorEvent extends DsInputStreamEvent {
   private Exception m_Exc;
 
   /**
-   * Constructs the DsInputStreamErrorEvent object with the specified source and exception.
+   * Constructs DsInputStreamEvent object with the specified observer source and type.
    *
-   * @param source the source of this event
-   * @param exc the error exception
+   * @param source the observer source of this event
+   * @param type the type of event
    */
-  public DsInputStreamErrorEvent(DsMessageReader source, Exception exc) {
-    super(source, TYPE_STREAM_ERROR);
-    m_Exc = exc;
+  protected DsInputStreamErrorEvent(Object source, int type) {
+    super(source, type);
   }
 
   /**

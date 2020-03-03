@@ -3,8 +3,8 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.transport.Transport;
 import java.util.StringTokenizer;
 import org.apache.logging.log4j.Level;
 
@@ -88,17 +88,17 @@ class DsNAPTRRecord {
    * <br>
    * </pre>
    */
-  public static short serviceType(String service) {
+  public static Transport serviceType(String service) {
     if (service.equalsIgnoreCase(SIP_UDP)) {
-      return DsSipTransportType.UDP;
+      return Transport.UDP;
     } else if (service.equalsIgnoreCase(SIP_TCP)) {
-      return DsSipTransportType.TCP;
+      return Transport.TCP;
     } else if (service.equalsIgnoreCase(SIPS_TCP)) {
-      return DsSipTransportType.TLS;
+      return Transport.TLS;
     } else if (service.equalsIgnoreCase(SIP_SCTP)) {
-      return DsSipTransportType.SCTP;
+      return Transport.SCTP;
     } else {
-      return DsSipTransportType.NONE;
+      return Transport.NONE;
     }
   }
 

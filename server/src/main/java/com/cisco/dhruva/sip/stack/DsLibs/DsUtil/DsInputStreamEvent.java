@@ -12,8 +12,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 public class DsInputStreamEvent {
   /** The type of event. */
   private int m_Type;
-  /** The source of this event. */
-  private DsMessageReader m_Source;
   /** The observer source of this event. */
   private Object m_objectSource;
 
@@ -23,15 +21,6 @@ public class DsInputStreamEvent {
   public static final int TYPE_STREAM_ERROR = 1;
   /** Integer representation of a stream data event. */
   public static final int TYPE_STREAM_DATA = 2;
-
-  /**
-   * Returns the source of this event.
-   *
-   * @return the source of this event
-   */
-  public DsMessageReader getReaderSource() {
-    return m_Source;
-  }
 
   /**
    * Returns the observer source of this event.
@@ -57,10 +46,6 @@ public class DsInputStreamEvent {
    * @param source the source of this event
    * @param type the type of event
    */
-  protected DsInputStreamEvent(DsMessageReader source, int type) {
-    m_Source = source;
-    m_Type = type;
-  }
 
   /**
    * Constructs DsInputStreamEvent object with the specified observer source and type.
@@ -73,12 +58,10 @@ public class DsInputStreamEvent {
     m_Type = type;
   }
 
-  /**
-   * Constructs DsInputStreamEvent object with the specified source and the type.
-   *
-   * @param source the source of this event
+  /*
+  TODO
    */
-  public DsInputStreamEvent(DsMessageReader source) {
-    this(source, DsInputStreamEvent.TYPE_STREAM_DATA);
+  public Object getReaderSource() {
+    return null;
   }
 }

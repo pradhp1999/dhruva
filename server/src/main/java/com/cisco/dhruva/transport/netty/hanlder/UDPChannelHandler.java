@@ -5,6 +5,7 @@
 
 package com.cisco.dhruva.transport.netty.hanlder;
 
+import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
@@ -15,15 +16,17 @@ import com.cisco.dhruva.util.log.Logger;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.ReferenceCountUtil;
 import java.net.InetSocketAddress;
 
-public class UDPChannelHandler implements ChannelInboundHandler {
+public class UDPChannelHandler extends AbstractChannelHandler {
 
-  private MessageForwarder messageForwarder;
   private Logger logger = DhruvaLoggerFactory.getLogger(UDPChannelHandler.class);
+
+  public UDPChannelHandler(MessageForwarder messageForwarder, ExecutorService executorService) {
+    super(messageForwarder, executorService);
+  }
 
   @Override
   public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
@@ -62,7 +65,7 @@ public class UDPChannelHandler implements ChannelInboundHandler {
               localAddress.getPort(),
               remoteAddress.getAddress(),
               remoteAddress.getPort(),
-              Transport.UDP.ordinal());
+              Transport.UDP);
       String logString;
       if (messageBytes.length > 0 && messageBytes[0] == 0) {
         logString = DsByteString.toStunDebugString(messageBytes);
@@ -109,19 +112,5 @@ public class UDPChannelHandler implements ChannelInboundHandler {
   @Override
   public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
     logger.info("Handler removed from channel ", ctx.channel());
-  }
-
-  @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    logger.error("Exception in the UDPChannelHandler for Channel " + ctx.channel(), cause);
-  }
-
-  public UDPChannelHandler messageForwarder(MessageForwarder messageForwarder) {
-    this.messageForwarder = messageForwarder;
-    return this;
-  }
-
-  public MessageForwarder messageForwarder() {
-    return this.messageForwarder;
   }
 }

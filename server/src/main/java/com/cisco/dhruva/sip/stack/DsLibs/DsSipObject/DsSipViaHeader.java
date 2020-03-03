@@ -10,6 +10,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstant
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.transport.Transport;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.apache.logging.log4j.Level;
@@ -207,9 +208,9 @@ public class DsSipViaHeader extends DsSipParametricHeader {
    * @param port the port number.
    * @param transport the transport type.
    */
-  public DsSipViaHeader(DsByteString host, int port, DsSipTransportType transport) {
+  public DsSipViaHeader(DsByteString host, int port, Transport transport) {
     this();
-    m_strTransport = DsSipTransportType.getTypeAsUCByteString(transport.getAsInt());
+    m_strTransport = Transport.getTypeAsUCByteString(transport);
     m_Port = port;
     hasPort = true;
     m_strHost = host;
@@ -284,8 +285,8 @@ public class DsSipViaHeader extends DsSipParametricHeader {
    *
    * @return the transport protocol.
    */
-  public int getTransport() {
-    return DsSipTransportType.getTypeAsInt(m_strTransport);
+  public Transport getTransport() {
+    return Transport.getTypeAsInt(m_strTransport);
   }
 
   /**
@@ -462,10 +463,10 @@ public class DsSipViaHeader extends DsSipParametricHeader {
   /**
    * Sets the transport protocol type.
    *
-   * @param type the transport type from DsSipTransportType.
+   * @param transport the transport type from DsSipTransportType.
    */
-  public void setTransport(int type) {
-    m_strTransport = DsSipTransportType.getTypeAsUCByteString(type);
+  public void setTransport(Transport transport) {
+    m_strTransport = Transport.getTypeAsUCByteString(transport);
   }
 
   /**

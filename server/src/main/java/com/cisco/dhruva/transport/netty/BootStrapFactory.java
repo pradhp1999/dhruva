@@ -5,7 +5,7 @@
 
 package com.cisco.dhruva.transport.netty;
 
-import com.cisco.dhruva.config.network.NetworkConfig;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -21,9 +21,7 @@ public class BootStrapFactory {
   }
 
   public Bootstrap getClientBootStrap(
-      Transport transport,
-      NetworkConfig networkConfig,
-      BaseChannelInitializer baseChannelInitializer) {
+      Transport transport, DsNetwork networkConfig, BaseChannelInitializer baseChannelInitializer) {
     switch (transport) {
       case UDP:
         synchronized (lock) {
@@ -43,9 +41,7 @@ public class BootStrapFactory {
   }
 
   public Bootstrap getServerBootStrap(
-      Transport transport,
-      NetworkConfig networkConfig,
-      BaseChannelInitializer baseChannelInitializer) {
+      Transport transport, DsNetwork networkConfig, BaseChannelInitializer baseChannelInitializer) {
 
     switch (transport) {
       case UDP:

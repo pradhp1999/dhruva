@@ -3,6 +3,8 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
+import com.cisco.dhruva.transport.Transport;
+
 /** This class defines transport types as specified in RFC 3261. */
 public class DsSipTransportType {
   /*
@@ -241,6 +243,27 @@ public class DsSipTransportType {
         return T_TLS;
       case SCTP:
         return T_SCTP;
+      default:
+        return T_UDP;
+    }
+  }
+
+  /**
+   * Returns the interned transport type object for the specified transport type.
+   *
+   * @return the transport type for the supplied integer representation.
+   * @param type the integer representation.
+   */
+  public static DsSipTransportType intern(Transport type) {
+    switch (type) {
+      case NONE:
+        return T_NONE;
+      case UDP:
+        return T_UDP;
+      case TCP:
+        return T_TCP;
+      case TLS:
+        return T_TLS;
       default:
         return T_UDP;
     }

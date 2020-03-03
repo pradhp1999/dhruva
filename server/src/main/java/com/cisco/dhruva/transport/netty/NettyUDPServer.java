@@ -5,10 +5,12 @@
 
 package com.cisco.dhruva.transport.netty;
 
-import com.cisco.dhruva.config.network.NetworkConfig;
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Server;
 import com.cisco.dhruva.transport.Transport;
+import com.cisco.dhruva.transport.netty.hanlder.UDPChannelHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -20,13 +22,16 @@ public class NettyUDPServer implements Server {
   private final BaseChannelInitializer channelInitializer;
   private Bootstrap udpBootstrap;
   private MessageForwarder messageForwarder;
-  private NetworkConfig networkConfig;
+  private DsNetwork networkConfig;
+  private UDPChannelHandler udpChannelHander;
 
-  public NettyUDPServer(MessageForwarder messageForwarder, NetworkConfig networkConfig) {
+  public NettyUDPServer(
+      MessageForwarder messageForwarder, DsNetwork networkConfig, ExecutorService executorService) {
     this.networkConfig = networkConfig;
-    channelInitializer =
-        ChannelInitializerFactory.getInstance()
-            .getChannelInitializer(Transport.UDP, messageForwarder);
+    channelInitializer = new BaseChannelInitializer();
+    udpChannelHander = new UDPChannelHandler(messageForwarder, executorService);
+    udpChannelHander.messageForwarder(messageForwarder);
+    channelInitializer.channelHanlder(udpChannelHander);
     this.udpBootstrap =
         BootStrapFactory.getInstance()
             .getServerBootStrap(Transport.UDP, networkConfig, channelInitializer);

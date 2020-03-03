@@ -30,6 +30,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException.TrackingExceptions;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessionID;
 import com.cisco.dhruva.util.cac.SIPSessions;
@@ -1051,7 +1052,7 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
     m_TCounter = 0;
     m_To = m_sipTimers.TU2Value; // equals to 64 * DsSipTimers.T1Value;
 
-    int transport = m_connection.getTransport();
+    Transport transport = m_connection.getTransport();
     boolean reliable = DsSipTransportType.intern(transport).isReliable();
     if (reliable) {
       m_To = 0;

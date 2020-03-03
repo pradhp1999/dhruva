@@ -1,5 +1,6 @@
 package com.cisco.dhruva.util.saevent;
 
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.Trace;
 
 /** General logging category. */
@@ -13,7 +14,7 @@ public class DiscardSAEventBuilder {
    * - Event Received - Transport Type, Remote Ip, remote Port, Local IP, Local Port , Packet Size
    */
   public static void tooLargeSipMessageSAEventAlarm(
-      String transportType,
+      Transport transportType,
       String remoteIPAddress,
       int remotePort,
       String localIPAddress,

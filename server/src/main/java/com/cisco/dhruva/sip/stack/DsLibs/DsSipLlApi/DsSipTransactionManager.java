@@ -47,6 +47,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTlsUtil;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsUnitOfWork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsWorkQueue;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.Trace;
 import com.cisco.dhruva.util.saevent.DiscardSAEventBuilder;
 import com.cisco.dhruva.util.saevent.SAEventConstants;
@@ -111,7 +112,7 @@ public class DsSipTransactionManager {
   /** Remote port unspecified. */
   private static final int RPU = DsBindingInfo.REMOTE_PORT_UNSPECIFIED;
   /** Binding transport unspecified. */
-  private static final int BTU = DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED;
+  private static final Transport BTU = DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED;
 
   private static DsBuckets buckets;
   private static boolean flowOK = true;
@@ -488,7 +489,8 @@ public class DsSipTransactionManager {
 
     /* settings made through setConnectionXXXX, override those of the Request-URI */
     String host_str = "";
-    int port = RPU, transport = BTU;
+    int port = RPU;
+    Transport transport = BTU;
 
     DsBindingInfo binfo = request.getBindingInfo();
 
@@ -507,7 +509,7 @@ public class DsSipTransactionManager {
       port =
           binfo.isRemotePortSet() ? binfo.getRemotePort() : (url.hasPort() ? url.getPort() : RPU);
       // GOGONG - 07.13.05 - Return BTU if outgoing transport type is not specified
-      int transportParam = url.getTransportParam();
+      Transport transportParam = url.getTransportParam();
       /*
        * Changing Default transport to TLS if transport is not specified.
        * This changes the default behavior , commented is previous code
@@ -519,10 +521,8 @@ public class DsSipTransactionManager {
           binfo.isTransportSet()
               ? binfo.getTransport()
               : (url.isSecure()
-                  ? DsSipTransportType.TLS
-                  : ((transportParam == DsSipTransportType.NONE)
-                      ? DsSipTransportType.TLS
-                      : transportParam));
+                  ? Transport.TLS
+                  : ((transportParam == Transport.NONE) ? Transport.TLS : transportParam));
 
       if (cat.isEnabled(Level.DEBUG)) {
         cat.log(Level.DEBUG, "Remote Host = " + host_str);
@@ -542,59 +542,65 @@ public class DsSipTransactionManager {
     InetAddress localAddr = message.getLocalBindingAddress();
     int localPort = message.getLocalBindingPort();
     DsNetwork network = message.getNetworkReliably();
+
+    /*
+    TODO take care of getConnection
+     */
     // only check if the address is null; we don't want to reset the
     // localAddr simply because the local port is 0
-    if (transport == DsSipTransportType.UDP) {
-      if (localAddr == null) {
-        DsUdpListener listener = network.getUdpListener();
-        if (listener != null) {
-          localAddr = listener.m_address;
-          if (network.isBehindNAT()) {
-            localPort = listener.m_port;
-          }
-        }
-      } else if (localPort == LPU && network.isBehindNAT()) {
-        Iterator iter = network.getListeners();
-        DsTransportListener listener;
+    /*
+        if (transport == Transport.UDP) {
 
-        while (iter.hasNext()) {
-          listener = (DsTransportListener) iter.next();
-          if (listener.getTransport() == DsSipTransportType.UDP) {
-            DsUdpListener udpListener = (DsUdpListener) listener;
-            if (localAddr == udpListener.m_address) {
-              localPort = udpListener.m_port;
-              break;
+          if (localAddr == null) {
+            DsUdpListener listener = network.getUdpListener();
+            if (listener != null) {
+              localAddr = listener.m_address;
+              if (network.isBehindNAT()) {
+                localPort = listener.m_port;
+              }
+            }
+          } else if (localPort == LPU && network.isBehindNAT()) {
+            Iterator iter = network.getListeners();
+            DsTransportListener listener;
+
+            while (iter.hasNext()) {
+              listener = (DsTransportListener) iter.next();
+              if (listener.getTransport() == DsSipTransportType.UDP) {
+                DsUdpListener udpListener = (DsUdpListener) listener;
+                if (localAddr == udpListener.m_address) {
+                  localPort = udpListener.m_port;
+                  break;
+                }
+              }
             }
           }
+        } else if ((transport == DsSipTransportType.TCP || transport == DsSipTransportType.TLS)
+            && (localAddr == null)) {
+          DsStreamListener listener = (DsStreamListener) network.getListener(transport);
+          if (listener != null) {
+            localAddr = listener.localAddress;
+          }
         }
-      }
-    } else if ((transport == DsSipTransportType.TCP || transport == DsSipTransportType.TLS)
-        && (localAddr == null)) {
-      DsStreamListener listener = (DsStreamListener) network.getListener(transport);
-      if (listener != null) {
-        localAddr = listener.localAddress;
-      }
-    }
 
-    if (cat.isEnabled(Level.INFO)) {
-      cat.log(
-          Level.INFO,
-          "network = "
-              + network
-              + "\nLocal Address = "
-              + localAddr
-              + "\nLocal Port = "
-              + localPort
-              + "\nHost String = "
-              + host_str
-              + "\nRemote Port = "
-              + port
-              + "\nTransport = "
-              + transport
-              + "\nResolver = "
-              + resolver);
-    }
-
+        if (cat.isEnabled(Level.INFO)) {
+          cat.log(
+              Level.INFO,
+              "network = "
+                  + network
+                  + "\nLocal Address = "
+                  + localAddr
+                  + "\nLocal Port = "
+                  + localPort
+                  + "\nHost String = "
+                  + host_str
+                  + "\nRemote Port = "
+                  + port
+                  + "\nTransport = "
+                  + transport
+                  + "\nResolver = "
+                  + resolver);
+        }
+    */
     ret_connection =
         getSRVConnection(network, localAddr, localPort, host_str, port, transport, resolver);
 
@@ -630,16 +636,16 @@ public class DsSipTransactionManager {
 
     if (!resolver.shouldSearch(url)) {
       // GOGONG - 07.13.05 - Return default outgoing transport if the transport is not specified
-      int transportParam = url.getTransportParam();
-      int transport =
+      Transport transportParam = url.getTransportParam();
+      Transport transport =
           url.isSecure()
-              ? DsSipTransportType.TLS
-              : ((transportParam == DsSipTransportType.NONE)
+              ? Transport.TLS
+              : ((transportParam == Transport.NONE)
                   ? DsConfigManager.getDefaultOutgoingTransport()
                   : transportParam);
       if (!resolver.isSupported(transport)) {
         throw new DsException(
-            DsSipTransportType.getTypeAsString(transport)
+            transport
                 + " transport protocol not supported for this element. "
                 + " An element can only send messages via a transport protocol it listens on.");
       }
@@ -683,7 +689,7 @@ public class DsSipTransactionManager {
       int lPort,
       String host,
       int port,
-      int transport,
+      Transport transport,
       DsSipResolver resolver)
       throws SocketException, DsException, UnknownHostException, IOException {
     if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_SRV_CONNECTION_IiSiiS);
@@ -692,7 +698,7 @@ public class DsSipTransactionManager {
     if (!resolver.shouldSearch(host, port, transport)) {
       if (!resolver.isSupported(transport)) {
         throw new DsException(
-            DsSipTransportType.getTypeAsString(transport)
+            transport
                 + " transport protocol not supported for this element. "
                 + " An element can only send messages via a transport protocol it listens on");
       }
@@ -767,7 +773,7 @@ public class DsSipTransactionManager {
    * @throws DsException if transport protocol not supported for this element
    */
   protected static DsSipConnection getSRVConnection(
-      DsNetwork network, String host, int port, int transport, DsSipResolver resolver)
+      DsNetwork network, String host, int port, Transport transport, DsSipResolver resolver)
       throws SocketException, DsException, UnknownHostException, IOException {
     if (DsPerf.ON) DsPerf.start(DsPerf.TM_GET_SRV_CONNECTION_SiiS);
 
@@ -776,7 +782,7 @@ public class DsSipTransactionManager {
     if (!resolver.shouldSearch(host, port, transport)) {
       if (!resolver.isSupported(transport)) {
         throw new DsException(
-            DsSipTransportType.getTypeAsString(transport)
+            transport
                 + " transport protocol not supported for this element."
                 + " An element can only send messages via a transport protocol it listens on");
       }
@@ -859,17 +865,17 @@ public class DsSipTransactionManager {
     if (!resolver.shouldSearch(url)) {
       // GOGONG - 07.13.05 - Return default outgoing transport if the transport type is not
       // specified
-      int transportParam = url.getTransportParam();
-      int transport =
+      Transport transportParam = url.getTransportParam();
+      Transport transport =
           url.isSecure()
-              ? DsSipTransportType.TLS
-              : ((transportParam == DsSipTransportType.NONE)
+              ? Transport.TLS
+              : ((transportParam == Transport.NONE)
                   ? DsConfigManager.getDefaultOutgoingTransport()
                   : transportParam);
 
       if (!resolver.isSupported(transport)) {
         throw new DsException(
-            DsSipTransportType.getTypeAsString(transport)
+            transport
                 + " transport protocol not supported for this element. "
                 + " An element can only send messages via a transport protocol it listens on");
       }
@@ -942,27 +948,27 @@ public class DsSipTransactionManager {
     //  then get the transport and port
     // GOGONG - 07.13.05 - get default transport type from DsConfigManager instead of hard-coding to
     // UDP
-    int transport = DsConfigManager.getDefaultOutgoingTransport();
+    Transport transport = DsConfigManager.getDefaultOutgoingTransport();
     int port = 5060;
 
     if (sip_url) {
       // GOGONG - 07.13.05 - Return default outgoing transport if the transport type is not
       // specified
-      int transportParam = url.getTransportParam();
+      Transport transportParam = url.getTransportParam();
       transport =
           info.isTransportSet()
               ? info.getTransport()
               : (url.isSecure()
-                  ? DsSipTransportType.TLS
-                  : ((transportParam == DsSipTransportType.NONE) ? transport : transportParam));
-      DsSipTransportType type = DsSipTransportType.intern(transport);
+                  ? Transport.TLS
+                  : ((transportParam == Transport.NONE) ? transport : transportParam));
+      DsSipTransportType type = DsSipTransportType.intern(transport.ordinal());
       if (type != null) {
         port = type.getDefaultPort();
       }
       port = info.isRemotePortSet() ? info.getRemotePort() : (url.hasPort() ? url.getPort() : port);
     } else {
       transport = info.isTransportSet() ? info.getTransport() : transport;
-      DsSipTransportType type = DsSipTransportType.intern(transport);
+      DsSipTransportType type = DsSipTransportType.intern(transport.ordinal());
       if (type != null) {
         port = type.getDefaultPort();
       }
@@ -1076,7 +1082,7 @@ public class DsSipTransactionManager {
       throw new IllegalArgumentException("null Via header");
     }
 
-    int transport = viaHeader.getTransport();
+    Transport transport = viaHeader.getTransport();
 
     String param = DsByteString.toString(viaHeader.getMaddr());
 
@@ -1113,7 +1119,7 @@ public class DsSipTransactionManager {
     // another ugly hack to select the listen point as the source of
     //    the response...  this one is here because originally this
     //    behavior was tied to the DGRAM_NAT_TRAVERSAL setting
-    if (transport == DsSipTransportType.UDP && rport) {
+    if (transport == Transport.UDP && rport) {
       InetAddress laddr = null;
       int lport = LPU;
 
@@ -1128,7 +1134,7 @@ public class DsSipTransactionManager {
     }
     // if we're using UDP and NAT traversal, use the local binding info to
     //    bind locally to the listen port.
-    else if (transport == DsSipTransportType.UDP && (network != null && network.isBehindNAT())) {
+    else if (transport == Transport.UDP && (network != null && network.isBehindNAT())) {
       InetAddress laddr = null;
       int lport = LPU;
 
@@ -1790,7 +1796,7 @@ public class DsSipTransactionManager {
     try {
       if (msgBytes.m_msgBytes.length > DsConfigManager.getsipMessagePolicyMaxSize()) {
         DiscardSAEventBuilder.tooLargeSipMessageSAEventAlarm(
-            DsSipTransportType.getTypeAsString(msgBytes.m_bindingInfo.getTransport()),
+            msgBytes.m_bindingInfo.getTransport(),
             msgBytes.m_bindingInfo.getRemoteAddress().toString(),
             msgBytes.m_bindingInfo.getRemotePort(),
             msgBytes.m_bindingInfo.getLocalAddress().toString(),
@@ -2466,7 +2472,7 @@ public class DsSipTransactionManager {
           merge_detected = true;
         } else {
           DsBindingInfo bi = request.getBindingInfo();
-          if ((DsSipTransportType.UDP == bi.getTransport()) && bi.isPendingClosure()) {
+          if ((Transport.UDP == bi.getTransport()) && bi.isPendingClosure()) {
             if (processRequestForListenerShutdown(request, transaction)) {
               return null;
             }
@@ -4465,7 +4471,7 @@ public class DsSipTransactionManager {
       // so that we don't load the selector by making the call
       // only to stop it.
       if (IS_NON_BLOCKING_TCP || IS_NON_BLOCKING_TLS) {
-        DsSelector.stopAll();
+        //   DsSelector.stopAll();
       }
       operationalState = OperationalState.SHUTDOWN;
     }

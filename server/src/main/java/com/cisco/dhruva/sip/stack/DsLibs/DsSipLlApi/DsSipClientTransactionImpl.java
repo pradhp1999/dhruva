@@ -6,6 +6,8 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
+import com.cisco.dhruva.transport.ConnectionKey;
+import com.cisco.dhruva.transport.Transport;
 import gnu.trove.TIntArrayList;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -362,18 +364,19 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         genCat.info("Selected network " + network);
 
         // make sure that the local binding info is set for NAT
-        if (network.isBehindNAT()
-            && (bi.getTransport() == DsSipTransportType.UDP || !bi.isTransportSet())) {
+        if (network.isBehindNAT() && (bi.getTransport() == Transport.UDP || !bi.isTransportSet())) {
           // check to make sure that a local proxy is not going to change
           // the transport on us.
-          int lopTransport = DsSipTransactionManager.getTransportLayer().getLocalProxyTransport();
-          if (lopTransport == DsSipTransportType.NONE || lopTransport == DsSipTransportType.UDP) {
+          Transport lopTransport =
+              DsSipTransactionManager.getTransportLayer().getLocalProxyTransport();
+          /* TODO
+          if (lopTransport == Transport.NONE || lopTransport == Transport.UDP) {
             DsPacketListener listener = network.getUdpListener();
             if (listener != null) {
               bi.setLocalAddress(listener.m_address);
               bi.setLocalPort(listener.m_port);
             }
-          }
+          }*/
 
           if (genCat.isEnabled(Level.DEBUG)) {
             genCat.debug("Binding Info After Local Info Set: " + bi);
@@ -1022,7 +1025,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
 
           // Timer is set for both reliable and unreliable transports.
           // Only send the retransmission if unreliable.
-          if (!DsSipTransportType.intern(m_connection.getTransport()).isReliable()) {
+          if (!DsSipTransportType.intern(m_connection.getTransport().name()).isReliable()) {
             m_connection.send(m_sipRequest);
             logRequest(DsMessageLoggingInterface.REASON_RETRANSMISSION, m_sipRequest);
             DsMessageStatistics.updateStats(m_sipRequest, true, false);
@@ -1614,7 +1617,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     m_TCounter = 0;
     m_To = m_sipTimers.T4Value;
 
-    int transport = m_connection.getTransport();
+    Transport transport = m_connection.getTransport();
     boolean reliable = DsSipTransportType.intern(transport).isReliable();
     if (reliable) {
       m_To = 0;
@@ -1647,25 +1650,22 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     }
 
     boolean mismatch = false;
-    int transport = m_connection.getTransport();
+    Transport transport = m_connection.getTransport();
     int port = 0;
     String addr = null;
 
     if (via == null || (via != null && via.getTransport() != m_connection.getTransport())) {
       mismatch = true;
       if (m_clientTransportInfo == null) {
-        DsSipTransportLayer.ListenKey listen_key =
+        ConnectionKey listen_key =
             DsSipTransactionManager.getTransportLayer()
                 .findListenKeyForTransport(m_connection.getTransport());
 
         if (listen_key != null) {
-          addr = listen_key.getInetAddress().getHostAddress();
-          port = listen_key.getPort();
+          addr = listen_key.getRemoteAddress().getHostAddress();
+          port = listen_key.getRemotePort();
         } else {
-          throw new DsException(
-              "can't find a "
-                  + DsSipTransportType.getTypeAsString(transport)
-                  + " listener transport");
+          throw new DsException("can't find a " + transport + " listener transport");
         }
       } else {
         DsBindingInfo binfo = m_clientTransportInfo.getViaInfoForTransport(transport, network);
@@ -1675,7 +1675,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         } else {
           throw new DsException(
               "checkVia: user code getViaInfoForTransport returns null for  "
-                  + DsSipTransportType.getTypeAsString(transport)
+                  + transport
                   + "  transport");
         }
       }
@@ -1819,8 +1819,8 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
    *
    * @param reason the reason for logging this message
    * @param response the response to log
-   * @param m_sipRequest : Request object for the response for mapping and dumping any request
-   *     parameters and headers.
+   * @param request : Request object for the response for mapping and dumping any request parameters
+   *     and headers.
    */
   protected final void logResponse(int reason, DsSipResponse response, DsSipRequest request) {
     DsMessageStatistics.logResponse(
@@ -2034,8 +2034,8 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
             if (m_connection != null) {
               DsSipConnection conn = m_connection.getConnection();
               if (conn != null) {
-                if (conn.getTransportType() == DsSipTransportType.TCP
-                    || conn.getTransportType() == DsSipTransportType.TLS) {
+                if (conn.getTransportType() == Transport.TCP
+                    || conn.getTransportType() == Transport.TLS) {
                   if (genCat.isEnabled(Level.DEBUG)) {
                     genCat.debug("Timeout: Closing connection.");
                   }
@@ -2317,7 +2317,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       return (m_connection_ != null);
     }
 
-    int getTransport() {
+    Transport getTransport() {
       return m_connection_.getTransportType();
     }
 
@@ -2499,6 +2499,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         // Try again with the UDP itself.
         if (m_sizeExceedsMTU) {
           DsNetwork network = m_resolverInfo.getNetwork();
+          /* TODO
           if (network != null && network.isBehindNAT()) {
             // we un-set the local binding info earlier, now we need to put it back
             // since the TCP connection failed for some reason.
@@ -2515,10 +2516,10 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
                         + " and trying UDP");
               }
             }
-          }
+          }*/
 
           genCat.warn("tryConnect() m_sizeExceedsMTU trying UDP " + m_resolverInfo);
-          m_resolverInfo.setTransport(DsSipTransportType.UDP);
+          m_resolverInfo.setTransport(Transport.UDP);
           con =
               (DsSipConnection)
                   tl.getConnection(
@@ -2579,7 +2580,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       DsSipResolverUtils.initialize(network, this, localAddress, localPort, url);
     }
 
-    public void initialize(DsNetwork network, String host, int port, int transport)
+    public void initialize(DsNetwork network, String host, int port, Transport transport)
         throws UnknownHostException, DsSipServerNotFoundException {
       // delegate to helper
       DsSipResolverUtils.initialize(network, this, host, port, transport);
@@ -2591,7 +2592,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         int localPort,
         String host,
         int port,
-        int transport)
+        Transport transport)
         throws UnknownHostException, DsSipServerNotFoundException {
       // delegate to helper
       DsSipResolverUtils.initialize(network, this, localAddress, localPort, host, port, transport);
@@ -2603,7 +2604,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         int localPort,
         String host,
         int port,
-        int transport,
+        Transport transport,
         boolean haveIP)
         throws UnknownHostException, DsSipServerNotFoundException {
       m_haveIP = haveIP;
@@ -2616,9 +2617,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
 
       // since the user sets the whether or not the protocol is supported we don't have to
       // worry about it here
-      if (transport == DsSipTransportType.UDP
-          && m_sizeExceedsMTU
-          && isSupported(DsSipTransportType.TCP)) {
+      if (transport == Transport.UDP && m_sizeExceedsMTU && isSupported(Transport.TCP)) {
         if (genCat.isEnabled(Level.INFO)) {
           genCat.info(
               "initialize() - Exceeded UDP MTU size, switching to TCP and removing "
@@ -2628,7 +2627,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
                   + localPort);
         }
 
-        transport = DsSipTransportType.TCP;
+        transport = Transport.TCP;
 
         // Here we are switching transports from UDP to TCP, because this packet will not fit
         // over UDP.  But, there is a case where we have set the local binding info for NAT,
@@ -2639,18 +2638,20 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         // we need to un-set this local binding info in case there is no listener
         localAddr = null;
         localPort = DsBindingInfo.LOCAL_PORT_UNSPECIFIED;
+        /*
+        TODO
+                try {
 
-        try {
-          DsStreamListener listener =
-              (DsStreamListener) network.getListener(DsSipTransportType.TCP);
-          if (listener != null) {
-            localAddr = listener.localAddress;
-          }
-        } catch (NullPointerException e) {
-          if (genCat.isEnabled(Level.WARN)) {
-            genCat.warn("Null pointer during access to network object for listener address.");
-          }
-        }
+                  DsStreamListener listener =
+                      (DsStreamListener) network.getListener(DsSipTransportType.TCP);
+                  if (listener != null) {
+                    localAddr = listener.localAddress;
+                  }
+                } catch (NullPointerException e) {
+                  if (genCat.isEnabled(Level.WARN)) {
+                    genCat.warn("Null pointer during access to network object for listener address.");
+                  }
+                }*/
       }
 
       if (!isSupported(transport)) {
@@ -2660,7 +2661,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       }
 
       if (port == DsBindingInfo.REMOTE_PORT_UNSPECIFIED) {
-        if (transport == DsSipTransportType.TLS) {
+        if (transport == Transport.TLS) {
           port = DsSipTransportType.T_TLS.getDefaultPort();
         } else {
           port = DsSipTransportType.T_UDP.getDefaultPort(); // same as UDP
@@ -2692,7 +2693,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       return true;
     }
 
-    public boolean shouldSearch(String host_name, int port, int transport) {
+    public boolean shouldSearch(String host_name, int port, Transport transport) {
       return true;
     }
 
@@ -2704,7 +2705,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
      * @return <code>true</code> if this resolver has been configured to support a particular
      *     transport as defined in DsSipObject.DsSipTransportType.
      */
-    public boolean isSupported(int transport) {
+    public boolean isSupported(Transport transport) {
       return DsSipResolverUtils.isSupported(transport, m_supportedTransports, m_sizeExceedsMTU);
     }
 

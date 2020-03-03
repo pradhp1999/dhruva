@@ -11,8 +11,12 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.cisco.dhruva.config.network.NetworkConfig;
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.netty.UDPConnection;
+import com.cisco.dhruva.transport.netty.hanlder.AbstractChannelHandler;
+import com.cisco.dhruva.transport.netty.hanlder.UDPChannelHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -36,10 +40,18 @@ public class ConnectionCacheTest {
 
     // Create connections
 
-    NetworkConfig networkConfig = mock(NetworkConfig.class);
+    DsNetwork networkConfig = mock(DsNetwork.class);
 
     EmbeddedChannel channel = spy(EmbeddedChannel.class);
 
+    MessageForwarder messageForwarder =
+        new MessageForwarder() {
+          @Override
+          public void processMessage(byte[] messageBytes, DsBindingInfo bindingInfo) {}
+        };
+    ExecutorService executorService = new ExecutorService("DhruvaSipServer");
+    AbstractChannelHandler channelHandler =
+        new UDPChannelHandler(messageForwarder, executorService);
     try {
 
       when(networkConfig.connectionCacheConnectionIdleTimeout()).thenReturn(1);
@@ -66,7 +78,7 @@ public class ConnectionCacheTest {
           .when(channel)
           .remoteAddress();
 
-      Connection connection = new UDPConnection(channel, networkConfig);
+      Connection connection = new UDPConnection(channel, networkConfig, channelHandler);
       connection.addReference();
       CompletableFuture<Connection> connection1Future = new CompletableFuture<>();
       connection1Future.complete(connection);
@@ -78,7 +90,7 @@ public class ConnectionCacheTest {
               })
           .when(channel)
           .remoteAddress();
-      Connection connection2 = new UDPConnection(channel, networkConfig);
+      Connection connection2 = new UDPConnection(channel, networkConfig, channelHandler);
       connection.addReference();
       CompletableFuture<Connection> connection2Future = new CompletableFuture<>();
       connection2Future.complete(connection2);
@@ -98,7 +110,7 @@ public class ConnectionCacheTest {
               })
           .when(channel)
           .remoteAddress();
-      Connection connection3 = new UDPConnection(channel, networkConfig);
+      Connection connection3 = new UDPConnection(channel, networkConfig, channelHandler);
 
       CompletableFuture<Connection> connection3Future = new CompletableFuture<>();
       connection3Future.complete(connection3);
@@ -137,7 +149,7 @@ public class ConnectionCacheTest {
 
     // Create connections
 
-    NetworkConfig networkConfig = mock(NetworkConfig.class);
+    DsNetwork networkConfig = mock(DsNetwork.class);
 
     EmbeddedChannel channel = spy(EmbeddedChannel.class);
 

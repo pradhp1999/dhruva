@@ -8,6 +8,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerMgr;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerTask;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.transport.Transport;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,7 +83,7 @@ public class DsUnreachableDestinationTable implements DsEvent {
    * @param port the port of the unreachable destination
    * @param transport the transport type of the unreachable destination
    */
-  public void add(InetAddress address, int port, int transport) {
+  public void add(InetAddress address, int port, Transport transport) {
     if (DsSipServerLocator.m_useDsUnreachableTable) {
       String key = createKey(address, port, transport);
       synchronized (m_destinations) {
@@ -114,7 +115,7 @@ public class DsUnreachableDestinationTable implements DsEvent {
    * @return <code>true</code> if this destintion is already considered unreachable, else <code>
    *     false</code>
    */
-  public boolean contains(InetAddress address, int port, int transport) {
+  public boolean contains(InetAddress address, int port, Transport transport) {
     if (!DsSipServerLocator.m_useDsUnreachableTable) {
       return false;
     }
@@ -131,7 +132,7 @@ public class DsUnreachableDestinationTable implements DsEvent {
    * @param port the port of the reachable destination
    * @param transport the transport type of the reachable destination
    */
-  public void remove(InetAddress address, int port, int transport) {
+  public void remove(InetAddress address, int port, Transport transport) {
     DsDiscreteTimerTask timerTask =
         (DsDiscreteTimerTask) remove(createKey(address, port, transport));
     if (timerTask != null) {
@@ -181,7 +182,7 @@ public class DsUnreachableDestinationTable implements DsEvent {
     }
   }
 
-  private String createKey(InetAddress address, int port, int transport) {
+  private String createKey(InetAddress address, int port, Transport transport) {
     StringBuffer buf = new StringBuffer(32);
 
     buf.append(address.getHostAddress()).append(':').append(port).append(':').append(transport);

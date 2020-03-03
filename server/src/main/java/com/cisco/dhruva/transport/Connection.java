@@ -41,7 +41,11 @@ public interface Connection {
 
   void removeReference();
 
+  void updateTimeStamp();
+
   boolean shouldClose();
+
+  int referenceCount();
 
   public enum STATE {
     ACTIVE,

@@ -4,6 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.transport.Transport;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -16,7 +17,7 @@ public abstract class DsSRVWrapper {
 
   public abstract InetAddress getIPAddress() throws UnknownHostException;
 
-  public abstract int getProtocol();
+  public abstract Transport getProtocol();
 
   public abstract int getWeight();
 
