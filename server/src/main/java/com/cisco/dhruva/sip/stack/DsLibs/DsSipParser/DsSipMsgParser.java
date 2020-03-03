@@ -8,7 +8,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMsgParser;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 
 /**
  * Used to parse SIP messages. This is where header parsers are registered as well as new element
@@ -173,7 +172,6 @@ public class DsSipMsgParser extends DsMsgParserBase implements DsSipConstants {
   public static DsSipMessageListener parseCanonical(
       DsSipMessageListenerFactory msgFactory, byte msg[], int offset, int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(ENTIRE_PARSE);
 
     MsgBytes mb = new MsgBytes(msg, offset, count);
 
@@ -189,7 +187,6 @@ public class DsSipMsgParser extends DsMsgParserBase implements DsSipConstants {
     try {
       DsSipHeaderListener headerListener = messageListener.getHeaderListener();
 
-      if (DsPerf.ON) DsPerf.start(PARSE_HEADERS);
       // keep parsing until the body is found
       while (true) {
         try {
@@ -205,11 +202,8 @@ public class DsSipMsgParser extends DsMsgParserBase implements DsSipConstants {
           }
         }
       }
-      if (DsPerf.ON) DsPerf.stop(PARSE_HEADERS);
 
       parseBody(messageListener, mb);
-
-      if (DsPerf.ON) DsPerf.stop(ENTIRE_PARSE);
 
       return messageListener;
     } catch (DsSipParserListenerException e) {
@@ -404,7 +398,6 @@ public class DsSipMsgParser extends DsMsgParserBase implements DsSipConstants {
   private static DsSipMessageListener parseStartLine(
       DsSipMessageListenerFactory msgFactory, MsgBytes mb)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_START_LINE);
 
     DsSipMessageListener sipMsg = null;
     try {
@@ -463,7 +456,6 @@ public class DsSipMsgParser extends DsMsgParserBase implements DsSipConstants {
 
         if (sipMsg == null) {
           // nothing left to do, the caller does not want this message parsed yet
-          if (DsPerf.ON) DsPerf.stop(PARSE_START_LINE);
           return null;
         }
 
@@ -499,7 +491,6 @@ public class DsSipMsgParser extends DsMsgParserBase implements DsSipConstants {
 
         if (sipMsg == null) {
           // nothing left to do, the caller does not want this message parsed yet
-          if (DsPerf.ON) DsPerf.stop(PARSE_START_LINE);
           return null;
         }
 
@@ -610,7 +601,6 @@ public class DsSipMsgParser extends DsMsgParserBase implements DsSipConstants {
         }
       }
 
-      if (DsPerf.ON) DsPerf.stop(PARSE_START_LINE);
       return sipMsg;
     } catch (ArrayIndexOutOfBoundsException e) {
       // this will return a bogus body - jsm

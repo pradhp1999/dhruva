@@ -10,11 +10,9 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerExceptio
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipInteger;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMasterDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessions;
 import java.io.IOException;
@@ -46,10 +44,6 @@ public class DsSipResponse extends DsSipMessage {
   /** Default constructor. */
   public DsSipResponse() {
     super();
-  }
-
-  protected DsSipResponse(boolean encoded) {
-    super(encoded);
   }
 
   /**
@@ -134,7 +128,6 @@ public class DsSipResponse extends DsSipMessage {
       boolean cloneHeaders,
       boolean copyRecordRoute) {
     super();
-    if (DsPerf.ON) DsPerf.start(DsPerf.NEW_RESPONSE);
     m_StatusCode = code;
     m_strPhrase = DsSipResponseCode.getBSReasonPhrase(code);
     DsBindingInfo bi = sipRequest.getBindingInfo();
@@ -201,7 +194,6 @@ public class DsSipResponse extends DsSipMessage {
     }
 
     setBody(body, contentType);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.NEW_RESPONSE);
   }
 
   /**
@@ -237,126 +229,115 @@ public class DsSipResponse extends DsSipMessage {
   public static byte[] createResponseByteBuffer(
       int code, DsSipRequest sipRequest, byte[] body, DsByteString contentType) {
     byte[] buffer2Array = null;
-    if (DsPerf.ON) DsPerf.start(DsPerf.NEW_RESPONSE_BYTES);
 
     try (ByteBuffer buffer = ByteBuffer.newInstance(2048)) {
-      if (sipRequest.isEncoded()) {
-        if (Log.isDebugEnabled()) Log.debug("In createResponseBytes, encoding cancel response");
 
-        DsSipResponse cancelResponse =
-            new DsSipResponse(code, sipRequest, body, contentType, false);
-        byte[] resp =
-            cancelResponse.toEncodedByteString(cancelResponse.shouldEncode()).toByteArray();
-        buffer.write(resp);
-      } else {
-        try {
-          // write start line
-          // optimize for 100 response
-          if (code == 100) {
-            BS_100_TRYING.write(buffer);
-          } else {
-            DsByteString reasonPhrase = DsSipResponseCode.getBSReasonPhrase(code);
-            // Write "SIP/2.0 "
-            BS_SIP_VERSION.write(buffer);
-            buffer.write(B_SPACE);
-            buffer.write(DsIntStrCache.intToBytes(code));
-            buffer.write(B_SPACE);
-            reasonPhrase.write(buffer);
-            BS_EOH.write(buffer); // Write "\r\n"
-          }
-
-          // we must remove the received parameter from the via before sending
-          // don't forget to put it back, since this is the real msg
-          DsSipViaHeader via = null;
-          try {
-            // Get the top via header, and make sure its parsed
-            via = (DsSipViaHeader) sipRequest.getHeaderValidate(VIA, true);
-            DsSipHeaderInterface link = null;
-            if (via != null) {
-              if (!receiveAlways) {
-                if (Log.isDebugEnabled())
-                  Log.debug("In createResponseBytes, removing the received= tag from the via");
-                DsByteString received = via.getReceived();
-                via.removeReceived();
-                via.write(buffer);
-                if (null != received) {
-                  via.setReceived(received);
-                }
-              } else {
-                via.write(buffer);
-              }
-              link = (DsSipHeaderInterface) via.getNext();
-            }
-            while (link != null) {
-              link.write(buffer);
-              link = (DsSipHeaderInterface) link.getNext();
-            }
-
-          } catch (DsSipParserException pe) {
-            // log?
-          } catch (DsSipParserListenerException ple) {
-            // log?
-          }
-          // Write To header
-          DsSipHeaderInterface header = (DsSipHeaderInterface) sipRequest.getHeader(TO, true);
-          if (null != header) header.write(buffer);
-
-          // Write From header
-          header = (DsSipHeaderInterface) sipRequest.getHeader(FROM, true);
-          if (null != header) header.write(buffer);
-
-          // Write Call-ID header
-          sipRequest.writeCallId(buffer);
-          // Write CSeq header
-          sipRequest.writeCSeq(buffer);
-
-          // check need to check for session id header before adding one
-          // Add Session-ID header
-          writeSessionId(buffer, sipRequest);
-
-          // CAFFEINE 2.0 DEVELOPMENT -  CSCeg69327 GUID support in stack.
-          // add Cisco-Guid header if needed
-          if (DsConfigManager.isUseCiscoGuidHeader()) {
-            DsSipHeaderInterface guidHdr = sipRequest.getHeaders(CISCO_GUID);
-            if (guidHdr != null) guidHdr.write(buffer);
-          }
-
-          if (code == 100) {
-            // copy the timestamp header into 100 responses, as per bis-09
-            DsSipHeaderInterface ts = (DsSipHeaderInterface) sipRequest.getHeader(TIMESTAMP);
-            if (ts != null) {
-              ts.write(buffer);
-            }
-          }
-
-          if ((code / 100) == 2 || code == 401 || code == 407 || code == 484) {
-            // write the record route headers
-            header = (DsSipHeaderInterface) sipRequest.getHeader(RECORD_ROUTE, true);
-            while (header != null) {
-              header.write(buffer);
-              header = (DsSipHeaderInterface) header.getNext();
-            }
-          }
-          // Check and write body type
-          if (contentType != null && contentType.length() > 0) // body type exists
-          {
-            BS_CONTENT_TYPE_TOKEN.write(buffer);
-            contentType.write(buffer);
-            BS_EOH.write(buffer);
-          }
-          writeContentLength(buffer, ((null == body) ? 0 : body.length));
-
-          // separatory of headers and body
-          BS_EOH.write(buffer);
-          if (body != null) {
-            buffer.write(body);
-          }
-        } catch (IOException e) {
-          // retval will be null
+      try {
+        // write start line
+        // optimize for 100 response
+        if (code == 100) {
+          BS_100_TRYING.write(buffer);
+        } else {
+          DsByteString reasonPhrase = DsSipResponseCode.getBSReasonPhrase(code);
+          // Write "SIP/2.0 "
+          BS_SIP_VERSION.write(buffer);
+          buffer.write(B_SPACE);
+          buffer.write(DsIntStrCache.intToBytes(code));
+          buffer.write(B_SPACE);
+          reasonPhrase.write(buffer);
+          BS_EOH.write(buffer); // Write "\r\n"
         }
+
+        // we must remove the received parameter from the via before sending
+        // don't forget to put it back, since this is the real msg
+        DsSipViaHeader via = null;
+        try {
+          // Get the top via header, and make sure its parsed
+          via = (DsSipViaHeader) sipRequest.getHeaderValidate(VIA, true);
+          DsSipHeaderInterface link = null;
+          if (via != null) {
+            if (!receiveAlways) {
+              if (Log.isDebugEnabled())
+                Log.debug("In createResponseBytes, removing the received= tag from the via");
+              DsByteString received = via.getReceived();
+              via.removeReceived();
+              via.write(buffer);
+              if (null != received) {
+                via.setReceived(received);
+              }
+            } else {
+              via.write(buffer);
+            }
+            link = (DsSipHeaderInterface) via.getNext();
+          }
+          while (link != null) {
+            link.write(buffer);
+            link = (DsSipHeaderInterface) link.getNext();
+          }
+
+        } catch (DsSipParserException pe) {
+          // log?
+        } catch (DsSipParserListenerException ple) {
+          // log?
+        }
+        // Write To header
+        DsSipHeaderInterface header = (DsSipHeaderInterface) sipRequest.getHeader(TO, true);
+        if (null != header) header.write(buffer);
+
+        // Write From header
+        header = (DsSipHeaderInterface) sipRequest.getHeader(FROM, true);
+        if (null != header) header.write(buffer);
+
+        // Write Call-ID header
+        sipRequest.writeCallId(buffer);
+        // Write CSeq header
+        sipRequest.writeCSeq(buffer);
+
+        // check need to check for session id header before adding one
+        // Add Session-ID header
+        writeSessionId(buffer, sipRequest);
+
+        // CAFFEINE 2.0 DEVELOPMENT -  CSCeg69327 GUID support in stack.
+        // add Cisco-Guid header if needed
+        if (DsConfigManager.isUseCiscoGuidHeader()) {
+          DsSipHeaderInterface guidHdr = sipRequest.getHeaders(CISCO_GUID);
+          if (guidHdr != null) guidHdr.write(buffer);
+        }
+
+        if (code == 100) {
+          // copy the timestamp header into 100 responses, as per bis-09
+          DsSipHeaderInterface ts = (DsSipHeaderInterface) sipRequest.getHeader(TIMESTAMP);
+          if (ts != null) {
+            ts.write(buffer);
+          }
+        }
+
+        if ((code / 100) == 2 || code == 401 || code == 407 || code == 484) {
+          // write the record route headers
+          header = (DsSipHeaderInterface) sipRequest.getHeader(RECORD_ROUTE, true);
+          while (header != null) {
+            header.write(buffer);
+            header = (DsSipHeaderInterface) header.getNext();
+          }
+        }
+        // Check and write body type
+        if (contentType != null && contentType.length() > 0) // body type exists
+        {
+          BS_CONTENT_TYPE_TOKEN.write(buffer);
+          contentType.write(buffer);
+          BS_EOH.write(buffer);
+        }
+        writeContentLength(buffer, ((null == body) ? 0 : body.length));
+
+        // separatory of headers and body
+        BS_EOH.write(buffer);
+        if (body != null) {
+          buffer.write(body);
+        }
+      } catch (IOException e) {
+        // retval will be null
       }
 
-      if (DsPerf.ON) DsPerf.stop(DsPerf.NEW_RESPONSE_BYTES);
       buffer2Array = buffer.toByteArray();
     } catch (IOException ie) {
 
@@ -569,45 +550,7 @@ public class DsSipResponse extends DsSipMessage {
   }
 
   public final DsTokenSipDictionary shouldEncode() {
-    if ((getBindingInfo() == null)
-        || (getBindingInfo().getNetwork() == null)
-        || (getBindingInfo().getNetwork().isTSIPEnabled() == false))
-    // if (canEncode() == false)
-    {
-      if (Log.isDebugEnabled()) Log.debug("Can not encode this response");
-      return null;
-    }
 
-    if (Log.isDebugEnabled()) Log.debug("Can encode this response");
-
-    DsSipViaHeader topvia = null;
-    DsByteString tokval = null;
-    try {
-      topvia = getViaHeaderValidate();
-      tokval = topvia.getParameter(DsTokenSipConstants.s_TokParamName);
-      if (Log.isDebugEnabled()) Log.debug("tokval in response via is " + tokval);
-
-    } catch (Exception exc) {
-    }
-    if (tokval != null) {
-      if (Log.isDebugEnabled()) Log.debug("shouldEncode - param value is <" + tokval + ">");
-      return DsTokenSipMasterDictionary.getDictionary(tokval.unquoted());
-      /*if (tokval.unquoted().compareTo(DsTokenSipMasterDictionary.getTokenParamString(m_dictionary)) == 0)
-      {
-          if (Log.isDebugEnabled()) Log.debug("ShouldEncode?  True.");
-          return true;
-      }
-      else
-      {
-          // Why on earth were we stting the tok param if it wasn't there???
-          if (topvia != null)
-          {
-              topvia.setParameter(DsTokenSipConstants.s_TokParamName,DsTokenSipMasterDictionary.getTokenParamString(m_dictionary));
-      }
-      }*/
-    }
-
-    if (Log.isDebugEnabled()) Log.debug("ShouldEncode?  False.");
     return null;
   }
   /**

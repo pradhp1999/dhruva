@@ -6,7 +6,6 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import gnu.trove.TLinkable;
 import gnu.trove.TLinkedList;
 import java.io.IOException;
@@ -186,7 +185,6 @@ public class DsHeaderParameters extends DsParameters {
    * @throws IOException if there is an error while writing to the output stream
    */
   public void write(OutputStream out) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.PARAMS_WRITE);
     boolean first = !startsWithDelimiter();
     DsHeaderParameter param = (DsHeaderParameter) getFirst();
     while (param != null) {
@@ -198,7 +196,6 @@ public class DsHeaderParameters extends DsParameters {
       param.write(out);
       param = (DsHeaderParameter) param.getNext();
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.PARAMS_WRITE);
   }
 
   public DsHeaderParameter getHeaderParameter(DsByteString key) {

@@ -8,8 +8,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRetryAfterHeader;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageStatistics;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsUnitOfWork;
 import java.io.IOException;
 import org.apache.logging.log4j.Level;
@@ -164,11 +162,6 @@ public class DsSipRequestRejectHelper extends DsSipRequestQueueHelper {
                 null);
         response.addHeader(m_retryAfter);
         m_serverTransaction.sendResponse(response);
-        DsMessageStatistics.logResponse(
-            DsMessageLoggingInterface.REASON_AUTO,
-            DsMessageLoggingInterface.DIRECTION_OUT,
-            response,
-            m_serverTransaction.getRequest());
       } catch (DsException dse) {
         if (DsLog4j.transMCat.isEnabled(Level.WARN))
           DsLog4j.transMCat.warn(

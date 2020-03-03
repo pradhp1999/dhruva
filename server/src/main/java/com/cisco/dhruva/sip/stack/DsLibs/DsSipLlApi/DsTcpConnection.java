@@ -6,18 +6,22 @@ import com.cisco.dhruva.transport.Connection;
 import java.io.IOException;
 import java.net.InetAddress;
 
-/**
- * Defines a concrete connection that is used to send data across the network through the underlying
- * TCP socket. This concrete connection can be constructed through the {@link
- * DsDefaultConnectionFactory DsDefaultConnectionFactory} by passing appropriate parameter like
- * transport type and address.
- */
-
 /*
 TODO : Skeleton for now , has to be built properly
-
  */
 public class DsTcpConnection extends DsAbstractConnection {
+
+  /**
+   * Sends the specified data buffer across the network through the underlying socket to the desired
+   * destination. The data destination is specified in this connection's binding info.
+   *
+   * @param buffer the message bytes to send across
+   * @throws IOException if there is an I/O error while sending the message
+   */
+  public void send(byte buffer[]) throws IOException {
+    super.send(buffer);
+    updateTimeStamp();
+  }
 
   protected DsTcpConnection(Connection connection) {
     super(connection);

@@ -3,11 +3,7 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipElementListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipHeaderListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
@@ -16,7 +12,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsHexEncoding;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import com.cisco.dhruva.transport.Transport;
 import gnu.trove.TLinkedList;
 import java.io.CharArrayWriter;
@@ -1304,7 +1299,6 @@ public class DsSipURL extends DsURI implements Serializable, Cloneable, DsSipHea
    * @return the cloned object.
    */
   public Object clone() {
-    if (DsPerf.ON) DsPerf.start(DsPerf.CLONE_SIP_URL);
     DsSipURL clone = (DsSipURL) super.clone();
 
     if (m_Parameters != null) {
@@ -1319,7 +1313,6 @@ public class DsSipURL extends DsURI implements Serializable, Cloneable, DsSipHea
       clone.m_telSub = (DsSipTelephoneSubscriber) m_telSub.clone();
     }
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.CLONE_SIP_URL);
     return clone;
   }
 

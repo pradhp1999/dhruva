@@ -110,10 +110,6 @@ public class DsSipRequest extends DsSipMessage {
   /** Default constructor. */
   protected DsSipRequest() {}
 
-  protected DsSipRequest(boolean encoded) {
-    super(encoded);
-  }
-
   /**
    * Constructs this request object with the method name specified in the passed in <code>buffer
    * </code>.
@@ -977,61 +973,6 @@ public class DsSipRequest extends DsSipMessage {
   public final DsTokenSipDictionary shouldEncode() {
     if (Log.isDebugEnabled()) Log.debug("Entering shouldEncode of DsSipRequest");
     if (Log.isDebugEnabled()) Log.debug("DsSipRequest Binding Info " + getBindingInfo());
-
-    if ((getBindingInfo() == null)
-        || (getBindingInfo().getNetwork() == null)
-        || (getBindingInfo().getNetwork().isTSIPEnabled() == false))
-    //       if (canEncode() == false)
-    {
-      if (Log.isDebugEnabled()) Log.debug("Can not encode this request");
-      return null;
-    }
-
-    if (Log.isDebugEnabled()) Log.debug("Can encode this request");
-
-    // todo what happens if the URI is not a SIP URL
-
-    DsSipRouteHeader topRoute = null;
-    try {
-      if (Log.isDebugEnabled()) Log.debug("Checking route or r-uri");
-      if (Log.isDebugEnabled()) Log.debug(this.maskAndWrapSIPMessageToSingleLineOutput());
-
-      topRoute = (DsSipRouteHeader) getHeaderValidate(DsSipRouteHeader.sID);
-    } catch (DsSipParserException e) {
-      if (Log.isDebugEnabled()) Log.debug("Cannot parse route header.  No route.");
-    } catch (DsSipParserListenerException e) {
-      if (Log.isDebugEnabled()) Log.debug("Cannot parse route header.  No route.");
-    }
-
-    if (topRoute != null) {
-      DsURI uri = topRoute.getURI();
-      if (uri.isSipURL()) {
-        if (Log.isDebugEnabled()) Log.debug("shouldEncode - in Record-Route URL");
-
-        DsByteString tokval = ((DsSipURL) uri).getParameter(DsTokenSipConstants.s_TokParamName);
-
-        if (tokval != null) {
-          if (Log.isDebugEnabled())
-            Log.debug("shouldEncode Record-Route - param value is <" + tokval + ">");
-          return DsTokenSipMasterDictionary.getDictionary(tokval.unquoted());
-        }
-      }
-    }
-    // -- If Route header is present and doesn't have tokenized parameter, we should
-    // -- check in the RURI for the tokenized parameter.
-    // --        else
-    {
-      DsURI uri = getURI();
-      if (uri.isSipURL()) {
-        if (Log.isDebugEnabled()) Log.debug("shouldEncode - in sip URL");
-
-        DsByteString tokval = ((DsSipURL) uri).getParameter(DsTokenSipConstants.s_TokParamName);
-        if (tokval != null) {
-          if (Log.isDebugEnabled()) Log.debug("shouldEncode - param value is <" + tokval + ">");
-          return DsTokenSipMasterDictionary.getDictionary(tokval.unquoted());
-        }
-      }
-    }
 
     return null;
   }

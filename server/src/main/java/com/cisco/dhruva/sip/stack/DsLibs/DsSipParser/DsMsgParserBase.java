@@ -7,7 +7,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipMime.DsMimeMessageListener;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.ByteBuffer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import gnu.trove.TIntObjectHashMap;
 import java.io.IOException;
 import java.util.HashMap;
@@ -54,44 +53,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
   private static final HashMap methodsMap = new HashMap(32);
   /** Mapping of header IDs to parsers. */
   private static final TIntObjectHashMap parserMap = new TIntObjectHashMap();
-
-  // Constants for DsPerf
-
-  /** DsPerf constant. */
-  protected static final int ENTIRE_PARSE;
-  /** DsPerf constant. */
-  protected static final int PARSE_START_LINE;
-  /** DsPerf constant. */
-  protected static final int PARSE_HEADERS;
-  /** DsPerf constant. */
-  protected static final int PARSE_VIA;
-  /** DsPerf constant. */
-  protected static final int PARSE_BODY;
-
-  /** DsPerf constant. */
-  protected static final int PARSE_INT;
-  /** DsPerf constant. */
-  protected static final int PARSE_LONG;
-  /** DsPerf constant. */
-  protected static final int PARSE_FLOAT;
-
-  /** DsPerf constant. */
-  protected static final int PARSE_SIP_URL_DATA;
-  /** DsPerf constant. */
-  protected static final int PARSE_TEL_URL_DATA;
-  /** DsPerf constant. */
-  protected static final int PARSE_CID_URL_DATA;
-
-  /** DsPerf constant. */
-  protected static final int FIRE_ELEMENT;
-  /** DsPerf constant. */
-  protected static final int FIRE_PARAMETER;
-  /** DsPerf constant. */
-  protected static final int PARSE_URL_HEADER;
-  /** DsPerf constant. */
-  protected static final int PARSE_NAME_ADDR;
-  /** DsPerf constant. */
-  protected static final int DEEP_PARSE_HEADERS;
 
   //////////////////////////////////////////////////////////////////////////////
   // Static block initializing Method, Header and Element Names
@@ -521,25 +482,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
     headersMap.put(BS_REJECT_CONTACT_C, new Integer(REJECT_CONTACT));
     headersMap.put(BS_REQUEST_DISPOSITION_C, new Integer(REQUEST_DISPOSITION));
     headersMap.put(BS_REFERRED_BY_C, new Integer(REFERRED_BY));
-
-    // DsPerf register
-    ENTIRE_PARSE = DsPerf.addType("\nEntire Msg Parse               ");
-    PARSE_START_LINE = DsPerf.addType("  Parse Start Line             ");
-    PARSE_HEADERS = DsPerf.addType("  Parse Headers                ");
-    DEEP_PARSE_HEADERS = DsPerf.addType("    Deep Parse Headers         ");
-    FIRE_ELEMENT = DsPerf.addType("    Fire Element               ");
-    FIRE_PARAMETER = DsPerf.addType("    Fire Parameter             ");
-    PARSE_VIA = DsPerf.addType("    Parse Via                  ");
-    PARSE_BODY = DsPerf.addType("  Parse Body                   ");
-    PARSE_INT = DsPerf.addType("Parse Int                      ");
-    PARSE_LONG = DsPerf.addType("Parse Long                     ");
-    PARSE_FLOAT = DsPerf.addType("Parse Float                    ");
-    PARSE_SIP_URL_DATA = DsPerf.addType("Parse SIP URL Data             ");
-    // CAFFEINE 2.0 DEVELOPMENT - Additional DsPerf data
-    PARSE_CID_URL_DATA = DsPerf.addType("Parse CID URL Data             ");
-    PARSE_TEL_URL_DATA = DsPerf.addType("Parse TEL URL Data             ");
-    PARSE_URL_HEADER = DsPerf.addType("Parse URL Header               ");
-    PARSE_NAME_ADDR = DsPerf.addType("Parse Name Addr                ");
   }
 
   /**
@@ -1290,7 +1232,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
   public static void parseHeader(
       DsSipHeaderListener headerListener, int headerType, byte data[], int offset, int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(DEEP_PARSE_HEADERS);
 
     // the order of this switch statement must remain in sync with the order of DsSipConstants - jsm
     switch (headerType) {
@@ -1557,7 +1498,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
         }
         break;
     }
-    if (DsPerf.ON) DsPerf.stop(DEEP_PARSE_HEADERS);
   }
 
   /**
@@ -1569,7 +1509,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
    */
   protected static void parseBody(DsMimeMessageListener sipMsg, MsgBytes mb)
       throws DsSipParserListenerException {
-    if (DsPerf.ON) DsPerf.start(PARSE_BODY);
 
     // need more validation with Content-Length, but this will work for sunny day for now - jsm
     boolean isValid = true; // hack - always true for now - jsm
@@ -1582,8 +1521,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
     } else {
       sipMsg.messageFound(DsByteString.BS_EMPTY_STRING.data(), 0, 0, isValid);
     }
-
-    if (DsPerf.ON) DsPerf.stop(PARSE_BODY);
   }
 
   /**
@@ -1727,7 +1664,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
       int offset,
       int count)
       throws DsSipParserListenerException {
-    if (DsPerf.ON) DsPerf.start(FIRE_ELEMENT);
 
     if (element != null) {
       DsSipElementListener subElement = null;
@@ -1811,8 +1747,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
 
       element.elementFound(contextId, elementId, buffer, offset, count, isElementValid);
     }
-
-    if (DsPerf.ON) DsPerf.stop(FIRE_ELEMENT);
   }
 
   protected static void fireParameter(
@@ -1824,7 +1758,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
       int valueOffset,
       int valueCount)
       throws DsSipParserListenerException {
-    if (DsPerf.ON) DsPerf.start(FIRE_PARAMETER);
 
     // fix any missed flag parameter value
     if (valueOffset < 0 || valueCount < 0) {
@@ -1833,8 +1766,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
     }
 
     element.parameterFound(contextId, buffer, nameOffset, nameCount, valueOffset, valueCount);
-
-    if (DsPerf.ON) DsPerf.stop(FIRE_PARAMETER);
   }
 
   // To
@@ -1849,7 +1780,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
   protected static void parseUrlHeader(
       DsSipHeaderListener headerListener, int headerType, byte data[], int offset, int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_URL_HEADER);
 
     try {
       int index = offset;
@@ -1860,7 +1790,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
         DsSipElementListener header = headerListener.headerBegin(headerType);
         if (header == null) {
           headerListener.headerFound(headerType, data, startHeader, end - startHeader, true);
-          if (DsPerf.ON) DsPerf.stop(PARSE_URL_HEADER);
           return; // done - lazy parse only
         }
 
@@ -1869,7 +1798,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
         // handle empty case
         if (index == end) {
           headerListener.headerFound(headerType, data, startHeader, end - startHeader, true);
-          if (DsPerf.ON) DsPerf.stop(PARSE_URL_HEADER);
           return;
         }
 
@@ -2209,7 +2137,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
 
         if (foundComma == false) // no more headers to parse
         {
-          if (DsPerf.ON) DsPerf.stop(PARSE_URL_HEADER);
           return;
         }
       }
@@ -2765,7 +2692,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
   protected static void parseVia(
       DsSipHeaderListener headerListener, int headerType, byte data[], int offset, int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_VIA);
 
     try {
       int index = offset;
@@ -2786,7 +2712,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
         DsSipElementListener header = headerListener.headerBegin(headerType);
         if (header == null) {
           headerListener.headerFound(headerType, data, startHeader, end - startHeader, true);
-          if (DsPerf.ON) DsPerf.stop(PARSE_VIA);
           return; // done - lazy parse only
         }
 
@@ -3350,7 +3275,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
         // if we get here, then there are no more headers to parse
         headerListener.headerFound(headerType, data, startHeader, index - startHeader, true);
 
-        if (DsPerf.ON) DsPerf.stop(PARSE_VIA);
         return; // done parsing
       }
     }
@@ -5884,7 +5808,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
   public static void parseTelUrlData(
       DsSipElementListener element, byte data[], int offset, int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_TEL_URL_DATA);
 
     try {
       int end = offset + count;
@@ -5903,7 +5826,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
 
       if (index == end) {
         fireElement(element, TEL_URL_ID, TEL_URL_NUMBER, data, start, index - start);
-        if (DsPerf.ON) DsPerf.stop(PARSE_TEL_URL_DATA);
         return;
       }
 
@@ -5928,7 +5850,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
           case '\n': // EOF
             nameCount = index - startName - 1;
             fireParameter(element, TEL_URL_ID, data, startName, nameCount, 0, 0);
-            if (DsPerf.ON) DsPerf.stop(PARSE_TEL_URL_DATA);
             return;
           case '=': // end of name - start of value
             nameCount = index - startName - 1;
@@ -5944,7 +5865,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
                   valueCount = index - startValue - 1;
                   fireParameter(
                       element, TEL_URL_ID, data, startName, nameCount, startValue, valueCount);
-                  if (DsPerf.ON) DsPerf.stop(PARSE_TEL_URL_DATA);
                   return;
                 case ';': // next param
                   innerDone = true;
@@ -5971,7 +5891,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
               valueCount = index - startValue;
               fireParameter(
                   element, TEL_URL_ID, data, startName, nameCount, startValue, valueCount);
-              if (DsPerf.ON) DsPerf.stop(PARSE_TEL_URL_DATA);
               return;
             }
             break;
@@ -5987,7 +5906,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
       if (index == end) {
         nameCount = index - startName;
         fireParameter(element, TEL_URL_ID, data, startName, nameCount, 0, 0);
-        if (DsPerf.ON) DsPerf.stop(PARSE_TEL_URL_DATA);
         return;
       }
     }
@@ -6026,11 +5944,9 @@ public abstract class DsMsgParserBase implements DsSipConstants {
    */
   public static void parseNameAddr(DsSipElementListener element, byte data[], int offset, int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_NAME_ADDR);
 
     try {
       if (element == null) {
-        if (DsPerf.ON) DsPerf.stop(PARSE_NAME_ADDR);
         return; // done - lazy parse only
       }
 
@@ -6065,7 +5981,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
               fireElement(
                   element, NAME_ADDR_ID, URI, data, offset, count); // handle erroneous WS? - jsm
 
-              if (DsPerf.ON) DsPerf.stop(PARSE_NAME_ADDR);
               return;
             }
 
@@ -6101,7 +6016,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
 
       fireElement(element, NAME_ADDR_ID, URI, data, start, index - start + 1);
 
-      if (DsPerf.ON) DsPerf.stop(PARSE_NAME_ADDR);
     }
     // catch (DsSipParserException e)
     // {
@@ -6386,7 +6300,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
       int offset,
       int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_SIP_URL_DATA);
 
     try {
       int end = offset + count;
@@ -6467,7 +6380,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
             } else {
               fireElement(element, SIP_URL_ID, HOST, data, start, index - start - 1);
             }
-            if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
             return;
           case ':': // port
             if (isIPv6) {
@@ -6487,13 +6399,11 @@ public abstract class DsMsgParserBase implements DsSipConstants {
             if (index == end && ch >= '0' && ch <= '9') // ends with port
             {
               fireElement(element, SIP_URL_ID, PORT, data, start, index - start);
-              if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
               return;
             } else {
               fireElement(element, SIP_URL_ID, PORT, data, start, index - start - 1);
 
               if (ch <= ' ') {
-                if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
                 return;
               }
             }
@@ -6523,7 +6433,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
           fireElement(element, SIP_URL_ID, HOST, data, start, index - start);
         }
 
-        if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
         return;
       }
 
@@ -6550,7 +6459,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
             case '\n': // EOF
               nameCount = index - startName - 1;
               fireParameter(element, SIP_URL_ID, data, startName, nameCount, 0, 0);
-              if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
               return;
             case '=': // end of name - start of value
               nameCount = index - startName - 1;
@@ -6566,7 +6474,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
                     valueCount = index - startValue - 1;
                     fireParameter(
                         element, SIP_URL_ID, data, startName, nameCount, startValue, valueCount);
-                    if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
                     return;
                   case '?': // start headers
                     done = true;
@@ -6584,7 +6491,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
                 valueCount = index - startValue;
                 fireParameter(
                     element, SIP_URL_ID, data, startName, nameCount, startValue, valueCount);
-                if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
                 return;
               }
               break;
@@ -6602,7 +6508,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
         if (index == end) {
           nameCount = index - startName;
           fireParameter(element, SIP_URL_ID, data, startName, nameCount, 0, 0);
-          if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
           return;
         }
       }
@@ -6649,7 +6554,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
                 parseHeaderFromUrl(hdrListener, data, startName, nameCount, 0, 0);
               }
 
-              if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
               return;
             case '=': // end of name - start of value
               nameCount = index - startName - 1;
@@ -6674,7 +6578,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
                           hdrListener, data, startName, nameCount, startValue, valueCount);
                     }
 
-                    if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
                     return;
                   case '&': // next param
                     valueCount = index - startValue - 1;
@@ -6707,7 +6610,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
                         hdrListener, data, startName, nameCount, startValue, valueCount);
                   }
 
-                  if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
                   return;
                 }
               }
@@ -6739,7 +6641,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
             // fireParameter(element, SIP_URL_ID, data, startName, nameCount, 0, 0);
           }
 
-          if (DsPerf.ON) DsPerf.stop(PARSE_SIP_URL_DATA);
           return;
         }
       }
@@ -6873,16 +6774,13 @@ public abstract class DsMsgParserBase implements DsSipConstants {
    * @throws NumberFormatException if the number is malformed.
    */
   public static float parseFloat(byte data[], int offset, int count) {
-    if (DsPerf.ON) DsPerf.start(PARSE_FLOAT);
 
     if (count == 1) {
       if (data[offset] == '.') {
-        if (DsPerf.ON) DsPerf.stop(PARSE_FLOAT);
         return 0;
       }
 
       if (data[offset] <= '9' && data[offset] >= '0') {
-        if (DsPerf.ON) DsPerf.stop(PARSE_FLOAT);
         return data[offset] - '0';
       } else // exception
       {
@@ -6930,11 +6828,9 @@ public abstract class DsMsgParserBase implements DsSipConstants {
         val *= -1;
       }
 
-      if (DsPerf.ON) DsPerf.stop(PARSE_FLOAT);
       return val;
     } else // no decimal point
     {
-      if (DsPerf.ON) DsPerf.stop(PARSE_FLOAT);
       return parseLong(data, offset, count);
     }
   }
@@ -6949,7 +6845,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
    * @throws NumberFormatException if the number is malformed.
    */
   public static long parseLong(byte data[], int offset, int count) {
-    if (DsPerf.ON) DsPerf.start(PARSE_LONG);
 
     byte ch;
     long val = 0;
@@ -6963,18 +6858,15 @@ public abstract class DsMsgParserBase implements DsSipConstants {
         factor *= 10;
       } else if ((i == offset) && ((ch == '-') || (ch == '+'))) {
         if (ch == '-') {
-          if (DsPerf.ON) DsPerf.stop(PARSE_LONG);
           return (val * -1);
         }
 
-        if (DsPerf.ON) DsPerf.stop(PARSE_LONG);
         return val;
       } else {
         throw new NumberFormatException("Tried to parse non-integer value: '" + (char) ch + "'");
       }
     }
 
-    if (DsPerf.ON) DsPerf.stop(PARSE_LONG);
     return val;
   }
 
@@ -6988,7 +6880,6 @@ public abstract class DsMsgParserBase implements DsSipConstants {
    * @throws NumberFormatException if the number is malformed.
    */
   public static int parseInt(byte data[], int offset, int count) {
-    if (DsPerf.ON) DsPerf.start(PARSE_INT);
 
     byte ch;
     int val = 0;
@@ -7006,18 +6897,15 @@ public abstract class DsMsgParserBase implements DsSipConstants {
         factor *= 10;
       } else if ((i == offset) && ((ch == '-') || (ch == '+'))) {
         if (ch == '-') {
-          if (DsPerf.ON) DsPerf.stop(PARSE_INT);
           return (val * -1);
         }
 
-        if (DsPerf.ON) DsPerf.stop(PARSE_INT);
         return val;
       } else {
         throw new NumberFormatException("Tried to parse non-integer value: '" + (char) ch + "'");
       }
     }
 
-    if (DsPerf.ON) DsPerf.stop(PARSE_INT);
     return val;
   }
 

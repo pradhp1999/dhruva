@@ -3,18 +3,15 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.ByteBuffer;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsHexEncoding;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
 import com.cisco.dhruva.util.log.Trace;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.StringTokenizer;
 import org.apache.logging.log4j.Level;
 
 /*
@@ -29,60 +26,6 @@ does not support-
 public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
   private static final int SIP_DATE_LENGTH = 29;
-
-  /** DsPerf constant. */
-  private static final int ENTIRE_PARSE;
-  /** DsPerf constant. */
-  private static final int PARSE_START_LINE;
-  /** DsPerf constant. */
-  private static final int PARSE_HEADERS;
-  /** DsPerf constant. */
-  private static final int PARSE_VIA;
-  /** DsPerf constant. */
-  private static final int PARSE_BODY;
-
-  /** DsPerf constant. */
-  private static final int PARSE_INT;
-  /** DsPerf constant. */
-  private static final int PARSE_LONG;
-  /** DsPerf constant. */
-  private static final int PARSE_FLOAT;
-
-  /** DsPerf constant. */
-  private static final int PARSE_SIP_URL_DATA;
-  /** DsPerf constant. */
-  private static final int PARSE_TEL_URL_DATA;
-
-  /** DsPerf constant. */
-  private static final int FIRE_ELEMENT;
-  /** DsPerf constant. */
-  private static final int FIRE_PARAMETER;
-  /** DsPerf constant. */
-  private static final int PARSE_URL_HEADER;
-  /** DsPerf constant. */
-  private static final int PARSE_NAME_ADDR;
-  /** DsPerf constant. */
-  private static final int DEEP_PARSE_HEADERS;
-
-  static {
-
-    // DsPerf register
-    ENTIRE_PARSE = DsPerf.addType("\nEntire Msg Parse               ");
-    PARSE_START_LINE = DsPerf.addType("  Parse Start Line             ");
-    PARSE_HEADERS = DsPerf.addType("  Parse Headers                ");
-    DEEP_PARSE_HEADERS = DsPerf.addType("    Deep Parse Headers         ");
-    FIRE_ELEMENT = DsPerf.addType("    Fire Element               ");
-    FIRE_PARAMETER = DsPerf.addType("    Fire Parameter             ");
-    PARSE_VIA = DsPerf.addType("    Parse Via                  ");
-    PARSE_BODY = DsPerf.addType("  Parse Body                   ");
-    PARSE_INT = DsPerf.addType("Parse Int                      ");
-    PARSE_LONG = DsPerf.addType("Parse Long                     ");
-    PARSE_FLOAT = DsPerf.addType("Parse Float                    ");
-    PARSE_SIP_URL_DATA = DsPerf.addType("Parse SIP URL Data             ");
-    PARSE_TEL_URL_DATA = DsPerf.addType("Parse TEL URL Data             ");
-    PARSE_URL_HEADER = DsPerf.addType("Parse URL Header               ");
-    PARSE_NAME_ADDR = DsPerf.addType("Parse Name Addr                ");
-  }
 
   // Set the logging category
   protected static Trace Log = Trace.getTrace(DsTokenSipMsgParser.class.getName());
@@ -120,7 +63,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
   public static DsSipMessageListener parse(
       DsSipMessageListenerFactory msgFactory, byte msg[], int offset, int count)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(ENTIRE_PARSE);
 
     if (Log.isDebugEnabled()) Log.debug("\n" + DsString.toSnifferDisplay(msg));
 
@@ -169,7 +111,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
     try {
       DsSipHeaderListener headerListener = messageListener.getHeaderListener();
 
-      if (DsPerf.ON) DsPerf.start(PARSE_HEADERS);
       HeaderEncodingTypeHolder headerId;
       int numHeaders = 0;
 
@@ -210,7 +151,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
           // }
         }
       }
-      if (DsPerf.ON) DsPerf.stop(PARSE_HEADERS);
       if (Log.isDebugEnabled()) Log.debug("Number of headers parsed - " + numHeaders);
       if (Log.isDebugEnabled()) Log.debug("Index into the message is now " + mb.i);
 
@@ -222,8 +162,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       }
 
       // todo find out how malformed requests are rejected normally.
-
-      if (DsPerf.ON) DsPerf.stop(ENTIRE_PARSE);
 
       if (Log.isDebugEnabled()) Log.debug("\nDONE PARSING\n");
 
@@ -254,7 +192,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       MsgBytes mb,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_START_LINE);
 
     DsSipMessageListener sipMsg;
     try {
@@ -327,7 +264,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
           if (sipMsg == null) {
             // nothing left to do, the caller does not want this message parsed yet
-            if (DsPerf.ON) DsPerf.stop(PARSE_START_LINE);
             return null;
           }
 
@@ -523,7 +459,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       MsgBytes data,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(DEEP_PARSE_HEADERS);
 
     if (Log.isEnabled(Level.DEBUG)) {
       // Log.debug("Starting parseHeader headerType =
@@ -757,7 +692,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       default:
         break;
     }
-    if (DsPerf.ON) DsPerf.stop(DEEP_PARSE_HEADERS);
   }
 
   /**
@@ -775,7 +709,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       DsTokenSipMessageDictionary messageDictionary,
       boolean hasContentLength)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_BODY);
     if (Log.isDebugEnabled()) Log.debug("parsing some kind of body");
 
     switch (mb.msg[mb.i]) {
@@ -865,7 +798,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
         sipMsg.messageFound(DsByteString.BS_EMPTY_STRING.data(), 0, 0, true);
         break;
     }
-    if (DsPerf.ON) DsPerf.stop(PARSE_BODY);
   }
 
   /**
@@ -887,7 +819,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       int offset,
       int count)
       throws DsSipParserListenerException {
-    if (DsPerf.ON) DsPerf.start(FIRE_ELEMENT);
 
     if (element != null) {
       DsSipElementListener subElement = null;
@@ -968,8 +899,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
       element.elementFound(contextId, elementId, buffer, offset, count, isElementValid);
     }
-
-    if (DsPerf.ON) DsPerf.stop(FIRE_ELEMENT);
   }
 
   private static void fireParameter(
@@ -981,7 +910,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       int valueOffset,
       int valueCount)
       throws DsSipParserListenerException {
-    if (DsPerf.ON) DsPerf.start(FIRE_PARAMETER);
 
     // if (Log.isEnabledFor(Priority.DEBUG))
     // {
@@ -995,8 +923,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
     }
 
     element.parameterFound(contextId, buffer, nameOffset, nameCount, valueOffset, valueCount);
-
-    if (DsPerf.ON) DsPerf.stop(FIRE_PARAMETER);
   }
 
   // To
@@ -1015,7 +941,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       MsgBytes mb,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_URL_HEADER);
     if (Log.isDebugEnabled()) {
       Log.debug(
           "Starting urlHeader parse for "
@@ -1538,7 +1463,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       MsgBytes mb,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_VIA);
     if (Log.isDebugEnabled()) Log.debug("Starting Via parse");
     int start = mb.i;
 
@@ -1678,7 +1602,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
         if (Log.isDebugEnabled())
           Log.debug("Leaving Via parse.  With token after " + (mb.i - start));
 
-        if (DsPerf.ON) DsPerf.stop(PARSE_VIA);
       } // done fixed format
       else {
         // generic (AKA slow) via parsing
@@ -2764,11 +2687,9 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
       DsTokenSipNameAddressEncoder nameAddrFlags,
       DsTokenSipMessageDictionary messageDictionary)
       throws DsSipParserListenerException, DsSipParserException {
-    if (DsPerf.ON) DsPerf.start(PARSE_NAME_ADDR);
 
     try {
       if (element == null) {
-        if (DsPerf.ON) DsPerf.stop(PARSE_NAME_ADDR);
         throw generateDsSipParserException(
             null, "Cannot do a lazy parse of encoded messages", 0, mb.msg, 0, mb.msg.length);
       }
@@ -2790,7 +2711,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
       parseURI(dictionary, element, mb, headerType, nameAddrFlags, messageDictionary);
 
-      if (DsPerf.ON) DsPerf.stop(PARSE_NAME_ADDR);
     } catch (DsSipParserListenerException e) {
       throw e;
     } catch (Exception e) {
@@ -3718,292 +3638,6 @@ public class DsTokenSipMsgParser implements DsTokenSipConstants {
 
   }
   */
-
-  /**
-   * Test driver.
-   *
-   * <p><b>USAGE:</b>
-   *
-   * <pre> <code>
-   * DsTokenSipMsgParser &LTimpl&GT &LTtype&GT &LTsource&GT
-   *                impl   = debug | default | flat
-   *                type   = speed | one
-   *                source = array | stream
-   * </code> </pre>
-   *
-   * @param args the command line arguments.
-   */
-  public static void main(String[] args) throws Exception {
-
-    // Category.getRoot().setPriority(Priority.DEBUG);
-    // Category.getRoot().addAppender(new FileAppender(new SimpleLayout(), System.out));
-
-    // DsSipMessage.initDeepHeaders(DsSipMessage.ALL_HEADERS);
-
-    // DsSipMessage.setHeaderPriority(DsSipConstants.MAX_KNOWN_HEADER);
-
-    if (args.length == 0) {
-      Error();
-    }
-
-    if (args[0].compareTo("sipfile") == 0) {
-
-      long numTries = 0;
-      long startTime = System.currentTimeMillis();
-      if (args.length > 1) {
-        numTries = Long.parseLong(args[2]);
-      } else {
-        numTries = 1;
-      }
-
-      FileInputStream fis = new FileInputStream(args[1]);
-      byte[] initialBytes = new byte[fis.available()];
-      fis.read(initialBytes);
-
-      for (int x = 0; x < numTries; x++) {
-        byte[] messageBytes = initialBytes;
-        DsSipMessage msg = DsSipMessage.createMessage(messageBytes);
-
-        DsByteString origMsg = msg.toByteString();
-        if (Log.isDebugEnabled()) {
-          System.out.println("Here's the message");
-          System.out.println(origMsg);
-        }
-
-        // System.out.println("Here's the encoded message");
-
-        byte[] encodedMsg = msg.toEncodedByteString(msg.shouldEncode()).toByteArray();
-        // System.out.println(DsHexEncoding.toHex(encodedMsg));
-        // System.out.println("Original message length- "+ origMsg.data().length);
-        // System.out.println("Encoded message length- "+ encodedMsg.length);
-
-        // String encodedFile = args[1]+".encoded";
-        // FileOutputStream fos = new FileOutputStream(encodedFile);
-        // fos.write(encodedMsg);
-
-        fis.close();
-        // fos.close();
-
-        // DsSipFrameStream msgStream = new DsSipFrameStream(new FileInputStream(args[1]));
-        // FileInputStream fis2 = new FileInputStream(encodedFile);
-
-        // byte[] msgBytes = new byte[fis2.available()];
-        // fis2.read(msgBytes);
-
-        byte[] msgBytes = encodedMsg;
-
-        DsSipMessageListenerFactory impl = null;
-        impl = new DsSipDefaultMessageListenerFactory();
-
-        DsSipMsgParser.parse(impl, msgBytes, 0, msgBytes.length);
-
-        DsSipMessage message = ((DsSipDefaultMessageListenerFactory) impl).getMessage();
-
-        if ((x % 500) == 0) {
-          System.out.println(x);
-          long endTime = System.currentTimeMillis();
-          System.out.println("Messages/second- " + (x / ((endTime - startTime) / 1000)));
-        }
-
-        if (Log.isDebugEnabled()) {
-          Log.debug("Done parsing the encoded Message.");
-
-          Log.debug(message.toByteString());
-        }
-      }
-
-      try {
-      } finally {
-        fis.close();
-      }
-    } else if (args[0].compareTo("encodedfile") == 0) {
-
-      FileInputStream fis2 = new FileInputStream(args[1]);
-
-      byte[] msgBytes = new byte[fis2.available()];
-      fis2.read(msgBytes);
-
-      DsSipMessageListenerFactory impl = null;
-      impl = new DsSipDefaultMessageListenerFactory();
-
-      DsTokenSipMsgParser.parse(impl, msgBytes, 0, msgBytes.length);
-
-      DsSipMessage message = ((DsSipDefaultMessageListenerFactory) impl).getMessage();
-
-      Log.debug("Done parsing the encoded Message.");
-      Log.debug(message.toByteString());
-
-      try {
-      } finally {
-        fis2.close();
-      }
-    } else if (args[0].equals("snifferfile")) {
-
-      int maxBytesPerLine = 16;
-
-      FileInputStream fis = new FileInputStream(args[1]);
-      byte[] data = new byte[fis.available()];
-      fis.read(data);
-      String dataString = new String(data);
-      System.out.println("Working with this- " + dataString);
-
-      StringTokenizer st = new StringTokenizer(dataString);
-      StringBuffer sb = new StringBuffer();
-
-      while (st.hasMoreElements()) {
-        String element = (String) st.nextElement();
-        // System.out.println("Data- <"+element+">");
-
-        // new line
-        if (element.startsWith("0x")) {
-          int lineCount = 0;
-
-          while ((st.hasMoreElements()) && (lineCount < maxBytesPerLine)) {
-            element = (String) st.nextElement();
-            if (st.hasMoreElements()) {
-              sb.append(element);
-            }
-            lineCount++;
-          }
-        } else {
-          // System.out.println("Throwing away "+element);
-        }
-      }
-
-      System.out.println("Done parsing file");
-      byte[] msgBytes = DsHexEncoding.fromHex(sb.toString());
-
-      FileOutputStream fos = new FileOutputStream(args[1] + ".encoded");
-      fos.write(msgBytes);
-      fos.close();
-
-      DsSipMessageListenerFactory impl = null;
-      impl = new DsSipDefaultMessageListenerFactory();
-
-      DsSipMsgParser.parse(impl, msgBytes, 0, msgBytes.length);
-
-      DsSipMessage message = ((DsSipDefaultMessageListenerFactory) impl).getMessage();
-
-      Log.debug("Done parsing the encoded Message.");
-      Log.debug(message.toByteString());
-
-      // temporary
-      byte[] encodedMsg = message.toEncodedByteString(message.shouldEncode()).toByteArray();
-
-      Log.debug("Encoded the message ");
-      Log.debug(DsString.toSnifferDisplay(encodedMsg));
-
-      impl = new DsSipDefaultMessageListenerFactory();
-
-      DsSipMsgParser.parse(impl, encodedMsg, 0, encodedMsg.length);
-      message = ((DsSipDefaultMessageListenerFactory) impl).getMessage();
-      Log.debug("Done parsing the encoded Message.");
-      Log.debug(message.toByteString());
-
-      try {
-      } finally {
-        fos.close();
-        fis.close();
-      }
-    } else if (args[0].equals("snoopfile")) {
-
-      int maxBytesPerLine = 8;
-
-      FileInputStream fis = new FileInputStream(args[1]);
-      byte[] data = new byte[fis.available()];
-      fis.read(data);
-      String dataString = new String(data);
-      System.out.println("Working with this- " + dataString);
-
-      StringTokenizer st = new StringTokenizer(dataString);
-      StringBuffer sb = new StringBuffer();
-
-      while (st.hasMoreElements()) {
-        String element = (String) st.nextElement();
-        // System.out.println("Data- <"+element+">");
-
-        // new line
-        if (element.endsWith(":")) {
-          int lineCount = 0;
-
-          while ((st.hasMoreElements()) && (lineCount < maxBytesPerLine)) {
-            element = (String) st.nextElement();
-
-            if (element.length() > 4) {
-              break;
-            }
-
-            if (st.hasMoreElements()) {
-              sb.append(element);
-            }
-            lineCount++;
-          }
-        } else {
-          // System.out.println("Throwing away "+element);
-        }
-      }
-
-      System.out.println("Done parsing file");
-      System.out.println(sb.toString());
-
-      int pos = 0;
-      String snoopString = sb.toString();
-
-      while (true) {
-        int byte80 = snoopString.indexOf("80", pos);
-
-        if (byte80 < 0) {
-          System.out.println("Token SIP message not found in the message.");
-          System.exit(1);
-        }
-
-        if ((byte80 % 2) == 0) {
-          snoopString = snoopString.substring(byte80);
-          break;
-        }
-        pos = byte80 + 1;
-      }
-
-      System.out.println("Got message substring");
-      System.out.println(sb.toString());
-
-      byte[] msgBytes = DsHexEncoding.fromHex(snoopString);
-
-      FileOutputStream fos = new FileOutputStream(args[1] + ".encoded");
-      fos.write(msgBytes);
-
-      DsSipMessageListenerFactory impl = null;
-      impl = new DsSipDefaultMessageListenerFactory();
-
-      DsSipMsgParser.parse(impl, msgBytes, 0, msgBytes.length);
-
-      DsSipMessage message = ((DsSipDefaultMessageListenerFactory) impl).getMessage();
-
-      Log.debug("Done parsing the encoded Message.");
-      Log.debug(message.toByteString());
-
-      // temporary
-      byte[] encodedMsg = message.toEncodedByteString(message.shouldEncode()).toByteArray();
-
-      Log.debug("Encoded the message ");
-      Log.debug(DsString.toSnifferDisplay(encodedMsg));
-
-      impl = new DsSipDefaultMessageListenerFactory();
-
-      DsSipMsgParser.parse(impl, encodedMsg, 0, encodedMsg.length);
-      message = ((DsSipDefaultMessageListenerFactory) impl).getMessage();
-      Log.debug("Done parsing the encoded Message.");
-      Log.debug(message.toByteString());
-
-      try {
-      } finally {
-        fos.close();
-        fis.close();
-      }
-    } else {
-      Error();
-    }
-  }
 
   private static void Error() {
     System.out.println("Startup Options:");

@@ -3,9 +3,9 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.StringTokenizer;
@@ -187,14 +187,12 @@ public abstract class DsSipStringHeader extends DsSipHeader {
    * @throws IOException if there is an error while writing to the specified output stream.
    */
   public void write(OutputStream out) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_WRITE);
     DsByteString bs = getTokenC();
     if (bs != null) {
       bs.write(out);
     }
     writeValue(out);
     BS_EOH.write(out);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_WRITE);
   }
 
   /**

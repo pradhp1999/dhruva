@@ -3,40 +3,9 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipCancelMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipDialogID;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipExpiresHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipPRACKMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRSeqHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequireHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRouteFixInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransactionKey;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipUnsupportedHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerMgr;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerTask;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageStatistics;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsUnitOfWork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsWorkQueue;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.cac.SIPSessions;
 import java.io.IOException;
@@ -332,18 +301,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
     } else {
       throw new DsException("Tried to send a null response?");
     }
-  }
-
-  /**
-   * Update thte message stats for a response.
-   *
-   * @param duplicate <code>true</code> if this was a duplicate response.
-   * @param incoming <code>true</code> if this was in incoming response, <code>false</code> for
-   *     outgoing.
-   */
-  protected void updateResponseStat(boolean duplicate, boolean incoming) {
-    DsMessageStatistics.updateResponseStat(
-        m_statusCode, m_method, duplicate, incoming, m_connection.getInetAddress());
   }
 
   /**
@@ -832,7 +789,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           DsSipUnsupportedHeader unsupportedHeader = new DsSipUnsupportedHeader(BS_100REL);
           response420.addHeader(unsupportedHeader);
           sendResponse(response420);
-          logResponse(DsMessageLoggingInterface.REASON_AUTO, response420);
           throw new DsException(
               "UAC requires 100rel, but UAS does not support 100rel. 100rel negotiation failed");
         }
@@ -1085,29 +1041,19 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           // if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_INITIAL);
           // break;
         case DS_CALLING:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_CALLING);
           calling(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_CALLING);
           break;
         case DS_PROCEEDING:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_PROCEEDING);
           proceeding(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_PROCEEDING);
           break;
         case DS_COMPLETED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_COMPLETED);
           completed(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_COMPLETED);
           break;
         case DS_CONFIRMED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_CONFIRMED);
           confirmed(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_CONFIRMED);
           break;
         case DS_TERMINATED:
-          if (DsPerf.ON) DsPerf.start(DsPerf.SERVER_EXEC_TEMINATED);
           terminated(transition);
-          if (DsPerf.ON) DsPerf.stop(DsPerf.SERVER_EXEC_TEMINATED);
           break;
         default:
           break;
@@ -1159,7 +1105,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
             new DsSipResponse(DsSipResponseCode.DS_RESPONSE_OK, m_cancelMessage, null, null);
         cancelResponse.setApplicationReason(DsMessageLoggingInterface.REASON_AUTO);
         m_cancelTransaction.sendResponse(cancelResponse);
-        logResponse(DsMessageLoggingInterface.REASON_AUTO, cancelResponse);
         m_cancelTransaction = null;
         // fall through
       case DS_CALLING | DS_ST_IN_CANCEL:
@@ -1173,11 +1118,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           m_connection.getResponseConnection();
           sendResponse(
               txnCancelledResponseBytes, DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED);
-          logResponse(
-              DsMessageLoggingInterface.REASON_AUTO,
-              DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED,
-              DsSipConstants.CANCEL,
-              txnCancelledResponseBytes);
         }
         new ServerTransactionCallback(
                 ServerTransactionCallback.CB_CANCEL, m_cancelMessage, m_serverInterface)
@@ -1190,8 +1130,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         // CAFFEINE 2.0 DEVELOPMENT - required by handling reliable response.
       case DS_STI_RELPROCEEDING | DS_ST_IN_2XX:
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         nullRefs();
         cancelTn(); // transaction will terminate normally
         break;
@@ -1232,22 +1170,16 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         initializeTimers();
 
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         break;
       case DS_PROCEEDING | DS_ST_IN_REQUEST:
         // no need to collect stat for the request. TM already did it.
         sendCurrentResponse();
-        updateResponseStat(true, false);
-        logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
         break;
       case DS_PROCEEDING | DS_ST_IN_TPROVISIONAL:
         // do nothing: provisional has been sent
         break;
       case DS_PROCEEDING | DS_ST_IN_PROVISIONAL:
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         break;
       case DS_PROCEEDING | DS_ST_IN_CANCEL:
         // no need to collect stat for this cancel. TM already did it.
@@ -1257,12 +1189,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
                   DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED, m_sipRequest, null, null);
           sendResponse(
               txnCancelledResponseBytes, DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED);
-          // no need to update stat as the cancel transaction will do it
-          logResponse(
-              DsMessageLoggingInterface.REASON_AUTO,
-              DsSipResponseCode.DS_RESPONSE_TRANSACTION_CANCELLED,
-              m_method,
-              txnCancelledResponseBytes);
         }
         new ServerTransactionCallback(
                 ServerTransactionCallback.CB_CANCEL, m_cancelMessage, m_serverInterface)
@@ -1280,8 +1206,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       case DS_PROCEEDING | DS_ST_IN_NEXT_CLIENT:
         // m_connection.getResponseConnection();
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
       case DS_PROCEEDING | DS_ST_IN_IO_EXCEPTION:
         if (m_connection.getNextConnection()) {
           execute(DS_ST_IN_NEXT_CLIENT);
@@ -1319,8 +1243,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       case DS_PROCEEDING | DS_ST_IN_2XX:
       case DS_PROCEEDING | DS_ST_IN_3TO6XX:
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         nullRefs();
         if (m_To == 0) // directly go to TERMINATED without using timer
         {
@@ -1336,8 +1258,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       case DS_COMPLETED | DS_ST_IN_REQUEST:
         // no need to collect stat for the request. TM already did it.
         sendCurrentResponse();
-        updateResponseStat(true, false);
-        logResponse(DsMessageLoggingInterface.REASON_RETRANSMISSION);
         break;
       case DS_COMPLETED | DS_ST_IN_2XX:
       case DS_COMPLETED | DS_ST_IN_3TO6XX:
@@ -1357,8 +1277,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       case DS_COMPLETED | DS_ST_IN_NEXT_CLIENT:
         // m_connection.getResponseConnection();
         sendCurrentResponse();
-        updateResponseStat(false, false);
-        logResponse(DsMessageLoggingInterface.REASON_REGULAR);
         nullRefs();
         if (m_To == 0) // directly go to TERMINATED without using timer
         {
@@ -1460,59 +1378,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       if (genCat.isEnabled(Level.WARN))
         genCat.warn("run(): state machine exception processing timer event", sme);
     }
-  }
-
-  /**
-   * Tell user about responses we send automatically. Wrapper around the logging interface.
-   *
-   * @param reason the reason this message is being logged
-   */
-  protected final void logResponse(int reason) {
-    reason = getReason(m_sipResponse, reason);
-    if (m_sipResponse != null) {
-      DsMessageStatistics.logResponse(
-          reason, DsMessageLoggingInterface.DIRECTION_OUT, m_sipResponse, m_sipRequest);
-    } else {
-      DsMessageStatistics.logResponse(
-          reason,
-          DsMessageLoggingInterface.DIRECTION_OUT,
-          m_sipResponseBytes,
-          m_statusCode,
-          m_method,
-          m_connection.getBindingInfo(),
-          m_sipRequest);
-    }
-  }
-
-  /**
-   * Tell user about responses we send automatically. Wrapper around the logging interface.
-   *
-   * @param reason the reason this message is being logged
-   * @param code the response code
-   * @param method the method name of the transaction that is canceled.
-   * @param bytes the response bytes to log.
-   */
-  protected final void logResponse(int reason, int code, int method, byte[] bytes) {
-    reason = getReason(null, reason);
-    DsMessageStatistics.logResponse(
-        reason,
-        DsMessageLoggingInterface.DIRECTION_OUT,
-        bytes,
-        code,
-        method,
-        m_connection.getBindingInfo(),
-        m_sipRequest);
-  }
-
-  /**
-   * Tell user about responses we send automatically. Wrapper around the logging interface.
-   *
-   * @param reason the reason this message is being logged
-   * @param response the message to log
-   */
-  protected final void logResponse(int reason, DsSipResponse response) {
-    reason = getReason(response, reason);
-    DsMessageStatistics.logResponse(reason, DsMessageLoggingInterface.DIRECTION_OUT, response);
   }
 
   /**
@@ -2104,7 +1969,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       }
       switch (type) {
         case (CB_ACK):
-          if (DsPerf.ON) DsPerf.start(DsPerf.CB_ACK);
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_ACK: ");
             cbCat.debug(m_key);
@@ -2126,7 +1990,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
 
           cb.ack(DsSipServerTransactionImpl.this, (DsSipAckMessage) request);
           request = null;
-          if (DsPerf.ON) DsPerf.stop(DsPerf.CB_ACK);
           break;
         case (CB_CANCEL):
           if (cbCat.isEnabled(Level.DEBUG)) {

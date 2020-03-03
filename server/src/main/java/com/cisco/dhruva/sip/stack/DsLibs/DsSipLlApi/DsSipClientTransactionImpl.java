@@ -916,30 +916,20 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       try {
         switch (m_stateTable.getState()) {
           case DS_INITIAL:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_INITIAL);
             initial(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_INITIAL);
             break;
           case DS_CALLING:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_CALLING);
             calling(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_CALLING);
             break;
           case DS_PROCEEDING:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_PROCEEDING);
             proceeding(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_PROCEEDING);
             break;
           case DS_COMPLETED:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_COMPLETED);
             completed(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_COMPLETED);
             break;
 
           case DS_TERMINATED:
-            if (DsPerf.ON) DsPerf.start(DsPerf.CLIENT_EXEC_TEMINATED);
             terminated(transition);
-            if (DsPerf.ON) DsPerf.stop(DsPerf.CLIENT_EXEC_TEMINATED);
             break;
           default:
             break;
@@ -1006,11 +996,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     switch (transition) {
       case DS_INITIAL | DS_CT_IN_START:
         m_connection.send(m_sipRequest);
-        DsMessageStatistics.updateStats(m_sipRequest, false, false);
-        DsMessageStatistics.logRequest(
-            DsMessageLoggingInterface.REASON_REGULAR,
-            DsMessageLoggingInterface.DIRECTION_OUT,
-            m_sipRequest);
 
         // Set timer for all transports
         if (cat.isEnabled(Level.DEBUG)) {
@@ -1027,8 +1012,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
           // Only send the retransmission if unreliable.
           if (!DsSipTransportType.intern(m_connection.getTransport().name()).isReliable()) {
             m_connection.send(m_sipRequest);
-            logRequest(DsMessageLoggingInterface.REASON_RETRANSMISSION, m_sipRequest);
-            DsMessageStatistics.updateStats(m_sipRequest, true, false);
           }
 
           if (cat.isEnabled(Level.DEBUG)) {
@@ -1070,14 +1053,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         // CAFFEINE 2.0 DEVELOPMENT - required by handling PRACK.
       case DS_CTI_RELPROCEEDING | DS_CT_IN_SERVICE_UNAVAILABLE:
         rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
 
         // save a reference to the previous connection
         DsSipConnection connection = m_connection.getConnection();
@@ -1155,14 +1130,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         // CAFFEINE 2.0 DEVELOPMENT - required by handling PRACK.
       case DS_CTI_RELPROCEEDING | DS_CT_IN_2XX:
         rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         new ClientTransactionCallback(
                 ClientTransactionCallback.CB_FINAL_RESPONSE, m_sipResponse, m_clientInterface)
             .call();
@@ -1211,14 +1178,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     switch (transition) {
       case DS_CALLING | DS_CT_IN_PROVISIONAL:
         boolean rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         m_T1 = m_T2;
         new ClientTransactionCallback(
                 ClientTransactionCallback.CB_PROVISIONAL_RESPONSE, m_sipResponse, m_clientInterface)
@@ -1232,8 +1191,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
           // Only send the retransmission if unreliable.
           if (!DsSipTransportType.intern(m_connection.getTransport()).isReliable()) {
             m_connection.send(m_sipRequest);
-            logRequest(DsMessageLoggingInterface.REASON_RETRANSMISSION, m_sipRequest);
-            DsMessageStatistics.updateStats(m_sipRequest, true, false);
           }
 
           if (cat.isEnabled(Level.DEBUG)) {
@@ -1268,14 +1225,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         break;
       case DS_PROCEEDING | DS_CT_IN_PROVISIONAL:
         boolean rtx1 = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx1, true);
-        DsMessageStatistics.logResponse(
-            (rtx1
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
 
         new ClientTransactionCallback(
                 ClientTransactionCallback.CB_PROVISIONAL_RESPONSE, m_sipResponse, m_clientInterface)
@@ -1310,14 +1259,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       case DS_PROCEEDING | DS_CT_IN_2XX:
       case DS_PROCEEDING | DS_CT_IN_3TO6XX:
         rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         // CAFFEINE 2.0 DEVELOPMENT - use response to determined which callback should be invoked.
         if (m_sipResponse.getMethodID() != DsSipConstants.CANCEL) {
           new ClientTransactionCallback(
@@ -1348,14 +1289,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         break;
       case DS_COMPLETED | DS_CT_IN_PROVISIONAL:
         rtx = findAndUpdateRetransmission();
-        DsMessageStatistics.updateStats(m_sipResponse, rtx, true);
-        DsMessageStatistics.logResponse(
-            (rtx
-                ? DsMessageLoggingInterface.REASON_RETRANSMISSION
-                : DsMessageLoggingInterface.REASON_REGULAR),
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         break;
       case DS_COMPLETED | DS_CT_IN_SERVICE_UNAVAILABLE:
         // qfang - 11.27.06 - CSCsg64718 - manage unreachable destination
@@ -1370,12 +1303,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         }
       case DS_COMPLETED | DS_CT_IN_2XX:
       case DS_COMPLETED | DS_CT_IN_3TO6XX:
-        DsMessageStatistics.updateStats(m_sipResponse, true, true);
-        DsMessageStatistics.logResponse(
-            DsMessageLoggingInterface.REASON_RETRANSMISSION,
-            DsMessageLoggingInterface.DIRECTION_IN,
-            m_sipResponse,
-            m_sipRequest);
         break;
       default:
         if (genCat.isEnabled(Level.WARN)) {
@@ -1486,7 +1413,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
             "Initial request has been nulled (cleaned up): can't create CANCEL message");
       }
       m_cancelMessage = new DsSipCancelMessage(m_sipRequest);
-      logRequest(DsMessageLoggingInterface.REASON_GENERATED, m_cancelMessage);
       // add route headers if they are present in the request so that they will
       //   go through the same path.
       m_cancelMessage.removeHeaders(ROUTE);
@@ -1557,7 +1483,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       m_stateTable.throwException(
           transition, "Can't create PRACK transaction from null PRACK message");
     }
-    logRequest(DsMessageLoggingInterface.REASON_GENERATED, prackMessage);
 
     // Check if the Connection Id for the original request is set, if so,
     // set that for the PRACK too.
@@ -1786,45 +1711,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         }
       }
     }
-  }
-
-  /**
-   * Tell user about messages we send automatically. Wrapper around the logging interface.
-   *
-   * @param reason the reason for logging this message
-   * @param method the method type being logged
-   * @param request the request to log
-   */
-  protected final void logRequest(int reason, int method, byte[] request) {
-    DsMessageStatistics.logRequest(
-        reason,
-        DsMessageLoggingInterface.DIRECTION_OUT,
-        request,
-        method,
-        m_connection.getBindingInfo());
-  }
-
-  /**
-   * Tell user about messages we send automatically. Wrapper around the logging interface.
-   *
-   * @param reason the reason for logging this message
-   * @param request the request to log
-   */
-  protected final void logRequest(int reason, DsSipRequest request) {
-    DsMessageStatistics.logRequest(reason, DsMessageLoggingInterface.DIRECTION_OUT, request);
-  }
-
-  /**
-   * Tell user about request retransmissions. Wrapper around the logging interface.
-   *
-   * @param reason the reason for logging this message
-   * @param response the response to log
-   * @param request : Request object for the response for mapping and dumping any request parameters
-   *     and headers.
-   */
-  protected final void logResponse(int reason, DsSipResponse response, DsSipRequest request) {
-    DsMessageStatistics.logResponse(
-        reason, DsMessageLoggingInterface.DIRECTION_IN, response, request);
   }
 
   /**

@@ -2,8 +2,7 @@
 // All rights reserved.
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
-
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
 import com.cisco.dhruva.transport.Connection;
 
 /**
@@ -15,8 +14,7 @@ import com.cisco.dhruva.transport.Connection;
  */
 /*
 TODO : Skeleton for now , has to be built properly
-
- */
+*/
 public class DsTlsConnection extends DsTcpConnection {
 
   private DsSSLContext sslContext;
