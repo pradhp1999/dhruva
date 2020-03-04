@@ -497,12 +497,10 @@ public final class DsSipRetryAfterHeader extends DsSipDateOrDeltaHeader {
    *     otherwise returns null.
    */
   public DsByteString getParameter(DsByteString name) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_GET_PARAM);
     DsByteString value = null;
     if (m_paramTable != null && !m_paramTable.isEmpty()) {
       value = m_paramTable.get(name);
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_GET_PARAM);
     return value;
   }
 
@@ -514,12 +512,10 @@ public final class DsSipRetryAfterHeader extends DsSipDateOrDeltaHeader {
    * @param value the value of the parameter.
    */
   public void setParameter(DsByteString name, DsByteString value) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_SET_PARAM);
     if (m_paramTable == null) {
       m_paramTable = new DsParameters();
     }
     m_paramTable.put(name, value);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_SET_PARAM);
   }
 
   /**
@@ -528,11 +524,9 @@ public final class DsSipRetryAfterHeader extends DsSipDateOrDeltaHeader {
    * @param name the name of the parameter that needs to be removed.
    */
   public void removeParameter(DsByteString name) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_REM_PARAM);
     if (m_paramTable != null) {
       m_paramTable.remove(name);
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_REM_PARAM);
   }
 
   /**

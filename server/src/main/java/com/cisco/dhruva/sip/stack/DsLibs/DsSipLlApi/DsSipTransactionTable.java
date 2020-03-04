@@ -810,7 +810,7 @@ public final class DsSipTransactionTable implements java.io.Serializable {
   // so-called "Shadow" counters. However, DS original stack changed the
   // meaning of "previous" counters to essentially that of Caffeine's "Shadow"
   // as the result of merge effort, following counters are considered "previous"
-  // counter. See more in DsMessageStatistics.java.
+  // counter.
   /* The number of transactions up till last snapshot */
   private int m_clientTransactionsCreatedReset = 0;
   private int m_serverTransactionsCreatedReset = 0;

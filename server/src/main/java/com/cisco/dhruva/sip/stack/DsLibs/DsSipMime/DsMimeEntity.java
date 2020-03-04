@@ -3,31 +3,11 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipMime;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.ByteBuffer;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsParameters;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContentDispositionHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContentIdHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContentLengthHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContentTypeHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderList;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipStringHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipUnknownHeader;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsMsgParserBase;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipElementListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipHeaderListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -200,7 +180,6 @@ public class DsMimeEntity
    *     message.
    */
   public final void addHeader(DsSipHeaderInterface header, boolean start, boolean clone) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_ADD_HEADER);
     if (header != null) {
       int kind = header.getHeaderID();
       if (cannotUpdateHeader(kind)) return;
@@ -231,7 +210,6 @@ public class DsMimeEntity
         else tmp.addLast(header); // now add the header to the end
       } // _else _if
     } // _if
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_ADD_HEADER);
   }
 
   /**
@@ -279,16 +257,13 @@ public class DsMimeEntity
    * @param clone if <code>true</code> then the headers to be added are cloned before addition.
    */
   public final void addHeaders(DsSipHeaderList headers, boolean start, boolean clone) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_ADD_HEADERS);
     if (headers == null || headers.isEmpty()) {
       return;
     }
     DsSipHeaderInterface header = ((DsSipHeaderInterface) headers.getFirst());
     int id = header.getHeaderID();
     if (cannotUpdateHeader(id)) {
-      if (DsPerf.ON) {
-        DsPerf.stop(DsPerf.MSG_ADD_HEADERS);
-      }
+
       return;
     }
     DsByteString token = header.getToken();
@@ -300,7 +275,6 @@ public class DsMimeEntity
       // add them all onto the list
       l.addAll(headers, start, clone);
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_ADD_HEADERS);
   }
 
   /**
@@ -488,7 +462,6 @@ public class DsMimeEntity
     }
     int kind = header.getHeaderID();
     if (!force && cannotUpdateHeader(kind)) return null;
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_UPD_HEADER);
 
     // In case of singular, check for list.
     if (isSingular(kind)) {
@@ -507,7 +480,6 @@ public class DsMimeEntity
       header = list;
     }
     DsSipHeaderInterface hdr = update(header, clone);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_UPD_HEADER);
     return hdr;
   }
 
@@ -550,21 +522,17 @@ public class DsMimeEntity
     if (null == headers) {
       return null;
     }
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_UPD_HEADERS);
 
     DsSipHeaderInterface header = headers;
     int kind = headers.getHeaderID();
     if (cannotUpdateHeader(kind)) {
-      if (DsPerf.ON) {
-        DsPerf.stop(DsPerf.MSG_UPD_HEADERS);
-      }
+
       return null;
     }
     if (isSingular(kind)) {
       header = (DsSipHeaderInterface) headers.getFirst();
     }
     DsSipHeaderInterface hdr = update(header, clone);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_UPD_HEADERS);
     return hdr;
   }
 
@@ -873,7 +841,6 @@ public class DsMimeEntity
    */
   public DsSipHeader getHeaderValidate(int id, DsByteString name, boolean start)
       throws DsSipParserException, DsSipParserListenerException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_GET_VHEADER);
     DsSipHeader header = null;
 
     if (isSingular(id)) {
@@ -881,7 +848,6 @@ public class DsMimeEntity
     } else {
       header = getValidate(id, name, start);
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_GET_VHEADER);
     return header;
   }
 
@@ -898,7 +864,6 @@ public class DsMimeEntity
    *     are no headers of the specified type in this message.
    */
   public DsSipHeaderList getHeaders(int id) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_GET_HEADERS);
     if (isSingular(id)) {
       throw new IllegalArgumentException(
           "The Singular header can not be "
@@ -906,7 +871,6 @@ public class DsMimeEntity
               + "Use getHeader(int) instead.");
     }
     DsSipHeaderList l = (DsSipHeaderList) find(id, null);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_GET_HEADERS);
     return ((l == null) || l.isEmpty()) ? null : l;
   }
 
@@ -1370,10 +1334,8 @@ public class DsMimeEntity
    * @throws IOException if there is an exception in writing to the stream
    */
   public void write(OutputStream out) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_WRITE);
     writeHeadersAndBody(out);
     out.flush();
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_WRITE);
   }
 
   /**
@@ -1897,7 +1859,6 @@ public class DsMimeEntity
   }
 
   private DsSipHeaderInterface getHeader(int id, DsByteString name, boolean start) {
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_GET_HEADER);
     // Check if the header is in-built
     if (isInBuilt(id)) {
       return getInBuiltHeader(id);
@@ -1918,7 +1879,6 @@ public class DsMimeEntity
         }
       }
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_GET_HEADER);
     return header;
   }
 
@@ -2003,7 +1963,6 @@ public class DsMimeEntity
 
   private DsSipHeaderInterface removeHeader(int id, DsByteString name, boolean start) {
     if (cannotUpdateHeader(id)) return null;
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_REM_HEADER);
     DsSipHeaderInterface header = null;
     if (isSingular(id)) {
       header = removeHeaders(id, name);
@@ -2014,14 +1973,12 @@ public class DsMimeEntity
         else header = (DsSipHeaderInterface) l.removeLastHeader();
       }
     }
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_REM_HEADER);
     return header;
   } // Ends removeHeader()
 
   /** Remove headers. Used internally. */
   private final DsSipHeaderInterface removeHeaders(int kind, DsByteString name) {
     if (cannotUpdateHeader(kind)) return null;
-    if (DsPerf.ON) DsPerf.start(DsPerf.MSG_REM_HEADERS);
     if (isInBuilt(kind)) {
       return removeInBuiltHeader(kind);
     }
@@ -2045,7 +2002,6 @@ public class DsMimeEntity
         } // _while
       } // _if
     } // _else _if
-    if (DsPerf.ON) DsPerf.stop(DsPerf.MSG_REM_HEADERS);
     return removed;
   } // ends removeHeaders()
 

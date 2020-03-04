@@ -4,12 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDatagramSocket;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSigcompDatagramSocket;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -169,9 +164,7 @@ class DsUdpSigcompConnection extends DsUdpConnection implements Runnable {
     //   a persistent problem receiving/processing sigcomp feedback packets
 
     try {
-      if (DsPerf.ON) DsPerf.start(DsPerf.SOCKET_SEND);
       sock.sendCompressed(packet);
-      if (DsPerf.ON) DsPerf.stop(DsPerf.SOCKET_SEND);
     } catch (SocketException se) {
       if (DsLog4j.connectionCat.isEnabled(Level.WARN))
         DsLog4j.connectionCat.log(Level.WARN, "ICMP Error while sending Message on UDP", se);

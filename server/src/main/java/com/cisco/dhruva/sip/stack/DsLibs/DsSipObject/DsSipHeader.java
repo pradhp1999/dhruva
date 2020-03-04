@@ -3,16 +3,11 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipElementListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipHeaderListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipHeaderDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import gnu.trove.TLinkable;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -598,7 +593,6 @@ public abstract class DsSipHeader
    * @return a deep copy of this header object.
    */
   public Object clone() {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_CLONE);
     DsSipHeader clone = null;
     try {
       clone = (DsSipHeader) super.clone();
@@ -609,7 +603,6 @@ public abstract class DsSipHeader
       clone._prev = null;
     }
 
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_CLONE);
     return clone;
   }
 
@@ -624,14 +617,12 @@ public abstract class DsSipHeader
    * @throws IOException if there is an error while writing to the specified output stream.
    */
   public void write(OutputStream out) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_WRITE);
     DsByteString bs = getTokenC();
     if (bs != null) {
       bs.write(out);
     }
     writeValue(out);
     BS_EOH.write(out);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_WRITE);
   }
 
   /**
@@ -716,10 +707,8 @@ public abstract class DsSipHeader
   }
 
   public void writeEncoded(OutputStream out, DsTokenSipMessageDictionary md) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_WRITE);
     writeEncodedHeaderName(out, md);
     writeEncodedValue(out, md);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_WRITE);
   }
 
   public abstract void writeEncodedValue(OutputStream out, DsTokenSipMessageDictionary md)

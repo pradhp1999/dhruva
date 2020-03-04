@@ -4,25 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamClosedEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamErrorEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamEvent;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamEventListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetworkProperties;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSocket;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.EventBase.EventLevel;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
-import com.cisco.dhruva.util.saevent.dataparam.InvalidConnectionDataParam;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -918,20 +900,13 @@ public abstract class DsTransportLayer
           /*
            * Failed to get the lock on connection. return null.
            */
-          String transportStr = SAEventConstants.UDP;
+          String transportStr = DsSipTransportType.STR_UDP;
           if (transport == DsSipTransportType.TLS) {
-            transportStr = SAEventConstants.TLS;
+            transportStr = DsSipTransportType.STR_TLS;
           } else if (transport == DsSipTransportType.TCP) {
-            transportStr = SAEventConstants.TCP;
+            transportStr = DsSipTransportType.STR_TCP;
           }
-          ConnectionSAEventBuilder.logConnectionEvent(
-              SAEventConstants.CONNECTION_LOCK_TIMEDOUT,
-              transportStr,
-              SAEventConstants.OUT,
-              laddr,
-              lport,
-              addr,
-              port);
+          // TODO log a ConnectionEvent here notifying a timeout
           if (DsLog4j.connectionCat.isEnabled(Level.ERROR)) {
             DsLog4j.connectionCat.log(
                 Level.ERROR,
@@ -978,16 +953,8 @@ public abstract class DsTransportLayer
   DsConnection validateConnectionOnTransport(DsConnection connection, int transport) {
 
     if (connection != null && connection.getTransportType() != transport) {
-      DsLog4j.connectionCat.error("Connection table returned a inavlid connection " + connection);
-
-      InvalidConnectionDataParam dataParam =
-          new InvalidConnectionDataParam.Builder()
-              .eventType("InvalidConnection")
-              .eventInfo("Connection table returned a invalid connection")
-              .connection(connection.toString())
-              .eventLevel(EventLevel.err)
-              .build();
-
+      DsLog4j.connectionCat.error("Connection table returned a invalid connection " + connection);
+      // TODO saevent-restructure Log an InvalidConnection message here.
       return null;
     }
 

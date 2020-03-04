@@ -8,14 +8,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLSocket;
-import com.cisco.dhruva.util.saevent.ConnectionSAEventBuilder;
-import com.cisco.dhruva.util.saevent.SAEventConstants;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import javax.net.ssl.SSLSocket;
 
 /**
@@ -43,14 +37,7 @@ public class DsSslListener extends DsStreamListener {
     bi.updateBindingInfo(socket);
     bi.setNetwork(m_network);
     // information for tls socket connection acceptance
-    ConnectionSAEventBuilder.logConnectionEvent(
-        SAEventConstants.CONNECT,
-        SAEventConstants.TLS_TCP,
-        SAEventConstants.IN,
-        socket.getLocalAddress(),
-        socket.getLocalPort(),
-        socket.getRemoteInetAddress(),
-        socket.getRemotePort());
+    // TODO saevent-restructure log a connectionEvent here
 
     connection.setTimeout(m_IncomingSocketTimeout);
     return connection;

@@ -5,7 +5,6 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -186,7 +185,6 @@ public final class DsSipUnknownHeader extends DsSipStringHeader {
    * @throws IOException if there is an error while writing to the specified output stream.
    */
   public void write(OutputStream out) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_WRITE);
     DsByteString bs = getToken();
     if (bs != null) {
       bs.write(out);
@@ -195,7 +193,6 @@ public final class DsSipUnknownHeader extends DsSipStringHeader {
     out.write(B_SPACE);
     writeValue(out);
     BS_EOH.write(out);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_WRITE);
   }
 
   /**

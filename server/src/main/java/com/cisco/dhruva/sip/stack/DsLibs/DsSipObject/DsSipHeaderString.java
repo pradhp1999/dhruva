@@ -5,7 +5,6 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsPerf;
 import gnu.trove.TLinkable;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -369,7 +368,6 @@ public final class DsSipHeaderString extends DsByteString implements DsSipHeader
    * @throws IOException if there is an error while writing to the specified output stream.
    */
   public void write(OutputStream out) throws IOException {
-    if (DsPerf.ON) DsPerf.start(DsPerf.HEADER_WRITE);
     DsByteString token = m_strToken;
     if (m_bType != DsSipConstants.UNKNOWN_HEADER) {
       token =
@@ -384,7 +382,6 @@ public final class DsSipHeaderString extends DsByteString implements DsSipHeader
     }
     out.write(data, offset, count);
     DsSipConstants.BS_EOH.write(out);
-    if (DsPerf.ON) DsPerf.stop(DsPerf.HEADER_WRITE);
   }
 
   /**
