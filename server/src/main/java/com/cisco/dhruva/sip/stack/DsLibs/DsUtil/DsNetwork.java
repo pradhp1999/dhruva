@@ -11,7 +11,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import java.util.HashMap;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 /**
@@ -407,7 +406,6 @@ public class DsNetwork implements Cloneable {
 
   private Environment env;
 
-  @Autowired
   public DsNetwork(Environment env) {
     this.env = env;
   }
@@ -1688,5 +1686,9 @@ public class DsNetwork implements Cloneable {
 
   public void setRemoveOwnRouteHeader(boolean removeOwnRouteHeader) {
     this.removeOwnRouteHeader = removeOwnRouteHeader;
+  }
+
+  public void setenv(Environment env) {
+    this.env = env;
   }
 }

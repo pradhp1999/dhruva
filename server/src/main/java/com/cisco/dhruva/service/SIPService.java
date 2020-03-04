@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -38,6 +39,8 @@ public class SIPService {
   private SipTransactionManager sipTransactionManager;
 
   private ExecutorService executorService;
+
+  @Autowired private Environment env;
 
   @PostConstruct
   public void init() throws Exception {
@@ -66,7 +69,8 @@ public class SIPService {
 
       logger.info("Starting ListenPoint {} ", sipListenPoint);
 
-      DsNetwork network = DsNetwork.getNetwork(sipListenPoint.getName());
+      networkConfig = DsNetwork.getNetwork(sipListenPoint.getName());
+      networkConfig.setenv(env);
 
       CompletableFuture listenPointFuture =
           dhruvaTransportLayer.startListening(
