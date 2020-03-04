@@ -987,9 +987,6 @@ public abstract class DsTransportLayer
               .connection(connection.toString())
               .eventLevel(EventLevel.err)
               .build();
-      // REFACTOR
-      //      SIPConnectionTableMBeanImpl.sendNotification(
-      //          SAEventConstants.GENERATE_ALARM_AND_EVENT, dataParam);
 
       return null;
     }
