@@ -7,11 +7,11 @@ package com.cisco.dhruva.service;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.common.executor.ExecutorType;
-import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.SipPacketProcessor;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.SipTransactionManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.DhruvaTransportLayer;
 import com.cisco.dhruva.transport.TransportLayerFactory;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,13 +32,15 @@ public class SIPService {
 
   @Autowired DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
 
-  @Autowired private NetworkConfig networkConfig;
+  private DsNetwork networkConfig;
 
   private SipPacketProcessor sipPacketProcessor;
 
   private SipTransactionManager sipTransactionManager;
 
   private ExecutorService executorService;
+
+  @Autowired private Environment env;
 
   @PostConstruct
   public void init() throws Exception {
@@ -57,13 +60,18 @@ public class SIPService {
     logger.info("Starting Dhruva Transport Layer");
     DhruvaTransportLayer dhruvaTransportLayer =
         (DhruvaTransportLayer)
-            TransportLayerFactory.getInstance().getTransportLayer(sipPacketProcessor);
+            TransportLayerFactory.getInstance()
+                .getTransportLayer(sipPacketProcessor, executorService);
 
     ArrayList<CompletableFuture> listenPointFutures = new ArrayList<CompletableFuture>();
 
     for (SIPListenPoint sipListenPoint : sipListenPoints) {
 
       logger.info("Starting ListenPoint {} ", sipListenPoint);
+
+      networkConfig = DsNetwork.getNetwork(sipListenPoint.getName());
+      networkConfig.setenv(env);
+
       CompletableFuture listenPointFuture =
           dhruvaTransportLayer.startListening(
               sipListenPoint.getTransport(),

@@ -5,27 +5,26 @@
 
 package com.cisco.dhruva.transport.netty;
 
-import com.cisco.dhruva.config.network.NetworkConfig;
-import com.cisco.dhruva.transport.Client;
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Connection;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
-import io.netty.bootstrap.Bootstrap;
+import com.cisco.dhruva.transport.netty.hanlder.UDPChannelHandler;
 import io.netty.channel.ChannelFuture;
 import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
 
-public class NettyUDPClient implements Client {
+public class NettyUDPClient extends AbstractClient {
 
-  private BaseChannelInitializer channelInitializer;
-  private Bootstrap bootstrap;
-  private NetworkConfig networkConfig;
-
-  public NettyUDPClient(NetworkConfig networkConfig, MessageForwarder messageForwarder) {
+  public NettyUDPClient(
+      DsNetwork networkConfig, MessageForwarder messageForwarder, ExecutorService executorService) {
     this.networkConfig = networkConfig;
-    channelInitializer =
-        ChannelInitializerFactory.getInstance()
-            .getChannelInitializer(Transport.UDP, messageForwarder);
+    channelInitializer = new BaseChannelInitializer();
+
+    channelHandler = new UDPChannelHandler(messageForwarder, executorService);
+    channelInitializer.channelHanlder(channelHandler);
+
     bootstrap =
         BootStrapFactory.getInstance()
             .getClientBootStrap(Transport.UDP, networkConfig, channelInitializer);
@@ -43,7 +42,8 @@ public class NettyUDPClient implements Client {
         future -> {
           if (future.isSuccess()) {
             completableChannelFuture.complete(
-                new UDPConnection(((ChannelFuture) future).channel(), networkConfig));
+                new UDPConnection(
+                    ((ChannelFuture) future).channel(), networkConfig, channelHandler));
           } else {
             completableChannelFuture.completeExceptionally(future.cause());
           }

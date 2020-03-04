@@ -6,6 +6,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.cac.SIPSessions;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -185,7 +186,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
   /** The port that this transaction is using. */
   int m_port;
   /** The transport protocol that this transaction is using. */
-  int m_transport;
+  Transport m_transport;
 
   /** Reference to the timer task for TPROVISIONAL so that it can be cancelled. */
   DsDiscreteTimerTask m_TimerTaskTProvisional; // = null;
@@ -503,7 +504,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
 
   /** Initialize the SIP timers. */
   protected void initializeTimers() {
-    if (DsSipTransportType.intern(m_connection.getTransport()).isReliable()) {
+    if (DsSipTransportType.intern(m_connection.getTransport().ordinal()).isReliable()) {
       // reliable transport
       m_To = 0;
     } else {
@@ -1486,7 +1487,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       replace(connection);
     }
 
-    int getTransport() {
+    Transport getTransport() {
       return m_connection_.getTransportType();
     }
 
@@ -1676,9 +1677,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           // * Now we have one thing we can try if we have not already, retry once in case the
           // connection dropped
           // (not for UDP) mid-transaction and we an recover by trying to re-connect to the client.
-          if (m_simpleResolver
-              && m_retryOnIoExc
-              && m_bindingInfo.getTransport() != DsSipTransportType.UDP) {
+          if (m_simpleResolver && m_retryOnIoExc && m_bindingInfo.getTransport() != Transport.UDP) {
             m_retryOnIoExc = false; // retry only once
 
             // start over with get via connection
@@ -2013,8 +2012,8 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
             if (m_connection != null) {
               DsSipConnection conn = m_connection.getConnection();
               if (conn != null) {
-                if (conn.getTransportType() == DsSipTransportType.TCP
-                    || conn.getTransportType() == DsSipTransportType.TLS) {
+                if (conn.getTransportType() == Transport.TCP
+                    || conn.getTransportType() == Transport.TLS) {
                   if (genCat.isEnabled(Level.DEBUG)) {
                     genCat.debug("Timeout: Closing connection.");
                   }

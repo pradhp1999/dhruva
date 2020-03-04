@@ -9,7 +9,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessageValidator;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import com.cisco.dhruva.transport.Transport;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -1025,10 +1025,9 @@ public final class DsConfigManager implements DsSipConstants {
   private static Vector authListeners;
   private static Vector throttlingListeners;
   private static boolean handlingMultipleFinalResponses = false;
-  private static DsIoThreadPool ioThreadPool;
 
   // GOGONG - 07.13.05 CSCsc29805- Adding static member to specify default transport type as UDP
-  private static int defaultOutgoingTransport = DsSipTransportType.UDP;
+  private static Transport defaultOutgoingTransport = Transport.UDP;
 
   // GOGONG- 02.15.06 CSCsd32536 define static member to specify grace period to terminate expired
   // subscription.
@@ -1094,7 +1093,7 @@ public final class DsConfigManager implements DsSipConstants {
    * @return int
    */
   // GOGONG - 07.13.05 CSCsc29805
-  public static int getDefaultOutgoingTransport() {
+  public static Transport getDefaultOutgoingTransport() {
     return defaultOutgoingTransport;
   }
 
@@ -1104,7 +1103,7 @@ public final class DsConfigManager implements DsSipConstants {
    * @param transport int
    */
   // GOGONG - 07.13.05 CSCsc29805
-  public static void setDefaultOutgoingTransport(int transport) {
+  public static void setDefaultOutgoingTransport(Transport transport) {
     defaultOutgoingTransport = transport;
   }
 
@@ -1530,7 +1529,8 @@ public final class DsConfigManager implements DsSipConstants {
    * @param size the max size
    */
   public static void setMaxKeepAliveSize(int size) {
-    DsPacketListener.setMaxKeepAliveSize(size);
+    // TODO
+    // DsPacketListener.setMaxKeepAliveSize(size);
   }
 
   //    /**
@@ -2261,44 +2261,6 @@ public final class DsConfigManager implements DsSipConstants {
     // GOGONG - 07.13.05 - Changing non-constant variable to lower case
     return userCiscoGuidHeader;
   }
-
-  /**
-   * Returns the number of active threads in the IO Thread Pool.
-   *
-   * @return the number of active threads in the IO Thread Pool.
-   */
-  public static int getActiveThreads() {
-    return (ioThreadPool == null) ? 0 : ioThreadPool.getActiveThreads();
-  }
-
-  /**
-   * Returns the number of minimum threads in the IO Thread Pool.
-   *
-   * @return the number of minimum threads in the IO Thread Pool.
-   */
-  public static int getMinimumThreads() {
-    return (ioThreadPool == null) ? 0 : ioThreadPool.getMinimumThreads();
-  }
-
-  /**
-   * Returns the total number of threads, either active or available in the IO Thread Pool.
-   *
-   * @return the total number of threads, either active or available in the IO Thread Pool.
-   */
-  public static int getTotalThreads() {
-    return (ioThreadPool == null) ? 0 : ioThreadPool.getTotalThreads();
-  }
-
-  /**
-   * Sets the reference to the IO Thread Pool. This reference can be used to query for the minimum,
-   * active and total number of threads in this pool.
-   *
-   * @param threadPool the IO Thread Pool reference.
-   */
-  public static void setIOThreadPool(DsIoThreadPool threadPool) {
-    ioThreadPool = threadPool;
-  }
-
   // ////// DEPRECATED  API /////////////////////////////////
   /**
    * Returns the maximum number of times, the retransmission of INVITE requests will take place.
@@ -2545,19 +2507,6 @@ public final class DsConfigManager implements DsSipConstants {
     buf.append(str);
     diff = 15 - str.length();
     while (diff-- > 0) buf.append(SPACE);
-
-    // IO Total Threads
-    str = EMPTY + getTotalThreads();
-    buf.append(str);
-    diff = 10 - str.length();
-    while (diff-- > 0) buf.append(SPACE);
-
-    // IO Active Threads
-    str = EMPTY + getActiveThreads();
-    buf.append(str);
-    diff = 10 - str.length();
-    while (diff-- > 0) buf.append(SPACE);
-
     // padding
     diff = 45;
     while (diff-- > 0) buf.append(SPACE);
@@ -2664,17 +2613,6 @@ public final class DsConfigManager implements DsSipConstants {
     }
 
     DsNetworkProperties.setSimpleResolverDefault(enabled);
-  }
-
-  /**
-   * Turn the use of direct buffers on or off. They are on by default. See the java.nio.ByteBuffer
-   * class for more information on why to choose direct buffers. If you set a large buffer size and
-   * have many threads doing I/O, you will need to set this to </code>false</code>.
-   *
-   * @param flag set to <code>true</code> to enable direct buffers
-   */
-  public static void setUseDirectBuffers(boolean flag) {
-    DsTcpNBConnection.setUseDirectBuffers(flag);
   }
 
   /**

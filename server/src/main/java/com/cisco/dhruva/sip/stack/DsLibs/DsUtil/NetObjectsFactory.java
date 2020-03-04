@@ -1,7 +1,5 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSSLEngine;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSelector;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Hashtable;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
-import javax.net.ssl.SSLEngine;
 
 public final class NetObjectsFactory {
 
@@ -161,38 +158,6 @@ public final class NetObjectsFactory {
       return netObjectProvider.getServerSocketChannel();
     } else {
       return ServerSocketChannel.open();
-    }
-  }
-
-  public static DsSSLEngine getDsSSLEngine(SocketChannel sc, SSLEngine engine) throws IOException {
-    if (netObjectProvider != null) {
-      return netObjectProvider.getDsSSLEngine(sc, engine);
-    } else {
-      return new DsSSLEngine(sc, engine);
-    }
-  }
-
-  public static DsSelector getRegister() {
-    if (netObjectProvider != null) {
-      return netObjectProvider.getRegister();
-    } else {
-      return DsSelector.getInstance();
-    }
-  }
-  // REFACTOR
-  //  public static ByteBuffer getAppSendBuffer(PingObject po) {
-  //    if (netObjectProvider != null) {
-  //      return netObjectProvider.getAppSendBuffer();
-  //    } else {
-  //      return po.getDsSSLEngine().getAppSendBuffer();
-  //    }
-  //  }
-
-  public static SSLEngine getSSLEngine(DsSSLContext context) {
-    if (netObjectProvider != null) {
-      return netObjectProvider.getSSLEngine(context);
-    } else {
-      return context.getSSLEngine();
     }
   }
 }

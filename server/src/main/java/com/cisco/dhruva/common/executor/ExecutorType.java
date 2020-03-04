@@ -2,7 +2,8 @@ package com.cisco.dhruva.common.executor;
 
 /** Enum hold the list of all possible services requiring executor service */
 public enum ExecutorType {
-  SIP_TRANSACTION_PROCESSOR(1);
+  SIP_TRANSACTION_PROCESSOR(1),
+  NETTY_EVENT_NOTIFICATION_HANDLER(2);
 
   ExecutorType(int val) {}
 

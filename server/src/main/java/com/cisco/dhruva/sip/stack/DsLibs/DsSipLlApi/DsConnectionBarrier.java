@@ -3,13 +3,8 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
-import java.io.IOException;
-import java.net.SocketException;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.logging.log4j.Level;
@@ -19,33 +14,17 @@ import org.apache.logging.log4j.Level;
  * force all but the first thread to wait until the first thread establishes the connection. It the
  * requests using a lock for each endpoint being tried.
  */
+
+/*
+TODO handle connection get
+ */
 class DsConnectionBarrier {
   private static final int LPU = DsBindingInfo.LOCAL_PORT_UNSPECIFIED;
 
-  private DsConnectionFactory m_connectionFactory;
-  private DsConnectionTable m_connectionTable;
   private Set m_tryingSet;
 
   DsConnectionBarrier() {
     m_tryingSet = new HashSet();
-  }
-
-  DsConnectionBarrier(DsConnectionTable table, DsSipConnectionFactory factory) {
-    initialize(table, factory);
-    m_tryingSet = new HashSet();
-  }
-
-  void setConnectionFactory(DsConnectionFactory factory) {
-    m_connectionFactory = factory;
-  }
-
-  void setConnectionTable(DsConnectionTable table) {
-    m_connectionTable = table;
-  }
-
-  void initialize(DsConnectionTable table, DsSipConnectionFactory factory) {
-    m_connectionTable = table;
-    m_connectionFactory = factory;
   }
 
   /**
@@ -60,14 +39,6 @@ class DsConnectionBarrier {
     DsSipConnection ret_connection = null;
 
     if (info == null) return null;
-
-    if (m_connectionTable == null) {
-      if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {
-        DsLog4j.connectionCat.warn("connectTo: connection table is null! (fatal!!?)");
-      }
-
-      return null;
-    }
 
     try {
       ret_connection =
@@ -109,57 +80,57 @@ class DsConnectionBarrier {
   private DsSipConnection waitIfTrying(DsBindingInfo info) {
     DsSipConnection ret_connection = null;
 
-    DsBindingInfo found = null;
+    /* DsBindingInfo found = null;
 
-    synchronized (m_tryingSet) {
-      Object[] infos = m_tryingSet.toArray();
+        synchronized (m_tryingSet) {
+          Object[] infos = m_tryingSet.toArray();
 
-      for (int i = 0; i < infos.length; ++i) {
-        if (infos[i].equals(info)) {
-          found = (DsBindingInfo) infos[i];
+          for (int i = 0; i < infos.length; ++i) {
+            if (infos[i].equals(info)) {
+              found = (DsBindingInfo) infos[i];
 
-          break;
-        }
-      }
-
-      // if not found then add myself because I will try
-      m_tryingSet.add(info);
-      synchronized (info) {
-        info.setTrying(true);
-      }
-    }
-
-    if (found != null) {
-      synchronized (found) {
-        if (found.isTrying()) {
-          try {
-            if (DsLog4j.connectionCat.isEnabled(Level.DEBUG)) {
-              DsLog4j.connectionCat.log(Level.DEBUG, "waitIfTrying:waiting..on " + found);
+              break;
             }
+          }
 
-            found.wait();
-
-            if (DsLog4j.connectionCat.isEnabled(Level.DEBUG)) {
-              DsLog4j.connectionCat.log(Level.DEBUG, "waitIfTrying continuing.");
-            }
-          } catch (InterruptedException ie) {
+          // if not found then add myself because I will try
+          m_tryingSet.add(info);
+          synchronized (info) {
+            info.setTrying(true);
           }
         }
-      }
-      ret_connection =
-          (DsSipConnection)
-              m_connectionTable.get(
-                  found.getLocalAddress(),
-                  found.getLocalPort(),
-                  found.getRemoteAddress(),
-                  found.getRemotePort(),
-                  found.getTransport());
-    }
 
-    if (DsLog4j.connectionCat.isEnabled(Level.DEBUG)) {
-      DsLog4j.connectionCat.log(Level.DEBUG, "waitIfTrying:ret_connection == " + ret_connection);
-    }
+        if (found != null) {
+          synchronized (found) {
+            if (found.isTrying()) {
+              try {
+                if (DsLog4j.connectionCat.isEnabled(Level.DEBUG)) {
+                  DsLog4j.connectionCat.log(Level.DEBUG, "waitIfTrying:waiting..on " + found);
+                }
 
+                found.wait();
+
+                if (DsLog4j.connectionCat.isEnabled(Level.DEBUG)) {
+                  DsLog4j.connectionCat.log(Level.DEBUG, "waitIfTrying continuing.");
+                }
+              } catch (InterruptedException ie) {
+              }
+            }
+          }
+          ret_connection =
+              (DsSipConnection)
+                  m_connectionTable.get(
+                      found.getLocalAddress(),
+                      found.getLocalPort(),
+                      found.getRemoteAddress(),
+                      found.getRemotePort(),
+                      found.getTransport());
+        }
+
+        if (DsLog4j.connectionCat.isEnabled(Level.DEBUG)) {
+          DsLog4j.connectionCat.log(Level.DEBUG, "waitIfTrying:ret_connection == " + ret_connection);
+        }
+    */
     return ret_connection;
   }
 
@@ -173,112 +144,103 @@ class DsConnectionBarrier {
    *     specified binding info
    */
   private DsSipConnection tryConnect(DsBindingInfo info) {
-    if (DsLog4j.connectionCat.isEnabled(Level.DEBUG)) {
-      DsLog4j.connectionCat.log(Level.DEBUG, "DsConnectionBarrier.tryConnect info = " + info);
-    }
-
-    if (m_connectionFactory == null) {
-      if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {
-        DsLog4j.connectionCat.warn("connectTo: connection factory is null! (fatal!!)");
-      }
-      return null;
-    }
-
     DsSipConnection ret_connection = null;
+    /*
 
-    int transport = info.getTransport();
-    try {
-      switch (transport) {
-        case DsSipTransportType.UDP:
-          if (info.getLocalAddress() == null && info.getLocalPort() == LPU) {
-            ret_connection =
-                (DsSipConnection)
-                    m_connectionFactory.createConnection(
-                        info.getNetwork(),
-                        info.getRemoteAddress(),
-                        info.getRemotePort(),
-                        transport);
-          } else {
-            ret_connection =
-                (DsSipConnection)
-                    m_connectionFactory.createConnection(
-                        info.getNetwork(),
-                        info.getLocalAddress(),
-                        info.getLocalPort(),
-                        info.getRemoteAddress(),
-                        info.getRemotePort(),
-                        transport);
-          }
-          break;
-        case DsSipTransportType.TCP:
-        case DsSipTransportType.TLS:
-          DsSSLContext context = DsSipTransactionManager.getTransportLayer().getSSLContext();
-          if (info.getLocalAddress() == null && info.getLocalPort() == LPU) {
-            ret_connection =
-                (DsSipConnection)
-                    m_connectionFactory.createConnection(
-                        info.getNetwork(),
-                        info.getRemoteAddress(),
-                        info.getRemotePort(),
-                        transport,
-                        context);
-          } else {
-            ret_connection =
-                (DsSipConnection)
-                    m_connectionFactory.createConnection(
-                        info.getNetwork(),
-                        info.getLocalAddress(),
-                        info.getLocalPort(),
-                        info.getRemoteAddress(),
-                        info.getRemotePort(),
-                        transport,
-                        context);
-          }
-          break;
-      }
-    } catch (SocketException se) {
-      ret_connection = null;
-      if (DsLog4j.connectionCat.isDebugEnabled()) {
-        DsLog4j.connectionCat.debug("tryConnect(DsBindingInfo) socket exception: ", se);
-      }
-    } catch (IOException ioe) {
-      ret_connection = null;
-      if (DsLog4j.connectionCat.isDebugEnabled()) {
-        DsLog4j.connectionCat.debug("tryConnect(DsBindingInfo) IO exception: ", ioe);
-      }
-    } catch (Throwable throwable) {
-      ret_connection = null;
-      if (DsLog4j.connectionCat.isDebugEnabled()) {
-        DsLog4j.connectionCat.debug("tryConnect(DsBindingInfo) exception: ", throwable);
-      }
-    }
 
-    if (ret_connection != null) {
-      DsNetwork network = info.getNetwork();
-
-      if ((network == null)
-          || network.getDatagramConnectionStrategy() != DsNetwork.DGRAM_PER_THREAD) {
-        m_connectionTable.put(ret_connection);
-
+        int transport = info.getTransport();
         try {
-          DsSipTransactionManager.getTransportLayer().monitorConnection(ret_connection);
+          switch (transport) {
+            case DsSipTransportType.UDP:
+              if (info.getLocalAddress() == null && info.getLocalPort() == LPU) {
+                ret_connection =
+                    (DsSipConnection)
+                        m_connectionFactory.createConnection(
+                            info.getNetwork(),
+                            info.getRemoteAddress(),
+                            info.getRemotePort(),
+                            transport);
+              } else {
+                ret_connection =
+                    (DsSipConnection)
+                        m_connectionFactory.createConnection(
+                            info.getNetwork(),
+                            info.getLocalAddress(),
+                            info.getLocalPort(),
+                            info.getRemoteAddress(),
+                            info.getRemotePort(),
+                            transport);
+              }
+              break;
+            case DsSipTransportType.TCP:
+            case DsSipTransportType.TLS:
+              DsSSLContext context = DsSipTransactionManager.getTransportLayer().getSSLContext();
+              if (info.getLocalAddress() == null && info.getLocalPort() == LPU) {
+                ret_connection =
+                    (DsSipConnection)
+                        m_connectionFactory.createConnection(
+                            info.getNetwork(),
+                            info.getRemoteAddress(),
+                            info.getRemotePort(),
+                            transport,
+                            context);
+              } else {
+                ret_connection =
+                    (DsSipConnection)
+                        m_connectionFactory.createConnection(
+                            info.getNetwork(),
+                            info.getLocalAddress(),
+                            info.getLocalPort(),
+                            info.getRemoteAddress(),
+                            info.getRemotePort(),
+                            transport,
+                            context);
+              }
+              break;
+          }
+        } catch (SocketException se) {
+          ret_connection = null;
+          if (DsLog4j.connectionCat.isDebugEnabled()) {
+            DsLog4j.connectionCat.debug("tryConnect(DsBindingInfo) socket exception: ", se);
+          }
         } catch (IOException ioe) {
           ret_connection = null;
+          if (DsLog4j.connectionCat.isDebugEnabled()) {
+            DsLog4j.connectionCat.debug("tryConnect(DsBindingInfo) IO exception: ", ioe);
+          }
+        } catch (Throwable throwable) {
+          ret_connection = null;
+          if (DsLog4j.connectionCat.isDebugEnabled()) {
+            DsLog4j.connectionCat.debug("tryConnect(DsBindingInfo) exception: ", throwable);
+          }
         }
-      }
-    }
 
-    synchronized (m_tryingSet) {
-      m_tryingSet.remove(info);
-    }
+        if (ret_connection != null) {
+          DsNetwork network = info.getNetwork();
 
-    synchronized (info) {
-      info.setTrying(false);
-      if (DsLog4j.connectionCat.isEnabled(Level.DEBUG))
-        DsLog4j.connectionCat.log(Level.DEBUG, "tryConnect callling notify on " + info);
-      info.notifyAll();
-    }
+          if ((network == null)
+              || network.getDatagramConnectionStrategy() != DsNetwork.DGRAM_PER_THREAD) {
+            m_connectionTable.put(ret_connection);
 
+            try {
+              DsSipTransactionManager.getTransportLayer().monitorConnection(ret_connection);
+            } catch (IOException ioe) {
+              ret_connection = null;
+            }
+          }
+        }
+
+        synchronized (m_tryingSet) {
+          m_tryingSet.remove(info);
+        }
+
+        synchronized (info) {
+          info.setTrying(false);
+          if (DsLog4j.connectionCat.isEnabled(Level.DEBUG))
+            DsLog4j.connectionCat.log(Level.DEBUG, "tryConnect callling notify on " + info);
+          info.notifyAll();
+        }
+    */
     return ret_connection;
   }
 }

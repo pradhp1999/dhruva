@@ -6,7 +6,7 @@
 package com.cisco.dhruva.transport.netty;
 
 import com.cisco.dhruva.config.DhruvaThreadNames;
-import com.cisco.dhruva.config.network.NetworkConfig;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -19,7 +19,7 @@ public class EventLoopGroupFactory {
 
   private static Object lock = new Object();
 
-  public static EventLoopGroup getInstance(Transport transport, NetworkConfig networkConfig) {
+  public static EventLoopGroup getInstance(Transport transport, DsNetwork networkConfig) {
 
     EventLoopGroup eventLoopGroup = null;
     switch (transport) {

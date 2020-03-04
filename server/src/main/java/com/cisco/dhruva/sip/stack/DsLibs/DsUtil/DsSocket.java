@@ -3,7 +3,6 @@
 // CAFFEINE 2.0 import log4j
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.NativeSocket;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import java.io.*;
 import java.io.FileDescriptor;
@@ -122,63 +121,10 @@ public class DsSocket {
   /*
    * Set the SO_SNDTIMEO of the m_socket using
    * NativeSocket.
+   *
+   * TODO handle tcp timeout
    */
-  public void setTCPWriteTimeout() {
-    if ((ms_isNativeSocketAllowed == false) || (SET_TCP_WRITE_TIMEOUT == false)) {
-      if (DsLog4j.socketCat.isEnabled(Level.ERROR)) {
-        DsLog4j.socketCat.log(
-            Level.ERROR,
-            "Native Socket operations not allowed ms_isNativeSocketAllowed [ "
-                + ms_isNativeSocketAllowed
-                + " ] SET_TCP_WRITE_TIMEOUT [ "
-                + SET_TCP_WRITE_TIMEOUT
-                + " ]");
-      }
-      return;
-    }
-    if ((mNativeFd == -1) && (setNativeFd() == false)) {
-      return;
-    }
-    // REFACTOR, copied only the source, loading of lib may fail
-    int status = new NativeSocket().setSendTimeout(mNativeFd, TCP_WRITE_TIMEOUT);
-    if ((status != 0) && DsLog4j.socketCat.isEnabled(Level.ERROR)) {
-      DsLog4j.socketCat.log(
-          Level.ERROR,
-          "Failed to set the SO_SNDTIMEO [ "
-              + getSocketInfo()
-              + " ]"
-              + " errno [ "
-              + status
-              + " ]");
-    }
-  }
-
-  /*
-   * the method get the number of bytes that are in the
-   * m_socket send buffers.
-   * @return number of bytes in socket send buffer  on success -1 on failure.
-   */
-  public int getBytesInSocketSendBuffer() {
-    if ((ms_isNativeSocketAllowed == false) || ((mNativeFd == -1) && (setNativeFd() == false))) {
-      return -1;
-    }
-    int unsentMsgByteCount = new NativeSocket().getSocketWriteQueueCount(mNativeFd);
-    if (unsentMsgByteCount < 0) {
-      unsentMsgByteCount = -unsentMsgByteCount;
-      if (DsLog4j.socketCat.isEnabled(Level.ERROR)) {
-        DsLog4j.socketCat.log(
-            Level.ERROR,
-            "Failed to get the socket buffer size [ "
-                + getSocketInfo()
-                + " ]"
-                + " errno [ "
-                + unsentMsgByteCount
-                + " ]");
-      }
-      return -1;
-    }
-    return unsentMsgByteCount;
-  }
+  public void setTCPWriteTimeout() {}
 
   /**
    * Returns the default send buffer size for all the TCP/TLS sockets.

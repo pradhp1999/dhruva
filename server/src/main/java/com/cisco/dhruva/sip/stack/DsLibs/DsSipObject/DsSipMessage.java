@@ -16,6 +16,10 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipHeaderDi
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessionID;
 import com.cisco.dhruva.util.cac.SIPSessions;
@@ -407,17 +411,17 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    *
    * @return int the type of protocol used
    */
-  public final int getConnectionTransport() {
+  public final Transport getConnectionTransport() {
     return m_bindingInfo.getTransport();
   }
 
   /**
    * Method used to set the transport type.
    *
-   * @param aTransportType the type of protocol used
+   * @param transportType the type of protocol used
    */
-  public final void setConnectionTransport(int aTransportType) {
-    m_bindingInfo.setTransport(aTransportType);
+  public final void setConnectionTransport(Transport transportType) {
+    m_bindingInfo.setTransport(transportType);
   }
 
   /**
@@ -894,7 +898,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @throws DsSipParserException {@link #getViaHeaderValidate()}
    * @throws DsSipParserListenerException {@link #getViaHeaderValidate()}
    */
-  public void setViaTransport(int transport)
+  public void setViaTransport(Transport transport)
       throws DsSipParserException, DsSipParserListenerException {
     DsSipViaHeader via = getViaHeaderValidate();
     if (via != null) via.setTransport(transport);
@@ -2400,8 +2404,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * Inserts a X-Cisco-Peer-Cert-Info header to the initial Invite.
    *
    * <p>When a header size exceeds CERT_HEADER_SIZE_MAX a new header created
-   *
-   * @param request
    */
   public void addPeerCertInfoHeader(DsSSLBindingInfo bindingInfo) {
     try {
@@ -2511,7 +2513,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
     return normalizationState;
   }
 
-  /** @param normalized - pass state after execution of normalization(pre | post) */
+  /** @param - pass state after execution of normalization(pre | post) */
   public void setNormalizationState(SipMsgNormalizationState normalizationState) {
     this.normalizationState = normalizationState;
   }

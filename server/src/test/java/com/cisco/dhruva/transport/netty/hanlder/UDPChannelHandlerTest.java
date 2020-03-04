@@ -9,10 +9,10 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.testng.Assert.*;
 
+import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
-import com.cisco.dhruva.transport.netty.ChannelHandlerFactory;
 import com.cisco.dhruva.util.SIPMessageGenerator;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -23,6 +23,8 @@ import java.net.InetSocketAddress;
 import org.testng.annotations.Test;
 
 public class UDPChannelHandlerTest {
+
+  private ExecutorService executorService = new ExecutorService("DhruvaSipServer");
 
   @Test(
       enabled = true,
@@ -55,8 +57,7 @@ public class UDPChannelHandlerTest {
 
     doReturn(localAddress).when(embeddedChannel).localAddress();
 
-    ChannelHandler udpChannelHandler =
-        ChannelHandlerFactory.getInstance().getChannelHandler(Transport.UDP, messageForwarder);
+    ChannelHandler udpChannelHandler = new UDPChannelHandler(messageForwarder, executorService);
     embeddedChannel.pipeline().addLast(udpChannelHandler);
 
     embeddedChannel.writeOneInbound(inviteDatagramPacket);
@@ -108,8 +109,7 @@ public class UDPChannelHandlerTest {
     doReturn(localAddress1).when(embeddedChannel1).localAddress();
     doReturn(localAddress2).when(embeddedChannel2).localAddress();
 
-    ChannelHandler udpChannelHandler =
-        ChannelHandlerFactory.getInstance().getChannelHandler(Transport.UDP, messageForwarder);
+    ChannelHandler udpChannelHandler = new UDPChannelHandler(messageForwarder, executorService);
     embeddedChannel1.pipeline().addLast(udpChannelHandler);
     embeddedChannel2.pipeline().addLast(udpChannelHandler);
 
@@ -158,7 +158,6 @@ public class UDPChannelHandlerTest {
         actualBindingInfo.getLocalPort(),
         expectedLocalAddress.getPort(),
         "Local Port does not match");
-    assertEquals(
-        actualBindingInfo.getTransport(), Transport.UDP.ordinal(), "Transport does not match");
+    assertEquals(actualBindingInfo.getTransport(), Transport.UDP, "Transport does not match");
   }
 }

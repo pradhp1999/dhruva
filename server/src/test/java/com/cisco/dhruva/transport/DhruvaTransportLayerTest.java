@@ -8,16 +8,16 @@ package com.cisco.dhruva.transport;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 
-import com.cisco.dhruva.config.network.NetworkConfig;
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.netty.BaseChannelInitializer;
 import com.cisco.dhruva.transport.netty.BootStrapFactory;
-import com.cisco.dhruva.transport.netty.ChannelHandlerFactory;
-import com.cisco.dhruva.transport.netty.ChannelInitializerFactory;
 import com.cisco.dhruva.transport.netty.hanlder.UDPChannelHandler;
 import com.cisco.dhruva.util.SIPMessageGenerator;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.socket.DatagramPacket;
 import java.io.IOException;
@@ -46,18 +46,21 @@ public class DhruvaTransportLayerTest {
 
   @Mock Environment env = new MockEnvironment();
 
-  NetworkConfig networkConfig = new NetworkConfig(env);
+  DsNetwork networkConfig = new DsNetwork(env);
 
   Bootstrap bootstrap;
 
   BaseChannelInitializer channelInitializer;
 
+  ExecutorService executorService = new ExecutorService("DhruvaSipServer");
+
   @BeforeClass
   public void init() {
 
     handler = mock(MessageForwarder.class);
-    channelInitializer =
-        ChannelInitializerFactory.getInstance().getChannelInitializer(Transport.UDP, handler);
+    ChannelHandler channelHandler = new UDPChannelHandler(handler, executorService);
+    channelInitializer = new BaseChannelInitializer();
+    channelInitializer.channelHanlder(channelHandler);
     bootstrap =
         spy(
             BootStrapFactory.getInstance()
@@ -86,7 +89,8 @@ public class DhruvaTransportLayerTest {
       int port = 5060;
       EmbeddedChannel embeddedChannel = new EmbeddedChannel();
       ChannelFuture bindFuture = mock(ChannelFuture.class);
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(handler);
+      transportLayer =
+          TransportLayerFactory.getInstance().getTransportLayer(handler, executorService);
 
       // Return success future when bind is called
       doAnswer(
@@ -103,11 +107,6 @@ public class DhruvaTransportLayerTest {
       Boolean isBindComplete = startListenFuture.isDone();
       Object returnedChannel = startListenFuture.get();
 
-      assertEquals(
-          handler,
-          ((UDPChannelHandler) ChannelHandlerFactory.getInstance().getChannelHandler(Transport.UDP))
-              .messageForwarder(),
-          "Message handler initialized is incorrect ");
       assertEquals(isBindComplete, Boolean.TRUE, "TransportLayer.startListening returned false");
       assertEquals(returnedChannel, embeddedChannel, "Returned channel is not matching");
     } catch (Exception e) {
@@ -124,13 +123,13 @@ public class DhruvaTransportLayerTest {
       enabled = true,
       description = "Testing the Server Socket creating failure When Bootstrap binding fails")
   public void testStartListenExceptionInBindUDP() {
-    NetworkConfig networkConfig = new NetworkConfig(env);
+    DsNetwork networkConfig = new DsNetwork(env);
     try {
 
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       String exceptionError = "Bind failed";
       int port = 5060;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null);
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null, executorService);
       // Return Future which failed when bind is called
       doAnswer(
               invocation -> {
@@ -157,11 +156,6 @@ public class DhruvaTransportLayerTest {
           });
 
       assertEquals(
-          handler,
-          ((UDPChannelHandler) ChannelHandlerFactory.getInstance().getChannelHandler(Transport.UDP))
-              .messageForwarder(),
-          "Message handler initialized is incorrect ");
-      assertEquals(
           isCompletedExceptionally,
           Boolean.TRUE,
           "TransportLayer.startListening should have completed Exceptionally");
@@ -177,12 +171,12 @@ public class DhruvaTransportLayerTest {
 
   @Test(enabled = true, description = "Testing the TransportLayer startListening with null values")
   public void testStartListeningFailureUDPWithNullValues() {
-    NetworkConfig networkConfig = new NetworkConfig(env);
+    DsNetwork networkConfig = new DsNetwork(env);
 
     try {
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port = 5060;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null);
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null, executorService);
       CompletableFuture startListenFuture =
           transportLayer.startListening(Transport.UDP, networkConfig, null, port, handler);
 
@@ -212,13 +206,13 @@ public class DhruvaTransportLayerTest {
           "Testing the Server Socket creating success scenario with multiple "
               + "Server sockets for UDP and receiving a Message in handler")
   public void testStartListeningSuccessUDPMultipleServerSockets() {
-    NetworkConfig networkConfig = new NetworkConfig(env);
+    DsNetwork networkConfig = new DsNetwork(env);
     try {
 
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port1 = 5060;
       int port2 = 5070;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null);
+      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null, executorService);
 
       EmbeddedChannel embeddedChannel1 = new EmbeddedChannel();
       EmbeddedChannel embeddedChannel2 = new EmbeddedChannel();
@@ -255,11 +249,6 @@ public class DhruvaTransportLayerTest {
       Boolean isBindComplete2 = startListenFuture2.isDone();
       Object returnedChannel2 = startListenFuture2.get();
 
-      assertEquals(
-          handler,
-          ((UDPChannelHandler) ChannelHandlerFactory.getInstance().getChannelHandler(Transport.UDP))
-              .messageForwarder(),
-          "Message handler initialized is incorrect ");
       assertEquals(isBindComplete1, Boolean.TRUE, "TransportLayer.startListening returned false");
       assertEquals(returnedChannel1, embeddedChannel1, "Returned channel is not matching");
       assertEquals(isBindComplete2, Boolean.TRUE, "TransportLayer.startListening returned false");
@@ -288,7 +277,8 @@ public class DhruvaTransportLayerTest {
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
       byte[] inviteMessageToSend = SIPMessageGenerator.getInviteMessage("graivitt").getBytes();
       byte[] receivedMessage;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+      transportLayer =
+          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
 
       EmbeddedChannel channel = spy(EmbeddedChannel.class);
 
@@ -360,7 +350,8 @@ public class DhruvaTransportLayerTest {
       int localPort = 5070, remotePort = 5060;
       InetSocketAddress remoteSocketAddress = new InetSocketAddress(remoteAddress, remotePort);
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+      transportLayer =
+          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
 
       // Return failure future when connect is called
       EmbeddedChannel channel = new EmbeddedChannel();
@@ -402,7 +393,8 @@ public class DhruvaTransportLayerTest {
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
       byte[] inviteMessageToSend = SIPMessageGenerator.getInviteMessage("graivitt").getBytes();
       byte[] receivedMessage;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+      transportLayer =
+          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
 
       EmbeddedChannel channel = spy(EmbeddedChannel.class);
 
@@ -471,7 +463,8 @@ public class DhruvaTransportLayerTest {
       InetAddress remoteAddress = null; // remote address is null for this test
       int localPort = 5070, remotePort = 5060;
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+      transportLayer =
+          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
 
       CompletableFuture<Connection> connectionFuture =
           transportLayer.getConnection(
@@ -505,7 +498,8 @@ public class DhruvaTransportLayerTest {
       InetAddress remoteAddress = InetAddress.getByName("10.78.98.22");
       ; // remote address is null for this test
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {});
+      transportLayer =
+          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
 
       CompletableFuture<Connection> connectionFuture =
           transportLayer.getConnection(
@@ -529,7 +523,7 @@ public class DhruvaTransportLayerTest {
       description =
           "Tests the get connection summary for UDP connections when all connections are active")
   public void testGetConnectionSummary() {
-    NetworkConfig networkConfig = new NetworkConfig(env);
+    DsNetwork networkConfig = new DsNetwork(env);
     try {
       CompletableFuture<Connection> connectionFuture1 =
           transportLayer.getConnection(
@@ -565,7 +559,7 @@ public class DhruvaTransportLayerTest {
       description =
           "Tests the get connection summary for UDP connections , after connection disconnect")
   public void testGetConnectionSummaryDisconnect() {
-    NetworkConfig networkConfig = new NetworkConfig(env);
+    DsNetwork networkConfig = new DsNetwork(env);
     try {
       CompletableFuture<Connection> connectionFuture1 =
           transportLayer.getConnection(

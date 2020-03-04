@@ -1,7 +1,5 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSSLEngine;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSelector;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
@@ -47,11 +45,7 @@ public interface NetObjectProviderInterface {
 
   public ServerSocketChannel getServerSocketChannel() throws IOException;
 
-  public DsSSLEngine getDsSSLEngine(SocketChannel sc, SSLEngine engine) throws IOException;
-
   public InputStream getInputStream() throws IOException;
-
-  public DsSelector getRegister();
 
   public ByteBuffer getAppSendBuffer();
 

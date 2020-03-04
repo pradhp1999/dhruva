@@ -566,7 +566,7 @@ public class DsLog4j {
   public static void logInOutMessage(boolean inbound, DsBindingInfo info, byte[] data) {
     logInOutMessage(
         inbound,
-        DsSipTransportType.getTypeAsByteString(info.getTransport()).toString(),
+        DsSipTransportType.getTypeAsByteString(info.getTransport().ordinal()).toString(),
         info.getRemoteAddress().getHostAddress(),
         info.getRemotePort(),
         info.getLocalAddress().getHostAddress(),
