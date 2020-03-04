@@ -5,10 +5,12 @@
 
 package com.cisco.dhruva.transport.netty;
 
-import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.transport.ChannelEventsListener;
 import com.cisco.dhruva.transport.Connection;
 import com.cisco.dhruva.transport.Transport;
+import com.cisco.dhruva.transport.netty.hanlder.AbstractChannelHandler;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import io.netty.channel.Channel;
@@ -20,30 +22,36 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AbstractConnection implements Connection {
 
   Channel channel;
-  private AtomicInteger m_ReferenceCount = new AtomicInteger(0);
-  private NetworkConfig networkConfig;
+  private AtomicInteger referenceCount = new AtomicInteger(0);
+  private DsNetwork networkConfig;
   protected long m_Timeout;
   private long m_TimeStamp;
   private DsBindingInfo connectionBindingInfo;
   private InetSocketAddress localSocketAddress;
   private InetSocketAddress remoteSocketAddress;
+  protected AbstractChannelHandler channelHandler;
   Transport transport;
   private Logger logger = DhruvaLoggerFactory.getLogger(AbstractConnection.class);
 
-  public AbstractConnection(Channel channel, NetworkConfig networkConfig, Transport transport) {
+  public AbstractConnection(
+      Channel channel,
+      DsNetwork networkConfig,
+      Transport transport,
+      AbstractChannelHandler channelHandler) {
     this.channel = channel;
     this.networkConfig = networkConfig;
     m_Timeout = networkConfig.connectionCacheConnectionIdleTimeout();
     this.localSocketAddress = (InetSocketAddress) channel.localAddress();
     this.remoteSocketAddress = (InetSocketAddress) channel.remoteAddress();
     this.transport = transport;
+    this.channelHandler = channelHandler;
     connectionBindingInfo =
         new DsBindingInfo(
             localSocketAddress.getAddress(),
             localSocketAddress.getPort(),
             remoteSocketAddress.getAddress(),
             remoteSocketAddress.getPort(),
-            this.transport.ordinal());
+            this.transport);
   }
 
   /**
@@ -71,10 +79,18 @@ public abstract class AbstractConnection implements Connection {
     return writeFuture;
   }
 
+  public void subscribeForChannelEvents(ChannelEventsListener listener) {
+    channelHandler.subscribeForChannelEvents(listener);
+  }
+
+  public void unsubscribeChannelEvents(ChannelEventsListener listener) {
+    channelHandler.unsubscribeChannelEvents(listener);
+  }
+
   /** Increments the reference count for this connection. */
   @Override
   public void addReference() {
-    m_ReferenceCount.incrementAndGet();
+    referenceCount.incrementAndGet();
   }
 
   /**
@@ -83,21 +99,26 @@ public abstract class AbstractConnection implements Connection {
   @Override
   public void removeReference() {
 
-    m_ReferenceCount.decrementAndGet();
+    referenceCount.decrementAndGet();
     updateTimeStamp();
 
-    if (m_ReferenceCount.get() < 0) {
+    if (referenceCount.get() < 0) {
       logger.warn(
           "Connection {} removeReference: negative count! m_ReferenceCount == {} ",
           this,
-          m_ReferenceCount);
+          referenceCount);
     }
+  }
+
+  public int referenceCount() {
+    return referenceCount.get();
   }
 
   /**
    * Update the timestamp of this connection. Should be done when message is sent or received from
    * this socket.
    */
+  @Override
   public void updateTimeStamp() {
     m_TimeStamp = System.currentTimeMillis();
   }
@@ -111,7 +132,7 @@ public abstract class AbstractConnection implements Connection {
   @Override
   public boolean shouldClose() {
     long current_time = System.currentTimeMillis();
-    return m_ReferenceCount.get() == 0 && (m_Timeout < (current_time - m_TimeStamp) / 1000);
+    return referenceCount.get() == 0 && (m_Timeout < (current_time - m_TimeStamp) / 1000);
   }
 
   @Override

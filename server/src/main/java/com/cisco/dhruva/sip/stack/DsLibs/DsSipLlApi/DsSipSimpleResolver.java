@@ -9,6 +9,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.Trace;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -97,8 +98,11 @@ public class DsSipSimpleResolver implements DsSipResolver {
         Log.info("tryConnect() - getConnection failed: ", e);
       }
 
-      // Try again with the UDP itself.
+      /*    // Try again with the UDP itself.
       if (m_sizeExceedsMTU) {
+
+
+        TODO take care
         DsNetwork network = m_resolverInfo.getNetwork();
         if (network != null && network.isBehindNAT()) {
           // we un-set the local binding info earlier, now we need to put it back
@@ -118,7 +122,7 @@ public class DsSipSimpleResolver implements DsSipResolver {
           }
         }
 
-        m_resolverInfo.setTransport(DsSipTransportType.UDP);
+        m_resolverInfo.setTransport(Transport.UDP);
         con =
             (DsSipConnection)
                 tl.getConnection(
@@ -128,7 +132,7 @@ public class DsSipSimpleResolver implements DsSipResolver {
                     m_resolverInfo.getRemoteAddress(),
                     m_resolverInfo.getRemotePort(),
                     m_resolverInfo.getTransport());
-      }
+      }*/
     }
 
     return con;
@@ -177,7 +181,7 @@ public class DsSipSimpleResolver implements DsSipResolver {
     DsSipResolverUtils.initialize(network, this, localAddress, localPort, url);
   }
 
-  public void initialize(DsNetwork network, String host, int port, int transport)
+  public void initialize(DsNetwork network, String host, int port, Transport transport)
       throws UnknownHostException, DsSipServerNotFoundException {
     // delegate to helper
     DsSipResolverUtils.initialize(network, this, host, port, transport);
@@ -189,7 +193,7 @@ public class DsSipSimpleResolver implements DsSipResolver {
       int localPort,
       String host,
       int port,
-      int transport)
+      Transport transport)
       throws UnknownHostException, DsSipServerNotFoundException {
     // delegate to helper
     DsSipResolverUtils.initialize(network, this, localAddress, localPort, host, port, transport);
@@ -201,7 +205,7 @@ public class DsSipSimpleResolver implements DsSipResolver {
       int localPort,
       String host,
       int port,
-      int transport,
+      Transport transport,
       boolean haveIP)
       throws UnknownHostException, DsSipServerNotFoundException {
     m_haveIP = haveIP;
@@ -214,9 +218,7 @@ public class DsSipSimpleResolver implements DsSipResolver {
 
     // since the user sets the whether or not the protocol is supported we don't have to
     // worry about it here
-    if (transport == DsSipTransportType.UDP
-        && m_sizeExceedsMTU
-        && isSupported(DsSipTransportType.TCP)) {
+    if (transport == Transport.UDP && m_sizeExceedsMTU && isSupported(Transport.TCP)) {
       if (Log.isEnabled(Level.INFO)) {
         Log.info(
             "initialize() - Exceeded UDP MTU size, switching to TCP and removing "
@@ -226,7 +228,7 @@ public class DsSipSimpleResolver implements DsSipResolver {
                 + localPort);
       }
 
-      transport = DsSipTransportType.TCP;
+      transport = Transport.TCP;
 
       // Here we are switching transports from UDP to TCP, because this packet will not fit
       // over UDP.  But, there is a case where we have set the local binding info for NAT,
@@ -239,10 +241,11 @@ public class DsSipSimpleResolver implements DsSipResolver {
       localPort = DsBindingInfo.LOCAL_PORT_UNSPECIFIED;
 
       try {
+        /* TODO
         DsStreamListener listener = (DsStreamListener) network.getListener(DsSipTransportType.TCP);
-        if (listener != null) {
-          localAddr = listener.localAddress;
-        }
+         if (listener != null) {
+           localAddr = listener.localAddress;
+         }*/
       } catch (NullPointerException e) {
         if (Log.isEnabled(Level.WARN)) {
           Log.info("Null pointer during access to network object for listener address.");
@@ -252,11 +255,12 @@ public class DsSipSimpleResolver implements DsSipResolver {
 
     if (!isSupported(transport)) {
       throw new DsSipServerNotFoundException(
-          "This stack does not support(not listening on) " + DsSipTransportType.intern(transport));
+          "This stack does not support(not listening on) "
+              + DsSipTransportType.intern(transport.name()));
     }
 
     if (port == DsBindingInfo.REMOTE_PORT_UNSPECIFIED) {
-      if (transport == DsSipTransportType.TLS) {
+      if (transport == Transport.TLS) {
         port = DsSipTransportType.T_TLS.getDefaultPort();
       } else {
         port = DsSipTransportType.T_UDP.getDefaultPort(); // same as UDP
@@ -288,7 +292,7 @@ public class DsSipSimpleResolver implements DsSipResolver {
     return true;
   }
 
-  public boolean shouldSearch(String host_name, int port, int transport) {
+  public boolean shouldSearch(String host_name, int port, Transport transport) {
     return true;
   }
 
@@ -300,7 +304,7 @@ public class DsSipSimpleResolver implements DsSipResolver {
    * @return <code>true</code> if this resolver has been configured to support a particular
    *     transport as defined in DsSipObject.DsSipTransportType.
    */
-  public boolean isSupported(int transport) {
+  public boolean isSupported(Transport transport) {
     return DsSipResolverUtils.isSupported(transport, m_supportedTransports, m_sizeExceedsMTU);
   }
 }

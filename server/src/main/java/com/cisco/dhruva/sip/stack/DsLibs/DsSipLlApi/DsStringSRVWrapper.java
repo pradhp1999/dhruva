@@ -4,6 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.transport.Transport;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
@@ -20,7 +21,7 @@ public class DsStringSRVWrapper extends DsSRVWrapper {
   int _weight = -1;
   int _priority = -1;
   int _running_sum = 0;
-  int _proto = DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED;
+  Transport _proto = DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED;
   boolean _enabled = true;
 
   public DsBindingInfo getBindingInfo() {
@@ -54,7 +55,7 @@ public class DsStringSRVWrapper extends DsSRVWrapper {
    * @param record The record string.
    * @param protocol The protocol.
    */
-  public DsStringSRVWrapper(String record, int protocol) {
+  public DsStringSRVWrapper(String record, Transport protocol) {
     try {
       StringTokenizer tok = new StringTokenizer(record, " ");
       _priority = Integer.parseInt(tok.nextToken());
@@ -82,7 +83,7 @@ public class DsStringSRVWrapper extends DsSRVWrapper {
    *
    * @return the protocol.
    */
-  public int getProtocol() {
+  public Transport getProtocol() {
     return _proto;
   }
 

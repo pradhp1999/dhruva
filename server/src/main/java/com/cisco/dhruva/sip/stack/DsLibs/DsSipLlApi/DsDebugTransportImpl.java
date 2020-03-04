@@ -3,6 +3,7 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
+import com.cisco.dhruva.transport.Transport;
 import java.net.*;
 
 /**
@@ -44,7 +45,7 @@ public final class DsDebugTransportImpl {
    */
   public static void messageIn(
       int pos,
-      int transport,
+      Transport transport,
       byte[] message,
       InetAddress laddr,
       int lport,

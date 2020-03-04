@@ -5,11 +5,11 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.transport.Transport;
 import java.util.HashMap;
 import org.apache.logging.log4j.Logger;
 
@@ -107,10 +107,12 @@ public final class DsSipConnectionAssociations {
     if (m_shouldClose && null != oldBinding) {
       connection = getConnection(oldBinding);
       if (null != connection) {
-        if (oldBinding.getTransport() == DsSipTransportType.TCP
-            || oldBinding.getTransport() == DsSipTransportType.TLS) {
+        if (oldBinding.getTransport() == Transport.TCP
+            || oldBinding.getTransport() == Transport.TLS) {
           try {
-            ((DsTcpConnection) connection).startCleaner();
+
+            // TODO take care of cleanup
+            // ((DsTcpConnection) connection).startCleaner();
           } catch (ClassCastException cce) {
             if (logger.isInfoEnabled()) {
               logger.info(

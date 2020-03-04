@@ -9,6 +9,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipURL;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException.TrackingExceptions;
+import com.cisco.dhruva.transport.Transport;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -189,7 +190,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
   int m_localPort = DsSipResolverUtils.LPU;
   private String m_host;
   private int m_port = DsSipResolverUtils.RPU;
-  private byte m_transport = (byte) DsSipResolverUtils.BTU;
+  private Transport m_transport = DsSipResolverUtils.BTU;
 
   private boolean m_sizeExceedsMTU = false; // message size exceeds MTU
 
@@ -649,7 +650,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
    * @return <code>true</code> if according to the RFC, more than one service end point should be
    *     tried otherwise returns <code>false</code>
    */
-  public boolean shouldSearch(String hostName, int port, int transport) {
+  public boolean shouldSearch(String hostName, int port, Transport transport) {
     return !(IPValidator.hostIsIPAddr(hostName)
         && (port != DsSipResolverUtils.RPU)
         && (transport != DsSipResolverUtils.BTU));
@@ -661,7 +662,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
    */
   public DsSipServerLocator() {
     m_host = null;
-    m_transport = (byte) DsSipResolverUtils.BTU;
+    m_transport = DsSipResolverUtils.BTU;
     // m_port = -1;
     m_case = -1;
     m_iterator = null;
@@ -694,7 +695,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
    * @throws UnknownHostException if host is not known
    * @throws DsSipServerNotFoundException if no server could be located
    */
-  public void initialize(DsNetwork network, String host, int port, int proto)
+  public void initialize(DsNetwork network, String host, int port, Transport proto)
       throws UnknownHostException, DsSipServerNotFoundException {
     DsSipResolverUtils.initialize(network, this, host, port, proto);
   }
@@ -712,7 +713,12 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
    * @throws DsSipServerNotFoundException if no server could be located
    */
   public void initialize(
-      DsNetwork network, InetAddress localAddr, int localPort, String host, int port, int proto)
+      DsNetwork network,
+      InetAddress localAddr,
+      int localPort,
+      String host,
+      int port,
+      Transport proto)
       throws UnknownHostException, DsSipServerNotFoundException {
     DsSipResolverUtils.initialize(network, this, localAddr, localPort, host, port, proto);
   }
@@ -772,7 +778,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
       int lPort,
       String host,
       int port,
-      int proto,
+      Transport proto,
       boolean haveIP)
       throws UnknownHostException, DsSipServerNotFoundException {
     boolean have_proto = (proto != DsSipResolverUtils.BTU);
@@ -781,7 +787,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     this.m_localAddress = lAddr;
     this.m_localPort = lPort;
     this.m_host = host;
-    this.m_transport = (byte) proto;
+    this.m_transport = proto;
     this.m_port = port;
 
     if (haveIP) {
@@ -822,6 +828,17 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
 
   public void setSizeExceedsMTU(boolean sizeExceedsMTU) {
     m_sizeExceedsMTU = sizeExceedsMTU;
+  }
+
+  /**
+   * Set the supported transports.
+   *
+   * @param supported_transports a bit mask of the transports supported by this instance of the
+   *     stack.
+   */
+  @Override
+  public void setSupportedTransports(byte supported_transports) {
+    m_supportedTransports = supported_transports;
   }
 
   /**
@@ -994,7 +1011,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
             addAQuery(
                 m_host,
                 m_transport,
-                (m_transport == DsSipTransportType.TLS) ? TLS_DEFAULT_PORT : DEFAULT_PORT);
+                (m_transport == Transport.TLS) ? TLS_DEFAULT_PORT : DEFAULT_PORT);
           }
         }
         break;
@@ -1032,7 +1049,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
             m_localAddress,
             m_localPort,
             m_host,
-            (m_transport == DsSipTransportType.TLS) ? TLS_DEFAULT_PORT : DEFAULT_PORT,
+            (m_transport == Transport.TLS) ? TLS_DEFAULT_PORT : DEFAULT_PORT,
             m_transport);
         break;
 
@@ -1093,14 +1110,13 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
       if (port == DsSipResolverUtils.RPU) {
         port = DEFAULT_PORT;
       }
-      add(m_localAddress, m_localPort, host, port, DsSipTransportType.TCP);
+      add(m_localAddress, m_localPort, host, port, Transport.TCP);
     }
 
-    if (!m_sizeExceedsMTU
-        || DsConfigManager.getDefaultOutgoingTransport() != DsSipTransportType.TCP) {
+    if (!m_sizeExceedsMTU || DsConfigManager.getDefaultOutgoingTransport() != Transport.TCP) {
       if (port == DsSipResolverUtils.RPU) {
         port =
-            (DsConfigManager.getDefaultOutgoingTransport() == DsSipTransportType.TLS)
+            (DsConfigManager.getDefaultOutgoingTransport() == Transport.TLS)
                 ? TLS_DEFAULT_PORT
                 : DEFAULT_PORT;
       }
@@ -1118,14 +1134,13 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
       if (port == DsSipResolverUtils.RPU) {
         port = DEFAULT_PORT;
       }
-      add(m_localAddress, m_localPort, addr, port, DsSipTransportType.TCP);
+      add(m_localAddress, m_localPort, addr, port, Transport.TCP);
     }
 
-    if (!m_sizeExceedsMTU
-        || DsConfigManager.getDefaultOutgoingTransport() != DsSipTransportType.TCP) {
+    if (!m_sizeExceedsMTU || DsConfigManager.getDefaultOutgoingTransport() != Transport.TCP) {
       if (port == DsSipResolverUtils.RPU) {
         port =
-            (DsConfigManager.getDefaultOutgoingTransport() == DsSipTransportType.TLS)
+            (DsConfigManager.getDefaultOutgoingTransport() == Transport.TLS)
                 ? TLS_DEFAULT_PORT
                 : DEFAULT_PORT;
       }
@@ -1187,7 +1202,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
    *
    * @throws UnknownHostException if host is not known
    */
-  private void addAQuery(String host, int proto, int port) throws UnknownHostException {
+  private void addAQuery(String host, Transport proto, int port) throws UnknownHostException {
     if (!isSupported(proto)) {
       DsLog4j.resolvCat.log(
           Level.WARN,
@@ -1338,7 +1353,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
    * 2782 and add the results
    */
   private boolean addSRVQuery(
-      String host, int proto, DsNetwork network) // throws DsSipServerNotFoundException
+      String host, Transport proto, DsNetwork network) // throws DsSipServerNotFoundException
       {
     if (DsLog4j.resolvCat.isEnabled(Level.DEBUG)) {
       DsLog4j.resolvCat.log(
@@ -1388,13 +1403,13 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     Vector result = null;
 
     switch (proto) {
-      case DsSipTransportType.TLS:
+      case TLS:
         result = sortRecords(records, null, null);
         break;
-      case DsSipTransportType.TCP:
+      case TCP:
         result = sortRecords(null, records, null);
         break;
-      case DsSipTransportType.UDP:
+      case UDP:
         result = sortRecords(null, null, records);
     }
     if (result != null) {
@@ -1472,7 +1487,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
           service = records[i].m_strService;
 
           if (null != query && null != service) {
-            int trans = DsNAPTRRecord.serviceType(service);
+            Transport trans = DsNAPTRRecord.serviceType(service);
 
             if (isSupported(trans)) {
               recs.add(records[i]);
@@ -1499,11 +1514,11 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
             continue;
           }
           switch (DsNAPTRRecord.serviceType(record.m_strService)) {
-            case DsSipTransportType.UDP:
+            case UDP:
               udp_records =
                   m_debugMode
-                      ? getDebugSRVRecords(query, DsSipTransportType.UDP)
-                      : getSRVRecords(query, DsSipTransportType.UDP);
+                      ? getDebugSRVRecords(query, Transport.UDP)
+                      : getSRVRecords(query, Transport.UDP);
               if (null != udp_records) {
                 udpRecords = sortRecords(null, null, udp_records);
                 Iterator it = udpRecords.iterator();
@@ -1516,11 +1531,11 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
                 }
               }
               break;
-            case DsSipTransportType.TCP:
+            case TCP:
               tcp_records =
                   m_debugMode
-                      ? getDebugSRVRecords(query, DsSipTransportType.TCP)
-                      : getSRVRecords(query, DsSipTransportType.TCP);
+                      ? getDebugSRVRecords(query, Transport.TCP)
+                      : getSRVRecords(query, Transport.TCP);
               if (null != tcp_records) {
                 tcpRecords = sortRecords(null, tcp_records, null);
                 Iterator it = tcpRecords.iterator();
@@ -1533,11 +1548,11 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
                 }
               }
               break;
-            case DsSipTransportType.TLS:
+            case TLS:
               tls_records =
                   m_debugMode
-                      ? getDebugSRVRecords(query, DsSipTransportType.TLS)
-                      : getSRVRecords(query, DsSipTransportType.TLS);
+                      ? getDebugSRVRecords(query, Transport.TLS)
+                      : getSRVRecords(query, Transport.TLS);
               if (null != tls_records) {
                 tlsRecords = sortRecords(tls_records, null, null);
                 Iterator it = tlsRecords.iterator();
@@ -1562,14 +1577,14 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
             Level.DEBUG, "either NAPTR is disabled or no NAPTR records found for: " + host);
       }
 
-      if (isSupported(DsSipTransportType.UDP_MASK)) {
-        addSRVQuery(host, DsSipTransportType.UDP, network);
+      if (isSupported(Transport.UDP)) {
+        addSRVQuery(host, Transport.UDP, network);
       }
-      if (isSupported(DsSipTransportType.TCP_MASK)) {
-        addSRVQuery(host, DsSipTransportType.TCP, network);
+      if (isSupported(Transport.TCP)) {
+        addSRVQuery(host, Transport.TCP, network);
       }
-      if (isSupported(DsSipTransportType.TLS_MASK)) {
-        addSRVQuery(host, DsSipTransportType.TLS, network);
+      if (isSupported(Transport.TLS)) {
+        addSRVQuery(host, Transport.TLS, network);
       }
     } // _if
 
@@ -1743,7 +1758,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
    * @param protocol the transport protocol
    * @return the result of the query
    */
-  public DsSRVWrapper[] getSRVRecords(String query, int protocol) {
+  public DsSRVWrapper[] getSRVRecords(String query, Transport protocol) {
     if (DsLog4j.resolvCat.isDebugEnabled()) {
       DsLog4j.resolvCat.debug("Entering getSRVRecords: " + query + " proto = " + protocol);
     }
@@ -1772,7 +1787,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
         return null;
       }
 
-      if (!DsUnreachableDestinationTable.getInstance().contains(addr, 5060, 1)) {
+      if (!DsUnreachableDestinationTable.getInstance().contains(addr, 5060, Transport.UDP)) {
 
         DsLog4j.resolvCat.log(
             Level.DEBUG,
@@ -1834,7 +1849,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
         }
 
         if (addr != null) {
-          DsUnreachableDestinationTable.getInstance().add(addr, 5060, 1);
+          DsUnreachableDestinationTable.getInstance().add(addr, 5060, Transport.UDP);
         }
 
       } else {
@@ -1865,7 +1880,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
       }
 
       if (addr != null) {
-        DsUnreachableDestinationTable.getInstance().add(addr, 5060, 1);
+        DsUnreachableDestinationTable.getInstance().add(addr, 5060, Transport.UDP);
       }
       return null;
     }
@@ -1881,7 +1896,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
    * @return the result of the query
    * @throws NamingException
    */
-  public DsSRVWrapper[] doSRVQuery(String query, int protocol) throws NamingException {
+  public DsSRVWrapper[] doSRVQuery(String query, Transport protocol) throws NamingException {
     Attributes attributes = getQueryAttributes(query, SRV_ATTR_IDS);
     DsSRVWrapper[] records = null;
     if (attributes != null) {
@@ -1910,7 +1925,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     return count;
   }
 
-  private static DsSRVWrapper[] getDebugSRVRecords(String query, int protocol) {
+  private static DsSRVWrapper[] getDebugSRVRecords(String query, Transport protocol) {
     return doSRVDebugQuery(query, protocol);
   }
 
@@ -2014,7 +2029,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     }
   }
 
-  private DsSRVWrapper[] doSRVQuery(String host, int proto, DsNetwork network) {
+  private DsSRVWrapper[] doSRVQuery(String host, Transport proto, DsNetwork network) {
     DsSRVWrapper[] records = null;
 
     // maivu - 05.22.07 - CSCsi98575 - Add Local SRV configuration functionality instead of DNS
@@ -2036,13 +2051,13 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     if ((m_localSRVRecords == null) || (!DsSipServerLocator.m_useLocalSRVLookupOnly)) {
       if (isSupported(proto)) {
         switch (proto) {
-          case (DsSipTransportType.TCP):
+          case TCP:
             records = getSRVRecords("_sip._tcp." + host, proto);
             break;
-          case (DsSipTransportType.UDP):
+          case UDP:
             records = getSRVRecords("_sip._udp." + host, proto);
             break;
-          case (DsSipTransportType.TLS):
+          case TLS:
             if (network.getDnsLookupTLSLyncFederationEnabled()) {
               records = getSRVRecords("_sipfederationtls._tcp." + host, proto);
             } else {
@@ -2065,7 +2080,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
    * @param proto the protocol
    * @return DsSRVWrapper[] the list of SRV records
    */
-  private static DsSRVWrapper[] doLocalSRVLookup(String host, int proto) {
+  private static DsSRVWrapper[] doLocalSRVLookup(String host, Transport proto) {
     if (m_localSRVRecords == null) {
       return null;
     }
@@ -2082,7 +2097,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     return records;
   }
 
-  public DsSRVWrapper[] wrapRecords(Attribute attr, int protocol) {
+  public DsSRVWrapper[] wrapRecords(Attribute attr, Transport protocol) {
     if (attr == null) {
       return null;
     }
@@ -2104,7 +2119,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     return ret_records;
   }
 
-  public boolean isSupported(int transport) {
+  public boolean isSupported(Transport transport) {
     return DsSipResolverUtils.isSupported(transport, m_supportedTransports, m_sizeExceedsMTU);
   }
 
@@ -2115,7 +2130,11 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
   }
 
   private void add(
-      InetAddress localAddr, int localPort, InetAddress remoteAddr, int remotePort, int transport) {
+      InetAddress localAddr,
+      int localPort,
+      InetAddress remoteAddr,
+      int remotePort,
+      Transport transport) {
     if (isSupported(transport)) {
       m_bindingInfo.add(new DsBindingInfo(localAddr, localPort, remoteAddr, remotePort, transport));
     }
@@ -2138,7 +2157,8 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
   //        }
   //    }
 
-  private void add(InetAddress localAddr, int localPort, String addr, int port, int transport) {
+  private void add(
+      InetAddress localAddr, int localPort, String addr, int port, Transport transport) {
     if (isSupported(transport)) {
       m_bindingInfo.add(new DsBindingInfo(localAddr, localPort, addr, port, transport));
     }
@@ -2208,34 +2228,15 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
   }
 
   /**
-   * Set this connection factory to the one specified.
+   * synchronized void setSupportedTransports(Set supported_transports) { if (supported_transports
+   * != null) { m_supportedTransports =
+   * DsSipResolverUtils.getMaskedTransports(supported_transports); } }
    *
-   * @param factory the factory used to generate connections
-   */
-  public static synchronized void setConnectionFactory(DsConnectionFactory factory) {
-    m_connectionBarrier.setConnectionFactory(factory);
-  }
-
-  /**
-   * Set this connection table to the one specified.
+   * <p>public synchronized void setSupportedTransports(byte supported_transports) {
+   * m_supportedTransports = supported_transports; }
    *
-   * @param table the table used to hold connections
+   * <p>/** Prints some debug information to stdout.
    */
-  public static synchronized void setConnectionTable(DsConnectionTable table) {
-    m_connectionBarrier.setConnectionTable(table);
-  }
-
-  synchronized void setSupportedTransports(Set supported_transports) {
-    if (supported_transports != null) {
-      m_supportedTransports = DsSipResolverUtils.getMaskedTransports(supported_transports);
-    }
-  }
-
-  public synchronized void setSupportedTransports(byte supported_transports) {
-    m_supportedTransports = supported_transports;
-  }
-
-  /** Prints some debug information to stdout. */
   public void dump() {
     Iterator it = m_bindingInfo.iterator();
     System.out.println("----------------------------------------");
@@ -2290,7 +2291,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     return records;
   }
 
-  private static DsSRVWrapper[] doSRVDebugQuery(String host, int proto) {
+  private static DsSRVWrapper[] doSRVDebugQuery(String host, Transport proto) {
     DsSRVWrapper[] records = null;
 
     // maivu - 05.22.07 - CSCsi98575 - Add Local SRV configuration functionality instead of DNS
@@ -2312,14 +2313,14 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     if ((m_localSRVRecords == null) || (!DsSipServerLocator.m_useLocalSRVLookupOnly)) {
       // Use the debugging hardcoded data
       switch (proto) {
-        case (DsSipTransportType.TCP):
-        case (DsSipTransportType.TLS):
+        case TCP:
+        case TLS:
           records = new DsSRVWrapper[debugTCPRecords.length];
           for (int i = 0; i < records.length; ++i) {
             records[i] = new DsStringSRVWrapper(debugTCPRecords[i], proto);
           }
           break;
-        case (DsSipTransportType.UDP):
+        case UDP:
           records = new DsSRVWrapper[debugUDPRecords.length];
           for (int i = 0; i < records.length; ++i) {
             records[i] = new DsStringSRVWrapper(debugUDPRecords[i], proto);

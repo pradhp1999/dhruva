@@ -3,6 +3,7 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
+import com.cisco.dhruva.transport.Transport;
 import java.net.*;
 
 /** For dynamicsoft use only. An interface used to debug message flow withing the stack. */
@@ -27,7 +28,7 @@ public interface DsDebugTransport {
    */
   void messageIn(
       int pos,
-      int transport,
+      Transport transport,
       byte[] message,
       InetAddress laddr,
       int lport,

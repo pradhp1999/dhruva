@@ -22,7 +22,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
   /** Indicates an unspecified remote port. */
   public static final int REMOTE_PORT_UNSPECIFIED = 0;
   /** Indicates an unspecified transport. */
-  public static final int BINDING_TRANSPORT_UNSPECIFIED = -1;
+  public static final Transport BINDING_TRANSPORT_UNSPECIFIED = Transport.NONE;
 
   /** Indicates that there is no local address or port. */
   public static final byte NO_LOCAL_ADDR_PORT = 0;
@@ -48,7 +48,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
   private InetAddress m_LocalAddress;
   private int m_LocalPort = LOCAL_PORT_UNSPECIFIED;
   private int m_LocalEphemeralPort = m_LocalPort;
-  private int m_Transport = BINDING_TRANSPORT_UNSPECIFIED;
+  private Transport m_Transport = Transport.NONE;
   private boolean m_PendingClosure;
   private boolean m_Compress;
 
@@ -65,7 +65,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
    * @param pending_closure if set to <code>true</code> the connection is closing
    */
   public DsBindingInfo(
-      InetAddress remote_addr, int remote_port, int transport, boolean pending_closure) {
+      InetAddress remote_addr, int remote_port, Transport transport, boolean pending_closure) {
     m_IsTrying = false;
     m_LocalAddress = null;
     m_LocalPort = LOCAL_PORT_UNSPECIFIED;
@@ -94,7 +94,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
     m_RemotePort = REMOTE_PORT_UNSPECIFIED;
 
     // m_Transport      = DsSipTransportType.UDP;
-    m_Transport = BINDING_TRANSPORT_UNSPECIFIED;
+    m_Transport = Transport.NONE;
     m_Network = DsNetwork.NONE;
   }
 
@@ -112,7 +112,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
       int local_port,
       InetAddress remote_addr,
       int remote_port,
-      int transport) {
+      Transport transport) {
     this(local_addr, local_port, remote_addr, remote_port, transport, false, false);
   }
 
@@ -131,7 +131,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
       int local_port,
       InetAddress remote_addr,
       int remote_port,
-      int transport,
+      Transport transport,
       boolean pending_closure) {
     m_IsTrying = false;
     m_LocalAddress = local_addr;
@@ -152,7 +152,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
    * @param remote_port remote port
    * @param transport the transport protocol
    */
-  public DsBindingInfo(InetAddress remote_addr, int remote_port, int transport) {
+  public DsBindingInfo(InetAddress remote_addr, int remote_port, Transport transport) {
     this(remote_addr, remote_port, transport, false, false);
   }
 
@@ -163,7 +163,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
    * @param port the remote port number
    * @param transport the transport protocol
    */
-  public DsBindingInfo(String addr, int port, int transport) {
+  public DsBindingInfo(String addr, int port, Transport transport) {
     m_IsTrying = false;
     m_LocalAddress = null;
     m_LocalPort = LOCAL_PORT_UNSPECIFIED;
@@ -186,7 +186,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
    * @param port the remote port number
    * @param transport the transport protocol
    */
-  public DsBindingInfo(InetAddress lAddr, int lPort, String addr, int port, int transport) {
+  public DsBindingInfo(InetAddress lAddr, int lPort, String addr, int port, Transport transport) {
     m_IsTrying = false;
     m_LocalAddress = lAddr;
     m_LocalPort = lPort;
@@ -213,7 +213,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
   public DsBindingInfo(
       InetAddress remote_addr,
       int remote_port,
-      int transport,
+      Transport transport,
       boolean pending_closure,
       boolean compress) {
     m_IsTrying = false;
@@ -246,7 +246,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
       int local_port,
       InetAddress remote_addr,
       int remote_port,
-      int transport,
+      Transport transport,
       boolean pending_closure,
       boolean compress) {
     m_IsTrying = false;
@@ -382,7 +382,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
    *
    * @return the type of protocol used
    */
-  public final int getTransport() {
+  public final Transport getTransport() {
     return m_Transport;
   }
 
@@ -391,7 +391,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
    *
    * @param transport the new transport type.
    */
-  public final void setTransport(int transport) {
+  public final void setTransport(Transport transport) {
     m_Transport = transport;
   }
 
@@ -543,7 +543,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
    * @return true if set, false otherwise
    */
   public boolean isTransportSet() {
-    return m_Transport != BINDING_TRANSPORT_UNSPECIFIED;
+    return m_Transport != Transport.NONE;
   }
 
   /**
@@ -738,7 +738,7 @@ public class DsBindingInfo implements Cloneable, Serializable {
   public String toString() {
     return new StringBuilder()
         .append("Transport= ")
-        .append(Transport.valueOf(getTransport()).get())
+        .append(getTransport().name())
         .append(" LocalIP= ")
         .append(getLocalAddress())
         .append(" LocalPort= ")

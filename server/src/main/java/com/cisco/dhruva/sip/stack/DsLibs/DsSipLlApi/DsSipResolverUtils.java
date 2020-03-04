@@ -10,6 +10,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.IPValidator;
+import com.cisco.dhruva.transport.Transport;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Iterator;
@@ -25,7 +26,7 @@ public class DsSipResolverUtils {
   /** Remote port unspecified. */
   public static final int RPU = DsBindingInfo.REMOTE_PORT_UNSPECIFIED;
   /** Binding transport unspecified. */
-  public static final int BTU = DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED;
+  public static final Transport BTU = DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED;
 
   /** The mask of transports that this stack is listening on. */
   private static byte m_staticSupportedTransports;
@@ -47,7 +48,7 @@ public class DsSipResolverUtils {
    * @throws DsSipServerNotFoundException if no server could be located
    */
   static void initialize(
-      DsNetwork network, DsSipResolver resolver, String host, int port, int proto)
+      DsNetwork network, DsSipResolver resolver, String host, int port, Transport proto)
       throws UnknownHostException, DsSipServerNotFoundException {
     // will not change local binding info.
     resolver.initialize(network, null, LPU, host, port, proto, IPValidator.hostIsIPAddr(host));
@@ -73,7 +74,7 @@ public class DsSipResolverUtils {
       int localPort,
       String host,
       int port,
-      int proto)
+      Transport proto)
       throws UnknownHostException, DsSipServerNotFoundException {
     resolver.initialize(
         network, localAddr, localPort, host, port, proto, IPValidator.hostIsIPAddr(host));
@@ -103,11 +104,11 @@ public class DsSipResolverUtils {
       host = DsByteString.toString(sipURL.getHost());
     }
     // GOGONG - 07.13.05 - Return default outgoing transport if the transport is not specified
-    int transportParam = sipURL.getTransportParam();
-    int transport =
+    Transport transportParam = sipURL.getTransportParam();
+    Transport transport =
         sipURL.isSecure()
-            ? DsSipTransportType.TLS
-            : ((transportParam == DsSipTransportType.NONE) ? BTU : transportParam);
+            ? Transport.TLS
+            : ((transportParam == Transport.NONE) ? BTU : transportParam);
     resolver.initialize(
         network,
         null,
@@ -146,11 +147,11 @@ public class DsSipResolverUtils {
       host = DsByteString.toString(sipURL.getHost());
     }
     // GOGONG - 07.13.05 - Return default outgoing transport if the transport is not specified
-    int transportParam = sipURL.getTransportParam();
-    int transport =
+    Transport transportParam = sipURL.getTransportParam();
+    Transport transport =
         sipURL.isSecure()
-            ? DsSipTransportType.TLS
-            : ((transportParam == DsSipTransportType.NONE) ? BTU : transportParam);
+            ? Transport.TLS
+            : ((transportParam == Transport.NONE) ? BTU : transportParam);
     resolver.initialize(
         network,
         localAddr,
@@ -172,17 +173,17 @@ public class DsSipResolverUtils {
    * @return true if query for this url would match the current query
    */
   static boolean queryMatches(
-      DsSipURL sipURL, String matchHost, int matchPort, int matchTransport) {
+      DsSipURL sipURL, String matchHost, int matchPort, Transport matchTransport) {
     boolean ret_value = false;
 
     String host = DsByteString.toString(sipURL.getMAddrParam());
     int port = sipURL.hasPort() ? sipURL.getPort() : RPU;
     // GOGONG - 07.13.05 - Return default outgoing transport if the transport is not specified
-    int transportParam = sipURL.getTransportParam();
-    int transport =
+    Transport transportParam = sipURL.getTransportParam();
+    Transport transport =
         sipURL.isSecure()
-            ? DsSipTransportType.TLS
-            : ((transportParam == DsSipTransportType.NONE) ? BTU : transportParam);
+            ? Transport.TLS
+            : ((transportParam == Transport.NONE) ? BTU : transportParam);
     if (null == host) {
       host = DsByteString.toString(sipURL.getHost());
     }
@@ -195,33 +196,32 @@ public class DsSipResolverUtils {
   /**
    * Return <code>true</code> if this transport type is represented in the mask.
    *
-   * @param mask the bit mask.
    * @param supported the transport to look for.
    * @param sizeExceedsMTU if <code>true</code>, return <code>false</code> if <code>supported</code>
    *     is {@link DsSipTransportType#UDP}
    * @return <code>true</code> if this transport type is represented in the mask.
    */
-  static boolean isSupported(int transport, int supported, boolean sizeExceedsMTU) {
+  static boolean isSupported(Transport transport, int supported, boolean sizeExceedsMTU) {
     byte mask = TRANSPORT_NONE;
     switch (transport) {
-      case DsSipTransportType.UDP:
+      case UDP:
         // --                mask = sizeExceedsMTU ? TRANSPORT_NONE : DsSipTransportType.UDP_MASK;
         // Ignore sizeExceedsMTU flag
-        mask = DsSipTransportType.UDP_MASK;
+        mask = Transport.UDP_MASK;
         break;
-      case DsSipTransportType.MULTICAST:
+      case MULTICAST:
         // --                mask =  sizeExceedsMTU ? TRANSPORT_NONE :
         // DsSipTransportType.MULTICAST_MASK;
         // Ignore sizeExceedsMTU flag
-        mask = DsSipTransportType.MULTICAST_MASK;
+        mask = Transport.MULTICAST_MASK;
         break;
-      case DsSipTransportType.TCP:
-        mask = DsSipTransportType.TCP_MASK;
+      case TCP:
+        mask = Transport.TCP_MASK;
         break;
-      case DsSipTransportType.TLS:
-        mask = DsSipTransportType.TLS_MASK;
+      case TLS:
+        mask = Transport.TLS_MASK;
         break;
-      case DsSipTransportType.SCTP:
+      case SCTP:
         mask = DsSipTransportType.SCTP_MASK;
         break;
     }
