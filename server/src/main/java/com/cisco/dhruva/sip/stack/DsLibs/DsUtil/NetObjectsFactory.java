@@ -2,6 +2,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSSLEngine;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSelector;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 import javax.net.ssl.SSLEngine;
 
+@SuppressFBWarnings
 public final class NetObjectsFactory {
 
   static NetObjectProviderInterface netObjectProvider;

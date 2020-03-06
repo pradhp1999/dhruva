@@ -4,6 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.sun.net.ssl.internal.ssl.Provider;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -39,6 +40,7 @@ import org.bouncycastle.crypto.fips.FipsStatus;
  * stores, trust certificates, secure protocol, SSL provider and key algorithms, that will in turn
  * define the context for the SSL sockets to provide secure communication.
  */
+@SuppressFBWarnings
 public class DsSSLContext {
   /** Transport Layer Security protocol name constant. */
   public static final String TLS = "TLS";

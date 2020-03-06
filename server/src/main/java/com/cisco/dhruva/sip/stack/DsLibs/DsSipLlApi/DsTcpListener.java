@@ -8,6 +8,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSocket;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -19,6 +20,7 @@ import org.apache.logging.log4j.Level;
  * This class goes into an infinite loop of accepting requests for connections, and allocates the
  * work of processing the messages from that connection to another thread.
  */
+@SuppressFBWarnings
 public class DsTcpListener extends DsStreamListener {
   /** The socket on which we listen for requests. */
   protected ServerSocket serverSocket;

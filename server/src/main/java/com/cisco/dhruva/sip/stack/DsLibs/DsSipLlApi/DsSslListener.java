@@ -8,6 +8,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLSocket;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.net.*;
 import javax.net.ssl.SSLSocket;
@@ -16,6 +17,7 @@ import javax.net.ssl.SSLSocket;
  * This class goes into an infinite loop of accepting requests for connections, and allocates the
  * work of processing the messages from that connection to another thread.
  */
+@SuppressFBWarnings
 public class DsSslListener extends DsStreamListener {
   // --    SSLServerSocket serverSocket;
   ServerSocket serverSocket;

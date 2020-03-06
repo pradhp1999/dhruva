@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.SecureRandom;
 import java.util.*;
 import javax.naming.CommunicationException;
 import javax.naming.NamingEnumeration;
@@ -74,7 +75,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
   private static final int TLS_DEFAULT_PORT = DsSipTransportType.T_TLS.getDefaultPort();
 
   // used for weighted selection algorithm
-  private Random randomGenerator;
+  private SecureRandom randomGenerator;
   private static boolean m_useSRV = false;
   private boolean initFailed = false;
   private DirContext jndiDNS;
@@ -667,7 +668,7 @@ public class DsSipServerLocator implements DsSipResolver, Serializable {
     m_iterator = null;
     m_bindingInfo = null;
     m_currentBindingInfo = null;
-    randomGenerator = new Random();
+    randomGenerator = new SecureRandom();
     initializeDNS();
   }
 

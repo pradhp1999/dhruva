@@ -7,6 +7,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.TLinkedList;
 import java.io.CharArrayWriter;
 import java.io.IOException;
@@ -41,6 +42,7 @@ import org.apache.logging.log4j.Level;
  * refelected in the serialized form of this object. Calling setUser() will null out any telephone
  * subscriber object that we previously set.
  */
+@SuppressFBWarnings
 public class DsSipURL extends DsURI implements Serializable, Cloneable, DsSipHeaderListener {
   // from rfc 3261
   // unreserved =        alphanum / mark

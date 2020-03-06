@@ -5,9 +5,12 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import java.io.*;
 import java.net.*;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.Level;
 
 /** Wrapper for the Java server socket class. Allows the server socket to be turned on and off. */
+@SuppressFBWarnings
 public class DsServerSocket {
   /** The default backlog value. */
   private static final int DEFAULT_BACKLOG = 50;
