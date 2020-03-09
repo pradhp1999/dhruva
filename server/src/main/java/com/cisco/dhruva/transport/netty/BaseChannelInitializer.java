@@ -12,20 +12,20 @@ import io.netty.channel.ChannelPipeline;
 
 public class BaseChannelInitializer extends ChannelInitializer {
 
-  ChannelHandler messageHandler;
+  ChannelHandler channelHandler;
 
-  public BaseChannelInitializer messageHandler(ChannelHandler messageHandler) {
-    this.messageHandler = messageHandler;
+  public BaseChannelInitializer channelHanlder(ChannelHandler channelHandler) {
+    this.channelHandler = channelHandler;
     return this;
   }
 
-  public ChannelHandler getMessageHandler() {
-    return messageHandler;
+  public ChannelHandler getChannelHandler() {
+    return channelHandler;
   }
 
   @Override
   protected void initChannel(Channel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
-    pipeline.addLast(messageHandler);
+    pipeline.addLast(channelHandler);
   }
 }

@@ -5,26 +5,30 @@
 
 package com.cisco.dhruva.transport;
 
-import com.cisco.dhruva.config.network.NetworkConfig;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import java.net.InetAddress;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 public interface TransportLayer {
 
-  public static NetworkConfig networkConfig() {
-    return null;
-  }
-
   public CompletableFuture startListening(
       Transport transportType,
-      NetworkConfig transportConfig,
+      DsNetwork transportConfig,
       InetAddress address,
       int port,
       MessageForwarder handler);
 
   public CompletableFuture<Connection> getConnection(
-      NetworkConfig networkConfig,
+      DsNetwork networkConfig,
+      Transport transportType,
+      InetAddress localAddress,
+      int localPort,
+      InetAddress remoteAddress,
+      int remotePort);
+
+  public CompletableFuture<Connection> getCachedConnection(
       Transport transportType,
       InetAddress localAddress,
       int localPort,
@@ -39,4 +43,14 @@ public interface TransportLayer {
   public HashMap<Transport, Integer> getConnectionSummary();
 
   void clearConnectionCache();
+
+  void stop();
+
+  ConnectionKey findListenKeyForTransport(Transport transport);
+
+  void setMaxConnections(int max_connections);
+
+  int getMaxConnections();
+
+  Enumeration getListenKeys();
 }

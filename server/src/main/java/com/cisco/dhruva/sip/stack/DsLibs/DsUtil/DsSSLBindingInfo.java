@@ -5,7 +5,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.DsCertificateHelper;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.SubjectAltName;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.Trace;
 import java.net.InetAddress;
 import java.security.cert.X509Certificate;
@@ -52,7 +52,7 @@ public class DsSSLBindingInfo extends DsBindingInfo {
    * @param session the SSL session information
    */
   public DsSSLBindingInfo(String addr, int port, SSLSession session) {
-    super(addr, port, DsSipTransportType.TLS);
+    super(addr, port, Transport.TLS);
     this.session = session;
   }
 
@@ -77,7 +77,7 @@ public class DsSSLBindingInfo extends DsBindingInfo {
    */
   public DsSSLBindingInfo(
       InetAddress remote_addr, int remote_port, boolean pending_closure, SSLSession session) {
-    super(remote_addr, remote_port, DsSipTransportType.TLS, pending_closure);
+    super(remote_addr, remote_port, Transport.TLS, pending_closure);
     this.session = session;
   }
 
@@ -116,8 +116,7 @@ public class DsSSLBindingInfo extends DsBindingInfo {
       int remote_port,
       boolean pending_closure,
       SSLSession session) {
-    super(
-        local_addr, local_port, remote_addr, remote_port, DsSipTransportType.TLS, pending_closure);
+    super(local_addr, local_port, remote_addr, remote_port, Transport.TLS, pending_closure);
     this.session = session;
   }
 

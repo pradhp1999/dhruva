@@ -5,9 +5,10 @@
 
 package com.cisco.dhruva.transport.netty;
 
-import com.cisco.dhruva.config.network.NetworkConfig;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
+import com.cisco.dhruva.transport.netty.hanlder.AbstractChannelHandler;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import io.netty.buffer.ByteBuf;
@@ -21,8 +22,9 @@ public class UDPConnection extends AbstractConnection {
 
   Logger logger = DhruvaLoggerFactory.getLogger(UDPConnection.class);
 
-  public UDPConnection(Channel channel, NetworkConfig networkConfig) {
-    super(channel, networkConfig, Transport.UDP);
+  public UDPConnection(
+      Channel channel, DsNetwork networkConfig, AbstractChannelHandler channelHandler) {
+    super(channel, networkConfig, Transport.UDP, channelHandler);
   }
 
   /** @return transport type of this connection */

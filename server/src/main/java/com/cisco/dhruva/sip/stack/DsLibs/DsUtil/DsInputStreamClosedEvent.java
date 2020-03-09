@@ -12,7 +12,7 @@ public class DsInputStreamClosedEvent extends DsInputStreamEvent {
    *
    * @param source the source of this event
    */
-  public DsInputStreamClosedEvent(DsMessageReader source) {
+  public DsInputStreamClosedEvent(Object source) {
     super(source, TYPE_STREAM_CLOSED);
   }
 }

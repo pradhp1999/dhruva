@@ -5,6 +5,8 @@
 
 package com.cisco.dhruva.transport;
 
+import com.cisco.dhruva.common.executor.ExecutorService;
+
 public class TransportLayerFactory {
 
   private static TransportLayerFactory transportLayerFactory = new TransportLayerFactory();
@@ -15,11 +17,12 @@ public class TransportLayerFactory {
     return transportLayerFactory;
   }
 
-  public TransportLayer getTransportLayer(MessageForwarder messageForwarder) {
+  public TransportLayer getTransportLayer(
+      MessageForwarder messageForwarder, ExecutorService executorService) {
     if (dhruvaTransportLayer == null) {
       synchronized (lock) {
         if (dhruvaTransportLayer == null) {
-          dhruvaTransportLayer = new DhruvaTransportLayer(messageForwarder);
+          dhruvaTransportLayer = new DhruvaTransportLayer(messageForwarder, executorService);
         }
       }
     }

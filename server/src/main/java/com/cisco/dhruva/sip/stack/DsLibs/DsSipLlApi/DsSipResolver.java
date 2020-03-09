@@ -8,6 +8,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.transport.Transport;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -76,7 +77,7 @@ interface DsSipResolver {
    * @throws UnknownHostException if the host cannot be found
    * @throws DsSipServerNotFoundException if the server cannot be found
    */
-  void initialize(DsNetwork network, String host, int port, int transport)
+  void initialize(DsNetwork network, String host, int port, Transport transport)
       throws UnknownHostException, DsSipServerNotFoundException;
 
   /**
@@ -98,7 +99,7 @@ interface DsSipResolver {
       int localPort,
       String host,
       int port,
-      int transport)
+      Transport transport)
       throws UnknownHostException, DsSipServerNotFoundException;
 
   // void initialize(InetAddress lAddr, int lPort, String host, int port, int proto,
@@ -124,7 +125,7 @@ interface DsSipResolver {
       int lPort,
       String host,
       int port,
-      int proto,
+      Transport proto,
       boolean haveIP)
       throws UnknownHostException, DsSipServerNotFoundException;
 
@@ -159,7 +160,7 @@ interface DsSipResolver {
    * @param port the port to resolve
    * @param transport the transport to resolve for
    */
-  boolean shouldSearch(String host_name, int port, int transport);
+  boolean shouldSearch(String host_name, int port, Transport transport);
 
   /**
    * Return <code>true</code> if this resolver has been configured to support a particular transport
@@ -168,5 +169,5 @@ interface DsSipResolver {
    * @return <code>true</code> if this resolver has been configured to support a particular
    *     transport as defined in DsSipObject.DsSipTransportType.
    */
-  boolean isSupported(int transport);
+  boolean isSupported(Transport transport);
 }

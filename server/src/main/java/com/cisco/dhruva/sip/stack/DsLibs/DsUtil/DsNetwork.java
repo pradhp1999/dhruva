@@ -4,16 +4,14 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTimers;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsTransportListener;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsUdpListener;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import java.util.HashMap;
-import java.util.Iterator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
+import org.springframework.core.env.Environment;
 
 /**
  * This class holds network specific configuration data. It is used to allow the application to
@@ -300,9 +298,6 @@ public class DsNetwork implements Cloneable {
   // Also ensure you add new values to the dump method.
   //
 
-  /** The map of all listeners associated with the Network. */
-  private HashMap m_listeners = new HashMap();
-
   /** The name displayed by toString. */
   private String m_dispname;
 
@@ -399,6 +394,33 @@ public class DsNetwork implements Cloneable {
   private boolean peerCertInfoHeader;
 
   private boolean certServiceTrustManagerEnabled = false;
+
+  private static final String UDP_EVENTLOOP_THREAD_COUNT = "dhruva.network.udpEventloopThreadCount";
+
+  private static final Integer DEFAULT_UDP_EVENTLOOP_THREAD_COUNT = 1;
+
+  private static final String CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_SECONDS =
+      "dhruva.network.connectionCache.connectionIdleTimeout";
+
+  private static final Integer DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES = 14400;
+
+  private Environment env;
+
+  public DsNetwork(Environment env) {
+    this.env = env;
+  }
+
+  public int udpEventPoolThreadCount() {
+    return env.getProperty(
+        UDP_EVENTLOOP_THREAD_COUNT, Integer.class, DEFAULT_UDP_EVENTLOOP_THREAD_COUNT);
+  }
+
+  public int connectionCacheConnectionIdleTimeout() {
+    return env.getProperty(
+        CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_SECONDS,
+        Integer.class,
+        DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES);
+  }
 
   ///////// Static Method /////////////////////////////
 
@@ -1622,89 +1644,6 @@ public class DsNetwork implements Cloneable {
   }
 
   /**
-   * Adds a listener to this network object's list of associated listeners.
-   *
-   * <p><b>CAUTION:</b> This method is for JUA internal use only.
-   *
-   * @param listener the listener to add to the network object
-   */
-  public void addListener(DsTransportListener listener) {
-    synchronized (m_listeners) {
-      if (m_listeners.containsKey(listener) == false) {
-        m_listeners.put(listener, listener);
-      }
-    }
-  }
-
-  /**
-   * Retrieves an Iterator containing all listeners currently associated with this network.
-   *
-   * <p><b>CAUTION:</b> The returned iterator should NOT be used to remove a listener from the
-   * network object.
-   *
-   * @return an Iterator containing all listeners associtated with this network.
-   */
-  public Iterator getListeners() {
-    synchronized (m_listeners) {
-      return m_listeners.values().iterator();
-    }
-  }
-
-  /**
-   * Retrieves the first DsUDPListener associated with this network object.
-   *
-   * @return the first DsUDPListener associated with this network object or null if there is not one
-   *     in this object's listener list.
-   */
-  public DsUdpListener getUdpListener() {
-    Iterator iter = getListeners();
-    DsTransportListener listener;
-
-    while (iter.hasNext()) {
-      listener = (DsTransportListener) iter.next();
-      if (listener.getTransport() == DsSipTransportType.UDP) {
-        return (DsUdpListener) listener;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Retrieves the first instance of DsTransportListener of the requested type in this network
-   * object's list of listeners.
-   *
-   * @return the first DsTransportListener of the requested type in this network object's list of
-   *     listeners or null if there is not one in this object's listener list.
-   */
-  public DsTransportListener getListener(int type) {
-    Iterator iter = getListeners();
-    DsTransportListener listener;
-
-    while (iter.hasNext()) {
-      listener = (DsTransportListener) iter.next();
-      if (listener.getTransport() == type) {
-        return listener;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Removes current association of a given listener with the network. This does not change the
-   * state of the listener or its association with any other object.
-   *
-   * <p><b>CAUTION:</b> This method is for JUA internal use only.
-   */
-  public void removeListener(DsTransportListener listener) {
-    synchronized (m_listeners) {
-      if (m_listeners.containsKey(listener)) {
-        m_listeners.remove(listener);
-      }
-    }
-  }
-
-  /**
    * Converts a byte to a positive short for indexing arrays.
    *
    * @param b the byte to convert
@@ -1747,5 +1686,9 @@ public class DsNetwork implements Cloneable {
 
   public void setRemoveOwnRouteHeader(boolean removeOwnRouteHeader) {
     this.removeOwnRouteHeader = removeOwnRouteHeader;
+  }
+
+  public void setenv(Environment env) {
+    this.env = env;
   }
 }

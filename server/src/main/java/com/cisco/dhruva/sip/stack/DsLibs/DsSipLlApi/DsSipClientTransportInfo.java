@@ -5,6 +5,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.transport.Transport;
 import java.util.Set;
 
 /**
@@ -23,7 +24,7 @@ public interface DsSipClientTransportInfo {
    *     in the request
    * @return the binding info that the client wishes to use for via header parameters
    */
-  DsBindingInfo getViaInfoForTransport(int transport, DsNetwork network);
+  DsBindingInfo getViaInfoForTransport(Transport transport, DsNetwork network);
 
   /**
    * Return Set of Integer(s) representing supported protocols.
