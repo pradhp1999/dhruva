@@ -6,7 +6,13 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsHexEncoding;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.transport.Transport;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.TLinkedList;
 import java.io.CharArrayWriter;
@@ -775,13 +781,13 @@ public class DsSipURL extends DsURI implements Serializable, Cloneable, DsSipHea
       host = DsByteString.toString(getHost());
     }
     // GOGONG - 07.13.05 - Return default outgoing transport if the transport is not specified
-    int transportParam = getTransportParam();
+    Transport transportParam = getTransportParam();
     return new DsBindingInfo(
         host,
         getPort(),
         isSecure()
-            ? DsSipTransportType.TLS
-            : ((transportParam == DsSipTransportType.NONE)
+            ? Transport.TLS
+            : ((transportParam == Transport.NONE)
                 ? DsConfigManager.getDefaultOutgoingTransport()
                 : transportParam));
   }
@@ -848,12 +854,12 @@ public class DsSipURL extends DsURI implements Serializable, Cloneable, DsSipHea
    *
    * @return the transport parameter. The method returns NONE if the transport param is not present.
    */
-  public int getTransportParam() {
+  public Transport getTransportParam() {
     if (DsLog4j.headerCat.isEnabled(Level.DEBUG))
       DsLog4j.headerCat.log(Level.DEBUG, "Retrieving the Transport Type ");
 
     // GOGONG - 07.13.05 - set the tranport value to NONE if no transport type is specified
-    int transportValue = DsSipTransportType.NONE;
+    Transport transportValue = Transport.NONE;
 
     DsByteString value = null;
 
@@ -862,7 +868,7 @@ public class DsSipURL extends DsURI implements Serializable, Cloneable, DsSipHea
     }
 
     if (value != null) {
-      transportValue = DsSipTransportType.getTypeAsInt(value);
+      transportValue = Transport.getTypeAsInt(value);
     }
     if (DsLog4j.headerCat.isEnabled(Level.DEBUG)) {
       DsLog4j.headerCat.log(Level.DEBUG, "Transport type is  " + value);
@@ -876,8 +882,8 @@ public class DsSipURL extends DsURI implements Serializable, Cloneable, DsSipHea
    *
    * @param transport the transport value, as an int
    */
-  public void setTransportParam(int transport) {
-    setParameter(BS_TRANSPORT, DsSipTransportType.getTypeAsByteString(transport));
+  public void setTransportParam(Transport transport) {
+    setParameter(BS_TRANSPORT, Transport.getTypeAsByteString(transport));
   }
 
   /**

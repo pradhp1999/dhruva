@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Hashtable;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
-import javax.net.ssl.SSLEngine;
 
 @SuppressFBWarnings
 public final class NetObjectsFactory {
