@@ -1,6 +1,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert;
 
 import com.cisco.dhruva.util.log.Trace;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.cert.Certificate;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.*;
 import org.bouncycastle.asn1.x509.*;
 
+@SuppressFBWarnings
 public class DsCertificateHelper {
 
   static Logger Log = Trace.getLogger(DsCertificateHelper.class.getName());

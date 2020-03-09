@@ -1,7 +1,9 @@
 package com.cisco.dhruva.util;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.*;
 
+@SuppressFBWarnings
 public class DeepCopy {
   /**
    * Returns a copy of the object, or null if the object cannot be serialized.
