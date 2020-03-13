@@ -5,6 +5,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.net.*;
+import java.security.SecureRandom;
 import java.util.*;
 import org.apache.logging.log4j.Level;
 
@@ -43,7 +44,7 @@ public final class DsSipCiscoGuidHeader extends DsSipStringHeader {
       if (hashCode < 0) hashCode = -hashCode;
     } catch (Exception e) {
       // If we fail to get the IP_HASH based on local host, fall back to a pseudo random number
-      hashCode = (new Random()).nextInt(Integer.MAX_VALUE);
+      hashCode = (new SecureRandom()).nextInt(Integer.MAX_VALUE);
       if (DsLog4j.headerCat.isEnabled(Level.DEBUG)) {
         e.printStackTrace();
       }
@@ -162,7 +163,7 @@ public final class DsSipCiscoGuidHeader extends DsSipStringHeader {
     long f1 = time & MASK32;
     long f2 = (time >> 32) & MASK28 | VERSION;
     int f3 =
-        (new Random())
+        (new SecureRandom())
             .nextInt(
                 Integer.MAX_VALUE); // MMA - 08.31.05 - change so that we do not get negative values
 

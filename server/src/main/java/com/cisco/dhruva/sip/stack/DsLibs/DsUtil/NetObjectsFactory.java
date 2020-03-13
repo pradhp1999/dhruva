@@ -1,5 +1,6 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +12,7 @@ import java.util.Hashtable;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 
+@SuppressFBWarnings
 public final class NetObjectsFactory {
 
   static NetObjectProviderInterface netObjectProvider;

@@ -3,6 +3,7 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,6 +32,7 @@ import org.apache.logging.log4j.Level;
  *
  * @since SIP User Agent Java v5.0
  */
+@SuppressFBWarnings
 public class DsTrustManagerImpl implements X509TrustManager {
 
   private boolean certServiceTrustManagerEnabled = false;

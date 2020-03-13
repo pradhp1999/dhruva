@@ -1,6 +1,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert;
 
 import com.cisco.dhruva.util.log.Trace;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.cert.Certificate;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.*;
 import org.bouncycastle.asn1.x509.*;
 
+@SuppressFBWarnings
 public class DsCertificateHelper {
 
   static Logger Log = Trace.getLogger(DsCertificateHelper.class.getName());
@@ -49,10 +51,39 @@ public class DsCertificateHelper {
     return x509cert.getIssuerX500Principal().toString();
   }
 
+  public static final String escapeLDAPSearchFilter(String filter) {
+    // If using JDK >= 1.5 consider using StringBuilder
+    StringBuilder sb = new StringBuilder();
+
+    for (int i = 0; i < filter.length(); i++) {
+      char curChar = filter.charAt(i);
+      switch (curChar) {
+        case '\\':
+          sb.append("\\5c");
+          break;
+        case '*':
+          sb.append("\\2a");
+          break;
+        case '(':
+          sb.append("\\28");
+          break;
+        case ')':
+          sb.append("\\29");
+          break;
+        case '\u0000':
+          sb.append("\\00");
+          break;
+        default:
+          sb.append(curChar);
+      }
+    }
+    return sb.toString();
+  }
+
   public static String getCommonName(String dn) {
     String cn = null;
     try {
-      LdapName ldapDN = new LdapName(dn);
+      LdapName ldapDN = new LdapName(escapeLDAPSearchFilter(dn));
       for (Rdn rdn : ldapDN.getRdns()) {
         if (rdn.getType().equals("CN")) {
           cn = rdn.getValue().toString();

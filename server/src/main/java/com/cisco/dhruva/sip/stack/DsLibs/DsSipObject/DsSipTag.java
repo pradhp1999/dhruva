@@ -3,6 +3,8 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
+import java.security.SecureRandom;
+
 /**
  * This class represents a tag as specified in RFC 3261. It provides methods to build, access,
  * modify, serialize and clone the header.
@@ -64,7 +66,7 @@ public class DsSipTag implements Cloneable {
     if (prolog != null) {
       sb.append(prolog);
     }
-    int aRandom = (int) (Math.random() * 65535);
+    int aRandom = (int) (new SecureRandom().nextInt(Integer.MAX_VALUE) * 65535);
     int current_time = (int) (System.currentTimeMillis() % 65535);
     sb.append(Integer.toHexString(aRandom));
     sb.append(Integer.toHexString(current_time));

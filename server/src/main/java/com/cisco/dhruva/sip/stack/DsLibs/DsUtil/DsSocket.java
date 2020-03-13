@@ -4,6 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.*;
 import java.io.FileDescriptor;
 import java.lang.reflect.Field;
@@ -13,6 +14,7 @@ import java.net.SocketImpl;
 import org.apache.logging.log4j.Level;
 
 /** Class which creates an observable socket. */
+@SuppressFBWarnings
 public class DsSocket {
   /** The underlying java socket. */
   protected Socket m_socket;

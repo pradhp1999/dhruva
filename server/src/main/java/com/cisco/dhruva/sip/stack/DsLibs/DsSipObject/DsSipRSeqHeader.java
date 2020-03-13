@@ -4,7 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
-import java.util.Random;
+import java.security.SecureRandom;
 
 /**
  * This class represent a SIP RSeq header.
@@ -25,7 +25,7 @@ public final class DsSipRSeqHeader extends DsSipSequenceHeader {
   /** Compact header token. */
   public static final DsByteString sCompactToken = sToken;
   /** Random sequence number generator. */
-  private static final Random seqGenerator = new Random();
+  private static final SecureRandom seqGenerator = new SecureRandom();
 
   /** Default constructor. */
   public DsSipRSeqHeader() {
