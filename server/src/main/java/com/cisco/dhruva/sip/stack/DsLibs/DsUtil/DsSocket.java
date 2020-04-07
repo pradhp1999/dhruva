@@ -14,7 +14,6 @@ import java.net.SocketImpl;
 import org.apache.logging.log4j.Level;
 
 /** Class which creates an observable socket. */
-@SuppressFBWarnings
 public class DsSocket {
   /** The underlying java socket. */
   protected Socket m_socket;
@@ -320,6 +319,7 @@ public class DsSocket {
    * @param network The network with which this socket is associated.
    * @throws IOException thrown when the socket cannot be created
    */
+  @SuppressFBWarnings(value = {"UNENCRYPTED_SOCKET"})
   public DsSocket(InetAddress address, int port, DsNetwork network) throws IOException {
     Socket socket = new Socket();
     socket.connect(new InetSocketAddress(address, port), CONN_TIMEOUT);
@@ -334,6 +334,7 @@ public class DsSocket {
    * @param network The network with which this socket is associated.
    * @throws IOException thrown when there is an error in creating the socket
    */
+  @SuppressFBWarnings(value = {"UNENCRYPTED_SOCKET"})
   public DsSocket(String host, int port, DsNetwork network) throws IOException {
     Socket socket = new Socket();
     socket.connect(new InetSocketAddress(host, port), CONN_TIMEOUT);

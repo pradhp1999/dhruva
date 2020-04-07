@@ -9,7 +9,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.util.log.Trace;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressFBWarnings
+@SuppressFBWarnings(value = {"HARD_CODE_KEY"})
 public class DsTokenSDPMsgParser {
   private static final int INCLUSION_FIELD_I = 0x01;
   private static final int INCLUSION_FIELD_U = 0x02;
