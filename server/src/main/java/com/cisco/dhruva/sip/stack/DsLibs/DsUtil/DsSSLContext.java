@@ -40,7 +40,6 @@ import org.bouncycastle.crypto.fips.FipsStatus;
  * stores, trust certificates, secure protocol, SSL provider and key algorithms, that will in turn
  * define the context for the SSL sockets to provide secure communication.
  */
-@SuppressFBWarnings
 public class DsSSLContext {
   /** Transport Layer Security protocol name constant. */
   public static final String TLS = "TLS";
@@ -1038,6 +1037,7 @@ public class DsSSLContext {
   }
 
   /** Initializes the SSL context. */
+  @SuppressFBWarnings(value = {"PATH_TRAVERSAL_IN"})
   private void init(DsSSLTrustManager trustManager) throws DsSSLException {
     // CAFFEINE 3.1 bug fix - CSCsk29536: TLS socket connection not established with CUPS/CUCM
     FileInputStream ksFile = null;

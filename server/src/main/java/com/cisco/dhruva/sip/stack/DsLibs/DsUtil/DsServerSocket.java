@@ -9,7 +9,6 @@ import java.net.*;
 import org.apache.logging.log4j.Level;
 
 /** Wrapper for the Java server socket class. Allows the server socket to be turned on and off. */
-@SuppressFBWarnings
 public class DsServerSocket {
   /** The default backlog value. */
   private static final int DEFAULT_BACKLOG = 50;
@@ -70,6 +69,7 @@ public class DsServerSocket {
    * @param port the local port number to listen
    * @throws IOException thrown when there is an exception in socket I/O
    */
+  @SuppressFBWarnings(value = {"UNENCRYPTED_SERVER_SOCKET"})
   public DsServerSocket(int port) throws IOException {
     this.m_port = port;
     this.m_addr = null;
@@ -77,6 +77,7 @@ public class DsServerSocket {
   }
 
   /** Used internally to re-initialize the Java server socket. */
+  @SuppressFBWarnings(value = {"UNENCRYPTED_SERVER_SOCKET"})
   private void init(int port, InetAddress addr) throws IOException {
     m_socket = new ServerSocket(port, DEFAULT_BACKLOG, addr);
     m_alive = true;

@@ -32,7 +32,6 @@ import org.apache.logging.log4j.Level;
  *
  * @since SIP User Agent Java v5.0
  */
-@SuppressFBWarnings
 public class DsTrustManagerImpl implements X509TrustManager {
 
   private boolean certServiceTrustManagerEnabled = false;
@@ -365,6 +364,7 @@ public class DsTrustManagerImpl implements X509TrustManager {
    *     contained in the file.
    * @throws Exception
    */
+  @SuppressFBWarnings(value = {"PATH_TRAVERSAL_IN"})
   public void loadTrustStore(String trustStoreFile, char[] password) throws Exception {
     FileInputStream stream = null;
 
@@ -418,6 +418,7 @@ public class DsTrustManagerImpl implements X509TrustManager {
    * @throws CertificateException if any of the certificates included in the keystore data could not
    *     be stored
    */
+  @SuppressFBWarnings(value = {"PATH_TRAVERSAL_OUT"})
   public void storeTrustStore(OutputStream stream, char[] password)
       throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
     if (null != trustStore) {
@@ -438,6 +439,7 @@ public class DsTrustManagerImpl implements X509TrustManager {
    * @throws CertificateException if any of the certificates included in the keystore data could not
    *     be stored
    */
+  @SuppressFBWarnings(value = {"PATH_TRAVERSAL_OUT"})
   public void storeTrustStore(String trustStoreFile, char[] password)
       throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
     FileOutputStream stream = null;

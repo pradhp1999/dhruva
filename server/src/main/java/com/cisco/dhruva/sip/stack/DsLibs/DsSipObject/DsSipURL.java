@@ -48,7 +48,7 @@ import org.apache.logging.log4j.Level;
  * refelected in the serialized form of this object. Calling setUser() will null out any telephone
  * subscriber object that we previously set.
  */
-@SuppressFBWarnings
+@SuppressFBWarnings(value = "HARD_CODE_PASSWORD")
 public class DsSipURL extends DsURI implements Serializable, Cloneable, DsSipHeaderListener {
   // from rfc 3261
   // unreserved =        alphanum / mark

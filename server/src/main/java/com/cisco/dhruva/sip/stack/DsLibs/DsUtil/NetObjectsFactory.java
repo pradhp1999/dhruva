@@ -12,7 +12,6 @@ import java.util.Hashtable;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 
-@SuppressFBWarnings
 public final class NetObjectsFactory {
 
   static NetObjectProviderInterface netObjectProvider;
@@ -59,6 +58,7 @@ public final class NetObjectsFactory {
     }
   }
 
+  @SuppressFBWarnings(value = {"UNENCRYPTED_SOCKET"})
   public static Socket getSocket() {
     if (netObjectProvider != null) {
       return netObjectProvider.getSocket();

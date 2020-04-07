@@ -17,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.*;
 import org.bouncycastle.asn1.x509.*;
 
-@SuppressFBWarnings
 public class DsCertificateHelper {
 
   static Logger Log = Trace.getLogger(DsCertificateHelper.class.getName());
@@ -201,6 +200,7 @@ public class DsCertificateHelper {
     return new String(ASN1OctetString.getInstance(taggedObject, false).getOctets(), "ISO-8859-1");
   }
 
+  @SuppressFBWarnings(value = {"OBJECT_DESERIALIZATION"})
   private static ASN1Primitive getExtensionValue(X509Certificate certificate, String oid)
       throws IOException {
     byte[] bytes = certificate.getExtensionValue(oid);
