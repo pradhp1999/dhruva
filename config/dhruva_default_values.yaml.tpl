@@ -1,6 +1,6 @@
 Dhruva:
   config:
-    sipListenPoints: '[{"name":"DhruvaUDPNetwork","transport":"UDP","port":5070,"recordRoute":false}]''
+    sipListenPoints: '[{"name":"DhruvaUDPNetwork","transport":"UDP","port":5070,"recordRoute":false}]'
     MetricsNamespacePrefix: '{{ .MeetPaas.clusterName }}.dhruva'
     MetricsPort: '8125'
     aggrMetricsKafkaAddressPropertyName: lmabufKafkaBootstrapServers
