@@ -20,3 +20,7 @@ The files in this folder serve the following purposes:
 - [meet-app-charts](https://sqbu-github.cisco.com/WebexPlatform/meet-apps-charts) - This repo has the helm chart. 
   A `requirements.yaml` file in `dhruva`'s folder tells it to get the configs from `dhruva/config` and merge it with 
   variables present in `int-app-clusters`.
+
+## Roadmap
+
+- Some kind of linting/verification is required. Errors need to be caught before merge.
