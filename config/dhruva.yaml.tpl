@@ -22,5 +22,5 @@ elasticache_dhruva_sslEnabled: '{{ .Dhruva.config.elasticache_dhruva_sslEnabled 
 elasticache_dhruva_startTlsEnabled: '{{ .Dhruva.config.elasticache_dhruva_startTlsEnabled }}'
 elasticache_dhruva_host: '{{ .Dhruva.config.elasticache_dhruva_host }}'
 elasticache_dhruva_commandTimeoutMillis: '{{ .Dhruva.config.elasticache_dhruva_commandTimeoutMillis }}'
-CATALINA_OPTS: '{{ .Dhruva.deploy.CATALINA_OPTS }}''
+CATALINA_OPTS: '{{ .Dhruva.deploy.CATALINA_OPTS }}'
 JAVA_OPTS: '{{ .Dhruva.deploy.JAVA_OPTS }}'
