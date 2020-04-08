@@ -21,6 +21,15 @@ The files in this folder serve the following purposes:
   A `requirements.yaml` file in `dhruva`'s folder tells it to get the configs from `dhruva/config` and merge it with 
   variables present in `int-app-clusters`.
 
+## Verification
+
+Run a command like this to manually verify the content:
+
+```shell script
+yamllint -d \
+  '{extends: default, rules: {line-length: {max: 2048}, indentation: {spaces: 2, indent-sequences: consistent}, document-start: disable}}' \
+  meetpaas-int__dhruva__.yaml.tpl
+```
 ## Roadmap
 
 - Some kind of linting/verification is required. Errors need to be caught before merge.

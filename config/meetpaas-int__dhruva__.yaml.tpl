@@ -3,7 +3,7 @@ Dhruva:
     sipListenPoints: '[{"name":"DhruvaIntUDPNetwork","transport":"UDP","port":5070,"recordRoute":false}]'
     metricsPublicUrl: https://metrics-intb.ciscospark.com/metrics/api/v1
   deploy:
-    CATALINA_OPTS:'-Dcom.sun.management.jmxremote
+    CATALINA_OPTS: '-Dcom.sun.management.jmxremote
                         -Dcom.sun.management.jmxremote.host=127.0.0.1
                         -Dcom.sun.management.jmxremote.port=${NOMAD_PORT_jmx}
                         -Dcom.sun.management.jmxremote.ssl=false
@@ -15,7 +15,7 @@ Dhruva:
                         -Dcom.sun.management.jmxremote.host=${POD_IP}
                         -Djava.rmi.server.hostname=${POD_IP}
                         -Dcom.sun.management.jmxremote.local.only=false
-                        -Dcom.sun.management.jmxremote.rmi.port=${NOMAD_PORT_jmx}
+                        -Dcom.sun.management.jmxremote.rmi.port=${NOMAD_PORT_jmx}'
     JAVA_OPTS: '${JAVA_OPTS} -Xms1024m -Xmx1024m
                         -XX:CompressedClassSpaceSize=256m
                         -XX:MetaspaceSize=64m
