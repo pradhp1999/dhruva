@@ -23,8 +23,8 @@ sparkPipeline {
     // fail the build if Static Analysis fails
     postBuild = { services ->
         // Report SpotBugs static analysis warnings (also sets build result on failure)
-        findbugs pattern: '**/spotbugsXml.xml', failedTotalAll: '0'
-        failBuildIfUnsuccessfulBuildResult("ERROR: Failed SpotBugs static analysis")
+        this.findbugs pattern: '**/spotbugsXml.xml', failedTotalAll: '0'
+        this.failBuildIfUnsuccessfulBuildResult("ERROR: Failed SpotBugs static analysis")
     }
 
     /*
@@ -48,7 +48,7 @@ sparkPipeline {
 def failBuildIfUnsuccessfulBuildResult(message) {
     // Check for UNSTABLE/FAILURE build result or any result other than "SUCCESS" (or null)
     if (currentBuild.result != null && currentBuild.result != 'SUCCESS') {
-        failBuild(message)
+        this.failBuild(message)
     }
 }
 
