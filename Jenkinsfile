@@ -12,8 +12,10 @@ sparkPipeline {
     notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vNDU5NWUzNTAtZjYyMy0xMWU5LThmMWQtYmY3OTJhYmQ3MzY0'
 
     build = { services ->
+        pyvenv(requirements: 'requirements.txt', verbose: true, suffix: '.linting') {
+            this.sh "yamllint -d '{extends: default, rules: {line-length: {max: 2048}, indentation: {spaces: 2, indent-sequences: consistent}, document-start: disable}}' config/*tpl"
+        }
         // First we run yamllint over all the files in the config folder:
-        this.sh "yamllint -d '{extends: default, rules: {line-length: {max: 2048}, indentation: {spaces: 2, indent-sequences: consistent}, document-start: disable}}' config/*tpl"
         this.sh "mvn versions:set -DnewVersion=${this.env.BUILD_VERSION} && mvn -Dmaven.test.failure.ignore verify"
         this.step([$class: 'JacocoPublisher', changeBuildStatus: true, classPattern: 'server/target/classes,client/target/classes', execPattern: '**/target/**.exec', minimumInstructionCoverage: '1'])
     }
