@@ -1,6 +1,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert;
 
 import com.cisco.dhruva.util.log.Trace;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.*;
@@ -200,8 +201,7 @@ public class DsCertificateHelper {
     return new String(ASN1OctetString.getInstance(taggedObject, false).getOctets(), "ISO-8859-1");
   }
 
-  // Intentionally uncommenting this to test that Jenkins fails the build on SA failures
-  // @SuppressFBWarnings(value = {"OBJECT_DESERIALIZATION"})
+  @SuppressFBWarnings(value = {"OBJECT_DESERIALIZATION"})
   private static ASN1Primitive getExtensionValue(X509Certificate certificate, String oid)
       throws IOException {
     byte[] bytes = certificate.getExtensionValue(oid);
