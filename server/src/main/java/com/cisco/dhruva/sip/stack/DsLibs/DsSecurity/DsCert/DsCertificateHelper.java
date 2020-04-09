@@ -1,7 +1,14 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert;
 
 import com.cisco.dhruva.util.log.Trace;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.x509.*;
+
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.cert.Certificate;
@@ -9,13 +16,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.*;
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
-import org.bouncycastle.asn1.*;
-import org.bouncycastle.asn1.x509.*;
 
 public class DsCertificateHelper {
 
@@ -200,7 +200,8 @@ public class DsCertificateHelper {
     return new String(ASN1OctetString.getInstance(taggedObject, false).getOctets(), "ISO-8859-1");
   }
 
-  @SuppressFBWarnings(value = {"OBJECT_DESERIALIZATION"})
+  // Intentionally uncommenting this to test that Jenkins fails the build on SA failures
+  // @SuppressFBWarnings(value = {"OBJECT_DESERIALIZATION"})
   private static ASN1Primitive getExtensionValue(X509Certificate certificate, String oid)
       throws IOException {
     byte[] bytes = certificate.getExtensionValue(oid);
