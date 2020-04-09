@@ -12,8 +12,17 @@ sparkPipeline {
     notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vNDU5NWUzNTAtZjYyMy0xMWU5LThmMWQtYmY3OTJhYmQ3MzY0'
 
     build = { services ->
+        // First we run yamllint over all the files in the config folder:
+        this.sh "yamllint -d '{extends: default, rules: {line-length: {max: 2048}, indentation: {spaces: 2, indent-sequences: consistent}, document-start: disable}}' config/"
         this.sh "mvn versions:set -DnewVersion=${this.env.BUILD_VERSION} && mvn -Dmaven.test.failure.ignore verify"
         this.step([$class: 'JacocoPublisher', changeBuildStatus: true, classPattern: 'server/target/classes,client/target/classes', execPattern: '**/target/**.exec', minimumInstructionCoverage: '1'])
+    }
+
+    // fail the build if Static Analysis fails
+    postBuild = { services ->
+        // Report SpotBugs static analysis warnings (also sets build result on failure)
+        findbugs pattern: '**/spotbugsXml.xml', failedTotalAll: '0'
+        failBuildIfUnsuccessfulBuildResult("ERROR: Failed SpotBugs static analysis")
     }
 
     /*
@@ -32,6 +41,18 @@ sparkPipeline {
         }
     }
 
+}
+
+def failBuildIfUnsuccessfulBuildResult(message) {
+    // Check for UNSTABLE/FAILURE build result or any result other than "SUCCESS" (or null)
+    if (currentBuild.result != null && currentBuild.result != 'SUCCESS') {
+        failBuild(message)
+    }
+}
+
+def failBuild(message) {
+    echo message
+    throw new SparkException(message)
 }
 
 //Triggers a remote job in Meet PaaS jenkins to download artifacts from this pipeline
@@ -55,7 +76,7 @@ def initiateImageBuilderInMeetPaas() {
         if (result.result == 'FAILURE') {
             currentBuild.result = 'FAILURE'
             echo "ERROR triggering image builder router job"
-            throw new SparkException("Failed to build and publish image for meetpaas.")
+            failBuild("Failed to build and publish image for meetpaas.")
         }
     } catch (Exception ex) {
         echo "ERROR: Could not trigger the image publisher router job"
