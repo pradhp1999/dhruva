@@ -24,3 +24,4 @@ elasticache_dhruva_host: '{{ .Dhruva.config.elasticache_dhruva_host }}'
 elasticache_dhruva_commandTimeoutMillis: '{{ .Dhruva.config.elasticache_dhruva_commandTimeoutMillis }}'
 CATALINA_OPTS: '{{ .Dhruva.deploy.CATALINA_OPTS }}'
 JAVA_OPTS: '{{ .Dhruva.deploy.JAVA_OPTS }}'
+THIS_SHOULD_FAIL=true
