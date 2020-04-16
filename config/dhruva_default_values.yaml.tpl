@@ -23,6 +23,19 @@ Dhruva:
     elasticache_dhruva_startTlsEnabled: 'false'
     elasticache_dhruva_host: null
     elasticache_dhruva_commandTimeoutMillis: 500
+    elasticache_commonidentity_sslEnabled: 'false'
+    elasticache_commonidentity_startTlsEnabled: 'false'
+    elasticache_commonidentity_host: null
+    elasticache_commonidentity_commandTimeoutMillis: 500
+    elasticache_fls_sslEnabled: 'false'
+    elasticache_fls_startTlsEnabled: 'false'
+    elasticache_fls_host: null
+    elasticache_fls_commandTimeoutMillis: 500
+    elasticache_ratelimit_sslEnabled: 'false'
+    elasticache_ratelimit_startTlsEnabled: 'false'
+    elasticache_ratelimit_host: null
+    elasticache_ratelimit_commandTimeoutMillis: 500
+
   deploy:
     APPLICATION_NAME: dhruva
     CATALINA_OPTS: null
