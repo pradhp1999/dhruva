@@ -19,6 +19,15 @@ Dhruva:
     metricsSiteUrl: https://metrics{{ .MeetPaas.messageClusterAddress }}/metrics/api/v1
     metricsUrl: https://metrics{{ .MeetPaas.messageClusterAddress }}/metrics/api/v1
     metrics_environment: '{{ .MeetPaas.clusterName }}'
+    enableLettuceRedisDataSourceForAuthCache: 'true'
+    enableLettuceRedisDataSourceForFlsCache: 'true'
+    enableLettuceRedisDataSourceForOrgCache: 'true'
+    enableLettuceRedisDataSourceForUserCache: 'true'
+    dhruva_configprefix: elasticache_dhruva
+    flsCacheRedisDataSource_configprefix: elasticache_fls
+    orgCacheRedisDataSource_configprefix: elasticache_commonidentity
+    userCacheRedisDataSource_configprefix: elasticache_commonidentity
+    authCacheRedisDataSource_configprefix: elasticache_commonidentity
     elasticache_dhruva_sslEnabled: 'false'
     elasticache_dhruva_startTlsEnabled: 'false'
     elasticache_dhruva_host: null
@@ -35,7 +44,6 @@ Dhruva:
     elasticache_ratelimit_startTlsEnabled: 'false'
     elasticache_ratelimit_host: null
     elasticache_ratelimit_commandTimeoutMillis: 500
-
   deploy:
     APPLICATION_NAME: dhruva
     CATALINA_OPTS: null
