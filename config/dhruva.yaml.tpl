@@ -35,6 +35,7 @@ elasticache_commonidentity_sslEnabled: '{{ .Dhruva.config.elasticache_commoniden
 elasticache_commonidentity_startTlsEnabled: '{{ .Dhruva.config.elasticache_commonidentity_startTlsEnabled }}'
 elasticache_commonidentity_host: '{{ .Dhruva.config.elasticache_commonidentity_host }}'
 elasticache_commonidentity_commandTimeoutMillis: '{{ .Dhruva.config.elasticache_commonidentity_commandTimeoutMillis }}'
+jedisPoolHealthCheckMonitorEnabled: '{{ .Dhruva.config.jedisPoolHealthCheckMonitorEnabled }}'
 elasticache_fls_sslEnabled: '{{ .Dhruva.config.elasticache_fls_sslEnabled }}'
 elasticache_fls_startTlsEnabled: '{{ .Dhruva.config.elasticache_fls_startTlsEnabled }}'
 elasticache_fls_host: '{{ .Dhruva.config.elasticache_fls_host }}'
