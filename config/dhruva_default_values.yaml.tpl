@@ -19,6 +19,7 @@ Dhruva:
     metricsSiteUrl: https://metrics{{ .MeetPaas.messageClusterAddress }}/metrics/api/v1
     metricsUrl: https://metrics{{ .MeetPaas.messageClusterAddress }}/metrics/api/v1
     metrics_environment: '{{ .MeetPaas.clusterName }}'
+    jedisPoolHealthCheckMonitorEnabled: 'false'
     enableLettuceRedisDataSourceForAuthCache: 'true'
     enableLettuceRedisDataSourceForFlsCache: 'true'
     enableLettuceRedisDataSourceForOrgCache: 'true'
