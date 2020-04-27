@@ -19,28 +19,11 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
 
   private boolean hasBody;
 
-  public DhruvaMessageImpl() {
-    this.context = new ExecutionContext();
-    this.headers = null;
-    this.messageBody = null;
-  }
-
-  public DhruvaMessageImpl(ExecutionContext context) {
-    this(context, new MessageHeaders(new HashMap<>()));
-  }
 
   public DhruvaMessageImpl(ExecutionContext context, MessageHeaders headers, MessageBody payload) {
     this.context = context == null ? new ExecutionContext() : context;
     this.headers = headers == null ? new MessageHeaders(new HashMap<String, Object>()) : headers;
     this.messageBody = payload;
-  }
-
-  public DhruvaMessageImpl(ExecutionContext context, MessageHeaders messageHeaders) {
-    this(context, messageHeaders, null);
-  }
-
-  public DhruvaMessageImpl(ExecutionContext context, MessageBody payload) {
-    this(context, null, payload);
   }
 
   @Override
@@ -98,7 +81,6 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
 
   @Override
   public String getSessionId() {
-
     return sessionID;
   }
 
@@ -129,7 +111,7 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
 
   @Override
   public IDhruvaMessage clone() {
-    final DhruvaMessageImpl copy = new DhruvaMessageImpl(context.clone(), headers);
+    final DhruvaMessageImpl copy = new DhruvaMessageImpl(context.clone(), headers, messageBody);
     return copy;
   }
 }
