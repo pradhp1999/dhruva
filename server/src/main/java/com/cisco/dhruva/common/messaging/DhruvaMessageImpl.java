@@ -19,7 +19,6 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
 
   private boolean hasBody;
 
-
   public DhruvaMessageImpl(ExecutionContext context, MessageHeaders headers, MessageBody payload) {
     this.context = context == null ? new ExecutionContext() : context;
     this.headers = headers == null ? new MessageHeaders(new HashMap<String, Object>()) : headers;
