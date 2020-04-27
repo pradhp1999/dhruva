@@ -2,14 +2,6 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert;
 
 import com.cisco.dhruva.util.log.Trace;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
-import org.bouncycastle.asn1.*;
-import org.bouncycastle.asn1.x509.*;
-
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.cert.Certificate;
@@ -17,6 +9,13 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.x509.*;
 
 public class DsCertificateHelper {
 
