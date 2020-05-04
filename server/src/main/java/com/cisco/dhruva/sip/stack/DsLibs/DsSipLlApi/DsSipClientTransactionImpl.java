@@ -8,6 +8,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.transport.ConnectionKey;
 import com.cisco.dhruva.transport.Transport;
+import com.cisco.dhruva.util.log.Logger;
 import gnu.trove.TIntArrayList;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -15,8 +16,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Set;
 import java.util.TimerTask;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 
 /**
  * Implements the client side of the low level state machine.
@@ -1879,7 +1879,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         case (CB_PROVISIONAL_RESPONSE):
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_PROVISIONAL_RESPONSE: ");
-            cbCat.debug(m_key);
+            cbCat.debug(String.valueOf(m_key));
             cbCat.debug("CB_PROVISIONAL_RESPONSE: ");
             cbCat.debug(response.maskAndWrapSIPMessageToSingleLineOutput());
           }
@@ -1891,7 +1891,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         case (CB_REL_PROVISIONAL_RESPONSE):
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.log(Level.DEBUG, "CB_REL_PROVISIONAL_RESPONSE: ");
-            cbCat.log(Level.DEBUG, m_key);
+            cbCat.log(Level.DEBUG, String.valueOf(m_key));
             cbCat.log(Level.DEBUG, "CB_REL_PROVISIONAL_RESPONSE: ");
             cbCat.log(Level.DEBUG, response.maskAndWrapSIPMessageToSingleLineOutput());
           }
@@ -1902,7 +1902,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         case (CB_FINAL_RESPONSE):
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_FINAL_RESPONSE: ");
-            cbCat.debug(m_key);
+            cbCat.debug(String.valueOf(m_key));
             cbCat.debug("CB_FINAL_RESPONSE: ");
             cbCat.debug(response.maskAndWrapSIPMessageToSingleLineOutput());
           }
@@ -1913,7 +1913,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         case (CB_TIMEOUT):
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_TIMEOUT: ");
-            cbCat.debug(m_key);
+            cbCat.debug(String.valueOf(m_key));
           }
 
           if (DsSipTransportLayer.getCloseConnectionOnTimeout()) {
@@ -1949,7 +1949,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         case (CB_EXCEPTION):
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_EXCEPTION: ");
-            cbCat.debug(m_key);
+            cbCat.debug(String.valueOf(m_key));
           }
 
           cb.icmpError(DsSipClientTransactionImpl.this);

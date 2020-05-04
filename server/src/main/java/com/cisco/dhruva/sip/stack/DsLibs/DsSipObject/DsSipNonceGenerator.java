@@ -11,7 +11,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
 import java.io.IOException;
 import java.net.InetAddress;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /** This class defines a default implementation for DsSipNonceInterface. */
 public class DsSipNonceGenerator implements DsSipNonceInterface, DsSipConstants {

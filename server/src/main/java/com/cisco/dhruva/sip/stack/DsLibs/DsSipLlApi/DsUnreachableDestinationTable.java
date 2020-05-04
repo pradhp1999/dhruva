@@ -9,12 +9,12 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerTask;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.transport.Transport;
+import com.cisco.dhruva.util.log.Logger;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 
 /**
  * This class manages unreachable destination. Client module can add a destination to this table

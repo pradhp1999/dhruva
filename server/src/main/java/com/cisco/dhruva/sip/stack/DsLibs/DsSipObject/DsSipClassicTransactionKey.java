@@ -13,7 +13,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * This class is used along with DsSipParserEventTee to create a key at the same time that we parse

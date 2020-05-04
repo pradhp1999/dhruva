@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * This class serves as the wrapper trust manager to decide for the trusted clients and servers. It
@@ -141,8 +141,7 @@ public class DsTrustManagerImpl implements X509TrustManager {
     this.sslManager = sslManager;
     this.trustInterface = trustInterface;
     this.certServiceTrustManagerEnabled = certServiceTrustManagerEnabled;
-    DsLog4j.authCat.log(
-        Level.INFO,
+    DsLog4j.authCat.info(
         new StringBuffer("DsTrustManagerImpl settting trustInterface \n")
             .append(trustInterface)
             .toString());

@@ -4,12 +4,22 @@
 // CAFFEINE 2.0 - Water (Backup And Restore) Featurette (EDCS-383083)
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipEvents;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import java.io.*;
-import java.util.*;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAllowEventsHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipEventHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderInterface;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderList;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.util.log.Logger;
+import java.io.Serializable;
+import java.util.HashMap;
+import org.slf4j.event.Level;
 
 /**
  * Encapsulates the parameters of an RFC 3265 event package. It allows users to define instance

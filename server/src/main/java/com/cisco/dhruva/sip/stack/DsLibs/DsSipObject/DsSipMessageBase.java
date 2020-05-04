@@ -19,7 +19,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import java.io.IOException;
 import java.io.OutputStream;
-import org.apache.logging.log4j.Level;
 
 /*
  * This class contains common pieces for DsSipMessage and DsSipFragment.
@@ -62,20 +61,19 @@ import org.apache.logging.log4j.Level;
  * <pre>
  * {@link #getCSeqMethod()}             - To get the CSeq method name
  * {@link #getCSeqNumber()}             - To get the CSeq number
- * {@link #setCSeqMethod(DsByteString)} - To set the CSeq method name
- * {@link #setCSeqNumber(long)}         - To set the CSeq number
+ *  - To set the CSeq method name
+ *          - To set the CSeq number
  * {@link #getContentLength()}          - To get the content length
  * {@link #getCallId()}                 - To get the Call Id
- * {@link #setCallId(DsByteString)}     - To set the Call Id
+ *      - To set the Call Id
  * </pre>
  *
  * <p>Note that no one header element can be part of two header lists at the same time. For example,
  * if <code>a</code> is an element of header list <code>A</code>, then to add this header <code>a
  * </code> to another header list <code>B</code>, the header <code>a</code> should be removed from
  * header list <code>A</code> first. Also any header that needs to be added in an header list, the
- * next and previous pointers to that element should be <code>null</code>. Refer {@link
- * DsSipHeaderInterface#setNext(TLinkable)}, {@link DsSipHeaderInterface#setPrevious(TLinkable)} and
- * {@link DsSipHeaderList}.
+ * next and previous pointers to that element should be <code>null</code>. Refer , and {@link
+ * DsSipHeaderList}.
  */
 public abstract class DsSipMessageBase extends DsMimeEntity implements DsSipMessageListener {
   ////////////////////////////////////////////////////////////////////////////////
@@ -276,15 +274,13 @@ public abstract class DsSipMessageBase extends DsMimeEntity implements DsSipMess
       if (cseqHeader == null) return -1;
       return cseqHeader.getMethodID();
     } catch (DsSipParserException pe) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn(
-            "DsSipMessageBase.getCSeqType(): Exception getHeaderValidate(CSEQ)", pe);
-      }
+      DsLog4j.messageCat.warn(
+          "DsSipMessageBase.getCSeqType(): Exception getHeaderValidate(CSEQ)", pe);
+
     } catch (DsSipParserListenerException ple) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn(
-            "DsSipMessageBase.getCSeqType(): Exception getHeaderValidate(CSEQ)", ple);
-      }
+
+      DsLog4j.messageCat.warn(
+          "DsSipMessageBase.getCSeqType(): Exception getHeaderValidate(CSEQ)", ple);
     }
     return -1;
   }
@@ -300,15 +296,13 @@ public abstract class DsSipMessageBase extends DsMimeEntity implements DsSipMess
       if (cseqHeader == null) return null;
       return cseqHeader.getMethod();
     } catch (DsSipParserException pe) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn(
-            "DsSipMessageBase.getCSeqMethod(): Exception getHeaderValidate(CSEQ)", pe);
-      }
+
+      DsLog4j.messageCat.warn(
+          "DsSipMessageBase.getCSeqMethod(): Exception getHeaderValidate(CSEQ)", pe);
+
     } catch (DsSipParserListenerException ple) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn(
-            "DsSipMessageBase.getCSeqMethod(): Exception getHeaderValidate(CSEQ)", ple);
-      }
+      DsLog4j.messageCat.warn(
+          "DsSipMessageBase.getCSeqMethod(): Exception getHeaderValidate(CSEQ)", ple);
     }
     return null;
   }
@@ -324,15 +318,14 @@ public abstract class DsSipMessageBase extends DsMimeEntity implements DsSipMess
       if (cseqHeader == null) return -1;
       return cseqHeader.getNumber();
     } catch (DsSipParserException pe) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn(
-            "DsSipMessageBase.getCSeqNumber(): Exception getHeaderValidate(CSEQ)", pe);
-      }
+
+      DsLog4j.messageCat.warn(
+          "DsSipMessageBase.getCSeqNumber(): Exception getHeaderValidate(CSEQ)", pe);
+
     } catch (DsSipParserListenerException ple) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn(
-            "DsSipMessageBase.getCSeqNumber(): Exception getHeaderValidate(CSEQ)", ple);
-      }
+
+      DsLog4j.messageCat.warn(
+          "DsSipMessageBase.getCSeqNumber(): Exception getHeaderValidate(CSEQ)", ple);
     }
     return -1;
   }
@@ -423,9 +416,9 @@ public abstract class DsSipMessageBase extends DsMimeEntity implements DsSipMess
     try {
       return ((DsSipToHeader) getHeaderValidate(TO)).getTag();
     } catch (Exception e) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn("DsSipMessageBase.getToTag(): Exception getHeaderValidate(TO)", e);
-      }
+
+      DsLog4j.messageCat.warn("DsSipMessageBase.getToTag(): Exception getHeaderValidate(TO)", e);
+
       // parse or null pointer exception or any exception returns null
       return null;
     }
@@ -440,10 +433,10 @@ public abstract class DsSipMessageBase extends DsMimeEntity implements DsSipMess
     try {
       return ((DsSipFromHeader) getHeaderValidate(FROM)).getTag();
     } catch (Exception e) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn(
-            "DsSipMessageBase.getFromTag(): Exception getHeaderValidate(FROM)", e);
-      }
+
+      DsLog4j.messageCat.warn(
+          "DsSipMessageBase.getFromTag(): Exception getHeaderValidate(FROM)", e);
+
       // parse or null pointer exception or any exception returns null
       return null;
     }
@@ -460,15 +453,14 @@ public abstract class DsSipMessageBase extends DsMimeEntity implements DsSipMess
       if (callidHeader == null) return null;
       return callidHeader.getCallId();
     } catch (DsSipParserException pe) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn(
-            "DsSipMessageBase.getCallId(): Exception getHeaderValidate(CSEQ)", pe);
-      }
+
+      DsLog4j.messageCat.warn(
+          "DsSipMessageBase.getCallId(): Exception getHeaderValidate(CSEQ)", pe);
+
     } catch (DsSipParserListenerException ple) {
-      if (DsLog4j.messageCat.isEnabled(Level.WARN)) {
-        DsLog4j.messageCat.warn(
-            "DsSipMessageBase.getCallId(): Exception getHeaderValidate(CSEQ)", ple);
-      }
+
+      DsLog4j.messageCat.warn(
+          "DsSipMessageBase.getCallId(): Exception getHeaderValidate(CSEQ)", ple);
     }
     return null;
   }

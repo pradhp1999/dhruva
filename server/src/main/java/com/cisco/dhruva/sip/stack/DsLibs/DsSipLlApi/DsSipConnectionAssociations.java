@@ -10,8 +10,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
+import com.cisco.dhruva.util.log.Logger;
 import java.util.HashMap;
-import org.apache.logging.log4j.Logger;
 
 /**
  * This class provides for the management of the connection associations.
@@ -232,9 +232,7 @@ public final class DsSipConnectionAssociations {
         // setting the connection id so that the request binding info has connection id
         if (connection != null) connection.getBindingInfo().setConnectionId(connectionId);
       } catch (Exception exc) {
-        if (logger.isDebugEnabled()) {
-          logger.debug("Exception while Retreiving the connection", exc);
-        }
+        logger.error("Exception while Retreiving the connection", exc);
       }
     }
     if (logger.isDebugEnabled()) {

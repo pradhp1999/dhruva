@@ -3,11 +3,10 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import java.net.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import java.net.InetAddress;
 import java.security.SecureRandom;
-import java.util.*;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * This class represents the Cisco-Guid header. The headers are generated from time stamp and some

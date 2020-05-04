@@ -3,9 +3,9 @@ Dhruva:
     sipListenPoints: '[{"name":"DhruvaIntUDPNetwork","transport":"UDP","port":5070,"recordRoute":false}]'
     metricsPublicUrl: https://metrics-intb.ciscospark.com/metrics/api/v1
     elasticache_dhruva_host: '{{ .MeetPaas.redisClusters.app.hostPort }}'
-    elasticache_commonidentity_host: '{{ .MeetPaas.redisClusters.app.hostPort }}'
-    elasticache_fls_host: '{{ .MeetPaas.redisClusters.app.hostPort }}'
     elasticache_ratelimit_host: '{{ .MeetPaas.redisClusters.app.hostPort }}'
+    elasticache_commonidentity_host: '{{ .MeetPaas.redisClusters.ci.hostPort }}'
+    elasticache_fls_host: '{{ .MeetPaas.redisClusters.ci.hostPort }}'
   deploy:
     CATALINA_OPTS: '-Dcom.sun.management.jmxremote
                         -Dcom.sun.management.jmxremote.host=127.0.0.1

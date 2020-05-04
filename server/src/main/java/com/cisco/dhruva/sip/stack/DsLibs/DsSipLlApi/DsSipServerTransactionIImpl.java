@@ -6,7 +6,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.IOException;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * Implements the server side of the low level INVITE state machine.

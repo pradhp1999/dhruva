@@ -9,6 +9,7 @@ import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
@@ -24,28 +25,29 @@ public class UDPChannelHandler extends AbstractChannelHandler {
 
   private Logger logger = DhruvaLoggerFactory.getLogger(UDPChannelHandler.class);
 
-  public UDPChannelHandler(MessageForwarder messageForwarder, ExecutorService executorService) {
-    super(messageForwarder, executorService);
+  public UDPChannelHandler(
+      MessageForwarder messageForwarder, DsNetwork network, ExecutorService executorService) {
+    super(messageForwarder, network, executorService);
   }
 
   @Override
   public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Channel Registered ", ctx.channel());
+    logger.info("Channel Registered {} ", ctx.channel());
   }
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Channel Unregistered ", ctx.channel());
+    logger.info("Channel Unregistered {}", ctx.channel());
   }
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Channel Active ", ctx.channel());
+    logger.info("Channel Active {}", ctx.channel());
   }
 
   @Override
   public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Channel InActive ", ctx.channel());
+    logger.info("Channel InActive {}", ctx.channel());
   }
 
   @Override
@@ -66,6 +68,7 @@ public class UDPChannelHandler extends AbstractChannelHandler {
               remoteAddress.getAddress(),
               remoteAddress.getPort(),
               Transport.UDP);
+      bindingInfo.setNetwork(network);
       String logString;
       if (messageBytes.length > 0 && messageBytes[0] == 0) {
         logString = DsByteString.toStunDebugString(messageBytes);
@@ -88,12 +91,12 @@ public class UDPChannelHandler extends AbstractChannelHandler {
 
   @Override
   public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Channel Read Complete ", ctx.channel());
+    logger.info("Channel Read Complete {}", ctx.channel());
   }
 
   @Override
   public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-    logger.info("User event triggerred for channel ", ctx.channel());
+    logger.info("User event triggerred for channel {}", ctx.channel());
   }
 
   @Override
@@ -106,11 +109,11 @@ public class UDPChannelHandler extends AbstractChannelHandler {
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Handler added to channel ", ctx.channel());
+    logger.info("Handler added to channel {}", ctx.channel());
   }
 
   @Override
   public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Handler removed from channel ", ctx.channel());
+    logger.info("Handler removed from channel {}", ctx.channel());
   }
 }

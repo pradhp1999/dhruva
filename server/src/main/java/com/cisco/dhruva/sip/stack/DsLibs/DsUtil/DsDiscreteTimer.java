@@ -4,7 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import gnu.trove.TLinkedList;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * A timer for a specific time period. All tasks that are put on this timer are executed after the

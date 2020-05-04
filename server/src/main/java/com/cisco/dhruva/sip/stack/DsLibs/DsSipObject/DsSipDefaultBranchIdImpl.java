@@ -3,10 +3,12 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import java.net.*;
-import java.security.*;
-import org.apache.logging.log4j.Level;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import java.net.InetAddress;
+import java.security.MessageDigest;
+import org.slf4j.event.Level;
 
 /**
  * The stateful implementation of the DsSipBranchIdInterface that will provide for a unique branch

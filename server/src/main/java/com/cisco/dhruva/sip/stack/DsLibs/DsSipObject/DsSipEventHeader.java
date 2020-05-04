@@ -7,8 +7,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import java.util.*;
-import org.apache.logging.log4j.Logger;
+import com.cisco.dhruva.util.log.Logger;
+import java.util.Iterator;
 
 /**
  * This class represents the Event header as specified in RFC 3265. It provides methods to build,

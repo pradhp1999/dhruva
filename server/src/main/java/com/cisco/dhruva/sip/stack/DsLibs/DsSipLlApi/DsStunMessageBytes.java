@@ -6,7 +6,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import java.net.InetAddress;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * Helper class that implements DsUnitOfWork and holds one unparsed SIP message. When process() is

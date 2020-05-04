@@ -8,9 +8,9 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import com.cisco.dhruva.util.log.Logger;
 import java.util.HashMap;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 import org.springframework.core.env.Environment;
 
 /**
@@ -404,11 +404,7 @@ public class DsNetwork implements Cloneable {
 
   private static final Integer DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES = 14400;
 
-  private Environment env;
-
-  public DsNetwork(Environment env) {
-    this.env = env;
-  }
+  private static Environment env;
 
   public int udpEventPoolThreadCount() {
     return env.getProperty(
@@ -924,10 +920,6 @@ public class DsNetwork implements Cloneable {
 
   /** Make a copy, but increment the network number. Keep the same base name. */
   public Object clone() throws CloneNotSupportedException {
-    if (cat.isEnabled(Level.DEBUG)) {
-      DsException e = new DsException("Someone called DsNetwork.clone()");
-      cat.debug("DsNetwork.clone() was called from: ", e);
-    }
 
     DsNetwork clone = null;
     synchronized (m_counterLock) {
@@ -1688,7 +1680,7 @@ public class DsNetwork implements Cloneable {
     this.removeOwnRouteHeader = removeOwnRouteHeader;
   }
 
-  public void setenv(Environment env) {
-    this.env = env;
+  public static void setenv(Environment environment) {
+    env = environment;
   }
 }

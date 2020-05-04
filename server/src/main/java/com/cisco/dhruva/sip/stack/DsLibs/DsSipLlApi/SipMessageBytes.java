@@ -13,7 +13,8 @@ import java.util.*;
  */
 public class SipMessageBytes extends DsMessageBytes {
   /** Reference to the Transaction Manager. */
-  private static SipTransactionManager tm = SipTransactionManager.getInstance();
+  private static DsSipTransactionManager transactionManager =
+      DsSipTransactionManager.getTransactionManager();
 
   private Calendar m_timestamp;
   /**
@@ -28,8 +29,7 @@ public class SipMessageBytes extends DsMessageBytes {
   }
 
   public void process() {
-
-    tm.processMessageBytes(this);
+    transactionManager.processMessageBytes(this);
   }
 
   public void run() {

@@ -11,7 +11,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageD
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import java.io.IOException;
 import java.io.OutputStream;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * <b>DsSipReasonHeader</b>

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.netty.BaseChannelInitializer;
 import com.cisco.dhruva.transport.netty.BootStrapFactory;
@@ -46,7 +47,7 @@ public class DhruvaTransportLayerTest {
 
   @Mock Environment env = new MockEnvironment();
 
-  DsNetwork networkConfig = new DsNetwork(env);
+  DsNetwork networkConfig;
 
   Bootstrap bootstrap;
 
@@ -55,16 +56,15 @@ public class DhruvaTransportLayerTest {
   ExecutorService executorService = new ExecutorService("DhruvaSipServer");
 
   @BeforeClass
-  public void init() {
+  public void init() throws DsException {
 
+    networkConfig = DsNetwork.getNetwork("Test");
+    DsNetwork.setenv(env);
     handler = mock(MessageForwarder.class);
-    ChannelHandler channelHandler = new UDPChannelHandler(handler, executorService);
+    ChannelHandler channelHandler = new UDPChannelHandler(handler, networkConfig, executorService);
     channelInitializer = new BaseChannelInitializer();
     channelInitializer.channelHanlder(channelHandler);
-    bootstrap =
-        spy(
-            BootStrapFactory.getInstance()
-                .getServerBootStrap(Transport.UDP, networkConfig, channelInitializer));
+    bootstrap = (Bootstrap) Mockito.spy(Bootstrap.class);
     BootStrapFactory.getInstance().setUdpBootstrap(bootstrap);
   }
 
@@ -123,9 +123,10 @@ public class DhruvaTransportLayerTest {
       enabled = true,
       description = "Testing the Server Socket creating failure When Bootstrap binding fails")
   public void testStartListenExceptionInBindUDP() {
-    DsNetwork networkConfig = new DsNetwork(env);
-    try {
 
+    try {
+      DsNetwork networkConfig = DsNetwork.getNetwork("Test");
+      DsNetwork.setenv(env);
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       String exceptionError = "Bind failed";
       int port = 5060;
@@ -171,9 +172,11 @@ public class DhruvaTransportLayerTest {
 
   @Test(enabled = true, description = "Testing the TransportLayer startListening with null values")
   public void testStartListeningFailureUDPWithNullValues() {
-    DsNetwork networkConfig = new DsNetwork(env);
 
     try {
+
+      DsNetwork networkConfig = DsNetwork.getNetwork("Test");
+      DsNetwork.setenv(env);
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port = 5060;
       transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null, executorService);
@@ -206,9 +209,10 @@ public class DhruvaTransportLayerTest {
           "Testing the Server Socket creating success scenario with multiple "
               + "Server sockets for UDP and receiving a Message in handler")
   public void testStartListeningSuccessUDPMultipleServerSockets() {
-    DsNetwork networkConfig = new DsNetwork(env);
     try {
 
+      DsNetwork networkConfig = DsNetwork.getNetwork("Test");
+      DsNetwork.setenv(env);
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port1 = 5060;
       int port2 = 5070;
@@ -267,7 +271,7 @@ public class DhruvaTransportLayerTest {
       enabled = true,
       description =
           "Tests TransportLayer.getConnection() and Sending message using the connection for UDP transport")
-  public void testGetConnectionAndSendMessageSuccess() {
+  public void testGetConnectionZndSendMessageSuccess() {
     try {
 
       InetAddress localAddress = InetAddress.getByName("127.0.0.1");
@@ -523,8 +527,9 @@ public class DhruvaTransportLayerTest {
       description =
           "Tests the get connection summary for UDP connections when all connections are active")
   public void testGetConnectionSummary() {
-    DsNetwork networkConfig = new DsNetwork(env);
     try {
+      DsNetwork networkConfig = DsNetwork.getNetwork("Test");
+      DsNetwork.setenv(env);
       CompletableFuture<Connection> connectionFuture1 =
           transportLayer.getConnection(
               networkConfig,
@@ -559,8 +564,9 @@ public class DhruvaTransportLayerTest {
       description =
           "Tests the get connection summary for UDP connections , after connection disconnect")
   public void testGetConnectionSummaryDisconnect() {
-    DsNetwork networkConfig = new DsNetwork(env);
     try {
+      DsNetwork networkConfig = DsNetwork.getNetwork("Test");
+      DsNetwork.setenv(env);
       CompletableFuture<Connection> connectionFuture1 =
           transportLayer.getConnection(
               networkConfig,
