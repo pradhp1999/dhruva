@@ -12,6 +12,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
  * @author
  * @version
  */
+import java.security.SecureRandom;
 
 /**
  * This class represents the ETag header as specified in draft-ietf-simple-publish-03.txt. It
@@ -120,7 +121,7 @@ public final class DsSipETagHeader extends DsSipStringHeader {
     // Since PUBLISH is still in draft, this will probably be revisited in later versions.
     // modified codes to used condiseration one
     StringBuffer sb = new StringBuffer();
-    int aRandom = (int) (Math.random() * 65535);
+    int aRandom = (int) (new SecureRandom().nextInt(Integer.MAX_VALUE) * 65535);
     int current_time = (int) (System.currentTimeMillis() % 65535);
     sb.append(Integer.toHexString(aRandom));
     sb.append(Integer.toHexString(current_time));

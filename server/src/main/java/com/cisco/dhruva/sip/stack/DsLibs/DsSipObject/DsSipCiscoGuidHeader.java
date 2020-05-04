@@ -3,9 +3,10 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import java.net.*;
-import java.util.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import java.net.InetAddress;
+import java.security.SecureRandom;
+import org.slf4j.event.Level;
 
 /**
  * This class represents the Cisco-Guid header. The headers are generated from time stamp and some
@@ -42,8 +43,10 @@ public final class DsSipCiscoGuidHeader extends DsSipStringHeader {
       if (hashCode < 0) hashCode = -hashCode;
     } catch (Exception e) {
       // If we fail to get the IP_HASH based on local host, fall back to a pseudo random number
-      hashCode = (new Random()).nextInt(Integer.MAX_VALUE);
-      e.printStackTrace();
+      hashCode = (new SecureRandom()).nextInt(Integer.MAX_VALUE);
+      if (DsLog4j.headerCat.isEnabled(Level.DEBUG)) {
+        e.printStackTrace();
+      }
     }
 
     String temp = Integer.toString(hashCode, 10);
@@ -159,7 +162,7 @@ public final class DsSipCiscoGuidHeader extends DsSipStringHeader {
     long f1 = time & MASK32;
     long f2 = (time >> 32) & MASK28 | VERSION;
     int f3 =
-        (new Random())
+        (new SecureRandom())
             .nextInt(
                 Integer.MAX_VALUE); // MMA - 08.31.05 - change so that we do not get negative values
 

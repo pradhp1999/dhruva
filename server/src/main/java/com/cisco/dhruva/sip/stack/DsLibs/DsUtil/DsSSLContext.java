@@ -4,6 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.sun.net.ssl.internal.ssl.Provider;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -1035,6 +1036,7 @@ public class DsSSLContext {
   }
 
   /** Initializes the SSL context. */
+  @SuppressFBWarnings(value = {"PATH_TRAVERSAL_IN"})
   private void init(DsSSLTrustManager trustManager) throws DsSSLException {
     // CAFFEINE 3.1 bug fix - CSCsk29536: TLS socket connection not established with CUPS/CUCM
     FileInputStream ksFile = null;

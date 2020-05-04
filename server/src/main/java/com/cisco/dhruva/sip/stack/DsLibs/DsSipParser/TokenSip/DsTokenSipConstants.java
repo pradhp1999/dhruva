@@ -5,8 +5,10 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /** This class contains some constants used in DsSipObject library. */
+@SuppressFBWarnings(value = {"HARD_CODE_KEY"})
 public interface DsTokenSipConstants extends DsSipConstants {
 
   // fixed format SIP strings (highly optimized tokens)

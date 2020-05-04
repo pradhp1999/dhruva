@@ -162,7 +162,7 @@ public class DsSipDefaultBranchIdImpl implements DsSipBranchIdInterface {
         }
       } else {
         byte[] timeip = null;
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        MessageDigest md5 = MessageDigest.getInstance("SHA-256");
 
         md5.update(DsByteString.getBytes(Long.toString(now)));
 

@@ -1,5 +1,6 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +58,7 @@ public final class NetObjectsFactory {
     }
   }
 
+  @SuppressFBWarnings(value = {"UNENCRYPTED_SOCKET"})
   public static Socket getSocket() {
     if (netObjectProvider != null) {
       return netObjectProvider.getSocket();

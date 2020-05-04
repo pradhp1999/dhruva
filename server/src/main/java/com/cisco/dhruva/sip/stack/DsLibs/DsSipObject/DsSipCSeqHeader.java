@@ -6,7 +6,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipMessageDictionary;
 import java.io.*;
-import java.util.Random;
+import java.security.SecureRandom;
 
 /**
  * This class represents a CSeq header as specified in RFC 3261. It provides methods to build,
@@ -29,7 +29,7 @@ public final class DsSipCSeqHeader extends DsSipSeqMethodHeader {
   public static final DsByteString sCompactToken = BS_CSEQ;
 
   /** Random sequence number generator */
-  private static final Random seqGenerator = new Random();
+  private static final SecureRandom seqGenerator = new SecureRandom();
 
   public static final byte sFixedFormatHeaderId =
       DsTokenSipConstants.TOKEN_SIP_FIXED_FORMAT_CSEQ_HEADER;

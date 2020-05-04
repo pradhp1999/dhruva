@@ -4,6 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.*;
 import java.io.FileDescriptor;
 import java.lang.reflect.Field;
@@ -313,6 +314,7 @@ public class DsSocket {
    * @param network The network with which this socket is associated.
    * @throws IOException thrown when the socket cannot be created
    */
+  @SuppressFBWarnings(value = {"UNENCRYPTED_SOCKET"})
   public DsSocket(InetAddress address, int port, DsNetwork network) throws IOException {
     Socket socket = new Socket();
     socket.connect(new InetSocketAddress(address, port), CONN_TIMEOUT);
@@ -327,6 +329,7 @@ public class DsSocket {
    * @param network The network with which this socket is associated.
    * @throws IOException thrown when there is an error in creating the socket
    */
+  @SuppressFBWarnings(value = {"UNENCRYPTED_SOCKET"})
   public DsSocket(String host, int port, DsNetwork network) throws IOException {
     Socket socket = new Socket();
     socket.connect(new InetSocketAddress(host, port), CONN_TIMEOUT);

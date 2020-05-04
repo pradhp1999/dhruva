@@ -98,7 +98,7 @@ public class DsSipDetServerLocator extends DsSipServerLocator {
       }
 
       try {
-        return MessageDigest.getInstance("MD5");
+        return MessageDigest.getInstance("SHA-256");
       } catch (NoSuchAlgorithmException e) {
         if (DsLog4j.connectionCat.isEnabled(Level.ERROR)) {
           DsLog4j.connectionCat.log(

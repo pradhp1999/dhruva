@@ -43,7 +43,8 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
       RedisDataSourceManager redisDataSourceManager,
       MetricRegistry metricRegistry,
       CiscoSparkServerProperties props) {
-    RedisDataSource redisDataSource = redisDataSourceManager.getRedisDataSource("dhruvaapp");
+    RedisDataSource redisDataSource =
+        redisDataSourceManager.getRedisDataSource("dhruva", "elasticache_dhruva");
     return new RedisHashMap(
         redisDataSource,
         props.getName() + "-store",

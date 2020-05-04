@@ -13,6 +13,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsHexEncoding;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.transport.Transport;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.TLinkedList;
 import java.io.CharArrayWriter;
 import java.io.IOException;
@@ -47,6 +48,7 @@ import org.slf4j.event.Level;
  * refelected in the serialized form of this object. Calling setUser() will null out any telephone
  * subscriber object that we previously set.
  */
+@SuppressFBWarnings(value = "HARD_CODE_PASSWORD")
 public class DsSipURL extends DsURI implements Serializable, Cloneable, DsSipHeaderListener {
   // from rfc 3261
   // unreserved =        alphanum / mark
