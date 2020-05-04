@@ -102,7 +102,7 @@ public class SIPListenPoint {
 
     public SIPListenPointBuilder() {
       this.name = "UDPNetwork";
-      this.hostIPAddress = "127.0.0.1";
+      this.hostIPAddress = "0.0.0.0";
       this.transport = DhruvaSIPConfigProperties.DEFAULT_TRANSPORT;
       this.port = DhruvaSIPConfigProperties.DEFAULT_PORT_UDP;
       this.recordRoute = DhruvaSIPConfigProperties.DEFAULT_RECORD_ROUTE_ENABLED;

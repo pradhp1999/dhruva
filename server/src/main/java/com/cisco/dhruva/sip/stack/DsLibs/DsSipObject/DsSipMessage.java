@@ -2517,5 +2517,4 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   public void setNormalizationState(SipMsgNormalizationState normalizationState) {
     this.normalizationState = normalizationState;
   }
-
 } // Ends class DsSipMessage

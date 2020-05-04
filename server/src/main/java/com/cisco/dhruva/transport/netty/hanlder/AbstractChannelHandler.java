@@ -26,7 +26,8 @@ public abstract class AbstractChannelHandler implements ChannelInboundHandler {
   protected MessageForwarder messageForwarder;
   protected DsNetwork network;
 
-  AbstractChannelHandler(MessageForwarder messageForwarder, DsNetwork network, ExecutorService executorService) {
+  AbstractChannelHandler(
+      MessageForwarder messageForwarder, DsNetwork network, ExecutorService executorService) {
     this.messageForwarder = messageForwarder;
     this.executorService = executorService;
     this.network = network;

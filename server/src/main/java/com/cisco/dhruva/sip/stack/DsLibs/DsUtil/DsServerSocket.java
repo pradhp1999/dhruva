@@ -3,14 +3,12 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import org.slf4j.event.Level;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 
 /** Wrapper for the Java server socket class. Allows the server socket to be turned on and off. */
 public class DsServerSocket {

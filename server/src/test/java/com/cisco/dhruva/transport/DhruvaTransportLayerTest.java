@@ -61,7 +61,7 @@ public class DhruvaTransportLayerTest {
     networkConfig = DsNetwork.getNetwork("Test");
     DsNetwork.setenv(env);
     handler = mock(MessageForwarder.class);
-    ChannelHandler channelHandler = new UDPChannelHandler(handler,networkConfig, executorService);
+    ChannelHandler channelHandler = new UDPChannelHandler(handler, networkConfig, executorService);
     channelInitializer = new BaseChannelInitializer();
     channelInitializer.channelHanlder(channelHandler);
     bootstrap = (Bootstrap) Mockito.spy(Bootstrap.class);

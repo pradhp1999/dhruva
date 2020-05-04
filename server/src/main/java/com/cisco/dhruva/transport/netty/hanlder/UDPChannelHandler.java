@@ -25,8 +25,9 @@ public class UDPChannelHandler extends AbstractChannelHandler {
 
   private Logger logger = DhruvaLoggerFactory.getLogger(UDPChannelHandler.class);
 
-  public UDPChannelHandler(MessageForwarder messageForwarder, DsNetwork network, ExecutorService executorService) {
-    super(messageForwarder,network, executorService);
+  public UDPChannelHandler(
+      MessageForwarder messageForwarder, DsNetwork network, ExecutorService executorService) {
+    super(messageForwarder, network, executorService);
   }
 
   @Override

@@ -231,11 +231,6 @@ public class DsSipProxyManager
     return m_Singleton;
   }
 
-
-
-
-
-
   public synchronized void setRouteFixInterface(DsSipRouteFixInterface rfi) {
     transManager.setRouteFixInterface(rfi);
   }

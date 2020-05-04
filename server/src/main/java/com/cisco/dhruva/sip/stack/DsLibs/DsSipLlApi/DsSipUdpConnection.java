@@ -27,7 +27,8 @@ public class DsSipUdpConnection extends DsUdpConnection implements DsSipConnecti
    */
   public byte[] send(DsSipMessage message) throws IOException {
     if (DsLog4j.connectionCat.isEnabled(Level.INFO)) {
-      DsLog4j.connectionCat.info("Trying to send message to address {} \n {}",bindingInfo,message);
+      DsLog4j.connectionCat.info(
+          "Trying to send message to address {} \n {}", bindingInfo, message);
     }
 
     byte buffer[];

@@ -52,32 +52,33 @@ public class DsScriptController extends DsProxyController implements DsControlle
   public DsProxyStatelessTransaction onNewRequest(
       DsSipServerTransaction serverTrans, DsSipRequest request) {
 
-    DsSipTransportLayer dsTransportLayer= DsSipTransactionManager.getTransportLayer();
+    DsSipTransportLayer dsTransportLayer = DsSipTransactionManager.getTransportLayer();
     try {
 
-      DsByteString branch = DsViaHandler.getInstance().getBranchID(++n_branch,
-          request);
+      DsByteString branch = DsViaHandler.getInstance().getBranchID(++n_branch, request);
 
-      DsSipViaHeader via = new DsSipViaHeader(DsByteString.newInstance("127.0.0.1"), 5060,
-          Transport.UDP);
-
+      DsSipViaHeader via =
+          new DsSipViaHeader(DsByteString.newInstance("127.0.0.1"), 5060, Transport.UDP);
 
       via.setBranch(branch);
 
       if (request.shouldCompress()) {
         via.setComp(DsSipConstants.BS_SIGCOMP);
-      }
-      else
-      {
+      } else {
         DsTokenSipDictionary tokDic = request.shouldEncode();
-        if (null != tokDic)
-          via.setParameter(DsTokenSipConstants.s_TokParamName, tokDic.getName());
+        if (null != tokDic) via.setParameter(DsTokenSipConstants.s_TokParamName, tokDic.getName());
       }
       request.addHeader(via, true, false);
 
-
-      DsUdpConnection dsUdpConnection= (DsUdpConnection) dsTransportLayer.getConnection(request.getNetwork(), InetAddress
-          .getByName("0.0.0.0"),5070,InetAddress.getByName("127.0.0.1"),5065, Transport.UDP);
+      DsUdpConnection dsUdpConnection =
+          (DsUdpConnection)
+              dsTransportLayer.getConnection(
+                  request.getNetwork(),
+                  InetAddress.getByName("0.0.0.0"),
+                  5070,
+                  InetAddress.getByName("127.0.0.1"),
+                  5065,
+                  Transport.UDP);
       dsUdpConnection.send(request.toByteArray());
     } catch (DsException e) {
       e.printStackTrace();

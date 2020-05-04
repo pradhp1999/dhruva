@@ -5,7 +5,6 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
@@ -18,7 +17,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class DsSipTransactionManagerTest {
-
 
   private DsSipTransactionManager sipTransactionManager;
   private DsSipTransportLayer transportLayer;
@@ -37,14 +35,14 @@ public class DsSipTransactionManagerTest {
     InetAddress localAddress = InetAddress.getByName("127.0.0.1");
     InetAddress remoteAddress = InetAddress.getByName("127.0.0.1");
     int localPort = 5060, remotePort = 5070;
-    incomingMessageBindingInfo = new DsBindingInfo(localAddress, localPort, localAddress, localPort,
-        Transport.UDP);
+    incomingMessageBindingInfo =
+        new DsBindingInfo(localAddress, localPort, localAddress, localPort, Transport.UDP);
 
     try {
       sipTransactionManager = new DsSipTransactionManager(transportLayer, requestInterface);
     } catch (DsException e) {
-      Assert.fail("DsSipTransactionManagerTest DsSipTransactionManager "
-          + "object creation failed ", e);
+      Assert.fail(
+          "DsSipTransactionManagerTest DsSipTransactionManager " + "object creation failed ", e);
     }
 
     sipTransactionManager.setProxyServerMode(true);
@@ -52,22 +50,17 @@ public class DsSipTransactionManagerTest {
     sipTransactionManager.setTransactionEventInterface(transactionEventInterface);
   }
 
-
-  @Test(description = "Testing the Invite Processing by the Transaction Manager, "
-      + "checks if Message is parseed ,Session is created ,SessionId header is added and Message is "
-      + "forwarded to requestInterface ")
+  @Test(
+      description =
+          "Testing the Invite Processing by the Transaction Manager, "
+              + "checks if Message is parseed ,Session is created ,SessionId header is added and Message is "
+              + "forwarded to requestInterface ")
   public void testInviteProcessingInTransactionManager() {
 
     byte[] messagebytes = SIPMessageGenerator.getInviteMessage("graivitt").getBytes();
 
-    when(requestInterface.request).
-
     SipMessageBytes sipMessageBytes = new SipMessageBytes(messagebytes, incomingMessageBindingInfo);
 
     sipTransactionManager.processMessageBytes(sipMessageBytes);
-
-
   }
-
-
 }
