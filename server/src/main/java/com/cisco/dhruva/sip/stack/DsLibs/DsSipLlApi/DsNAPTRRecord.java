@@ -6,7 +6,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.transport.Transport;
 import java.util.StringTokenizer;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /** The NAPTR RR with the following format: Order Preference Flags Service Regexp Replacement */
 class DsNAPTRRecord {

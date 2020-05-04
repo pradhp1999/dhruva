@@ -5,8 +5,8 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipMime;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.*;
-import org.apache.logging.log4j.Logger;
 
 /**
  * As a concrete implementation of DsMimeAbstractBody, class DsMimeUnparsedBody is the unparsed
@@ -84,7 +84,7 @@ public class DsMimeUnparsedBody extends DsMimeAbstractBody {
             (DsSipContentTypeHeader) m_entity.getHeaderValidate(CONTENT_TYPE);
         ct.setParameters(parameters);
       } catch (Throwable ex) {
-        logger.warn(ex);
+        logger.warn("Exception in setContainingEntityContentTypeParameters ", ex);
       }
     } else {
       logger.warn("Set Content-Type first, then set Content-Type parameters");
@@ -106,7 +106,7 @@ public class DsMimeUnparsedBody extends DsMimeAbstractBody {
             (DsSipContentTypeHeader) m_entity.getHeaderValidate(CONTENT_TYPE);
         ct.setParameter(name, value);
       } catch (Throwable ex) {
-        logger.warn(ex);
+        logger.warn("Exception in setContainingEntityContentTypeParameter", ex);
       }
     } else {
       logger.warn("Set Content-Type first, then set Content-Type parameter");
@@ -145,7 +145,7 @@ public class DsMimeUnparsedBody extends DsMimeAbstractBody {
             (DsSipContentDispositionHeader) m_entity.getHeaderValidate(CONTENT_DISPOSITION);
         cd.setHandling(handling);
       } catch (Throwable ex) {
-        logger.warn(ex);
+        logger.warn("Exception setContainingEntityDispositionHandling", ex);
       }
     } else {
       logger.warn("Set Content-Disposition first, then set Content-Disposition handling parameter");
@@ -166,7 +166,7 @@ public class DsMimeUnparsedBody extends DsMimeAbstractBody {
       try {
         hdr = (DsSipContentIdHeader) m_entity.getHeaderValidate(CONTENT_ID);
       } catch (Throwable ex) {
-        logger.warn(ex);
+        logger.warn("Exception in setContainingEntityContentId", ex);
       }
     }
     if (hdr == null) hdr = new DsSipContentIdHeader();

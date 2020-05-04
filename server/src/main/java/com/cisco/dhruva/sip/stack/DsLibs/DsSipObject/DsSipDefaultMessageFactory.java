@@ -5,9 +5,9 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 
 /**
  * This is the default message factory. This class creates DsSipMessages and their keys and does
@@ -134,6 +134,7 @@ public final class DsSipDefaultMessageFactory implements DsSipMessageFactory {
     _3way.reInitF3(validate ? m_validator : null);
     DsSipMessage message = null;
     try {
+
       DsSipMsgParser.parse(_3way, bytes, offset, count);
       message = m_msgFactory.getMessage();
     } catch (DsSipMessageValidationException mve) {

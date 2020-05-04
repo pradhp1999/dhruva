@@ -10,7 +10,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsHexEncoding;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import java.io.IOException;
 import java.security.MessageDigest;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * This class represents the credentials information used in "digest" Authentication within the

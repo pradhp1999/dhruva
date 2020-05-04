@@ -10,7 +10,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.net.SocketImpl;
-import org.apache.logging.log4j.Level;
 
 /** Class which creates an observable socket. */
 public class DsSocket {
@@ -89,9 +88,9 @@ public class DsSocket {
       ms_fdSocketField.setAccessible(true);
       ms_isNativeSocketAllowed = true;
     } catch (Exception ex) {
-      if (DsLog4j.connectionCat.isEnabled(Level.ERROR)) {
-        DsLog4j.connectionCat.log(Level.ERROR, "Failed to load socket file descriptor", ex);
-      }
+
+      DsLog4j.connectionCat.error("Failed to load socket file descriptor", ex);
+
       ms_isNativeSocketAllowed = false;
     }
   }
@@ -110,9 +109,9 @@ public class DsSocket {
       mNativeFd = ((Integer) DsSocket.ms_fdSocketField.get(fdescriptor)).intValue();
       success = true;
     } catch (Exception e) {
-      if (DsLog4j.socketCat.isEnabled(Level.ERROR)) {
-        DsLog4j.socketCat.log(Level.ERROR, "Failed to get fd from socket ", e);
-      }
+
+      DsLog4j.socketCat.error("Failed to get fd from socket ", e);
+
       mNativeFd = -1;
     }
     return success;
@@ -222,28 +221,24 @@ public class DsSocket {
                 DsConfigManager.PROP_TOS_VALUE, DsConfigManager.PROP_TOS_VALUE_DEFAULT);
         if (!(tosValue < 0 || tosValue > 255)) {
           m_socket.setTrafficClass(tosValue);
-          if (DsLog4j.socketCat.isEnabled(Level.DEBUG)) {
-            DsLog4j.socketCat.log(Level.DEBUG, "IPTypeOfService: " + m_socket.getTrafficClass());
-          }
+
+          DsLog4j.socketCat.debug("IPTypeOfService: " + m_socket.getTrafficClass());
         }
 
-        if (DsLog4j.socketCat.isEnabled(Level.DEBUG)) {
-          DsLog4j.socketCat.log(Level.DEBUG, "Setting SO_TIMEOUT to: " + network.getSoTimeout());
-        }
+        DsLog4j.socketCat.debug("Setting SO_TIMEOUT to: " + network.getSoTimeout());
+
         m_socket.setSoTimeout(network.getSoTimeout());
       } catch (SocketException e) {
-        if (DsLog4j.socketCat.isEnabled(Level.ERROR)) {
-          DsLog4j.socketCat.log(
-              Level.ERROR,
-              "INVALID TOS Value: "
-                  + DsConfigManager.getProperty(
-                      DsConfigManager.PROP_TOS_VALUE, DsConfigManager.PROP_TOS_VALUE_DEFAULT),
-              e);
-        }
+
+        DsLog4j.socketCat.error(
+            "INVALID TOS Value: "
+                + DsConfigManager.getProperty(
+                    DsConfigManager.PROP_TOS_VALUE, DsConfigManager.PROP_TOS_VALUE_DEFAULT),
+            e);
+
       } catch (Exception e) {
-        if (DsLog4j.socketCat.isEnabled(Level.WARN)) {
-          DsLog4j.socketCat.log(Level.WARN, "Exception on socket: ", e);
-        }
+
+        DsLog4j.socketCat.warn("Exception on socket: ", e);
       }
     }
   }

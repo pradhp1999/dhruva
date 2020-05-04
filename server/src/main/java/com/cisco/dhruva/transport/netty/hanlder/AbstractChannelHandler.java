@@ -7,6 +7,7 @@ package com.cisco.dhruva.transport.netty.hanlder;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.common.executor.ExecutorType;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.ChannelEventsListener;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
@@ -23,11 +24,15 @@ public abstract class AbstractChannelHandler implements ChannelInboundHandler {
   protected java.util.concurrent.ExecutorService eventNotificationExecutor;
   private Logger logger = DhruvaLoggerFactory.getLogger(AbstractChannelHandler.class);
   protected MessageForwarder messageForwarder;
+  protected DsNetwork network;
 
-  AbstractChannelHandler(MessageForwarder messageForwarder, ExecutorService executorService) {
+  AbstractChannelHandler(MessageForwarder messageForwarder, DsNetwork network, ExecutorService executorService) {
     this.messageForwarder = messageForwarder;
     this.executorService = executorService;
-    executorService.startExecutorService(ExecutorType.NETTY_EVENT_NOTIFICATION_HANDLER, 2);
+    this.network = network;
+    if (!executorService.isExecutorServiceRunning(ExecutorType.NETTY_EVENT_NOTIFICATION_HANDLER)) {
+      executorService.startExecutorService(ExecutorType.NETTY_EVENT_NOTIFICATION_HANDLER, 2);
+    }
     eventNotificationExecutor =
         executorService.getExecutorThreadPool(ExecutorType.NETTY_EVENT_NOTIFICATION_HANDLER);
   }

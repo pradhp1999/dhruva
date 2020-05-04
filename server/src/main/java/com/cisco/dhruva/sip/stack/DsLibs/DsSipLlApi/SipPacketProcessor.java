@@ -14,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
  * completable future
  */
 public class SipPacketProcessor implements MessageForwarder {
+
   protected static SipPacketProcessor smp_theSingleton = null;
 
   protected ExecutorService sipProcessor;
@@ -23,8 +24,7 @@ public class SipPacketProcessor implements MessageForwarder {
    *     Responsbility of initiating lies with outer layer using this class
    * @throws DsException
    */
-  public SipPacketProcessor(com.cisco.dhruva.common.executor.ExecutorService executorService)
-      throws DsException {
+  public SipPacketProcessor(ExecutorService executorService) throws DsException {
 
     if (smp_theSingleton != null) {
       throw new DsException("There can only be one DsSipPacketProcessor ");
@@ -64,8 +64,6 @@ public class SipPacketProcessor implements MessageForwarder {
         CompletableFuture.runAsync(
             createMessageBytes(messageBytes, (DsBindingInfo) bindingInfo.clone()),
             sipProcessor.getExecutorThreadPool(ExecutorType.SIP_TRANSACTION_PROCESSOR));
-
-    runAsync.join();
   }
 
   /**

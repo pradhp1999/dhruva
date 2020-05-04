@@ -13,7 +13,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.transport.Transport;
 import java.io.IOException;
 import java.io.OutputStream;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * This class represents the Via header as specified in RFC 3261. It provides methods to build,

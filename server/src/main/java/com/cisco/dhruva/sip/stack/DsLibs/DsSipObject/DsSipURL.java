@@ -20,7 +20,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.UnknownHostException;
 import java.util.ListIterator;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * This class represents the SIP URL as specified in RFC 3261. For a URL in a header, if it has URL

@@ -11,18 +11,22 @@ import com.cisco.dhruva.transport.Connection;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.transport.netty.hanlder.UDPChannelHandler;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import io.netty.channel.ChannelFuture;
 import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
 
 public class NettyUDPClient extends AbstractClient {
 
+  private Logger logger = DhruvaLoggerFactory.getLogger(NettyUDPClient.class);
+
   public NettyUDPClient(
       DsNetwork networkConfig, MessageForwarder messageForwarder, ExecutorService executorService) {
     this.networkConfig = networkConfig;
     channelInitializer = new BaseChannelInitializer();
 
-    channelHandler = new UDPChannelHandler(messageForwarder, executorService);
+    channelHandler = new UDPChannelHandler(messageForwarder,networkConfig, executorService);
     channelInitializer.channelHanlder(channelHandler);
 
     bootstrap =

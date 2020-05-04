@@ -6,11 +6,11 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 
 /**
  * Simple wrapper for the state table data. Holds the current state and implements state transition
@@ -174,14 +174,15 @@ public final class DsSipStateTable
               Level.INFO,
               (new StringBuffer("STATECHANGE "))
                   .append(new SimpleDateFormat("HH:mm:ss:S").format(new Date()))
-                  .append(' ')
+                  .append(", stateTable=")
                   .append(table)
-                  .append(' ')
+                  .append(",  currentState=")
                   .append(cur_state_str)
-                  .append(' ')
+                  .append(", inputToStateMachine=")
                   .append(input_str)
-                  .append(' ')
-                  .append(next_state_str));
+                  .append(", nextState=")
+                  .append(next_state_str)
+                  .toString());
       }
       // CAFFEINE 2.0 DEVELOPMENT - Add a log statement
       if (next_state == DS_UNDEFINED
@@ -367,7 +368,7 @@ public final class DsSipStateTable
    * Throw a DsStateMachineException with information on current state, input and state table.
    *
    * @param transition the transition during which the exception occurred
-   * @throws always thrown showing the transition
+   * @throws DsStateMachineException thrown showing the transition
    */
   void throwException(int transition) throws DsStateMachineException {
     throwException(transition, null);
@@ -378,7 +379,7 @@ public final class DsSipStateTable
    *
    * @param transition the transition during which the exception occurred
    * @param info extra information on the cause of the exception
-   * @throws always thrown showing the transition and description info
+   * @throws DsStateMachineException thrown showing the transition and description info
    */
   void throwException(int transition, String info) throws DsStateMachineException {
     String table_desc = "unknown table";

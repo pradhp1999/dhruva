@@ -31,7 +31,6 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
-import org.apache.logging.log4j.Level;
 import org.bouncycastle.crypto.fips.FipsStatus;
 
 /**
@@ -1154,19 +1153,16 @@ public class DsSSLContext {
               DsConfigManager.PROP_TOS_VALUE, DsConfigManager.PROP_TOS_VALUE_DEFAULT);
       if (!(tosValue < 0 || tosValue > 255)) {
         socket.setTrafficClass(tosValue);
-        if (DsLog4j.socketCat.isEnabled(Level.DEBUG)) {
-          DsLog4j.socketCat.log(Level.DEBUG, "IPTypeOfService: " + socket.getTrafficClass());
-        }
+
+        DsLog4j.socketCat.debug("IPTypeOfService: " + socket.getTrafficClass());
       }
     } catch (SocketException e) {
-      if (DsLog4j.socketCat.isEnabled(Level.ERROR)) {
-        DsLog4j.socketCat.log(
-            Level.ERROR,
-            "INVALID TOS Value: "
-                + DsConfigManager.getProperty(
-                    DsConfigManager.PROP_TOS_VALUE, DsConfigManager.PROP_TOS_VALUE_DEFAULT),
-            e);
-      }
+
+      DsLog4j.socketCat.error(
+          "INVALID TOS Value: "
+              + DsConfigManager.getProperty(
+                  DsConfigManager.PROP_TOS_VALUE, DsConfigManager.PROP_TOS_VALUE_DEFAULT),
+          e);
     }
 
     // this.printClientCiphers(socketFactory);

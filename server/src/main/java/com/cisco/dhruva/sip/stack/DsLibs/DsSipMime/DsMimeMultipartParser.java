@@ -23,9 +23,9 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.util.log.Logger;
 import java.text.MessageFormat;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 
 /** An implementation of DsMimeBodyParser for multipart content type. */
 public class DsMimeMultipartParser implements DsMimeBodyParser {
@@ -84,7 +84,7 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
       String es = MessageFormat.format(WRONG_CONTENT_TYPE, new Object[] {bodyType});
       if (logger.isEnabled(Level.WARN)) {
         logger.log(Level.WARN, es);
-        logger.log(Level.WARN, mimeBody);
+        logger.log(Level.WARN, mimeBody.toString());
       }
       throw new DsSipParserException(es);
     }
@@ -94,7 +94,7 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
     if (delimiter == null) {
       if (logger.isEnabled(Level.WARN)) {
         logger.log(Level.WARN, NULL_OR_EMPTY_BOUNDARY);
-        logger.log(Level.WARN, mimeBody);
+        logger.log(Level.WARN, mimeBody.toString());
       }
       throw new DsSipParserException(NULL_OR_EMPTY_BOUNDARY);
     }
@@ -111,7 +111,7 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
     if (delCount <= 0) {
       if (logger.isEnabled(Level.WARN)) {
         logger.log(Level.WARN, NULL_OR_EMPTY_BOUNDARY);
-        logger.log(Level.WARN, mimeBody);
+        logger.log(Level.WARN, mimeBody.toString());
       }
       throw new DsSipParserException(NULL_OR_EMPTY_BOUNDARY);
     }
@@ -163,7 +163,7 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
           // Running out of characters without finding the trailing --
           if (logger.isEnabled(Level.WARN)) {
             logger.log(Level.WARN, NO_CLOSING_BOUNDARY);
-            logger.log(Level.WARN, mimeBody);
+            logger.log(Level.WARN, mimeBody.toString());
           }
           throw new DsSipParserException(NO_CLOSING_BOUNDARY);
         }
@@ -177,8 +177,8 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
                   new DsMimeEntity(body, bodyPartStart, boundStart - bodyPartStart - 1));
             } catch (DsSipParserListenerException ex) {
               if (logger.isEnabled(Level.WARN)) {
-                logger.log(Level.WARN, ex);
-                logger.log(Level.WARN, mimeBody);
+                logger.log(Level.WARN, "Parser Exception in MIME", ex);
+                logger.log(Level.WARN, mimeBody.toString());
               }
               throw new DsSipParserException(ex);
             }
@@ -210,8 +210,8 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
                       new DsMimeEntity(body, bodyPartStart, boundStart - bodyPartStart - 1));
                 } catch (DsSipParserListenerException ex) {
                   if (logger.isEnabled(Level.WARN)) {
-                    logger.log(Level.WARN, ex);
-                    logger.log(Level.WARN, mimeBody);
+                    logger.log(Level.WARN, "Parser Exception in MIME", ex);
+                    logger.log(Level.WARN, mimeBody.toString());
                   }
                   throw new DsSipParserException(ex);
                 }
@@ -233,7 +233,7 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
               } else {
                 if (logger.isEnabled(Level.WARN)) {
                   logger.log(Level.WARN, INVALID_CLOSING_BOUNDARY);
-                  logger.log(Level.WARN, mimeBody);
+                  logger.log(Level.WARN, mimeBody.toString());
                 }
                 throw new DsSipParserException(INVALID_CLOSING_BOUNDARY);
               }
@@ -245,7 +245,7 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
           } else {
             if (logger.isEnabled(Level.WARN)) {
               logger.log(Level.WARN, WRONG_STARTING_OR_BAD_CLOSING_BOUNDARY);
-              logger.log(Level.WARN, mimeBody);
+              logger.log(Level.WARN, mimeBody.toString());
             }
             throw new DsSipParserException(WRONG_STARTING_OR_BAD_CLOSING_BOUNDARY);
           }
@@ -256,7 +256,7 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
           if (bodyIndex >= bodyEnd) {
             if (logger.isEnabled(Level.WARN)) {
               logger.log(Level.WARN, NO_CLOSING_BOUNDARY);
-              logger.log(Level.WARN, mimeBody);
+              logger.log(Level.WARN, mimeBody.toString());
             }
             throw new DsSipParserException(NO_CLOSING_BOUNDARY);
           }
@@ -269,7 +269,7 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
           if (bodyIndex >= bodyEnd) {
             if (logger.isEnabled(Level.WARN)) {
               logger.log(Level.WARN, INVALID_MULTIPART);
-              logger.log(Level.WARN, mimeBody);
+              logger.log(Level.WARN, mimeBody.toString());
             }
             throw new DsSipParserException(INVALID_MULTIPART);
           }
@@ -278,7 +278,7 @@ public class DsMimeMultipartParser implements DsMimeBodyParser {
       if (bodyIndex >= bodyEnd) {
         if (logger.isEnabled(Level.WARN)) {
           logger.log(Level.WARN, INVALID_MULTIPART);
-          logger.log(Level.WARN, mimeBody);
+          logger.log(Level.WARN, mimeBody.toString());
         }
         throw new DsSipParserException(INVALID_MULTIPART);
       }

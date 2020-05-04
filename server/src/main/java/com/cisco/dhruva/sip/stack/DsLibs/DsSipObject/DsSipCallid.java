@@ -3,11 +3,11 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import java.io.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /** This class represents a Call-ID as specified in RFC 3261. */
 public class DsSipCallid implements Serializable, Cloneable {

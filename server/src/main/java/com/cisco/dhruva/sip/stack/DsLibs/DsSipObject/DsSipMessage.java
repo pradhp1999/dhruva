@@ -24,14 +24,14 @@ import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessionID;
 import com.cisco.dhruva.util.cac.SIPSessions;
 import com.cisco.dhruva.util.cac.SessionStateType;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.regex.Pattern;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 
 /** javadoc inherited. */
 // CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
@@ -2517,4 +2517,5 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   public void setNormalizationState(SipMsgNormalizationState normalizationState) {
     this.normalizationState = normalizationState;
   }
+
 } // Ends class DsSipMessage

@@ -7,7 +7,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * When many threads are trying to connect to the same endpoint simultaneously, this class will

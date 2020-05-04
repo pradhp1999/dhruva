@@ -61,8 +61,12 @@ public class ExecutorService {
         e.threadPoolExecutor.getMaximumPoolSize());
   }
 
-  boolean isExecutorServiceRunning(String name) {
+  public boolean isExecutorServiceRunning(String name) {
     return this.executorMap.containsKey(name);
+  }
+
+  public boolean isExecutorServiceRunning(ExecutorType name) {
+    return isExecutorServiceRunning(name.getExecutorName(servername));
   }
 
   public void shutdown() {

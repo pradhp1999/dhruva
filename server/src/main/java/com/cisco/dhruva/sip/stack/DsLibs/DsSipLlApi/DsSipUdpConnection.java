@@ -8,7 +8,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.transport.Connection;
 import java.io.IOException;
 import java.net.InetAddress;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 public class DsSipUdpConnection extends DsUdpConnection implements DsSipConnection {
 
@@ -27,16 +27,7 @@ public class DsSipUdpConnection extends DsUdpConnection implements DsSipConnecti
    */
   public byte[] send(DsSipMessage message) throws IOException {
     if (DsLog4j.connectionCat.isEnabled(Level.INFO)) {
-      DsLog4j.connectionCat.log(
-          Level.INFO,
-          new StringBuffer("Sending Message to address: ")
-              .append(bindingInfo.getRemoteAddress())
-              .append(" port ")
-              .append(bindingInfo.getRemotePort())
-              .append(bindingInfo.getTransport().name())
-              .append('\n')
-              .append(message)
-              .toString());
+      DsLog4j.connectionCat.info("Trying to send message to address {} \n {}",bindingInfo,message);
     }
 
     byte buffer[];

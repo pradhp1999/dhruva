@@ -11,10 +11,10 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipPRACKMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 
 /**
  * This is an abstract class which supports the client side of a SIP transaction. It supports both

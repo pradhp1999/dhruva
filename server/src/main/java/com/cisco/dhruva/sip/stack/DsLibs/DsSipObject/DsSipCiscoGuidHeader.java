@@ -6,7 +6,6 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.net.*;
 import java.util.*;
-import org.apache.logging.log4j.Level;
 
 /**
  * This class represents the Cisco-Guid header. The headers are generated from time stamp and some
@@ -44,9 +43,7 @@ public final class DsSipCiscoGuidHeader extends DsSipStringHeader {
     } catch (Exception e) {
       // If we fail to get the IP_HASH based on local host, fall back to a pseudo random number
       hashCode = (new Random()).nextInt(Integer.MAX_VALUE);
-      if (DsLog4j.headerCat.isEnabled(Level.DEBUG)) {
-        e.printStackTrace();
-      }
+      e.printStackTrace();
     }
 
     String temp = Integer.toString(hashCode, 10);

@@ -3,9 +3,11 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.SubjectAltName;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.net.ssl.SSLSession;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 public class DsTlsUtil {
 

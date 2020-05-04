@@ -107,7 +107,11 @@ public class DhruvaTransportLayer implements TransportLayer {
           connectionCache.get(localSocketAddress, remoteSocketAddress, transportType);
 
       if (connectionCompletableFuture != null) {
-        logger.info("Returning Connection {} from cache ", connectionCompletableFuture);
+        logger.info(
+            "Returning a cached connection for localAddress {} remoteAddress {} , connectionfuture is {} ",
+            localSocketAddress,
+            remoteSocketAddress,
+            connectionCompletableFuture);
         return connectionCompletableFuture;
       }
 

@@ -5,7 +5,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import java.util.*;
 import java.util.concurrent.*;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * A work queue is the abstraction for a queue of things to be done.

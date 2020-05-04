@@ -3,8 +3,8 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.ThreadContext;
+import org.slf4j.event.Level;
 
 /** This class manages the assignment of threads from a thread pool to the work in the queue. */
 public class DsQProcessor extends DsThread {

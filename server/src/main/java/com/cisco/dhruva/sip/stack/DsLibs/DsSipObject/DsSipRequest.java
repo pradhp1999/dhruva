@@ -8,7 +8,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.IOException;
 import java.io.OutputStream;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * This class is the parent class of all SIP Request classes like DsSipInviteMessage,

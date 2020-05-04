@@ -10,11 +10,15 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessageValidator;
 import com.cisco.dhruva.transport.Transport;
-import java.io.*;
+import com.cisco.dhruva.util.log.Logger;
+import java.io.FileWriter;
 import java.lang.reflect.Field;
-import java.util.*;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
+import org.slf4j.event.Level;
 
 /**
  * The helper class which serves as a hook to configure, monitor and retrieve information from the
@@ -233,7 +237,7 @@ public final class DsConfigManager implements DsSipConstants {
   public static final String PROP_TCP_CONN_TIMEOUT =
       "com.dynamicsoft.DsLibs.DsSipLlApi.TCP_CONN_TIMEOUT";
   /** 0 - infinite timeout. */
-  public static final int PROP_TCP_CONN_TIMEOUT_DEFAULT = 1;
+  public static final int PROP_TCP_CONN_TIMEOUT_DEFAULT = 1000;
 
   /**
    * com.dynamicsoft.DsLibs.DsSipLlApi.ConnectionTimeout: &nbsp; &nbsp; Set the timeout, in seconds,

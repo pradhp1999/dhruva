@@ -99,11 +99,6 @@ public class DsSipTransportLayer extends DsTransportLayer {
   //  Constructors
   // /////////////////////////////
 
-  /** Constructs the transport layer with no listen ports. */
-  public DsSipTransportLayer() {
-    this(null, null, null);
-  }
-
   // ///////////////   DsNetwork versions of constructors
 
   /**

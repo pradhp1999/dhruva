@@ -8,13 +8,13 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.cac.SIPSessions;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.TimerTask;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 
 /**
  * Implements the sever side of the low level state machine.
@@ -618,7 +618,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         + state
         + " KEY: "
         + m_key
-        + "\nCALLID:: "
+        + "CALLID:: "
         + (cid != null ? DsByteString.toString(cid) : "null");
   }
 
@@ -960,9 +960,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       DsSipServerTransaction prackTransaction, DsSipPRACKMessage request) throws DsException {
     if (genCat.isEnabled(Level.DEBUG)) {
       genCat.log(Level.DEBUG, "onPrack: ");
-      genCat.log(Level.DEBUG, m_key);
+      genCat.log(Level.DEBUG, String.valueOf(m_key));
       genCat.log(Level.DEBUG, "onPrack: ");
-      genCat.log(Level.DEBUG, request);
+      genCat.log(Level.DEBUG, request.toString());
     }
     m_prackMessage = request;
     m_prackTransaction = prackTransaction;
@@ -976,9 +976,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       throws IOException, DsException {
     if (genCat.isEnabled(Level.DEBUG)) {
       genCat.debug("onCancel: ");
-      genCat.debug(m_key);
+      genCat.debug(String.valueOf(m_key));
       genCat.debug("onCancel: ");
-      genCat.debug(request);
+      genCat.debug(request.toCryptoInfoMaskedString());
     }
     m_cancelMessage = request;
     execute(DS_ST_IN_CANCEL);
@@ -1168,7 +1168,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       case DS_CALLING | DS_ST_IN_PROVISIONAL:
         m_connection.getResponseConnection();
         initializeTimers();
-
         sendCurrentResponse();
         break;
       case DS_PROCEEDING | DS_ST_IN_REQUEST:
@@ -1971,9 +1970,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         case (CB_ACK):
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_ACK: ");
-            cbCat.debug(m_key);
+            cbCat.debug(String.valueOf(m_key));
             cbCat.debug("CB_ACK: ");
-            cbCat.debug(request);
+            cbCat.debug(request.maskAndWrapSIPMessageToSingleLineOutput());
           }
 
           DsSipRouteFixInterface rfi =
@@ -1994,9 +1993,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         case (CB_CANCEL):
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_CANCEL: ");
-            cbCat.debug(m_key);
+            cbCat.debug(String.valueOf(m_key));
             cbCat.debug("CB_CANCEL: ");
-            cbCat.debug(request);
+            cbCat.debug(request.maskAndWrapSIPMessageToSingleLineOutput());
           }
 
           cb.cancel(DsSipServerTransactionImpl.this, (DsSipCancelMessage) request);
@@ -2005,7 +2004,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         case (CB_TIMEOUT):
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_TIMEOUT: ");
-            cbCat.debug(m_key);
+            cbCat.debug(String.valueOf(m_key));
           }
 
           if (DsSipTransportLayer.getCloseConnectionOnTimeout()) {
@@ -2041,7 +2040,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         case (CB_EXCEPTION):
           if (cbCat.isEnabled(Level.INFO)) {
             cbCat.info("CB_EXCEPTION: ");
-            cbCat.info(m_key);
+            cbCat.info(String.valueOf(m_key));
           }
 
           cb.icmpError(DsSipServerTransactionImpl.this);
@@ -2050,9 +2049,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         case (CB_PRACK):
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.log(Level.DEBUG, "CB_PRACK: ");
-            cbCat.log(Level.DEBUG, m_key);
+            cbCat.log(Level.DEBUG, String.valueOf(m_key));
             cbCat.log(Level.DEBUG, "CB_PRACK: ");
-            cbCat.log(Level.DEBUG, request);
+            cbCat.log(Level.DEBUG, request.maskAndWrapSIPMessageToSingleLineOutput());
           }
 
           cb.prack(DsSipServerTransactionImpl.this, st);
