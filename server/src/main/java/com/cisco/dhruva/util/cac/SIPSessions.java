@@ -221,6 +221,7 @@ public class SIPSessions {
     return session;
   }
 
+  //MEETPASS NULL Pointer
   protected static SIPSession removeRecentSession(String sessionID) {
     SIPSession session = null;
     try {

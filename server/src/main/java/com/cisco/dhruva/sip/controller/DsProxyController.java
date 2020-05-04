@@ -1,0 +1,3039 @@
+/*
+ * Copyright (c) 2001-2006 by cisco Systems, Inc.
+ * All rights reserved.
+ */
+package com.cisco.dhruva.sip.controller;
+
+import com.cisco.dhruva.adaptor.ProxyResponseInterface;
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.loadbalancer.LBInterface;
+import com.cisco.dhruva.loadbalancer.LBRepositoryHolder;
+import com.cisco.dhruva.loadbalancer.ServerInterface;
+import com.cisco.dhruva.sip.proxy.*;
+import com.cisco.dhruva.sip.proxy.Errors.DsProxyErrorAggregator;
+import com.cisco.dhruva.sip.proxy.MappedResponse.DsMappedResponseCreator;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipClientTransactionImpl;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipResolverUtils;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
+import com.cisco.dhruva.util.cac.SIPSession;
+import com.cisco.dhruva.util.cac.SIPSessions;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
+import com.cisco.dhruva.util.log.Trace;
+import com.thoughtworks.qdox.Searcher;
+import org.apache.logging.log4j.Level;
+
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+/**
+ * This abstract class handles failover and loadbalancing.  When used in conjuction
+ * with a <code>Searcher</code> it is also capable of basic proxying and recursion.
+ * This functionality will only exist if this class is subclassed and given a Searcher object.
+ * If this controller is used for its DsControllerInterface, then it is the
+ * responsibility of the subclass to create a Searcher for this class to use.  If
+ * this class is used for its ProxyInterface, then all responses received will be
+ * passed to the ProxyResponseInterface passed in the ProxyInterface methods.
+ * The <code>BasicProxyController</code> is an example
+ * of a subclass that creates a Searcher.
+ * <p/>
+ * Copyright 2001 dynamicsoft, inc.
+ * All rights reserved
+ */
+
+public abstract class DsProxyController implements DsControllerInterface,
+        ProxyInterface
+{
+    private static boolean errorAggregatorEnabled = DsConfigManager.getProperty(DsConfigManager.PROP_ENABLE_ERROR_AGGREGATOR,
+            DsConfigManager.PROP_ENABLE_ERROR_AGGREGATOR_DEFAULT);
+
+    private static boolean errorMappedResponseEnabled = DsConfigManager.getProperty(DsConfigManager.PROP_ENABLE_ERROR_MAPPED_RESPONSE,
+            DsConfigManager.PROP_ENABLE_ERROR_MAPPED_RESPONSE_DEFAULT);
+
+    private static boolean isCreateDnsServerGroup = DsConfigManager.getProperty(DsConfigManager.PROP_CREATE_DNS_SERVER_GROUP,
+            DsConfigManager.PROP_CREATE_DNS_SERVER_GROUP_DEFAULT);;
+            
+    private static boolean isCreateCAEvents = DsConfigManager.getProperty(DsConfigManager.PROP_CREATE_CA_EVENTS,
+                    DsConfigManager.PROP_CREATE_CA_EVENTS_DEFAULT);
+
+    /**
+     * Indicates whether or not the Supported: path header value is required when
+     * adding a Path header to REGISTER requests.  If <code>true</code>, and the
+     * REGISTER request does NOT contain a Supported: path header value, and the
+     * the server is configured to add a Path header, the request is rejected with
+     * a 421 response.  Otherwise, the server adds the Supported: path header
+     * (if not present) in addition to the Path header.
+     */
+    public static final boolean REQUIRE_SUPPORTED_HEADER = Boolean.getBoolean("com.dynamicsoft.DsLibs.REQUIRE_SUPPORTED_HEADER");
+    /**
+     * This flag determines whether the ProxyController needs to add Supported: path
+     * if not present.
+     * <p/>
+     * By default, ProxyController adds the Supported: path if not present.
+     * <p/>
+     * Note that if REQUIRE_SUPPORTED_HEADER flag has been set to "true", this option
+     * is meaningless as the Proxy expects to receive a Supported path header.
+     */
+    public static final boolean ADD_SUPPORTED_PATH = Boolean.getBoolean("com.dynamicsoft.DsLibs.ADD_SUPPORTED_PATH");
+
+    public static final DsByteString BS_L_PATH = DsSipConstants.BS_PATH;
+
+    /**
+     * The numerical constant for "421 - Extension Required" response code.
+     */
+    public static final int DS_RESPONSE_EXTENSION_REQUIRED = 421;
+    /**
+     * The string constant for "Extension Required" string.
+     */
+    public static final String DS_STR_RESPONSE_EXTENSION_REQUIRED = "Extension Required";
+    /**
+     * The byte string constant for "Extension Required" string.
+     */
+    public static final DsByteString DS_BS_RESPONSE_EXTENSION_REQUIRED = new DsByteString("Extension Required");
+
+    // Defines failure reason to be sent in notifications(Alarm and SAEvent) generated by cloudproxy after call failures 
+    public static final String failureReason  = "Request timeout failure";
+    public static final String icmpFailureReason  = "ICMP - Error";
+
+    //Forking types
+    public static final byte SEARCH_PARALLEL = 0;
+    public static final byte SEARCH_SEQUENTIAL = 1;
+    public static final byte SEARCH_HIGHEST = 2;
+    public static final int SEQUENTIAL_SEARCH_TIMEOUT_DEFAULT = 60000;
+    final static boolean mEmulate2543 =
+        DsConfigManager.getProperty(DsConfigManager.PROP_EMULATE_RFC2543_RESPONSES,
+                DsConfigManager.PROP_EMULATE_RFC2543_RESPONSES_DEFAULT);
+
+    public HashMap ProxyParams = null;
+    public HashMap parsedProxyParamsByType = null;
+
+    public static final DsSipSupportedHeader supportedPath = new DsSipSupportedHeader(BS_L_PATH);
+    public static final DsSipRequireHeader requirePath = new DsSipRequireHeader(BS_L_PATH);
+
+    //////////// Vars passed in the constructor ////////////
+    /* Stores forking/search type, default is parallel */
+    protected byte searchType;
+    /* Stores if we are recursing or not */
+    protected boolean isRecursing;
+    /* Stores the request for this controller */
+    protected DsSipRequest ourRequest;
+    /* Stores the original request as a clone */
+    protected DsSipRequest originalRequest;
+    /* Stores the request with pre-normalization and xcl processing applied */
+    protected DsSipRequest preprocessedRequest;
+    /* Stores if we are in stateful or stateless mode */
+    protected byte stateMode = -1;
+    /* Used for proxying and creating transactions */
+    protected DsProxyParamsInterface ppIface;
+
+    /* The default value to be used if an overload response comes back with no retry-after header */
+    protected int defaultRetryAfterMillis;
+    /**
+     * our proxy...we need to save it so as to give access to other methods.
+     */
+    protected DsProxyStatelessTransaction ourProxy;
+    /**
+     * Timeout max request timeout in ms
+     */
+    protected int timeToTry = UACfgStats.uaMaxRequestTimeoutDefault;
+    /**
+     * The sequential timeout if we are doing a sequential search *
+     */
+    protected int sequentialSearchTimeout = SEQUENTIAL_SEARCH_TIMEOUT_DEFAULT;
+    /**
+     * remember the cancel request *
+     */
+    protected boolean gotCancel;
+    /* Our searcher object */
+    protected Searcher searcher;
+    /* A mapping of Locations to client transactions used when cancelling */
+    protected HashMap locToTransMap = new HashMap(11);
+    /* Used to get the repository when creating a load balancer */
+    protected LBRepositoryHolder repositoryHolder;
+    /**
+     * our log object *
+     */
+
+    private Logger Log = DhruvaLoggerFactory.getLogger(DsProxyController.class);
+
+    /* Specifies what to do on a failure event (ICMP error or request timeout), if
+     */
+    protected byte nextHopFailureAction = DsControllerConfig.NHF_ACTION_FAILOVER;
+
+    /**
+     * If true, will cancel all branches on CANCEL, 2xx and 6xx respnses
+     */
+    protected boolean cancelBranchesAutomatically = false;
+
+    protected ArrayList unCancelledBranches = new ArrayList(3);
+
+    protected boolean usingRouteHeader = false;
+
+    protected DsSipServerTransaction m_ServerTransaction;
+
+    // added by ketul,
+    // callleg key used by stateless transactions only for failoverstateful
+    // behaviour. callLegKey is a combination of callId + cSeq
+    private String callLegKey = null;
+
+    private boolean pathAdded = false;
+
+    /* Load balancer vars */
+    protected LBFactory lbFactory = null;
+
+    private DsByteString incomingNetwork = null;
+    private AppParamsInterface appParamsTrigger = null;
+
+    //Order in which the transport is selected.
+	private static final int Transports[] = { DsSipTransportType.TLS, DsSipTransportType.TCP,
+	        DsSipTransportType.UDP };
+
+    protected boolean respondedOnNewRequest = false;
+    HashMap dnsServerGroups = new HashMap<>();
+
+    private DsProxyErrorAggregator proxyErrorAggregator;
+
+    static {
+        if(errorMappedResponseEnabled && errorAggregatorEnabled) {
+            try {
+                DsMappedResponseCreator.initialize();
+            } catch (Exception e) {
+                Log.info("Failed to enable error mapped response. [" + e.getLocalizedMessage() + "]");
+            }
+
+        }
+
+        Log.info("error Aggregator is " + ((errorAggregatorEnabled) ? "enabled" : "disabled"));
+        Log.info("error mapped response is " + ((DsMappedResponseCreator.getInstance() != null) ? "enabled" : "disabled"));
+    }
+
+    public DsProxyController()
+    {
+        if(errorAggregatorEnabled) {
+            proxyErrorAggregator = new DsProxyErrorAggregator();
+        }
+    }
+
+    /* Used to initialize the controller.  This should be called before call backs
+     * are made to this object.
+     * @param searchType Either SEARCH_PARALLEL, SEARCH_SEQUENTIAL or SEARCH_HIGHEST.
+     * @param seqtimeout The timeout to be used when sequential searching.
+     * @param stateMode  the proxy  mode (0, 1 or 2 )
+     * @param isRecursing True if recursion should be used on 3xx responses
+     * @param ppIface The DsProxyParamsInterface to be used when proxying a request
+     * when there is no server group for the URI which will be proxied. It holds the
+     * request timout value, among other things.
+     */
+    public void init(byte searchType, int timeout, int sequentialSearchTimeout, byte stateMode,
+                     boolean isRecursing, DsProxyParamsInterface ppIface)
+    {
+        init(searchType, timeout, sequentialSearchTimeout, stateMode, isRecursing,
+             ppIface, 0, null, DsControllerConfig.NHF_ACTION_FAILOVER);
+    }
+
+
+    /* Used to initialize the controller.  This should be called before call backs
+     * are made to this object.
+     * @param searchType Either SEARCH_PARALLEL, SEARCH_SEQUENTIAL or SEARCH_HIGHEST.
+     * @param seqtimeout The timeout to be used when sequential searching.
+     * @param stateMode int for proxy state mode
+     * @param isRecursing True if recursion should be used on 3xx responses
+     * @param ppIface The DsProxyParamsInterface to be used when proxying a request
+     * when there is no server group for the URI which will be proxied.
+     * @param ercs The set of response codes to that will be failed over on.  Null if you
+     * don't care about ever failing over on a failure response.
+     * @param defaultRetryAfter The default value to be used if an overload response
+     * (specified in <code>ercs</code>) comes back with no retry-after header
+     */
+    public void init(byte searchType, int timeout, int sequentialSearchTimeout,
+                     byte stateMode, boolean isRecursing,
+                     DsProxyParamsInterface ppIface,
+                     int defaultRetryAfterMillis, LBRepositoryHolder holder,
+                     byte nextHopFailoverAction)
+    {
+        Log.debug("DsProxyController: Entering init()");
+
+        Log.debug("Timeout value for init is: " + timeout);
+        Log.debug("Sequential search timeout value for init is: " + sequentialSearchTimeout);
+
+        this.searchType = searchType;
+        this.sequentialSearchTimeout = sequentialSearchTimeout;
+        this.stateMode = stateMode;
+        this.isRecursing = isRecursing;
+        this.ppIface = ppIface;
+        this.defaultRetryAfterMillis = defaultRetryAfterMillis;
+        repositoryHolder = holder;
+        nextHopFailureAction = nextHopFailoverAction;
+
+        ourProxy = null;
+        timeToTry = timeout;
+        
+    }
+
+    public DsProxyErrorAggregator getProxyErrorAggregator() {
+        return proxyErrorAggregator;
+    }
+
+    public void setProxyErrorAggregator(DsProxyErrorAggregator proxyErrorAggregator) {
+        this.proxyErrorAggregator = proxyErrorAggregator;
+    }
+
+    /**
+     * DsControllerInterface onNewRequest() method implementation.  Creates a proxy
+     * transaction if one for this controller hasn't been set/created yet.  If this
+     * is a request that maps to an existing transaction and we are in FAILOVER_STATEFUL
+     * mode, then the request is sent again to the endpoint it was sent to last time.
+     * If this is a new request and the mode is not FAILOVER_STATEFUL, then the appropriate
+     * search (Sequential, Parallel or Highest-Q) begins using the searcher that was
+     * passed in in init().
+     *
+     * @param request The incoming request
+     */
+    public DsProxyStatelessTransaction onNewRequest(DsSipServerTransaction serverTrans, DsSipRequest request)
+    {
+
+        Log.debug("Entering DsProxyController onNewRequest() for \n" + request.maskAndWrapSIPMessageToSingleLineOutput());
+
+
+        //Store the request for use when creating responses
+        ourRequest = request;
+        try
+        {
+            Map<String, String> params = getParsedProxyParams(DsReConstants.MY_URI, false);
+            if(params == null || !params.containsKey(DsReConstants.RR))
+            {
+                if(!LicenseChecker.check())
+                {
+                    SIPSession session = SIPSessions.getActiveSession(request.getCallId().toString());
+                    if(session != null) {
+                        session.licenseFailure();
+                    }
+    
+                    if(Trace.on) {
+                        Log.error("Dropping request due to license check failure");
+                    }
+                    DsSipResponse errorResponse = DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_SERVICE_UNAVAILABLE, ourRequest);
+                    DsProxyResponseGenerator.sendResponse(errorResponse, (DsProxyTransaction) ourProxy);
+                    respondedOnNewRequest = true;
+                    return ourProxy;
+                }
+            }
+        }
+        catch (DsException e)
+        {
+            Log.error("Error in license check", e);
+        }
+
+        //REDDY Taking care of maddr parameter in the request uri that matches the proxy
+        DsURI uri = request.getURI();
+        if (uri.isSipURL())
+        {
+            DsSipURL sipURI = (DsSipURL) uri;
+            if (sipURI.hasMAddrParam())
+            {
+                if (DsControllerConfig.getCurrent().recognize(uri, false))
+                {
+                    sipURI.removeMAddrParam();
+                    if (sipURI.hasPort())
+                        sipURI.removePort();
+                    if (sipURI.hasTransport())
+                        sipURI.removeTransportParam();
+                }
+            }
+        }
+
+        if(proxyErrorAggregator!=null) {
+            proxyErrorAggregator.setDsSipRequest(request);
+        }
+        m_ServerTransaction = serverTrans;
+
+        //storing the incoming network of the request. it would be added into the path or RR
+        //route header of the path/RR would give us the network that the request needs to be sent.
+        incomingNetwork = new DsByteString(request.getNetwork().getName());
+
+        if (!checkPath(request, serverTrans)) return null;
+
+        //clone original request
+        originalRequest = (DsSipRequest) request.clone();
+
+        // Privacy
+        int pvcResult = SipPrivacy.SUCCESS;
+        try
+        {
+            pvcResult = SipPrivacy.getInstance().doServerPrivacy(incomingNetwork, request, getAppParamsInterface());
+        }
+        catch (Exception e)
+        {
+            DsSipResponse errorResponse = null;
+            try
+            {
+                errorResponse = DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR, ourRequest);
+                DsProxyResponseGenerator.sendResponse(errorResponse, (DsProxyTransaction) ourProxy);
+            }
+            catch (DsException e1)
+            {
+
+                Log.error("Error encountered while sending internal error response", e);
+            }
+            respondedOnNewRequest = true;
+            return ourProxy;
+        }
+        if (pvcResult != SipPrivacy.SUCCESS)
+        {
+            try
+            {
+                DsSipResponse errorResponse = DsProxyResponseGenerator.createResponse(pvcResult, ourRequest);
+                if (pvcResult == DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR)
+                {
+                    errorResponse.setReasonPhrase(new DsByteString("Requested privacy service not supported"));
+                }
+
+                DsProxyResponseGenerator.sendResponse(errorResponse, (DsProxyTransaction) ourProxy);
+            }
+            catch (DsException e)
+            {
+                Log.error("Error encountered while sending internal error response", e);
+            }
+            respondedOnNewRequest = true;
+            return ourProxy;
+        }
+
+        //Create a transaction if it hasn't been created yet.
+        //Children classes must do the check for the number of contacts if they want
+        //to become statefull automatically
+        if (ourProxy == null)
+        {
+            if (stateMode == DsControllerConfig.STATEFUL)
+            {
+                createProxyTransaction(true, serverTrans);
+            }
+            else
+            {
+                createProxyTransaction(false, serverTrans);
+            }
+        }
+        /* added by ketul,
+         for a stateless transaction, creates a callLegKey, and then
+         checks in the hashmap to see if the key exists. if it exists
+         then proxy to the nexthop directly without any further processing.
+         This check in the hashtable is better done overhere since we have to do
+         this check anyways before adding it to the hashtable in proxyToLogical.
+        */
+        if (stateMode == DsControllerConfig.FAILOVER_STATEFUL)
+        {
+            DsFailOverStatefulWrapper failOverWrapper = getFailOverStatefulWrapper(request);
+            if (failOverWrapper != null)
+            {
+                // chek if the next hop is markedDown,
+                if (failOverWrapper.isMarkedDown())
+                {
+                    // check if the on-next-hop-failure is set
+                    // to drop or failover
+                    if (nextHopFailureAction ==
+                            DsControllerConfig.NHF_ACTION_DROP)
+                    {
+                        //incase of drop, do nothing just drop the message
+                        return ourProxy;
+                    }
+                    else if (nextHopFailureAction ==
+                            DsControllerConfig.NHF_ACTION_FAILOVER)
+                    {
+                        //incase of failover get another next hop from
+                        // the load balancer and proxyto the new next hop.
+                        DsProxyCookieThing cookieThing = failOverWrapper.getCookieThing();
+                        ProxyResponseInterface responseIf = cookieThing.
+                                getResponseInterface();
+                        Location location = cookieThing.getLocation();
+                        proxyToInternal(location, ourRequest, responseIf, timeToTry);
+                        return ourProxy;
+                        //this new next-hop will now be added to the nexthoptable with a
+                        //new failoverwrapper in proxyTo().
+                    }
+                }
+                else // continue proxying to the next hop used in the initial request
+                {
+                    //getstatelss does a ourProxy.proxyTo with the
+                    // location and cookie stored in the failoverwrapper
+                    return getStatelessTrans(failOverWrapper);
+                }
+            }
+        }
+
+
+        Log.debug("Leaving DsProxyController onNewRequest()");
+
+
+        return ourProxy;
+    }
+
+    /**
+     * Adds a Path header to register requests.
+     *
+     * @param request     The request
+     * @param serverTrans The server transaction.  Used to reject the request, if necessary.
+     * @return <code>false</code> if the request was rejected for some error condition,
+     *         otherwise <code>true</code>
+     * @see #REQUIRE_SUPPORTED_HEADER
+     */
+    protected boolean checkPath(DsSipRequest request, DsSipServerTransaction serverTrans)
+    {
+        Log.debug("DsProxyController: Entering checkPath()");
+        boolean success = true;
+        if (request.getMethodID() == DsSipConstants.REGISTER)
+        {
+            //checking for PATH before we so supported header checks
+            if (DsControllerConfig.getCurrent().isPathSet())
+            {
+                DsSipHeaderList supportedHeaders;
+                try
+                {
+                    supportedHeaders = request.getHeadersValidate(DsSipSupportedHeader.sID);
+                }
+                catch (Throwable e)
+                {
+                    Log.error("Error parsing Supported header", e);
+                    supportedHeaders = null;
+                }
+                if (REQUIRE_SUPPORTED_HEADER)
+                {
+                    if (supportedHeaders == null || !supportedPathExists(supportedHeaders))
+                    {
+                        Log.info("Rejecting request with a " + DS_RESPONSE_EXTENSION_REQUIRED + " because Supported: path is required");
+
+                        DsSipResponse response = new DsSipResponse(DS_RESPONSE_EXTENSION_REQUIRED, request, null, null);
+                        response.setApplicationReason(DsMessageLoggingInterface.REASON_AUTO);
+                        response.setReasonPhrase(DS_BS_RESPONSE_EXTENSION_REQUIRED);
+                        response.addHeader(requirePath);
+                        try
+                        {
+                            serverTrans.sendResponse(response);
+                        }
+                        catch (Throwable e)
+                        {
+                            Log.error("Error sending " + response.getStatusCode() + " error response", e);
+
+                            try
+                            {
+                                serverTrans.abort();
+                            }
+                            catch (Throwable t)
+                            {
+                                Log.error("Error aborting server transaction", t);
+                            }
+                        }
+                        success = false;
+                    }
+                }
+                else
+                {
+                    if (ADD_SUPPORTED_PATH && (supportedHeaders == null || !supportedPathExists(supportedHeaders)))
+                    {
+                        request.addHeader(supportedPath);
+                        Log.debug("Added Supported Header with path");
+                    }
+                }
+            }
+        }
+
+        Log.debug("Leaving checkPath(), returning " + success);
+        return success;
+    }
+
+    /**
+     * Adds a Path header to register requests.
+     *
+     * @param request   The request
+     * @param transport request proxy transport to retrieve the correct path header
+     */
+    protected void addPath(DsSipRequest request, String direction, int transport)
+    {
+        Log.debug("Entering addPath()");
+        if (request.getMethodID() == DsSipConstants.REGISTER)
+        {
+            DsSipPathHeader path = ppIface.getPathInterface(transport, direction);
+            if (path != null)
+            {
+                DsSipURL pathURL = (DsSipURL) path.getURI();
+                // adding the path params to the path header URI user portion
+                pathURL.setUser(getPathParams(request, true));
+                request.addHeader(path, true, false);
+                pathAdded = true;
+                Log.debug("Added path header " + path);
+            }
+        }
+        Log.debug("Leaving addPath()");
+    }
+
+    public static boolean supportedPathExists(DsSipHeaderList supportedHeaders)
+    {
+        if (null != supportedHeaders)
+        {
+            for (DsSipSupportedHeader headers = (DsSipSupportedHeader) supportedHeaders.getFirst(); null != headers; headers = (DsSipSupportedHeader) headers.getNext())
+                if (headers.getValue().equalsIgnoreCase(BS_L_PATH))
+                    return true;
+
+        }
+        return false;
+    }
+
+    // returns a mapping to the callLegKey if it exists in the Hashtable
+    public DsFailOverStatefulWrapper getFailOverStatefulWrapper(DsSipRequest newRequest)
+    {
+        ourRequest = newRequest;
+        callLegKey = createCallLegKey(ourRequest);
+        // look for the callLegKey in the Hashtable
+        // which is the latest after cleanup by the timer thread for
+        // entries which have been there for more than 64 seconds or
+        // whatever is the removal interval between two cleanups
+        DsNextHopTable nextHopTable = DsNextHopTable.getInstance();
+        return nextHopTable.getNextHop(callLegKey);
+    }
+
+    /**
+     * This is invoked whenever an ACK is received for the response
+     * we sent back.
+     *
+     * @param proxy       the ProxyTransaction object
+     * @param transaction the ServerTransaction being ACKed
+     * @param ack         the ACK request
+     */
+    public void onAck(DsProxyTransaction proxy,
+                      DsProxyServerTransaction transaction,
+                      DsSipAckMessage ack)
+    {
+        // Do nothing
+    }
+
+    /**
+     * This method is invoked when the proxy receives a response
+     * it would like to send.
+     *
+     * @param response The response the proxy believes is the best
+     *                 and would like to send.
+     * @param proxy    The proxy object
+     *                 Note: this interface will need to be changed to handle
+     *                 multiple 200 OKs. My understanding is that Low Level API
+     *                 currently drops all 200 OKs after the first one so I
+     *                 didn't bother to define a controller API for this as well
+     */
+    public void onBestResponse(DsProxyTransaction proxy, DsSipResponse response)
+    {
+    }
+
+    /**
+     * This is called when a CANCEL is received for the original transaction.  All
+     * branches mapping to this transaction will be terminated.
+     *
+     * @param proxy  The proxyTransaction object
+     * @param trans  DsProxyServerTransaction being cancelled
+     * @param cancel the CANCEL request
+     * @throws DsException 
+     */
+    public void onCancel(DsProxyTransaction proxy,
+                         DsProxyServerTransaction trans,
+                         DsSipCancelMessage cancel) throws DsException
+    {
+
+        Log.debug("Entering onCancel()");
+
+        gotCancel = true;
+
+        //Cancel all branches for this transaction
+        if (cancelBranchesAutomatically)
+        {
+            proxy.cancel();
+            locToTransMap.clear();
+        }
+
+        Log.debug("Leaving onCancel()");
+    }
+
+    /**
+     * This method is invoked by the proxy when a 1xx response
+     * to a proxied request is received.
+     *
+     * @param response The response that was received.
+     * @param proxy    The proxy object.
+     * @param cookie   cookie object passed to proxyTo()
+     * @param trans    DsProxyClientTransaction representing the branch
+     *                 that the response was received on
+     */
+    public void onProvisionalResponse(DsProxyTransaction proxy,
+                                      DsProxyCookieInterface cookie,
+                                      DsProxyClientTransaction trans,
+                                      DsSipResponse response)
+    {
+        Log.debug("Entering onProvisionalResponse()");
+
+        //Reset tries if we are load balancing
+        //De-marshall the cookie
+        DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
+        ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+        Location location = cookieThing.getLocation();
+
+        if (location.getLoadBalancer() != null)
+            location.getLoadBalancer().getLastServerTried().onSuccess();
+
+        int responseCode = response.getStatusCode();
+        if (responseCode != 100)
+        {
+            proxy.respond(response);
+            if (Log.on && Log.isEnabled(Level.DEBUG))
+                Log.debug("sent " + responseCode + " response ");
+        }
+
+        //pass the provisional respnse back
+        if (responseIf != null)
+            responseIf.onProvisionalResponse(location, response);
+
+         Log.debug("Leaving onProvisionalResponse()");
+    }
+
+    /**
+     * This method is invoked by the proxy when a 2xx response
+     * to a proxied request is received.  All outstanding branches
+     * for this transaction are cancelled.
+     *
+     * @param response The response that was received.
+     * @param proxy    The ProxyTransaction object.
+     * @param cookie   cookie object passed to proxyTo()
+     * @param trans    DsProxyClientTransaction representing the branch
+     *                 that the response was received on
+     */
+
+    public void onSuccessResponse(DsProxyTransaction proxy,
+                                  DsProxyCookieInterface cookie,
+                                  DsProxyClientTransaction trans,
+                                  DsSipResponse response)
+    {
+         Log.debug("Entering onSuccessResponse()");
+
+        //The low leve will probably BYE the transaction, so there is no need for the
+        //application layer to know that it was successful.
+        //Decided to remove this after the code review, so that the 200 is sent upstream
+        //even if the transaction is cancelled MR
+        //if( gotCancel ) return;
+
+        //De-marshall the cookie
+        DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
+        ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+        Location location = cookieThing.getLocation();
+
+        if (location.getLoadBalancer() != null)
+            location.getLoadBalancer().getLastServerTried().onSuccess();
+
+        //Remove the mapping to this location since it is no longer cancellable
+        locToTransMap.remove(location);
+
+        //Cancel all outstanding branches if we are supposed to
+        if (cancelBranchesAutomatically)
+        {
+            proxy.cancel();
+            locToTransMap.clear();
+        }
+
+        //Pass the response callback to the searcher, who will cancel any outstanding branches
+        if (responseIf != null)
+            responseIf.onSuccessResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+
+        Log.debug("Leaving onSuccessResponse()");
+    }
+
+
+    /**
+     * This method is invoked by the proxy when a 3xx response
+     * to a proxied request is received. Its a good opportunity
+     * to perform recursion if needed.
+     *
+     * @param response The redirect response that was received.
+     * @param proxy    The ProxyTransaction object.
+     * @param cookie   cookie object passed to proxyTo()
+     * @param trans    DsProxyClientTransaction representing the branch
+     *                 that the response was received on
+     */
+    public void onRedirectResponse(DsProxyTransaction proxy,
+                                   DsProxyCookieInterface cookie,
+                                   DsProxyClientTransaction trans,
+                                   DsSipResponse response)
+    {
+
+        if (Log.on && Log.isEnabled(Level.DEBUG))
+            Log.debug("Entering onRedirectResponse()");
+
+        if(proxyErrorAggregator!=null) {
+            proxyErrorAggregator.onFailureResponse(response);
+            addProxyErrorToSipSession(response.getCallId().toString());
+        }
+
+        //De-marshall the cookie
+        DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
+        ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+        Location location = cookieThing.getLocation();
+
+        //Have the searcher continue the search if recursion is on
+        if (responseIf != null)
+            responseIf.onRedirectResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+
+        if (Log.on && Log.isEnabled(Level.DEBUG))
+            Log.debug("Leaving onRedirectResponse()");
+
+    }
+
+    /**
+     * This method is invoked by the proxy when a 4xx or 5xx
+     * response to a proxied request is received
+     *
+     * @param response Response message that was received. Note
+     *                 that the top Via header will be stripped off before its
+     *                 passed.
+     * @param cookie   cookie object passed to proxyTo()
+     * @param trans    DsProxyClientTransaction representing the branch
+     *                 that the response was received on
+     * @param proxy    ProxyTransaction object
+     */
+
+    public void onFailureResponse(DsProxyTransaction proxy,
+                                  DsProxyCookieInterface cookie,
+                                  DsProxyClientTransaction trans,
+                                  DsSipResponse response)
+    {
+
+        if (Log.on && Log.isDebugEnabled())
+        {
+            Log.debug("Entering onFailureResponse()");
+            Log.debug("Failure message = \n" + response.maskAndWrapSIPMessageToSingleLineOutput());
+        }
+
+        if(proxyErrorAggregator!=null) {
+            proxyErrorAggregator.onFailureResponse(response);
+            addProxyErrorToSipSession(response.getCallId().toString());
+        }
+
+        //De-marshall the cookie
+        DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
+        ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+        Location location = cookieThing.getLocation();
+
+        //If this response is an overload response, this brach has a server group, and
+        //this branch is failing over, then update the load balancer and failover
+        ServerInterface lastServerTried = null;
+        LBInterface lb = location.getLoadBalancer();
+        if (lb != null)
+        {
+            lastServerTried = lb.getLastServerTried();
+        }
+        if (lastServerTried != null &&
+                lastServerTried.isCodeInFailoverCodeSet(response.getStatusCode()) &&
+                location.getLoadBalancer() != null && !gotCancel)
+        {
+
+            DsSipRetryAfterHeader retryHeader = null;
+            try
+            {
+                retryHeader = (DsSipRetryAfterHeader) response.getHeaderValidate(DsSipRetryAfterHeader.sID);
+            }
+            catch (DsException e)
+            {
+                if (Log.on && Log.isEnabled(Level.ERROR))
+                    Log.error("Error while parsing retry after header in response: ", e);
+            }
+
+            lb.getLastServerTried().onFailoverResponse(retryHeader);
+
+            //Finally send the new request with the updated load balancer
+            try
+            {
+                //Try to send to this logical destination again, if we can't, then
+                //see if we can try the next logical destination.
+                //if( !proxyToLogical( location ) )
+                //  this.proxyToNextLogical();
+
+                proxyToInternal(location, (DsSipRequest) preprocessedRequest.clone(), responseIf, timeToTry);
+
+            }
+            catch (Exception e)
+            {
+                if (Log.on && Log.isEnabled(Level.ERROR))
+                    Log.error("Request couldn't be proxied", e);
+                sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
+            }
+        }
+        //We aren't load balancing so pass the response to the callback interface
+        else
+        {
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("Failure response received for " + location + "; not failing over");
+
+            //Remove the mapping to this location since it is no longer cancellable
+            locToTransMap.remove(location);
+
+            if (responseIf != null)
+                responseIf.onFailureResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+        }
+
+        if (Log.on && Log.isEnabled(Level.DEBUG))
+            Log.debug("Leaving onFailureResponse()");
+
+    }
+
+    /**
+     * This method is invoked by the proxy when a 6xx response
+     * to a proxied request is received.
+     *
+     * @param response The response that was received.
+     * @param proxy    The ProxyTransaction object.
+     * @param cookie   cookie object passed to proxyTo()
+     * @param trans    DsProxyClientTransaction representing the branch
+     *                 that the response was received on
+     */
+    public void onGlobalFailureResponse(DsProxyTransaction proxy,
+                                        DsProxyCookieInterface cookie,
+                                        DsProxyClientTransaction trans,
+                                        DsSipResponse response)
+    {
+        if (Log.on && Log.isEnabled(Level.DEBUG))
+            Log.debug("Entering onGlobalFailureReponse()");
+
+        if(proxyErrorAggregator!=null) {
+            proxyErrorAggregator.onFailureResponse(response);
+            addProxyErrorToSipSession(response.getCallId().toString());
+        }
+
+        //demarshall the cookie object
+        DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
+        ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+        Location location = cookieThing.getLocation();
+
+        //Reset tries if we are load balancing
+        if (location.getLoadBalancer() != null)
+            location.getLoadBalancer().getLastServerTried().onSuccess();
+
+        //Remove the mapping to this location since it is no longer cancellable
+        locToTransMap.remove(location);
+
+        //Cancel all outstanding branches if we are supposed to
+        if (cancelBranchesAutomatically)
+        {
+            proxy.cancel();
+            locToTransMap.clear();
+        }
+
+        //Pass the response up the stack, the responseIf should do the CANCELing
+        if (responseIf != null)
+            responseIf.onGlobalFailureResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+
+        if (Log.on && Log.isEnabled(Level.DEBUG))
+            Log.debug("Leaving onGlobalFailureReponse()");
+
+    }
+
+    /**
+     * This method is invoked whenever a ClientTransaction times out
+     * before receiving a response
+     *
+     * @param proxy  The proxy object
+     * @param trans  DsProxyClientTransaction where the timeout occurred
+     * @param cookie cookie object passed to proxyTo()
+     */
+    public void onRequestTimeOut(DsProxyTransaction proxy,
+                                 DsProxyCookieInterface cookie,
+                                 DsProxyClientTransaction trans)
+    {
+
+        if (Log.on && Log.isDebugEnabled())
+        {
+            Log.debug("Entering onRequestTimeout()");
+        }
+
+        if(proxyErrorAggregator!=null) {
+            DsSipRequest request = ((DsProxyCookieThing) cookie).getOutboundRequest();
+            proxyErrorAggregator.onRequestTimeOut(request.getBindingInfo());
+            addProxyErrorToSipSession(request.getCallId().toString());
+        }
+
+        //demarshall the cookie object
+        DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
+        ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+        Location location = cookieThing.getLocation();
+        //If this brach has a server group, and this branch is failing over, and we
+        //haven't received a response yet for this transaction, then update the
+        //load balancer and failover
+        if (location.getLoadBalancer() != null && trans.getResponse() == null &&
+                nextHopFailureAction == DsControllerConfig.NHF_ACTION_FAILOVER &&
+                !gotCancel)
+        {
+
+            //Simple update the failed over tries, and then if this URI is interested
+            //in failing over, call proxyToLogical which will pick the next server in the
+            //server group
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("onRequestTimeout() is going to try and failover with location " + location);
+
+            LBInterface lb = location.getLoadBalancer();
+
+            lb.getLastServerTried().onFailover(failureReason);
+
+            if (lb.getNumberOfUntriedElements() == 0)
+            {
+
+                if (Log.on && Log.isDebugEnabled())
+                    Log.debug("No more servers to try, making onRequestTimeout() callback on searcher ");
+
+                makeRequestTimeoutCallback(location, responseIf);
+
+            }
+            else
+            {
+                proxyToInternal(location, (DsSipRequest) preprocessedRequest.clone(), responseIf, timeToTry);
+            }
+
+        }
+        else /* if( trans.getResponse() == null ) ???  */
+        {
+
+            makeRequestTimeoutCallback(location, responseIf);
+        }
+
+        if (Log.on && Log.isEnabled(Level.DEBUG))
+            Log.debug("Leaving onRequestTimeout()");
+
+    }
+
+    /**
+     * Make a requestTimeout callback on the ProxyResponseInterface interface passed in
+     */
+    private void makeRequestTimeoutCallback(Location location, ProxyResponseInterface responseIf)
+    {
+        /******** We should actually use the response created by the low-level here if we can get it - JPS ****/
+        try
+        {
+            DsSipResponse timeoutResponse = DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_REQUEST_TIMEOUT, ourRequest);
+            // Debug Logging
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("Calling onRequestTimeout() on the callback interface with response: " + timeoutResponse);
+
+            //Remove the mapping to this branch since we probably don't want to cancel it
+            locToTransMap.remove(location);
+
+            if (responseIf != null)
+                responseIf.onRequestTimeout(location, timeoutResponse);
+        }
+        catch (DsException e)
+        {
+            if (Log.on && Log.isEnabled(Level.ERROR))
+                Log.error("Error creating response", e);
+        }
+    }
+
+    /**
+     * This method is invoked whenever a ServerTransaction times out.
+     * The method is only relevant for INVITE transactions for which a
+     * non-200 response was sent
+     *
+     * @param proxy The proxy object
+     * @param trans the transaction that has timed out. If controller
+     *              decides to undertake any actions in response to this event, it might
+     *              pass the request back to the ProxyTransaction to identify the
+     *              timed out ClientTransaction
+     */
+    public void onResponseTimeOut(DsProxyTransaction proxy,
+                                  DsProxyServerTransaction trans)
+    {
+        if (Log.on && Log.isDebugEnabled())
+            Log.debug("Entering onResponseTimeOut()");
+
+        if (Log.on && Log.isDebugEnabled())
+            Log.debug("Leaving onResponseTimeOut()");
+    }
+
+    /**
+     * This is invoked whenever an ICMP error occurs while
+     * retransmitting a response over UDP
+     *
+     * @param proxy The proxy object
+     * @param trans DsProxyServerTransaction where the timeout occurred
+     */
+    public void onICMPError(DsProxyTransaction proxy, DsProxyServerTransaction trans)
+    {
+
+        if (Log.on && Log.isDebugEnabled())
+            Log.debug("Entering onICMPError() for a response ");
+    }
+
+    /**
+     * This is invoked whenever an ICMP error occurs while
+     * retransmitting a request over UDP
+     *
+     * @param proxy  The proxy object
+     * @param cookie cookie object passed to proxyTo()
+     * @param trans  DsProxyClientTransaction where the timeout occurred
+     */
+    public void onICMPError(DsProxyTransaction proxy,
+                            DsProxyCookieInterface cookie,
+                            DsProxyClientTransaction trans)
+    {
+        if (Log.on && Log.isDebugEnabled())
+            Log.debug("Entering onICMPError() for a request");
+
+        //demarshall the cookie object
+        DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
+        ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+        Location location = cookieThing.getLocation();
+
+        //If we are stateful, if the failover action is failover, then failover,
+        //if it isn't, then just make the response callback
+        if (stateMode == DsControllerConfig.STATEFUL)
+        {
+            if (location.getLoadBalancer() != null &&
+                    nextHopFailureAction == DsControllerConfig.NHF_ACTION_FAILOVER &&
+                    !gotCancel)
+            {
+
+                location.getLoadBalancer().getLastServerTried().onICMPError(icmpFailureReason);
+                proxyToInternal(location, (DsSipRequest) preprocessedRequest.clone(), responseIf, timeToTry);
+            }
+            else if (responseIf != null)
+                responseIf.onProxyFailure(location, ResponseReasonCodeConstants.ICMP);
+
+        }// added by ketul for failover-stateful mode
+        else if (stateMode == DsControllerConfig.FAILOVER_STATEFUL)
+        {
+
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("statemode is failover-stateful");
+
+            // always mark down the next hop in any case,
+            // since we got a icmperror from this next hop
+            // this will prevent this next hop from being used
+            // in case of retransmissions in failoverstateful
+            // mode in onnewrequest()
+            DsNextHopTable nextHopTable = DsNextHopTable.getInstance();
+            nextHopTable.getNextHop(createCallLegKey
+                    (ourRequest)).setMarkedDown(true);
+            if (location.getLoadBalancer() != null &&
+                    nextHopFailureAction == DsControllerConfig.
+                            NHF_ACTION_FAILOVER && !gotCancel)
+            {
+                location.getLoadBalancer().getLastServerTried().onICMPError(icmpFailureReason);
+                proxyTo(location, ourRequest, responseIf);
+            }
+            else
+            {
+                if (responseIf != null)
+                    responseIf.onProxyFailure(location, ResponseReasonCodeConstants.ICMP);
+            }
+        }
+    }
+
+    /**
+     * This callback is invoked when there was a synchronous exception
+     * forwarding a request and DsProxyClientTransaction object could not
+     * be created
+     *
+     * @param proxy       ProxyTransaction object
+     * @param cookie      cookie object passed to proxyTo()
+     * @param errorCode   identifies the exception thrown when forwarding request
+     * @param errorPhrase the String from the exception
+     * @param exception   exception that caused the error; null if not available
+     */
+    public void onProxyFailure(DsProxyStatelessTransaction proxy,
+                               DsProxyCookieInterface cookie,
+                               int errorCode,
+                               String errorPhrase,
+                               Throwable exception)
+    {
+        if (Log.on && Log.isDebugEnabled())
+            Log.debug("onProxyFailure() - Exception: " + exception, exception);
+
+        DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
+        ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+        Location location = cookieThing.getLocation();
+
+        //collect all errors if enabled
+        if(proxyErrorAggregator!=null) {
+            proxyErrorAggregator.onProxyFailure(exception, cookieThing.getOutboundRequest().getBindingInfo(), errorCode);
+            addProxyErrorToSipSession(ourRequest.getCallId().toString());
+        }
+        
+        // added by ketul for failoverstateful mode. to mark down the
+        // wrapper incase of proxyfailure
+        if (stateMode == DsControllerConfig.FAILOVER_STATEFUL)
+        {
+
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("statemode is failover-stateful");
+
+            // always mark down the next hop in any case
+            DsNextHopTable nextHopTable = DsNextHopTable.getInstance();
+            nextHopTable.getNextHop(createCallLegKey
+                    (ourRequest)).setMarkedDown(true);
+        }
+
+        //If this branch was marked as cancellable, then remove that mark now
+        int index;
+        if ((index = unCancelledBranches.indexOf(location)) != -1)
+        {
+            unCancelledBranches.remove(index);
+        }
+
+        //Try to failover, if we can't, then make the response call back
+        if (location.getLoadBalancer() != null &&
+                nextHopFailureAction == DsControllerConfig
+                        .NHF_ACTION_FAILOVER && !gotCancel)
+        {
+            location.getLoadBalancer().getLastServerTried().onFailover(errorPhrase);
+            proxyToInternal(location, (DsSipRequest) preprocessedRequest.clone(), responseIf, timeToTry);
+        }
+        else if (location.getLoadBalancer() != null &&
+                nextHopFailureAction == DsControllerConfig
+                        .NHF_ACTION_DROP && !gotCancel)
+        {
+            location.getLoadBalancer().getLastServerTried().onFailover(errorPhrase);
+        }
+        else
+        {
+            if (responseIf != null)
+            {
+                // clearing out the binding info so that response goes to the via and not to the binding info CR8198
+                ourRequest.setBindingInfo(new DsBindingInfo());
+                if (errorCode != DsControllerInterface.DESTINATION_UNREACHABLE)
+                    responseIf.onProxyFailure(location, ResponseReasonCodeConstants.PROXY_ERROR);
+                else
+                    responseIf.onProxyFailure(location, ResponseReasonCodeConstants.UNREACHABLE);
+
+            }
+            else if (usingRouteHeader)
+            {
+                try
+                {
+                    respond(DsProxyResponseGenerator.createNotFoundResponse(ourRequest));
+                }
+                catch (DsException e)
+                {
+                    // Error Logging
+                    if (Log.on && Log.isEnabled(Level.ERROR))
+                        Log.error("Error encountered while creating response", e);
+                }
+            }
+        }
+
+    }
+
+    /**
+     * This callback is invoked if a request was forwarded successfully, i.e.,
+     * without any synchronous exceptions and
+     * a DsProxyClientTransaction is created
+     * NOTE: It is possible to receive onProxySuccess callback first
+     * and then OnProxyFailure. This will happen when the error is reported
+     * asynchronously to the Proxy Core
+     *
+     * @param proxy  ProxyTransaction object
+     * @param cookie cookie object passed to proxyTo()
+     * @param trans  newly created DsProxyClientTransaction
+     */
+    public void onProxySuccess(DsProxyStatelessTransaction proxy,
+                               DsProxyCookieInterface cookie,
+                               DsProxyClientTransaction trans)
+    {
+        if (Log.on && Log.isTraceEnabled())
+            Log.trace("Entering onProxySuccess() ");
+
+        //demarshall the cookie object
+        DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
+        //ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+        Location location = cookieThing.getLocation();
+
+        //See if this is a branch that should be cancelled
+        int index;
+        if ((index = unCancelledBranches.indexOf(location)) != -1)
+        {
+
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("Found an uncancelled branch, cancelling it now ");
+
+            trans.cancel();
+            unCancelledBranches.remove(index);
+            return;
+        }
+
+        //Store the mapping between this location and its client transaction so we
+        //can easily cancel the branch if we need to
+        locToTransMap.put(location, trans);
+
+        if (Log.on && Log.isTraceEnabled())
+            Log.trace("Leaving onProxySuccess() ");
+
+    }
+
+    /**
+     * This callback is invoked if a response was forwarded successfully, i.e.,
+     * without any synchronous exceptions and
+     * a DsProxyClientTransaction is created
+     *
+     * @param proxy ProxyTransaction object
+     * @param trans DsProxyServerTransaction on which the response was sent
+     */
+    public void onResponseSuccess(DsProxyTransaction proxy,
+                                  DsProxyServerTransaction trans)
+    {
+
+        if (Log.on && Log.isDebugEnabled())
+            Log.debug("onResponseSuccess() - Response was sent succesfully");
+
+    }
+
+    /**
+     * This callback is invoked when there was a synchronous exception
+     * forwarding a response and DsProxyClientTransaction object could not
+     * be created
+     *
+     * @param proxy       ProxyTransaction object
+     * @param errorCode   identifies the exception thrown when forwarding request
+     * @param errorPhrase the String from the exception
+     */
+    public void onResponseFailure(DsProxyTransaction proxy,
+                                  DsProxyServerTransaction trans,
+                                  int errorCode,
+                                  String errorPhrase,
+                                  Throwable exception)
+    {
+        if (Log.on && Log.isEnabled(Level.WARN))
+            Log.warn("onResponseFailure() - Could not send response", exception);
+        
+        if (proxyErrorAggregator != null) {
+            DsSipResponse response = proxy.getBestResponse();
+            proxyErrorAggregator.onResponseFailure(exception, response, errorCode);
+        }
+    }
+
+    /**
+     * If this is set to true, the controller will cancel all outstanding branches
+     * when it receives a final response.   Otherwise it won't.
+     */
+    public void setCancelBranchesAutomatically(boolean cancel)
+    {
+        cancelBranchesAutomatically = cancel;
+    }
+
+    /**
+     * Creates a <CODE>DsProxyStatelessTransaction</CODE> object if
+     * the proxy is configured to be stateless.  Otherwise if either
+     * the proxy is configured to be stateful or if the controller
+     * decides that the current transaction should be stateful , it
+     * creates the <CODE>DsProxyTransaction</CODE> object.  This method can only
+     * be used to create a transaction if one has not been created yet.
+     *
+     * @param setStateful Indicates that the current transaction be
+     *                    stateful,irrespective of the controller
+     *                    configuration.
+     * @param request     The request that will be used to create the transaction
+     */
+    public void createProxyTransaction(boolean setStateful, DsSipRequest request, DsSipServerTransaction serverTrans)
+    {
+        if (ourProxy == null)
+        {
+            if (setStateful || (request != null && request.getBindingInfo().getTransport() == DsSipTransportType.TCP))
+            {
+                try
+                {
+                    ourProxy = new DsProxyTransaction(this, ppIface, serverTrans, request);
+
+                    if (Log.on && Log.isDebugEnabled())
+                        Log.debug("Created stateful proxy transaction ");
+                }
+                catch (DsInternalProxyErrorException e)
+                {
+                    if (Log.on && Log.isEnabled(Level.ERROR))
+                        Log.error("createProxyTransaction() - couldn't create proxy transaction ", e);
+                }
+            }
+            else
+            {
+                try
+                {
+                    ourProxy = new DsProxyStatelessTransaction(this, ppIface, request);
+                }
+                catch (DsInternalProxyErrorException dse)
+                {
+                    sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
+                }
+                if (Log.on && Log.isDebugEnabled())
+                    Log.debug("Created stateless proxy transaction ");
+            }
+        }
+    }
+
+
+    /**
+     * Creates a <CODE>DsProxyStatelessTransaction</CODE> object if
+     * the proxy is configured to be stateless. Otherwise if either
+     * the proxy is configured to be stateful or if the controller
+     * decides that the current transaction should be stateful , it
+     * creates the <CODE>DsProxyTransaction</CODE> object.
+     * This method can only
+     * be used to create a transaction if one has not been created yet.
+     *
+     * @param setStateful Indicates that the current transaction be
+     *                    stateful,irrespective of the controller
+     *                    configuration.
+     */
+    protected void createProxyTransaction(boolean setStateful, DsSipServerTransaction serverTrans)
+    {
+
+        createProxyTransaction(setStateful, ourRequest, serverTrans);
+        /*
+          if( ourProxy == null ) {
+              if( setStateful || ( ourRequest != null && ourRequest.getBindingInfo().getTransport() == DsSipTransportType.TCP) ) {
+                try {
+              ourProxy = new DsProxyTransaction(this, this.ppIface, ourRequest );
+
+                    if (Log.on && Log.isDebugEnabled())
+                        Log.log( Level.DEBUG , "Created stateful proxy transaction ");
+            }
+                  catch( DsInternalProxyErrorException e ){
+                    if (Log.isEnabledFor(Level.WARN))
+                Log.warn( "createProxyTransaction() - couldn't create proxy transaction " , e );
+            }
+          }
+          else {
+            try {
+                     ourProxy = new  DsProxyStatelessTransaction(this, this.ppIface, ourRequest);
+            }
+            catch(DsInternalProxyErrorException dse ) {
+              sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
+            }
+            if (Log.on && Log.isDebugEnabled())
+                  Log.log( Level.DEBUG , "Created stateless proxy transaction ");
+          }
+        } */
+    }
+
+    public void setProxyTransaction(DsProxyStatelessTransaction proxy)
+    {
+        ourProxy = proxy;
+    }
+
+    /*
+     * Overwrites a stateful DsProxyTransaction with a DsStatelessProxy transaction.
+    */
+    public boolean overwriteStatelessMode()
+    {
+
+        //Set it to null if it is stateless
+        if (ourProxy != null && !(ourProxy instanceof DsProxyTransaction))
+        {
+            ourProxy = null;
+        }
+
+        if (Log.on && Log.isDebugEnabled())
+            Log.debug("Changing stateless proxy transaction to a stateful one");
+
+        DsSipHeaderList vias = ourRequest.getHeaders(DsSipConstants.VIA);
+        if (null != vias)
+        {
+            try
+            {
+                DsSipViaHeader topvia = (DsSipViaHeader) vias.getFirstHeader();
+                if (DsControllerConfig.getCurrent().recognize(null, topvia.getHost(), topvia.getPort(), topvia.getTransport()))
+                {
+                    if (Log.on && Log.isDebugEnabled())
+                        Log.debug("Removing the top via since its our own and we are trying to respond in stateless mode");
+                    vias.removeFirstHeader();
+                }
+            }
+            catch (DsSipParserException e)
+            {
+                if (Log.on && Log.isEnabled(Level.ERROR))
+                    Log.error("Error in parsing the top via of the request", e);
+            }
+            catch (DsSipParserListenerException e)
+            {
+                if (Log.on && Log.isEnabled(Level.ERROR))
+                    Log.error("Error in parsing the top via of the request", e);
+            }
+        }
+
+        //Create a stateful proxy
+        createProxyTransaction(true, m_ServerTransaction);
+
+        return !(ourProxy == null);
+    }
+
+    /*
+     * Should be called only iterate
+     * Overwrites a DsStatelessProxyTransaction with a stateful DsProxyTransaction.
+    */
+    public boolean overwriteStatelessModeOnIterate()
+    {
+
+        //Set it to null if it is stateless
+        if (ourProxy != null && !(ourProxy instanceof DsProxyTransaction))
+        {
+            ourProxy = null;
+        }
+
+        if (Log.on && Log.isDebugEnabled())
+            Log.debug("Changing stateless proxy transaction to a stateful one on iterate");
+
+        //Create a stateful proxy
+        createProxyTransaction(true, m_ServerTransaction);
+
+        return !(ourProxy == null);
+    }
+
+
+    /**
+     * Callback causing the transaction branch(es) associated with the specified
+     * location to be cancelled.
+     *
+     * @param location the {@link com.cisco.re.search.Location} whose
+     *                 transaction is to be cancelled
+     * @param timedOut indicates whether or not the transaction branch(es) are
+     *                 being cancelled due to a timeout.  This is currently only <code>true</code> when an
+     *                 iterate times out.
+     * @see {@link com.cisco.xcl.ProxyScriptAgent#run(Object)}
+     */
+    public void cancel(Location location, boolean timedOut)
+    {
+
+        if (Log.on && Log.isDebugEnabled())
+            Log.debug("Entering cancel for location: " + location);
+
+        //Retrieve the branch that was stored onProxySuccess()
+        DsProxyClientTransaction branch = (DsProxyClientTransaction) locToTransMap.get(location);
+
+        if (branch != null)
+        {
+            branch.cancel();
+            if (timedOut) branch.timedOut();
+            locToTransMap.remove(location);
+        }
+        else
+        {
+            if (Log.on && Log.isInfoEnabled())
+                Log.info("Unable to cancel branch for location: " + location);
+            unCancelledBranches.add(location);
+        }
+
+        if (Log.on && Log.isTraceEnabled())
+            Log.trace("Leaving cancel");
+
+    }
+
+    public void respond(DsSipResponse response)
+    {
+
+        if ((ourRequest.getMethodID() != DsSipMessage.ACK) &&
+                (ourRequest.getMethodID() != DsSipMessage.CANCEL))
+        {
+            //Change to statefull if we are stateless
+            if (stateMode != DsControllerConfig.STATEFUL) {
+                overwriteStatelessMode();
+            }
+
+            if(DsMappedResponseCreator.getInstance() != null) {
+                response = DsMappedResponseCreator.getInstance().createresponse(incomingNetwork.toString(), proxyErrorAggregator.getProxyErrorList(), response);
+            }
+
+            DsProxyResponseGenerator.sendResponse(response, (DsProxyTransaction) ourProxy);
+        }
+        else
+        {
+            if (Trace.on && Log.isEnabled(Level.WARN))
+                Log.warn("in respond() - not forwarding response because request method was ACK");
+        }
+
+    }
+
+    /**
+     * Send a 100 Trying response.  If there is no proxy transaction created yet, we will
+     * create one now.
+     */
+    public void sendTryingResponse(DsSipRequest request)
+    {
+        DsProxyResponseGenerator.sendByteBasedTryingResponse((DsProxyTransaction) ourProxy);
+    }
+
+    public void proxyTo(Location location, DsSipRequest request,
+                        ProxyResponseInterface responseIf)
+    {
+        proxyTo(location, request, responseIf, timeToTry);
+    }
+
+    public DsNetwork getNetworkFromLocation(Location location)
+    {
+        // get the network from location if set
+        DsNetwork network = location.getNetwork();
+
+        if (network == null && location.getBindingInfo() != null)
+        {
+            //get the network from the bindinginfo of the outgoing message if set
+            network = location.getBindingInfo().getNetwork();
+        }
+
+        return network;
+    }
+
+    private DsNetwork getNetworkFromMyURI()
+    {
+        DsNetwork network = null;
+
+        //get the network from my-uri(record routing case)
+        Map<String, String> parsedProxyParams = null;
+        try
+        {
+            parsedProxyParams = getParsedProxyParams(DsReConstants.MY_URI, false);
+        }
+        catch (DsException e)
+        {
+            if (Log.on && Log.isEnabled(Level.ERROR))
+                Log.error("Error in parsing the my uri for app params", e);
+        }
+
+        if (parsedProxyParams != null)
+        {
+            network = DsNetwork.findNetwork((String) parsedProxyParams.get(DsReConstants.N));
+        }
+
+        return network;
+    }
+
+    private DsURI getURIFromLocationAndRequest(Location location, DsSipRequest request)
+    {
+        DsURI uri;
+        if (!location.processRoute())
+        {
+            // since route processing is set to false
+            // get the URI from the location object
+            uri = location.getURI();
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("checking for sg in r-URI");
+        }
+        else
+        {
+            //Route processing is set to true
+            // try to the uri from the route header if one exist, if not use the location URI
+            try
+            {
+                DsSipRouteHeader routeHeader = (DsSipRouteHeader) request.getHeaderValidate(DsSipConstants.ROUTE);
+
+                if (routeHeader == null && location.getRouteHeaders() != null)
+                {
+                    if (location.getRouteHeaders().size() > 0)
+                        routeHeader = (DsSipRouteHeader) location.getRouteHeaders().getFirstHeader();
+                }
+
+                if (routeHeader != null)
+                {
+                    uri = routeHeader.getURI();
+                }
+                else
+                {
+                    uri = location.getURI();
+                }
+
+                if (Log.on && Log.isDebugEnabled())
+                {
+                    Log.debug("checking for sg in top Route");
+                }
+
+            }
+            catch (Exception e)
+            {
+                if (Log.on && Log.isEnabled(Level.ERROR))
+                    Log.error("Exception retrtieving Route header!", e);
+                // error in getting the route header URI, use the location URI.
+                uri = location.getURI();
+            }
+        }
+        return uri;
+    }
+
+    private AbstractServerGroup getServerGroupFromURI(DsURI uri)
+    {
+        if (uri != null && uri.isSipURL())
+        {
+            DsSipURL sipUrl = (DsSipURL) uri;
+            if (!sipUrl.hasPort())
+            {
+                DsByteString host = sipUrl.getMAddrParam();
+                if (host == null)
+                    host = sipUrl.getHost();
+
+                // set the server group if there exists one macthing the hostname
+                if (repositoryHolder != null)
+                {
+                    HashMap serverGroups = repositoryHolder.getServerGroups();
+                    if (serverGroups != null)
+                    {
+                        AbstractServerGroup serverGroup = (AbstractServerGroup) serverGroups.get(host);
+                        if (serverGroup != null)
+                            return serverGroup;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public AbstractServerGroup getServerGroup(Location location, DsSipRequest request)
+    {
+        AbstractServerGroup serverGroup = null;
+        // if no server group set, check the hostname to see if it matches a server group
+        if (location.getServerGroupName() != null)
+        {
+            serverGroup = (AbstractServerGroup) repositoryHolder.getServerGroups().get(location.getServerGroupName());
+            if (Log.on)
+            {
+                if (serverGroup == null)
+                    Log.error("Could not find the server group matching hostname " + location.getServerGroupName() + ", set on location");
+                else if (Log.isDebugEnabled())
+                    Log.debug("Found a server group matching hostname " + serverGroup.getName() + ", set on location");
+            }
+        }
+        else
+        {
+            // get URI based on Location settings and SIP request
+            // this gets the URI from Route header, if Location settings says so OR
+            // gets the URI from the request URI
+            DsURI uri = getURIFromLocationAndRequest(location, request);
+            
+            if (uri != null)// get the server group from URI (null otherwise)
+            {
+                serverGroup = getServerGroupFromURI(uri);
+            }
+        }
+        return serverGroup;
+    }
+    
+    public AbstractServerGroup getDnsServerGroup(Location location, DsSipRequest request, int transport, DsNetwork network) throws Exception
+    {
+    	DsSipURL sipUri = location.getURI().isSipURL()? (DsSipURL)location.getURI().clone() : null;
+        if (sipUri != null)
+        {
+            if (location.getCopiedURIHeadersToRequest())
+            {
+            	sipUri.removeHeaders();
+            }
+            else
+            {
+            	sipUri.copyHeadersToRequest(request, false, true);
+            }
+            request.setURI(sipUri);
+        }
+    	DsURI uri = getURIFromLocationAndRequest(location, request);
+    	ServerGroupInterface dnsServerGroup = null;
+    	if (uri != null && uri.isSipURL())
+        {
+            DsSipURL sipUrl = (DsSipURL) uri;
+            DsByteString host = sipUrl.getMAddrParam();
+            int routeTransport = sipUrl.getTransportParam();
+            if(routeTransport == 0)
+            	routeTransport = ParseProxyParamUtil.getNetworkTransport(location.getNetwork());
+            if (host == null)
+                host = sipUrl.getHost();
+            //create Server Group from DNS lookup
+            DnsServerGroupUtil dnsServerGroupUtil = new DnsServerGroupUtil();
+            if(!IPValidator.hostIsIPAddr(host.toString()))
+	            dnsServerGroup = dnsServerGroupUtil.createDNSServerGroup(host, network, routeTransport, request);
+
+            if(dnsServerGroup == null && dnsServerGroupUtil.getFailureException() != null){
+                throw dnsServerGroupUtil.getFailureException();
+            }
+        }
+        return (AbstractServerGroup) dnsServerGroup;
+    }
+
+	public DsNetwork getNetwork(Location location, DsSipRequest request)
+    {
+        return getNetwork(location, getServerGroup(location, request));
+    }
+
+    public DsNetwork getNetwork(Location location, AbstractServerGroup serverGroup)
+    {
+        DsNetwork network;
+
+        if (serverGroup == null)
+        {
+            network = getNetworkFromMyURI();
+
+            if (network == null)
+            {
+                network = getNetworkFromLocation(location);
+            }
+
+            if (network == null)
+            {
+                if (Log.on && Log.isDebugEnabled())
+                    Log.debug("Network not set on the location");
+                network = location.getDefaultNetwork();
+                if (network == null)
+                {
+                    //should never happen
+                    if (Log.on && Log.isEnabled(Level.DEBUG))
+                        Log.debug("No default network specified for this request");
+                }
+            }
+        }
+        else
+        {
+            // use the network from the server group
+            network = DsNetwork.findNetwork(serverGroup.getNetwork().toString());
+            if (network == null)
+            {
+                if (Log.on && Log.isEnabled(Level.WARN))
+                {
+                    Log.warn("Could not find the network " + network + "specified in the servergroup" + location.getServerGroupName());
+                }
+            }
+        }
+
+        return network;
+    }
+
+    public void proxyTo(Location location, DsSipRequest request,
+                        ProxyResponseInterface responseIf, long timeToTry)
+    {
+
+        //clone the request with pre-normalization and xcl processing applied. This is a call from xcl
+        preprocessedRequest = (DsSipRequest) request.clone();
+        proxyToInternal(location, request, responseIf, timeToTry);
+    }
+
+
+    /*
+    * This method is used send the reqeust out to a logical address.  If a server group
+    * is specified in the location, then the method will keep trying to send out a request
+    * until it is successful, or all server groups have been tried.  If no server
+    * group is specified in the <CODE>Location</CODE> then the request is
+    * sent out to the host in the request uri via the proxyToLogical method which
+    * just takes a URI.  The responseIf is used to propogate responses when a response
+    * call back is received from the core via the ControllerInterface.
+    * @returns true if a request was successfully sent out, false if it was unable to
+    * send to any of the elements in the server group, if there was a server group.
+    */
+    private void proxyToInternal(Location location, DsSipRequest request,
+                        ProxyResponseInterface responseIf, long timeToTry)
+    {
+        DsNetwork network;
+        if (Log.on && Log.isDebugEnabled())
+        {
+            Log.debug("Entering proxyTo Location: " + location);
+            Log.debug("timeout for proxyTo() is: " + timeToTry);
+        }
+
+        // Start collecting instrumentation data for Outgoing Request - Controller
+        DsRePerfManager.start(DsRePerfManager.OUTGOING_REQUEST_CONTROLLER);
+
+        DsBindingInfo bindingInfo = location.getBindingInfo();
+        
+        int protocol = 0;
+        DsURI locationUri = location.getURI();
+        if (null != locationUri && locationUri.isSipURL()){
+        	DsSipURL url = (DsSipURL) locationUri;
+        	if(url.hasTransport()) {
+        		protocol = url.getTransportParam();
+        	}
+        	else {
+		        protocol = ParseProxyParamUtil.getNetworkTransport(location.getNetwork());
+        	}
+        }
+
+        
+        
+        if (bindingInfo != null)
+        {
+            request.setBindingInfo(bindingInfo);
+
+        }
+        else
+        {
+            // Reset the binding info so we are not using the binding info from the
+            // original request
+            request.setBindingInfo(new DsBindingInfo());
+        }
+
+        DsByteString connectionID = location.getConnectionID();
+        if (connectionID != null)
+        {
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("Setting request connection-ID to: " + connectionID);
+
+            request.getBindingInfo().setConnectionId(connectionID);
+        }
+
+        DsSipHeaderList routeHeaders = location.getRouteHeaders();
+        if (routeHeaders != null && location.getLoadBalancer() == null)
+        {
+            if (Log.on && Log.isDebugEnabled()) Log.debug("Adding route headers to end of list: " + routeHeaders);
+            request.addHeaders(routeHeaders, false);
+        }
+
+        removeOwnRouteHeader(request,location.getNetwork());
+        //Create the cookie object to pass to the core.  It has the responseIf
+        //we will make our callback on when the response is received.
+        DsProxyCookieThing cookie = new DsProxyCookieThing(location, responseIf, request);
+
+        // check if a server group is to be used by trying to get the server group
+        // from a combination of the location and the request.
+        AbstractServerGroup serverGroup = getServerGroup(location, request);
+        
+        // if serverGroups is not available and createDnsServerGroup is enabled, then call getDnsServerGroup by DNS lookup
+        if(serverGroup == null && isCreateDnsServerGroup) {
+        	serverGroup = (AbstractServerGroup) dnsServerGroups.get(location.getServerGroupName());
+        	if(serverGroup == null && location.getNetwork() != null) {
+        	    try{
+        		serverGroup = getDnsServerGroup(location, request, protocol, location.getNetwork());
+        	    }catch (Exception e) {
+                       onProxyFailure(ourProxy, cookie, DsControllerInterface.DESTINATION_UNREACHABLE, e.getMessage(), e);
+                       return;
+                    }
+        	}
+        }
+
+        // retrieve network information based on location and servergroup
+        network = getNetwork(location, serverGroup);
+
+        if (network != null)
+        {
+            request.setNetwork(network);
+        }
+        else
+        {
+            if (Log.on && Log.isEnabled(Level.WARN))
+            {
+                Log.warn("Could not find the network to set to the request");
+            }
+            // until then we need to fail the call.
+            sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
+            // Stop collecting instrumentation data for Outgoing Request - Controller
+            DsRePerfManager.stop(DsRePerfManager.OUTGOING_REQUEST_CONTROLLER);
+            return;
+        }
+
+
+        if (serverGroup != null)// servergroup found and is set to the location object
+        {
+            location.setServerGroupName(serverGroup.getName());
+            // proxy the message to the servergroup found
+            proxyToServerGroup(location, responseIf, request, cookie, network, serverGroup);
+        }
+        else
+        {
+            DsSipURL uri = location.getURI().isSipURL()? (DsSipURL)location.getURI().clone() : null;
+            if (uri != null)
+            {
+                if (location.getCopiedURIHeadersToRequest())
+                {
+                    uri.removeHeaders();
+                }
+                else
+                {
+                    uri.copyHeadersToRequest(request, false, true);
+                }
+                request.setURI(uri);
+            }
+            else
+            {
+                request.setURI(location.getURI());
+            }
+
+            DsProxyParamsInterface pp = ppIface;
+            DsSipHeaderList rlist = request.getHeaders(DsSipRouteHeader.sID);
+            if (timeToTry > 0 || (!location.processRoute()) || rlist == null)
+            {
+                // create a new DsProxyParms object
+                pp = new DsProxyParams(ppIface, network.getName());
+
+                DsProxyParams dpp = (DsProxyParams) pp;
+
+                //If the timeToTry has been changed (can happen in a sequential search) or
+                // we want to override the route header in a message (processRoute
+                // = false), then we have to create a new ProxyParams object and pass
+                // that to the proxyToLogical method
+                if (timeToTry > 0)
+                    dpp.setRequestTimeout(timeToTry);
+
+                if (!location.processRoute() || rlist == null)
+                {
+                    if (Log.on && Log.isDebugEnabled())
+                        Log.debug("processRoute was not set, setting binding info for location");
+
+                    DsURI locUri = location.getURI();
+                    if (null != locUri && locUri.isSipURL())
+                    {
+                        DsBindingInfo bInfo = request.getBindingInfo();
+                        if (bInfo == null) {
+                            if(Log.on && Log.isEnabled(Level.WARN))
+                                Log.warn("Route for normalization test, binding info is null");
+                        }    
+                        DsSipURL url = (DsSipURL) locUri;
+                        dpp.setProxyToAddress(url.hasMAddrParam() ? url.getMAddrParam() : url.getHost());
+                        String host = DsByteString.toString(url.hasMAddrParam() ? url.getMAddrParam() : url.getHost())  ;
+                        if (isHostIPAddr(host) && (bInfo != null))
+                        {
+                            try {
+                                bInfo.setRemoteAddress(host);
+                                if (Log.on && Log.isInfoEnabled())
+                                    Log.info("Set Binding Info remote address to " + host);
+                            }
+                            catch (Exception e) {
+                                if( Log.on && Log.isEnabled(Level.ERROR))
+                                    Log.error("Cannot set destination address in bindingInfo!", e);
+                            }
+
+                        }
+
+                        // added the if check for correct DNS SRV
+                        if (url.hasPort())
+                        {
+                            dpp.setProxyToPort(url.getPort());
+                            if (bInfo != null)
+                                bInfo.setRemotePort(pp.getProxyToPort());
+                        }
+
+                        if(url.hasTransport())
+                        {
+                            dpp.setProxyToProtocol(url.getTransportParam());
+                            if (bInfo != null)
+                                bInfo.setTransport(url.getTransportParam());
+                        }
+                        else {
+                            /*
+                             * if the location doesn't have a transport set (in
+                             * case of deafult_sip select the transport based on
+                             * network listenpoint in the order of TLS,TCP and
+                             * UDP
+                             */
+                            boolean interfaceSet = false;
+                            for (int i = 0; i < Transports.length; i++) {
+                                if (DsControllerConfig.getCurrent().getInterface(Transports[i],
+                                        request.getNetwork().toString()) != null) {
+                                    dpp.setProxyToProtocol(Transports[i]);
+                                    interfaceSet = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!interfaceSet) {
+                                dpp.setProxyToProtocol(DsSipTransportType.UDP);
+                            }
+                        }
+                        
+                        if (Log.on && Log.isDebugEnabled())
+                            Log.debug("Set proxy-params to: " + pp.getProxyToAddress() + ':' + pp.getProxyToPort() + ':' + pp.getProxyToProtocol());
+                    }
+                }
+            }
+
+            if (stateMode == DsControllerConfig.FAILOVER_STATEFUL)
+            {
+                addCallLegNextHop(ourRequest, pp, cookie);
+            }
+
+            //REDDY setting the record route user portion
+            if (pp instanceof DsProxyParams)
+            {
+                ((DsProxyParams) pp).setRecordRouteUserParams(getRecordRouteParams(request, true));
+            }
+            else
+            {
+                //creating a new DsProxyParams from the ppIface and set recordrouting params to it.
+                pp = new DsProxyParams(ppIface, network.getName());
+                ((DsProxyParams) pp).setRecordRouteUserParams(getRecordRouteParams(request, true));
+                if (Log.on && Log.isDebugEnabled())
+                    Log.debug("DsProxyParamsInterface is not of type DsProxyParams so not setting the record-route user params");
+            }
+
+            //REDDY adding path just before proxying the request
+            int transport = pp.getProxyToProtocol();
+            if (transport == DsSipTransportType.NONE)
+            {
+                transport = pp.getDefaultProtocol();
+            }
+
+            addPath(request, network.getName(), transport);
+
+            DsByteString outgoingNetwork = new DsByteString(network.getName());
+
+            // Header filter - commenting out since header filtering is no longer available on CLI
+            // HeaderFilter.getInstance().doFilter(HeaderFilter.MODULE_NAME_REQUEST_OUTBOUND, incomingNetwork, outgoingNetwork, request, null, getAppParamsInterface());
+
+            // Privacy
+            int pvcResult = SipPrivacy.SUCCESS;
+            try
+            {
+                pvcResult = SipPrivacy.getInstance().doClientPrivacy(incomingNetwork, outgoingNetwork, request, getAppParamsInterface());
+            }
+            catch (Exception e)
+            {
+                DsSipResponse errorResponse = null;
+                try
+                {
+                    errorResponse = DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR, ourRequest);
+                    DsProxyResponseGenerator.sendResponse(errorResponse, (DsProxyTransaction) ourProxy);
+                }
+                catch (DsException e1)
+                {
+                    if (Log.on)
+                        Log.error("Error encountered while sending internal error response", e);
+                }
+                // Stop collecting instrumentation data for Outgoing Request - Controller
+                DsRePerfManager.stop(DsRePerfManager.OUTGOING_REQUEST_CONTROLLER);
+                return;
+            }
+            if (pvcResult != SipPrivacy.SUCCESS)
+            {
+                try
+                {
+                    DsSipResponse errorResponse = DsProxyResponseGenerator.createResponse(pvcResult, ourRequest);
+                    if (pvcResult == DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR)
+                    {
+                        errorResponse.setReasonPhrase(new DsByteString("Requested privacy service not supported"));
+                    }
+
+                    DsProxyResponseGenerator.sendResponse(errorResponse, (DsProxyTransaction) ourProxy);
+                }
+                catch (DsException e)
+                {
+                    // Error Logging
+                    if (Log.on && Log.isEnabled(Level.ERROR))
+                        Log.error("Error encountered while sending internal error response", e);
+                }
+
+                // Stop collecting instrumentation data for Outgoing Request - Controller
+                DsRePerfManager.stop(DsRePerfManager.OUTGOING_REQUEST_CONTROLLER);
+                return;
+            }
+            if (pp.getProxyToAddress() == null && location.processRoute())
+                proxyRouteSetBindingInfo(request);
+
+            ourProxy.addProxyRecordRoute(request, pp);
+            
+            Normalization.getInstance().doNormalization(Normalization.POSTNORMALIZATION_MODULE, null, incomingNetwork, outgoingNetwork, request, null, getAppParamsInterface());
+
+            //this must be set after the post-normalization execution
+            request.setNormalizationState(SipMsgNormalizationState.POST_NORMALIZED);
+            
+            ourProxy.proxyTo(request, cookie, pp);
+
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("Proxied the request to :" + location.getURI().toString() +
+                        " with requestTimeout = " + timeToTry);
+
+        }
+
+        // Stop collecting instrumentation data for Outgoing Request - Controller
+        DsRePerfManager.stop(DsRePerfManager.OUTGOING_REQUEST_CONTROLLER);
+    }
+
+    /*
+    This function is used in Short-URI interregion and MC online (ShortURI) sites without DNS scenarios.
+
+    In Case of ShortURI, In the Route Group we add Two Route headers
+       Route: site.webex.com
+       Route: icp.webex.com/vcs.webex.com
+
+    First Route is added because in case if the call belongs to another region we want to route to corresponding region.
+
+    If the call belongs to same region or not is checked here , by doing SRV resolution of the Top Route (site) and
+    comparing it with present node ListenPoints. If it matches then the Call belongs to same region so Top Route should be
+    removed and Call should be routed to Second Route
+
+    In case of MC-Online (ShortURI) calls with Sites having no SRV configured, We have to remove the TOP route as anyway DNS resolution
+    is not possible. So In case of No SRV also we remove the TOP Route
+
+     */
+    protected void removeOwnRouteHeader(DsSipRequest request,DsNetwork network) {
+    	if(network == null || !network.isRemoveOwnRouteHeader() || DsSipClientTransactionImpl.isMidDialogRequest(request)) {
+    		Log.info("Skipping removeOwnRouteHeader based on the configuration.");
+    		return;
+    	}
+        try {
+            DsSipRouteHeader topRoute = (DsSipRouteHeader) request.getHeaderValidate(DsSipConstants.ROUTE);
+            if(topRoute == null)
+                return;
+            DsURI topRouteURI = topRoute.getURI();
+            if (topRouteURI != null && topRouteURI.isSipURL()) {
+                DsSipURL topRouteSipUrl = (DsSipURL) topRouteURI;
+
+                int port = DsSipResolverUtils.RPU;
+                if (topRouteSipUrl.hasPort()) {
+                    port = topRouteSipUrl.getPort();
+                }
+                int transport = getBestTransport(topRouteSipUrl, network);
+                DsByteString host = topRouteSipUrl.getMAddrParam();
+                if (host == null)
+                    host = topRouteSipUrl.getHost();
+
+                boolean removeTopRoute = false;
+                try {
+                    removeTopRoute = DsControllerConfig.getCurrent()
+                        .recognize(null, host, port, transport, network, false);
+                } catch (UnknownHostException | DsSipHostNotValidException e) {
+                    removeTopRoute = true;
+                    Log.info(
+                        "Domain doesnot exist for host = {} , going to remove TOP header= {} ,  exception is  = {} ",
+                        host, topRouteURI, e);
+                }
+
+                if (removeTopRoute) {
+                    request.removeHeader(DsSipConstants.ROUTE);
+                    Log.info("Route header " + topRoute
+                        + " is current CP route , removing the Route header");
+                }
+            }
+        } catch (Exception e) {
+            Log.error("Error in removing Own Route ", e);
+        }
+    }
+
+    private int getBestTransport(DsSipURL sipURL, DsNetwork network) {
+        if (sipURL.hasTransport()) {
+            return sipURL.getTransportParam();
+        } else {
+            return getTransportFromNetwork(network);
+        }
+    }
+    
+    private int getTransportFromNetwork(DsNetwork network) {
+      
+        for (int i = 0; i < Transports.length; i++) {
+            if (DsControllerConfig.getCurrent().getInterface(Transports[i],
+                    network.toString()) != null) {
+                return Transports[i];
+            }
+        }
+        return DsSipTransportType.UDP;
+    }
+
+    private void proxyRouteSetBindingInfo(DsSipRequest request)
+    {
+        DsBindingInfo bInfo = request.getBindingInfo();
+        if (bInfo == null) {
+            if(Log.on && Log.isEnabled(Level.WARN))
+                Log.warn("Route for normalization test, binding info is null");
+            return;
+        }
+        DsURI routeToURI = null;
+        String hostStr = "";
+        int routePort = DsBindingInfo.REMOTE_PORT_UNSPECIFIED;
+        int routeTransport = DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED;
+        if (!mEmulate2543)
+        {
+            try {
+                routeToURI = request.lrEscape();
+            } catch (Exception e) {
+                Log.error("Caught Exception while invoking lrEscape in proxyRouteSetBindingInfo", e);
+            }
+        }
+        else
+        {
+            routeToURI = request.getURI();
+        }
+        if (routeToURI != null && routeToURI.isSipURL())
+        {
+            DsSipURL url = (DsSipURL) routeToURI;
+            if (!bInfo.isRemoteAddressSet())
+            {
+                DsByteString host_byte_str = url.getMAddrParam();
+                hostStr = (host_byte_str == null ? null : host_byte_str.toString());
+                if (hostStr == null)
+                {
+                    hostStr = DsByteString.toString(url.getHost());
+                }
+                if (isHostIPAddr(hostStr))
+                {
+                    bInfo.setRemoteAddress(hostStr);
+                }
+            }
+
+            routePort = bInfo.isRemotePortSet() ?
+                bInfo.getRemotePort() : (url.hasPort() ? url.getPort() : DsBindingInfo.REMOTE_PORT_UNSPECIFIED);
+            routeTransport = bInfo.isTransportSet() ?
+                bInfo.getTransport() : (url.isSecure() ? DsSipTransportType.TLS :
+                        (url.hasTransport() ? url.getTransportParam() : DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED));
+
+            if (Log.on && Log.isDebugEnabled())
+            {
+                Log.debug("ProxyRoute:Setting remote address to :" + hostStr +
+                        " with port = " + routePort + "Remote transport:" + routeTransport);
+
+            }
+            if (routePort != DsBindingInfo.REMOTE_PORT_UNSPECIFIED)
+            {
+                bInfo.setRemotePort(routePort);
+            }
+            if (routeTransport != DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED)
+            {
+                bInfo.setTransport(routeTransport);
+            }
+
+        }
+    }
+protected void proxyToServerGroup(Location location,
+        ProxyResponseInterface responseIf,
+        DsSipRequest request,
+        DsProxyCookieThing cookie,
+        DsNetwork network, AbstractServerGroup serverGroup)
+{
+    if (Log.on && Log.isDebugEnabled())
+            Log.debug("found a server group matching hostname " + location.getServerGroupName() + ", set on location");
+
+        SIPSession sipSession = SIPSessions.getActiveSession(request.getCallId().toString());
+        if(sipSession != null) {
+            sipSession.setServerGroup(location.getServerGroupName().toString());
+        }
+
+        DsByteString outgoingNetwork = new DsByteString(network.getName());
+
+        // Header filter - commenting out since header filtering is no longer available on CLI
+        // HeaderFilter.getInstance().doFilter(HeaderFilter.MODULE_NAME_REQUEST_OUTBOUND, incomingNetwork, outgoingNetwork, request, null, getAppParamsInterface());
+
+        boolean firstTime = false;
+        //Try and get the load balancer for this uri
+        LBInterface lb = location.getLoadBalancer();
+
+        //If lb == null then this is the first time we have called proxyToLogical for this uri
+        //so we will create a load balancer that will be used for the rest of this
+        //contoroller's life
+        if (lb == null)
+        {
+
+            if (Log.on && Log.isDebugEnabled())
+                Log.debug("Creating load balancer for " + location);
+
+            if (repositoryHolder == null)
+            {
+                if (Log.on && Log.isEnabled(Level.ERROR))
+                {
+                    Log.error("A location was found with a server group, but no LBRepositoryHolder was passed in, sending a 500");
+                }
+                sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
+                return;
+            }
+
+            //store the serverGroup for failover logic, used in DNS ServerGroups
+            if(isCreateDnsServerGroup) {
+            	dnsServerGroups.put(location.getServerGroupName(), serverGroup);
+            }
+            
+            //Use the load balancer factory to create the load balancer.  It will automatically
+            //return the correct type of load balancer for the specified server group.
+            try
+            {
+                lb = LBFactory.createLoadBalancer(location.getServerGroupName(),
+                								  serverGroup,
+                                                  ourRequest);
+                
+            }
+            catch (LBException e)
+            {
+                if (Log.on && Log.isEnabled(Level.ERROR))
+                    Log.error("Load Balance exception. Sending a 500", e);
+
+                //Send a 500 response
+                //sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
+                if (responseIf != null)
+                    responseIf.onProxyFailure(location, ResponseReasonCodeConstants.PROXY_ERROR);
+                return;
+            }
+
+            //Store the load balancer in the contact header container
+            location.setLoadBalancer(lb);
+            firstTime = true;
+        }
+
+        //Get the next hop
+        ServerInterface lbServer = lb.getServer();
+
+        //Odds are all the servers have been tried in the server group.  We will keep
+        //searching by trying another logical address.
+        if (lbServer == null)
+        {
+            ServerGroup sg = (ServerGroup) CallProcessingConfig.getInstance().getServerGroupRepository().getServerGroup(location.getServerGroupName());
+
+            // Check to see whether the specified servergroup is up
+            if (responseIf != null)
+            {
+                if (sg != null)
+                {
+                    if (sg.size() > 0) {
+                        if(proxyErrorAggregator!=null) {
+                            proxyErrorAggregator.onServerGroupDown(sg.getName().toString(), firstTime);
+                            addProxyErrorToSipSession(request.getCallId().toString());
+                        }
+
+                        responseIf.onProxyFailure(location, ResponseReasonCodeConstants.DOWN);
+                    }
+
+                    else
+                        responseIf.onProxyFailure(location, ResponseReasonCodeConstants.EMPTY);
+                }
+                else
+                    responseIf.onProxyFailure(location, ResponseReasonCodeConstants.UNKNOWN_SG);
+            }
+
+        }
+        else
+        {
+            //Fill in the proxy params for this request with the next hop, port, and protocol
+            DsProxyParams params = new DsProxyParams(ppIface, network.getName());
+            params.setProxyToAddress(lbServer.getDomainName());
+            params.setProxyToPort(lbServer.getPort());
+            params.setProxyToProtocol(lbServer.getProtocol());
+            if (timeToTry > 0)
+                params.setRequestTimeout(timeToTry);
+
+            if (Log.on && Log.isDebugEnabled())
+            {
+                Log.debug("In proxyTo() - Sending load balanced request:\n" + request.maskAndWrapSIPMessageToSingleLineOutput() +
+                        "\n to low-level with next hop = " + lbServer.getDomainName() + ':' +
+                        lbServer.getPort());
+            }
+
+            if (stateMode == DsControllerConfig.FAILOVER_STATEFUL)
+            {
+                addCallLegNextHop(request, params, cookie);
+            }
+
+            // See if we should set the outgoing host and port of the
+            // Location object to that of the destination server group element
+            if (location.useDestInfo())
+            {
+                DsURI uri = location.getURI();
+                if (uri.isSipURL())
+                {
+                    DsSipURL url = (DsSipURL) uri;
+                    url.setHost(lbServer.getDomainName());
+                    url.setPort(lbServer.getPort());
+                    url.setTransportParam(lbServer.getProtocol());
+                }
+            }
+
+            //set destination info to binding info. helps in remote address info trigger conditions
+            DsBindingInfo bInfo = request.getBindingInfo();
+            if(bInfo != null)
+            {
+                bInfo.setRemoteAddress(lbServer.getDomainName().toString());
+                bInfo.setRemotePort(lbServer.getPort());
+                bInfo.setTransport(lbServer.getProtocol());
+            }
+            else
+            {
+                if(Log.on && Log.isEnabled(Level.WARN))
+                    Log.warn("In ProxyToServergroup, binding info is null!, servergroup="
+                            + location.getServerGroupName()
+                            + " element="
+                            + lbServer.getEndPoint());
+            }
+
+            //Send the request on its way, and store the load balancer if we are stateful
+            DsSipURL uri = (DsSipURL) (location.getURI().isSipURL()? location.getURI().clone() : null);
+            if (uri != null)
+            {
+                if (location.getCopiedURIHeadersToRequest())
+                {
+                    uri.removeHeaders();
+                }
+                else
+                {
+                    uri.copyHeadersToRequest(request, false, true);
+                }
+                request.setURI(uri);
+            }
+            else
+            {
+                request.setURI(location.getURI());
+            }
+
+            //add path header
+            if(lbServer.getNetwork().equals(network.getName()))
+            {
+                if(firstTime)
+                {
+                    //REDDY adding path just before proxying the request
+                    addPath(request, network.getName(), params.getProxyToProtocol());
+                }
+            }
+            else
+            {
+                network = DsNetwork.findNetwork(lbServer.getNetwork().toString());
+                request.setNetwork(network);
+
+                //todo remove the previous PATH header if added
+                //REDDY adding path just before proxying the request
+                if(pathAdded)
+                {
+                    request.removeHeader(DsSipConstants.PATH,false);
+                    pathAdded = false;
+                }
+
+                addPath(request, network.getName(), params.getProxyToProtocol());
+            }
+
+            // Privacy
+            int pvcResult = SipPrivacy.SUCCESS;
+            try
+            {
+                pvcResult = SipPrivacy.getInstance().doClientPrivacy(incomingNetwork, outgoingNetwork, request, getAppParamsInterface());
+            }
+            catch (Exception e)
+            {
+                DsSipResponse errorResponse = null;
+                try
+                {
+                    errorResponse = DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR, ourRequest);
+                    DsProxyResponseGenerator.sendResponse(errorResponse, (DsProxyTransaction) ourProxy);
+                }
+                catch (DsException e1)
+                {
+                    if (Log.on)
+                        Log.error("Error encountered while sending internal error response", e);
+                }
+                // Stop collecting instrumentation data for Outgoing Request - Controller
+                DsRePerfManager.stop(DsRePerfManager.OUTGOING_REQUEST_CONTROLLER);
+                return;
+            }
+
+            if (pvcResult != SipPrivacy.SUCCESS)
+            {
+                try
+                {
+                    DsSipResponse errorResponse = DsProxyResponseGenerator.createResponse(pvcResult, ourRequest);
+                    if (pvcResult == DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR)
+                    {
+                        errorResponse.setReasonPhrase(new DsByteString("Requested privacy service not supported"));
+                    }
+
+                    DsProxyResponseGenerator.sendResponse(errorResponse, (DsProxyTransaction) ourProxy);
+                }
+                catch (DsException e)
+                {
+                    // Error Logging
+                    if (Log.on && Log.isEnabled(Level.ERROR))
+                        Log.error("Error encountered while sending internal error response", e);
+                }
+
+                // Stop collecting instrumentation data for Outgoing Request - Controller
+                DsRePerfManager.stop(DsRePerfManager.OUTGOING_REQUEST_CONTROLLER);
+                return;
+            }
+
+            //REDDY setting the record route user portion
+            params.setRecordRouteUserParams(getRecordRouteParams(request, true));
+
+            ourProxy.addProxyRecordRoute(request, params);
+            
+            // post-normalization
+            Normalization.getInstance().doNormalization(Normalization.POSTNORMALIZATION_MODULE, null,  incomingNetwork, outgoingNetwork, request, null, getAppParamsInterface());
+
+            //CAll stats and CAC
+            if(sipSession != null) {
+                //todo catch exception
+                lbServer.incrementUsageCount();
+                sipSession.setDestination(lbServer.getEndPoint());
+            }
+            
+            if (network != null && network.isConvertDestinationRouteToIP()) {
+                convertDestinationRouteHeaderFromSrvToIP(request, lbServer, sipSession, serverGroup.getName());
+            }
+            // todo increment the servergroup usage counter
+            ourProxy.proxyTo(request, cookie, params);
+
+            if (Log.on && Log.isTraceEnabled())
+                Log.trace("Leaving proxyTo");
+        }
+    }
+
+    private void convertDestinationRouteHeaderFromSrvToIP(DsSipRequest request, ServerInterface lbServer,
+            SIPSession sipSession, DsByteString serverGroupName) {
+        try {
+            DsSipRouteHeader topRoute = (DsSipRouteHeader) request.getHeaderValidate(DsSipConstants.ROUTE);
+            if (topRoute != null) {
+                DsSipURL topRouteURI = (DsSipURL) topRoute.getURI();
+                DsByteString topRouteHost = topRouteURI.getHost();
+                topRouteHost.trim();
+                serverGroupName.trim();
+                if (serverGroupName.equals(topRouteHost) || sipSession.getLastDestination().getHost().equals(topRouteHost)) {
+                    topRouteURI.setHost(lbServer.getDomainName());
+                    topRouteURI.setPort(lbServer.getPort());
+                    Log.info("Rewriting TOP Route from SRV to A , updated top Route = "+topRoute);
+                }
+            }
+
+        } catch (Exception e) {
+            Log.error("Exception in rewriteDestinationRouteHeaderFromSrvToA ", e);
+        }
+
+    }
+
+    /*
+     * Sends a 404 or 500 response.
+     */
+    protected void sendFailureResponse(int errorResponseCode)
+    {
+
+        if (errorResponseCode == DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR)
+        {
+            if (changeToStatefulForResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR))
+            {
+                try
+                {
+                    DsProxyResponseGenerator.sendServerInternalErrorResponse(ourRequest, (DsProxyTransaction) ourProxy);
+                }
+                catch (DsException e)
+                {
+                    // Error Logging
+                    if (Log.on && Log.isEnabled(Level.ERROR))
+                        Log.error("Error encountered while sending internal error response", e);
+                }
+                //failureResponseSent = true;
+            }
+        }
+        else if (errorResponseCode == DsSipResponseCode.DS_RESPONSE_NOT_FOUND)
+        {
+            if (changeToStatefulForResponse(DsSipResponseCode.DS_RESPONSE_NOT_FOUND))
+            {
+                try
+                {
+                    DsProxyResponseGenerator.sendNotFoundResponse(ourRequest, (DsProxyTransaction) ourProxy);
+                }
+                catch (DsException e)
+                {
+                    // Warn Logging
+                    if (Log.on && Log.isEnabled(Level.ERROR))
+                        Log.error("Unable to create not found response", e);
+                }
+                //failureResponseSent = true;
+            }
+        }
+    }
+
+    /*
+     * Send the best response upstream.
+    */
+    /*
+    protected void sendBestResponse( DsProxyTransaction proxy )
+    {
+
+      proxy.respond();
+      if( Log.isEnabledFor( Level.DEBUG ) )
+          Log.log(Level.DEBUG , "Sent best response" );
+
+    } */
+
+    /*
+     * Creates a DsSipContactHeader from the specified LinkedList which should hold
+     * DsLoadBalancedURIs.
+     */  /*
+  protected DsSipContactHeader createContactListContactHeader(LinkedList lbURIList ) {
+
+    DsSipContactHeader contactHeader = null;
+
+    if( lbURIList.size() != 0 ) {
+	    Iterator iter  = lbURIList.iterator();
+
+      if( Log.isEnabledFor( Level.DEBUG ) )
+	      Log.debug("Creating new header in createContactListContactHeader()");
+
+      DsURI uri = null;
+			while( iter.hasNext() ) {
+        try {
+          uri = ((Location)iter.next()).getURI();
+          if( contactHeader == null )
+            contactHeader = new DsSipContactHeader( uri );
+          else
+            contactHeader.addNext( new DsSipContactHeader( uri ) );
+        }
+        catch(DsException dse ) {
+          if( Log.isEnabledFor(Level.WARN))
+            Log.warn( "Unable to add URI: " + uri + " to the contact header in createContactListHeader()", dse );
+          break;
+        }
+      }
+    }
+
+    if( Log.isEnabledFor( Level.DEBUG ) )
+      Log.debug("createContactListContactHeader() is about to return contact header: " + contactHeader );
+
+    return contactHeader;
+  }      */
+
+    /* Attempts to change to stateful mode to send are response with the given response
+     * code.
+     * @param responseCode The response code of the response to send upstream.
+     * @returns True if it could change to stateful mode, false if we couldn't
+     */
+    protected boolean changeToStatefulForResponse(int responseCode)
+    {
+        //Make sure we are stateful before sending the response
+        boolean success = overwriteStatelessMode();
+        if (!success)
+        {
+            //Just drop it, and log the event
+            if (Log.on && Log.isEnabled(Level.WARN))
+                Log.warn("Unable to change state to send " + responseCode +
+                        ", dropping the response");
+        }
+
+        return success;
+    }
+
+    /* added by ketul,
+         for a failoverstateful transaction, creates a key and adds
+         to the hashtable in DsNextHopTable.
+
+      */
+    private void addCallLegNextHop(DsSipRequest request, DsProxyParamsInterface pp,
+                                   DsProxyCookieThing cookie)
+    {
+        if (stateMode == DsControllerConfig.FAILOVER_STATEFUL)
+        {
+            // add the callleg key to the map
+
+            callLegKey = createCallLegKey(request);
+            DsFailOverStatefulWrapper failOverWrapper = new DsFailOverStatefulWrapper(cookie, pp);
+            // we don't need a check if a entry already exists in the
+            // hashmap since that check is already done in onNewRequest.
+            DsNextHopTable nextHopTable = DsNextHopTable.getInstance();
+
+            nextHopTable.addCallLegNextHop(callLegKey, failOverWrapper);
+
+            if (Log.on && Log.isDebugEnabled())
+            {
+                Log.debug("Adding callLegKey: " + callLegKey);
+            }
+        }
+    }
+
+    private String createCallLegKey(DsSipRequest request)
+    {
+        StringBuffer callLegKeyBuffer = new StringBuffer(request.getCallId().toString());
+        callLegKeyBuffer.append(Long.toString(request.getCSeqNumber()));
+        return callLegKeyBuffer.toString();
+    }
+
+    public DsProxyStatelessTransaction getStatelessTrans(DsFailOverStatefulWrapper
+            failOverWrapper)
+    {
+        if (Log.on && Log.isDebugEnabled())
+        {
+            Log.debug("CallLegKey match found in hashmap. " +
+                    "Retransmission detected. Proxying " +
+                    "to nextHop" +
+                    failOverWrapper.getCookieThing().getLocation());
+        }
+
+        DsProxyParams params = new DsProxyParams(failOverWrapper.getPpInterface(), failOverWrapper.getCookieThing().getLocation().getNetwork().getName());
+        if (timeToTry > 0)
+        {
+            params.setRequestTimeout(timeToTry);
+
+        }
+        if (ourProxy == null)
+        {
+            createProxyTransaction(false, m_ServerTransaction);
+        }
+
+        ourProxy.proxyTo(failOverWrapper.getCookieThing().getLocation().getURI(),
+                         failOverWrapper.getCookieThing(), params);
+
+        return ourProxy;
+    }
+
+    /**
+     * setting proxy params that would be used in proxy operation
+     *
+     * @param type  type of the proxy param that is being set(RECORD_ROUTE, PATH etc..)
+     * @param name  name of the param that is set for the specified type
+     * @param value value of the param for the specified name
+     */
+    public void setProxyParam(int type, String name, String value)
+    {
+        if (type == DsReConstants.PATH || type == DsReConstants.RECORD_ROUTE)
+        {
+            HashMap paramType;
+            if (ProxyParams == null)
+            {
+                ProxyParams = new HashMap();
+                paramType = new HashMap();
+                ProxyParams.put(new Integer(type), paramType);
+
+            }
+            else
+            {
+                paramType = (HashMap) ProxyParams.get(new Integer(type));
+                if (paramType == null)
+                {
+                    paramType = new HashMap();
+                    ProxyParams.put(new Integer(type), paramType);
+                }
+            }
+            paramType.put(name, value);
+        }
+    }
+
+    /**
+     * setting proxy params that would be used in proxy operation
+     *
+     * @param user  string to which the name and value need to be appended to
+     * @param name  name of the param that is set for the specified type
+     * @param value value of the param for the specified name
+     */
+    public void setProxyParam(DsByteString user, String name, String value)
+    {
+        StringBuffer tmp = new StringBuffer();
+
+        if (user.length() > 0)
+            tmp.append(DsReConstants.DELIMITER_CHAR);
+        if (name.equals(value))
+        {
+            tmp.append(name);
+        }
+        else
+        {
+            tmp.append(name).append(DsReConstants.EQUAL_CHAR).append(value);
+        }
+
+        if (tmp.length() > 0)
+            user.append(tmp.toString().getBytes());
+    }
+
+    public String getProxyParam(int type, String name)
+    {
+        if (null != ProxyParams)
+        {
+            HashMap paramType = (HashMap) ProxyParams.get(new Integer(type));
+            if (paramType != null)
+            {
+                return (String) paramType.get(name);
+            }
+        }
+        return null;
+    }
+
+    public Map<String, String> getParsedProxyParams(int type, boolean decompress) throws DsException
+    {
+        return getParsedProxyParams(type,decompress,DsReConstants.DELIMITER_STR);
+    }
+
+    public Map<String, String> getParsedProxyParams(int type, boolean decompress, String delimiter) throws DsException
+    {
+        Map<String, String> proxyParams = null;
+        if (parsedProxyParamsByType == null)
+        {
+            parsedProxyParamsByType = new HashMap();
+        }
+        else
+        {
+            proxyParams = (HashMap) parsedProxyParamsByType.get(type);
+        }
+        
+        if (proxyParams == null)
+        {
+            proxyParams = ParseProxyParamUtil.getParsedProxyParams(ourRequest, type, decompress, delimiter);
+        }
+        
+        if(proxyParams != null) {
+            parsedProxyParamsByType.put(type, proxyParams);
+        }
+        
+        return proxyParams;
+    }
+
+    public DsByteString getSerializedProxyParams(int type, boolean compress)
+    {
+        //TODO optimize when get a chance
+        if (ProxyParams != null)
+        {
+            HashMap paramType = (HashMap) ProxyParams.get(new Integer(type));
+            if (paramType != null)
+            {
+                String name;
+                String value;
+                StringBuffer serialized = new StringBuffer();
+                for (Iterator i = paramType.keySet().iterator(); i.hasNext();)
+                {
+                    name = (String) i.next();
+                    value = (String) paramType.get(name);
+                    if (name.equals(value))
+                    {
+                        serialized.append(name);
+                    }
+                    else
+                    {
+                        serialized.append(name);
+                        serialized.append(DsReConstants.EQUAL_CHAR);
+                        if (value == null)
+                            serialized.append("null");
+                        else
+                            serialized.append(value);
+                    }
+                    serialized.append(DsReConstants.DELIMITER_CHAR);
+                }
+                if (compress)
+                    return compress(serialized.toString());
+                else
+                    return new DsByteString(serialized.toString());
+            }
+        }
+        return null;
+    }
+
+    private static final DsByteString compress(String result)
+    {
+        return CompressorUtil.compress(result);
+    }
+
+    public DsByteString getPathParams(DsSipRequest request, boolean escape)
+    {
+        if (Log.on && Log.isDebugEnabled()) Log.debug("Entering getPathParams()");
+        DsByteString pathUser = getSerializedProxyParams(DsReConstants.PATH, false);
+        if (pathUser == null)
+        {
+            pathUser = new DsByteString("");
+        }
+        pathUser.append(DsReConstants.BS_PR_TOKEN);
+        pathUser.append(DsReConstants.BS_NETWORK_TOKEN);
+        pathUser.append(incomingNetwork);
+        if (escape)
+        {
+            pathUser = DsSipURL.getEscapedString(pathUser, DsSipURL.USER_ESCAPE_BYTES);
+        }
+
+        if (Log.on && Log.isDebugEnabled()) Log.debug("Leaving getPathParams(), returning" + pathUser);
+        return pathUser;
+    }
+
+    public DsByteString getRecordRouteParams(DsSipRequest request, boolean escape)
+    {
+        if (Log.on && Log.isTraceEnabled()) Log.trace("Entering getRecordRouteParams()");
+        DsByteString rrUser = getSerializedProxyParams(DsReConstants.RECORD_ROUTE, false);
+        if (rrUser == null)
+        {
+            rrUser = new DsByteString("");
+        }
+        rrUser.append(DsReConstants.BS_RR_TOKEN);
+        rrUser.append(DsReConstants.BS_NETWORK_TOKEN);
+        rrUser.append(incomingNetwork);
+        if (escape)
+        {
+            rrUser = DsSipURL.getEscapedString(rrUser, DsSipURL.USER_ESCAPE_BYTES);
+        }
+
+        if (Log.on && Log.isDebugEnabled()) Log.debug("Leaving getRecordRouteParams(), returning " + rrUser + '"');
+        return rrUser;
+    }
+
+    public DsSipRequest getOriginalRequest()
+    {
+        return originalRequest;
+    }
+
+    /**
+     * this method is called for all final Response for SIP request
+     */
+    public void onResponse(DsSipResponse response) {
+        // post-normalization
+        Normalization.getInstance().doNormalization(Normalization.POSTNORMALIZATION_MODULE, null,  null, incomingNetwork, getOriginalRequest(), response, getAppParamsInterface());
+        
+        //this must be set after the post-normalization execution
+        response.setNormalizationState(SipMsgNormalizationState.POST_NORMALIZED);
+    }
+
+    public AppParamsInterface getAppParamsInterface()
+    {
+        if (appParamsTrigger != null) {
+        	return appParamsTrigger;
+        }
+        
+        appParamsTrigger = () -> {
+                            try {
+                                return getParsedProxyParams(DsReConstants.MY_URI, false);
+                            }
+                            catch (DsException e) {
+                                    Log.error("Unable to get parsed proxy params for MY_URI.", e);
+                            }
+                            return null;
+
+                    };
+        return appParamsTrigger;
+    }
+    static boolean isHostIPAddr(String host)
+    {
+        if (host == null)
+        {
+            return false;
+        }
+        char firstChar = host.charAt(0);
+        if (firstChar > '9' || firstChar < '0')
+        {
+            return false;
+        }
+
+        int len = host.length();
+        int dotCount = 0;
+        for (int i = 1; i < len; i++)
+        {
+            switch (host.charAt(i))
+            {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    break;
+                case '.':
+                    dotCount++;
+                    break;
+                default:
+                    return false;
+            }
+        }
+
+        if (dotCount == 3)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public void onXclRoutingFailure(DsSipResponse response) {
+        if(proxyErrorAggregator!=null) {
+            proxyErrorAggregator.onXclRoutingFailure(response);
+            addProxyErrorToSipSession(response.getCallId().toString());
+        }
+    }
+    
+    private void addProxyErrorToSipSession(String callId) {
+        SIPSession sipSession = SIPSessions.getActiveSession(callId);
+        if(sipSession == null) {
+            return;
+        }
+        sipSession.setProxyErrorAggregator(proxyErrorAggregator);
+    }
+
+    public static void setErrorAggregatorEnabled(boolean errorAggregatorEnabled) {
+        DsProxyController.errorAggregatorEnabled = errorAggregatorEnabled;
+    }
+
+    public static void setIsCreateDnsServerGroup(boolean isCreateDnsServerGroup) {
+        DsProxyController.isCreateDnsServerGroup = isCreateDnsServerGroup;
+    }
+}
