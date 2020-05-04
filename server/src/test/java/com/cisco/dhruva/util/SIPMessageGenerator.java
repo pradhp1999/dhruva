@@ -40,7 +40,7 @@ public class SIPMessageGenerator {
             + "Contact: <sip:161.165.195.10:5073;transport=tls>\n"
             + "Call-ID: 05e3b66d495da4d4f172a99384ce24bb\n"
             + "CSeq: 100 INVITE\n"
-            + "Content-Length: 4264\n"
+            + "Content-Length: 4167\n"
             + "Allow: INVITE,ACK,BYE,CANCEL,INFO,OPTIONS,REFER,SUBSCRIBE,NOTIFY\n"
             + "User-Agent: TANDBERG/4352 (X8.7.3-b2bua-1.0)\n"
             + "Supported: replaces,timer\n"

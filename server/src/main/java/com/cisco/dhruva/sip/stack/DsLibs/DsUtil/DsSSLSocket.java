@@ -16,7 +16,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * Defines the SSL Socket which extends the DsSocket and provides for the secure communication using

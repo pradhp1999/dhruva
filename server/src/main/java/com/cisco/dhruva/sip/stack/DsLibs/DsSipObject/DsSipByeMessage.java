@@ -3,8 +3,8 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import org.apache.logging.log4j.Level;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import org.slf4j.event.Level;
 
 /** This class represents the BYE message as specified in RFC 3261. */
 public final class DsSipByeMessage extends DsSipRequest {

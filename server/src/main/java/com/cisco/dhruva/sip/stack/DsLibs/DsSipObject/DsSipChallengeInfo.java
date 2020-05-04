@@ -10,7 +10,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.Base64;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * An abstract base class that represents the challenge information used for authentication within

@@ -5,8 +5,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import com.cisco.dhruva.util.log.Logger;
 
 /**
  * Provides the default construction of DsSipHeader objects. Users can create their own header types
@@ -364,9 +363,7 @@ public class DsSipHeaderFactory implements DsSipConstants {
         header = new DsSipXCiscoRaiHeader();
         break;
       default:
-        if (cat.isEnabled(Level.WARN)) {
-          cat.warn("Returning UNKNOWN header because of a bad index.");
-        }
+        cat.warn("Returning UNKNOWN header because of a bad index.");
 
         header = new DsSipUnknownHeader();
         break;

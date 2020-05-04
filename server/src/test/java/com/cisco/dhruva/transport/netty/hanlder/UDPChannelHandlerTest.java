@@ -57,7 +57,8 @@ public class UDPChannelHandlerTest {
 
     doReturn(localAddress).when(embeddedChannel).localAddress();
 
-    ChannelHandler udpChannelHandler = new UDPChannelHandler(messageForwarder, executorService);
+    ChannelHandler udpChannelHandler =
+        new UDPChannelHandler(messageForwarder, null, executorService);
     embeddedChannel.pipeline().addLast(udpChannelHandler);
 
     embeddedChannel.writeOneInbound(inviteDatagramPacket);
@@ -109,7 +110,8 @@ public class UDPChannelHandlerTest {
     doReturn(localAddress1).when(embeddedChannel1).localAddress();
     doReturn(localAddress2).when(embeddedChannel2).localAddress();
 
-    ChannelHandler udpChannelHandler = new UDPChannelHandler(messageForwarder, executorService);
+    ChannelHandler udpChannelHandler =
+        new UDPChannelHandler(messageForwarder, null, executorService);
     embeddedChannel1.pipeline().addLast(udpChannelHandler);
     embeddedChannel2.pipeline().addLast(udpChannelHandler);
 

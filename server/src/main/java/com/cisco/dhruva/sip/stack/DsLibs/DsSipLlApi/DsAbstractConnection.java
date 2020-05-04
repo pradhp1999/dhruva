@@ -6,12 +6,12 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.transport.Connection;
 import com.cisco.dhruva.transport.Transport;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * An abstraction for the connection. It maintains reference count and list of DsConnectionEvent(s)
@@ -52,13 +52,6 @@ abstract class DsAbstractConnection implements DsConnection {
       throw new IOException(e);
     }
   }
-
-  /**
-   * Returns the underlying socket associated with this connection.
-   *
-   * @return the underlying socket associated with this connection
-   */
-  // public abstract Object getSocket();
 
   /**
    * Returns the binding information associated with this connection.
@@ -259,7 +252,7 @@ abstract class DsAbstractConnection implements DsConnection {
           "notifyListeners(): Notifying the connection event listeners of the connection event");
     }
 
-    int i = 0;
+    int i;
     int len = listeners.length;
     switch (event.getType()) {
       case DsConnectionEvent.TYPE_CONNECTION_CLOSED:

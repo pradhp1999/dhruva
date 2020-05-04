@@ -3,19 +3,37 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipMime;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.ByteBuffer;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsParameters;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContentDispositionHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContentIdHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContentLengthHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContentTypeHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderInterface;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderList;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipHeaderString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipStringHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipUnknownHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsMsgParserBase;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipElementListener;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipHeaderListener;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
 
 /**
  * A DsMimeEntity instance represents a MIME entity. It is a new class and it will be a new parent
@@ -2411,7 +2429,7 @@ public class DsMimeEntity
    *
    * @param visitor entity visitor
    * @param matcher entity matcher (in the other sense, filter)
-   * @throws DsSipParserExceptin for parsing errors during the visitation
+   * @throws for parsing errors during the visitation
    */
   public void acceptVisitor(DsMimeEntityVisitor visitor, DsMimeEntityMatcher matcher)
       throws DsSipParserException {
@@ -2442,7 +2460,7 @@ public class DsMimeEntity
    * and its body. Therefore, it introduces an additional object creation.
    *
    * @return the entity traverser.
-   * @throws DsSipParserExceptin for parsing errors during the visitation
+   * @throws for parsing errors during the visitation
    */
   public DsMimeEntityTraverser traverser() throws DsSipParserException {
     return new Traverser();
@@ -2630,10 +2648,9 @@ public class DsMimeEntity
     DsByteString type = getContentType();
     DsMimeContentProperties props = DsMimeContentManager.getProperties(type);
     if (props == null) {
-      if (messageLogger.isEnabled(Level.INFO)) {
-        messageLogger.log(
-            Level.INFO, "In DsMimeEntity.parseBody() - Content type " + type + " is unregistered.");
-      }
+      messageLogger.info(
+          "In DsMimeEntity.parseBody() - Content type " + type + " is unregistered.");
+
       return;
     }
     switch (instruction) {

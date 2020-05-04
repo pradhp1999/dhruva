@@ -51,7 +51,7 @@ public class ConnectionCacheTest {
         };
     ExecutorService executorService = new ExecutorService("DhruvaSipServer");
     AbstractChannelHandler channelHandler =
-        new UDPChannelHandler(messageForwarder, executorService);
+        new UDPChannelHandler(messageForwarder, null, executorService);
     try {
 
       when(networkConfig.connectionCacheConnectionIdleTimeout()).thenReturn(1);

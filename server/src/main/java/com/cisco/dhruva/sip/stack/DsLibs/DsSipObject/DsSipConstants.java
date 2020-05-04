@@ -2065,4 +2065,9 @@ public interface DsSipConstants {
 
   /** Constant string that represents the MAX FORWARDS Value. */
   public static final int MAX_FORWARDS_MAX_VALUE = 255;
+
+  // CP - follows 901 as a Reason Cause when CP in maintenance mode
+  public static final int MAINTENANCE_MODE_REASON_CAUSE = 901;
+  public static final DsByteString MAINTENANCE_MODE_REASON_PHRASE =
+      new DsByteString("\"CP in Maintenance Mode\"");
 }

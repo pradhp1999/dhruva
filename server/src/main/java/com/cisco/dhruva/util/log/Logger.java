@@ -5,6 +5,8 @@
 
 package com.cisco.dhruva.util.log;
 
+import org.slf4j.event.Level;
+
 public interface Logger {
 
   public void error(String message, Throwable throwable);
@@ -32,4 +34,20 @@ public interface Logger {
   public void debug(String message);
 
   String getName();
+
+  // Should be removed , adding for compatible now
+  boolean isEnabled(Level warn);
+
+  // Should be removed , adding for compatible now
+  void log(Level level, String message);
+
+  // Should be removed , adding for compatible now
+  void log(Level level, String message, Throwable throwable);
+
+  // Should be removed , adding for compatible now
+  boolean isDebugEnabled();
+  // Should be removed , adding for compatible now
+  boolean isWarnEnabled();
+  // Should be removed , adding for compatible now
+  boolean isInfoEnabled();
 }

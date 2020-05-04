@@ -19,13 +19,16 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipMime;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import java.io.*;
-import java.text.*;
-import java.util.*;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.util.log.Logger;
+import java.io.Serializable;
+import java.text.MessageFormat;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Set;
+import org.slf4j.event.Level;
 
 /**
  * Class DsMimeContentManager is used to manage various MIME content related properties defined by

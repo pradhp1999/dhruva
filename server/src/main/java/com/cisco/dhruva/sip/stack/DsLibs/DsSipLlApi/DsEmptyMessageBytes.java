@@ -3,8 +3,11 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
-import org.apache.logging.log4j.Level;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import org.slf4j.event.Level;
 
 /** */
 public class DsEmptyMessageBytes extends DsMessageBytes {

@@ -12,9 +12,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransactionKey;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
 
 /**
  * This is an abstract class which supports the server side of a SIP transaction. It supports both
@@ -218,22 +217,17 @@ public abstract class DsSipServerTransaction implements DsSipTransaction, java.i
 
   public void set100relSupport(byte attribute) {
     if (m_non100ResponseSent == true) {
-      if (genCat.isEnabled(Level.WARN)) {
-        genCat.warn(
-            "set100relSupport(): Try to set the 100rel attribute after non-100 response is sent");
-      }
+      genCat.warn(
+          "set100relSupport(): Try to set the 100rel attribute after non-100 response is sent");
     } else {
       if (attribute == DsSipConstants.REQUIRE
           || attribute == DsSipConstants.SUPPORTED
           || attribute == DsSipConstants.UNSUPPORTED) {
         m_100relSupport = attribute;
       } else {
-        if (genCat.isEnabled(Level.WARN)) {
-          genCat.log(
-              Level.WARN,
-              "set100relSupport(): Try to set the 100rel attribute to an invalid value: "
-                  + attribute);
-        }
+        genCat.warn(
+            "set100relSupport(): Try to set the 100rel attribute to an invalid value: "
+                + attribute);
       }
     }
   }

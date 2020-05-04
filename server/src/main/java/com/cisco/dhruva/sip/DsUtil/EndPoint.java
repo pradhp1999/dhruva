@@ -1,7 +1,7 @@
-package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
+package com.cisco.dhruva.sip.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.Trace;
 
 /**
@@ -22,7 +22,7 @@ public class EndPoint implements Cloneable {
   protected int port = 5060;
 
   /* The protocol for this end point */
-  protected int protocol = DsSipTransportType.UDP;
+  protected Transport protocol = Transport.UDP;
 
   private String key = null;
   private String _intern = null;
@@ -37,13 +37,13 @@ public class EndPoint implements Cloneable {
    * @param port The port number.
    * @param protocol The int representing the protocol.
    */
-  public EndPoint(DsByteString network, DsByteString host, int port, int protocol) {
+  public EndPoint(DsByteString network, DsByteString host, int port, Transport protocol) {
     if (Log.on && Log.isDebugEnabled()) Log.debug("Entering EndPoint()");
     this.network = network;
     this.host = host;
     if (port > 0) this.port = port;
 
-    if (protocol > 0) this.protocol = protocol;
+    if (protocol != null) this.protocol = protocol;
     createKey();
     if (Log.on && Log.isDebugEnabled()) Log.debug("Leaving EndPoint()");
   }
@@ -80,7 +80,7 @@ public class EndPoint implements Cloneable {
    *
    * @return int representing the protocol.
    */
-  public final int getProtocol() {
+  public final Transport getProtocol() {
     return protocol;
   }
 

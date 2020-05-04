@@ -3,17 +3,39 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipCancelMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipContactHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipPRACKMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRouteHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransactionKey;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipURL;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerMgr;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException.TrackingExceptions;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.cac.SIPSession;
 import com.cisco.dhruva.util.cac.SIPSessionID;
 import com.cisco.dhruva.util.cac.SIPSessions;
+import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.event.Level;
 
 /**
  * Implements the client side of the low level INVITE state machine.

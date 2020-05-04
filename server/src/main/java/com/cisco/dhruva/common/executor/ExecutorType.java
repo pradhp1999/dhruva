@@ -12,6 +12,6 @@ public enum ExecutorType {
    * @return String having executor type and the server e.g SIP_TRANSACTION_PROCESSOR-dhruva
    */
   String getExecutorName(String serverName) {
-    return this.toString() + "-" + serverName.replace("%", "%%");
+    return serverName.replace("%", "%%") + this.toString();
   }
 }

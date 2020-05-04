@@ -9,10 +9,15 @@ import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
+import com.cisco.dhruva.sip.re.configs.DsControllerConfig;
+import com.cisco.dhruva.sip.re.controllers.DsREControllerFactory;
+import com.cisco.dhruva.sip.rep.DsLibs.DsSipProxy.DsSipProxyManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransactionManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransportLayer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.SipPacketProcessor;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.SipTransactionManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.DhruvaTransportLayer;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.transport.TransportLayerFactory;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
@@ -36,34 +41,43 @@ public class SIPService {
 
   private SipPacketProcessor sipPacketProcessor;
 
-  private SipTransactionManager sipTransactionManager;
+  private DsSipTransactionManager sipTransactionManager;
 
   private ExecutorService executorService;
 
   @Autowired private Environment env;
 
+  private DsSipTransportLayer sipTransportLayer;
+
+  private DhruvaTransportLayer dhruvaTransportLayer;
+
   @PostConstruct
   public void init() throws Exception {
 
     List<SIPListenPoint> sipListenPoints = dhruvaSIPConfigProperties.getListeningPoints();
-
     executorService = new ExecutorService("DhruvaSipServer");
     executorService.startExecutorService(ExecutorType.SIP_TRANSACTION_PROCESSOR, 10);
     sipPacketProcessor = new SipPacketProcessor(executorService);
-    sipTransactionManager = new SipTransactionManager();
-
     initTransportLayer(sipListenPoints);
+    sipTransportLayer = new DsSipTransportLayer(null, sipPacketProcessor, dhruvaTransportLayer);
+    DsREControllerFactory controllerFactory = new DsREControllerFactory();
+    DsSipProxyManager proxyManager = new DsSipProxyManager(sipTransportLayer, controllerFactory);
+    proxyManager.setRouteFixInterface(controllerFactory);
   }
 
   private void initTransportLayer(List<SIPListenPoint> sipListenPoints) throws Exception {
 
     logger.info("Starting Dhruva Transport Layer");
-    DhruvaTransportLayer dhruvaTransportLayer =
+    dhruvaTransportLayer =
         (DhruvaTransportLayer)
             TransportLayerFactory.getInstance()
                 .getTransportLayer(sipPacketProcessor, executorService);
 
     ArrayList<CompletableFuture> listenPointFutures = new ArrayList<CompletableFuture>();
+
+    InetAddress listenAddress;
+    int listenPort;
+    Transport listenTransport;
 
     for (SIPListenPoint sipListenPoint : sipListenPoints) {
 
@@ -79,6 +93,32 @@ public class SIPService {
               InetAddress.getByName(sipListenPoint.getHostIPAddress()),
               sipListenPoint.getPort(),
               sipPacketProcessor);
+
+      listenPointFuture.whenComplete(
+          (channel, throwable) -> {
+            if (throwable == null) {
+              try {
+                DsControllerConfig.addListenInterface(
+                    networkConfig,
+                    InetAddress.getByName(sipListenPoint.getHostIPAddress()),
+                    sipListenPoint.getPort(),
+                    sipListenPoint.getTransport(),
+                    InetAddress.getByName(sipListenPoint.getHostIPAddress()));
+
+                if (sipListenPoint.isRecordRoute()) {
+                  DsControllerConfig.addRecordRouteInterface(
+                      InetAddress.getByName(sipListenPoint.getHostIPAddress()),
+                      sipListenPoint.getPort(),
+                      sipListenPoint.getTransport(),
+                      networkConfig);
+                }
+              } catch (Exception e) {
+                logger.error(
+                    "Exception in ListenPointFuture.whenComplete while configuring DsController Config ",
+                    e);
+              }
+            }
+          });
 
       listenPointFutures.add(listenPointFuture);
     }

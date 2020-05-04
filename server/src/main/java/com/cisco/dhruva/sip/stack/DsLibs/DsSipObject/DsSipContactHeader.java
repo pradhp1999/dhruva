@@ -8,7 +8,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.*;
 import java.util.*;
-import org.apache.logging.log4j.Level;
+import org.slf4j.event.Level;
 
 /**
  * This class represents the Contact header as specified in RFC 3261. It provides methods to build,
