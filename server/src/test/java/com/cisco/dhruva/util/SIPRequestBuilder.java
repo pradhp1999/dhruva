@@ -20,6 +20,8 @@ public class SIPRequestBuilder {
 
   private String to = "To: LittleGuy <sip:UserB@there.com>";
 
+  private String callId = "1-4955@192.168.65.141";
+
   public void setToTag(String toTag) {
     this.toTag = toTag;
   }
@@ -29,13 +31,16 @@ public class SIPRequestBuilder {
     ACK,
     OPTIONS,
     BYE,
-    CANCEL
+    CANCEL,
+    PRACK
   };
 
   /* Response code and their message */
   public static HashMap<Integer, String> ResponseCodeValue =
       new HashMap<Integer, String>() {
         {
+          put(100, "Trying");
+          put(180, "Ringing");
           put(200, "OK");
           put(202, "ACCEPTED");
           put(300, "MULTIPLE CHOICES");
@@ -62,6 +67,13 @@ public class SIPRequestBuilder {
     return msg;
   }
 
+  public static DsSipResponse createResponse(byte[] response)
+      throws DsSipParserListenerException, DsSipParserException {
+    DsSipResponse msg = null;
+    msg = (DsSipResponse) DsSipMessage.createMessage(response);
+    return msg;
+  }
+
   public String getRequestAsString(RequestMethod method, String... optionalRequestURIValueList) {
     String optionalRequestURIValue = "UserB@there.com";
     if (optionalRequestURIValueList != null && optionalRequestURIValueList.length != 0) {
@@ -78,7 +90,7 @@ public class SIPRequestBuilder {
             + optionalRequestURIValue
             + " SIP/2.0"
             + CRLF
-            + "Via: SIP/2.0/UDP ss1.wcom.com:5060;branch=2d4790.1"
+            + "Via: SIP/2.0/UDP 127.0.0.1:5070;branch=2d4790.1;rport"
             + CRLF
             + "Via: SIP/2.0/UDP here.com:5060"
             + CRLF
@@ -92,7 +104,8 @@ public class SIPRequestBuilder {
             + CRLF
             + "From: BigGuy <sip:UserA@here.com>"
             + CRLF
-            + "Call-ID: 12345601@here.com"
+            + "Call-ID: "
+            + callId
             + CRLF
             + "CSeq: 1 "
             + method.name()
@@ -103,6 +116,10 @@ public class SIPRequestBuilder {
             + CRLF
             + "Content-Type: application/sdp"
             + CRLF;
+
+    if (method == RequestMethod.PRACK) {
+      requestString = requestString + "RAck: 1 1 INVITE" + CRLF;
+    }
 
     return requestString;
   }
@@ -116,10 +133,10 @@ public class SIPRequestBuilder {
       return getRequestAsString(method);
     }
     String randomString = randomAlphaNumeric(20);
-    String callId = randomString;
+    callId = randomString;
     String requestUri = " sip:" + randomString + "@cisco.com SIP/2.0";
     String toUri = "To: <sip:" + randomString + "@cisco.com>";
-    String reuestString =
+    String requestString =
         method.name()
             + requestUri
             + CRLF
@@ -150,7 +167,11 @@ public class SIPRequestBuilder {
             + "Content-Type: application/sdp"
             + CRLF;
 
-    return reuestString;
+    if (method == RequestMethod.PRACK) {
+      requestString = requestString + "RAck: 1 1 INVITE" + CRLF;
+    }
+
+    return requestString;
   }
 
   public String getRequestAsString(RequestMethod method, int maxForwardValue) {
@@ -231,7 +252,7 @@ public class SIPRequestBuilder {
     return builder.toString();
   }
 
-  public static DsSipRequest getHybridCascadeRequest() throws Exception {
+  public DsSipRequest getHybridCascadeRequest() throws Exception {
     String sipMessage =
         "INVITE sip:73sVgblHnSQtmLz08VXs8dag@192.168.65.141:5060;call-type=hybrid-cascade;x-cisco-svc-type=spark-mm SIP/2.0\n"
             + "Via: SIP/2.0/TCP 192.168.65.141:7002;branch=z9hG4bK-4955-1-0\n"
@@ -239,7 +260,9 @@ public class SIPRequestBuilder {
             + "To: sut <sip:73sVgblHnSQtmLz08VXs8dag@192.168.65.141:5060>\n"
             + "From: 123 <sip:123@192.168.65.141:7002>;tag=4955SIPpTag001\n"
             + "Contact: sip:123@192.168.65.141:7002;ifocus\n"
-            + "Call-ID: 1-4955@192.168.65.141\n"
+            + "Call-ID: "
+            + callId
+            + "\n"
             + "CSeq: 1 INVITE\n"
             + "Content-Length: 0\n"
             + "Subject: Performance Test\n"
@@ -250,7 +273,7 @@ public class SIPRequestBuilder {
     return (DsSipRequest) DsSipMessage.createMessage(sipMessage.getBytes(), true, false);
   }
 
-  public static DsSipRequest getReInviteRequest(String optionalRequestURIValue) throws Exception {
+  public DsSipRequest getReInviteRequest(String optionalRequestURIValue) throws Exception {
     if (optionalRequestURIValue == null || optionalRequestURIValue.equals("")) {
       optionalRequestURIValue =
           "73sVgblHnSQtmLz08VXs8dag@192.168.65.141:5060;call-type=hybrid-cascade;x-cisco-svc-type=spark-mm";
@@ -265,7 +288,9 @@ public class SIPRequestBuilder {
             + "To: sut <sip:73sVgblHnSQtmLz08VXs8dag@192.168.65.141:5060>;tag=8079SIPpTag011\n"
             + "From: 123 <sip:123@192.168.65.141:7002>;tag=4955SIPpTag001\n"
             + "Contact: sip:123@192.168.65.141:7002;ifocus\n"
-            + "Call-ID: 1-4955@192.168.65.141\n"
+            + "Call-ID: "
+            + callId
+            + "\n"
             + "CSeq: 1 INVITE\n"
             + "Content-Length: 0\n"
             + "Subject: Performance Test\n"
@@ -276,8 +301,7 @@ public class SIPRequestBuilder {
     return (DsSipRequest) DsSipMessage.createMessage(sipMessage.getBytes(), true, false);
   }
 
-  public static DsSipResponse get200Response()
-      throws DsSipParserListenerException, DsSipParserException {
+  public DsSipResponse get200Response() throws DsSipParserListenerException, DsSipParserException {
     String sipMessage =
         "SIP/2.0 200 OK\n"
             + "Via: SIP/2.0/TCP 192.168.65.141:5066;branch=z9hG4bKUsaQangfWbsEVmsoPdTNBA~~0\n"
@@ -287,7 +311,9 @@ public class SIPRequestBuilder {
             + "To: sut <sip:73sVgblHnSQtmLz08VXs8dag@192.168.65.141:5060>;tag=8079SIPpTag011\n"
             + "From: 123 <sip:123@192.168.65.141:7002>;tag=8090SIPpTag001\n"
             + "Contact: <sip:service@192.168.65.141:5080;transport=TCP>;sip.cisco.multistream;\n"
-            + "Call-ID: 1-8090@192.168.65.141\n"
+            + "Call-ID: "
+            + callId
+            + "\n"
             + "CSeq: 1 INVITE\n"
             + "Content-Length: 0\n"
             + "Allow: UPDATE\n"
@@ -297,7 +323,7 @@ public class SIPRequestBuilder {
   }
 
   /* This method returns a response for the responseCode passed to it */
-  public static DsSipResponse getResponse(int code)
+  public DsSipResponse getResponse(int code)
       throws DsSipParserListenerException, DsSipParserException {
     String result = "200 OK";
     if (ResponseCodeValue.containsKey(code)) {
@@ -315,12 +341,18 @@ public class SIPRequestBuilder {
             + "To: sut <sip:73sVgblHnSQtmLz08VXs8dag@192.168.65.141:5060>;tag=8079SIPpTag011\n"
             + "From: 123 <sip:123@192.168.65.141:7002>;tag=8090SIPpTag001\n"
             + "Contact: <sip:service@192.168.65.141:5080;transport=TCP>;sip.cisco.multistream;\n"
-            + "Call-ID: 1-8090@192.168.65.141\n"
+            + "Call-ID: "
+            + callId
+            + "\n"
             + "CSeq: 1 INVITE\n"
             + "Content-Length: 0\n"
             + "Allow: UPDATE\n"
             + "Content-Type: application/sdp\n"
             + "Session-ID: bc6d01a4a51c3886a6bf32cd9155dd56;remote=50aa12ba7817323b8342191bcd537513\n";
     return (DsSipResponse) DsSipMessage.createMessage(sipMessage.getBytes());
+  }
+
+  public String getCallId() {
+    return callId;
   }
 }

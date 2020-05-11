@@ -13,6 +13,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.Trace;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.security.*;
 import javax.crypto.*;
@@ -38,6 +39,7 @@ public class DsViaHandler {
 
   private static final Trace Log = Trace.getTrace(DsViaHandler.class.getName());
 
+  @SuppressFBWarnings(value = {"CIPHER_INTEGRITY","ECB_MODE"})
   private DsViaHandler(DsSipTransportLayer transportLayer)
       throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
 

@@ -174,7 +174,11 @@ public final class DsSipTransactionTable implements java.io.Serializable {
     // These aren't synchronized -- instead the the accessors are
     // sizes are prime numbers - jsm
 
-    if (m_smallMaps) {
+    initializeMaps(m_smallMaps);
+  }
+
+  private void initializeMaps(boolean smallMaps) {
+    if (smallMaps) {
       m_clientTransactionMap = new HashMap(8);
       m_serverTransactionMap = new HashMap(8);
       m_cancelTransactionMap = new HashMap(8);
@@ -191,6 +195,12 @@ public final class DsSipTransactionTable implements java.io.Serializable {
     }
   }
 
+  /*
+    used only for unit test
+  */
+  protected void resetTransactionTable() {
+    initializeMaps(false);
+  }
   /**
    * Gets the combined client and server map sizes.
    *

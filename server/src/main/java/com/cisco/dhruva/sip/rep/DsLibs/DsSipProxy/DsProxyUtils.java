@@ -82,45 +82,7 @@ public class DsProxyUtils {
     return clone;
   }
 
-  public static KeyGenerator getDESKeyGenerator() throws NoSuchAlgorithmException {
-    // , NoSuchPaddingException, InvalidKeyException{
-    KeyGenerator keyGen;
 
-    try {
-      // first try to use preconfigured crypto provider
-      keyGen = KeyGenerator.getInstance("DES");
-      if (Log.on && Log.isInfoEnabled()) Log.info("Created default DES KeyGen");
-
-    } catch (NoSuchAlgorithmException e) {
-      Log.warn("Error getting default KeyGen for DES", e);
-      try {
-
-        // if none configured, try to use the standard Sun provider
-        // (still must be installed)
-        Class sunJceClass = Class.forName(SUN_JCE_PROVIDER);
-        Provider sunJCE = (Provider) sunJceClass.newInstance();
-        Security.addProvider(sunJCE);
-
-        keyGen = KeyGenerator.getInstance("DES");
-      } catch (Throwable e1) {
-        Log.warn("Error getting Sun's KeyGen for DES", e1);
-        try {
-          // if none configured, try to use the Open JCE provider
-          // (still must be installed)
-          Class sunJceClass = Class.forName(OPEN_JCE_PROVIDER);
-          Provider openJCE = (Provider) sunJceClass.newInstance();
-          Security.addProvider(openJCE);
-
-          keyGen = KeyGenerator.getInstance("DES");
-          if (Log.on && Log.isDebugEnabled()) Log.debug("Created Open JCE KeyGen");
-        } catch (Throwable e2) {
-          Log.error("Cannot create a DES KeyGen", e2);
-          throw new NoSuchAlgorithmException("Cannot create DES KeyGen:" + e2.getMessage());
-        }
-      }
-    }
-    return keyGen;
-  }
 
   public static KeyGenerator getAESKeyGenerator() throws NoSuchAlgorithmException {
     // , NoSuchPaddingException, InvalidKeyException{

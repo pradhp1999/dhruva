@@ -29,6 +29,7 @@ package com.cisco.dhruva.sip.rep.DsLibs.DsSipProxy;
 //                                                                     //
 //////////////////// end license & copyright header///////////////////////s
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.*; // needed only for main() method.
 
 /**
@@ -340,6 +341,7 @@ public class Base64 {
   // for testing purposes only, feel free to clip it.
   ///////////////////////////////////////////////////
 
+  @SuppressFBWarnings(value = {"PATH_TRAVERSAL_IN"})
   public static void main(String[] args) {
     boolean decode = false;
     boolean staticString = false;

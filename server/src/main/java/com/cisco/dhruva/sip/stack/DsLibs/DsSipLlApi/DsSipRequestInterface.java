@@ -33,5 +33,5 @@ public interface DsSipRequestInterface {
    * @throws IOException not thrown any more, but its there for backward compatibility and may be
    *     removed in the next release
    */
-  void request(DsSipServerTransaction transaction) throws DsException, IOException;
+  void request(DsSipServerTransaction transaction);
 }

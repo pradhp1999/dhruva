@@ -81,10 +81,6 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
         && (request.getMethodID() != DsSipMessage.CANCEL)) {
       // Will automatically create the right kind of transaction
       controller.createProxyTransaction(ourConfig.isStateful(), request, serverTransaction);
-
-      if (request.getMethodID() == DsSipConstants.INVITE) {
-        controller.sendTryingResponse(request);
-      }
     }
 
     // Send a 100 if we are statefull.
