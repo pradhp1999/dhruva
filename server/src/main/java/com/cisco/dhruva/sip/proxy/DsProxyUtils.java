@@ -13,43 +13,33 @@
 
 package com.cisco.dhruva.sip.proxy;
 
-import com.cisco.dhruva.sip.controller.DsProxyResponseGenerator;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-import com.cisco.dhruva.util.log.Trace;
-import org.apache.logging.log4j.Level;
-
-import javax.crypto.KeyGenerator;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
+import javax.crypto.KeyGenerator;
 
-/**
- * Contains certain wrappers that compensate for
- * problems with DsSipObject APIs
- */
-
+/** Contains certain wrappers that compensate for problems with DsSipObject APIs */
 public class DsProxyUtils {
 
-  private final static String SUN_JCE_PROVIDER =
-    "com.sun.crypto.provider.SunJCE";
-  private final static String OPEN_JCE_PROVIDER =
-    "au.net.aba.crypto.provider.ABAProvider";
-
+  private static final String SUN_JCE_PROVIDER = "com.sun.crypto.provider.SunJCE";
+  private static final String OPEN_JCE_PROVIDER = "au.net.aba.crypto.provider.ABAProvider";
 
   // the name of this Logger is non-standard to work around an
   // obscure log4j bug that causes the proxy to hang when
   // debug command is issues under certain conditions
   private static final Logger Log = DhruvaLoggerFactory.getLogger(DsProxyUtils.class);
 
-
   /**
    * Removes the top value of the header hdr
+   *
    * @param msg SIP message
    * @param hdr header name
    */
@@ -58,9 +48,8 @@ public class DsProxyUtils {
     return msg.removeHeader(hdr);
   }
 
-  public static void fixRequestForForking(DsSipRequest request,
-                                          boolean stripVia,
-                                          boolean stripRecordRoute) {
+  public static void fixRequestForForking(
+      DsSipRequest request, boolean stripVia, boolean stripRecordRoute) {
     request.setFinalised(false);
 
     if (stripVia) {
@@ -71,38 +60,33 @@ public class DsProxyUtils {
       removeTopRecordRoute(request);
     }
 
-
     try {
       request.lrUnescape();
-    }
-    catch (Exception e) {
-       Log.warn("Exception encountered while trying to unescape request", e);
+    } catch (Exception e) {
+      Log.warn("Exception encountered while trying to unescape request", e);
     }
 
     request.setBindingInfo(new DsBindingInfo());
   }
 
-  public static DsSipRequest cloneRequestForForking(DsSipRequest originalRequest,
-                                                    boolean stripVia,
-                                                    boolean stripRecordRoute) {
+  public static DsSipRequest cloneRequestForForking(
+      DsSipRequest originalRequest, boolean stripVia, boolean stripRecordRoute) {
     DsSipRequest clone = (DsSipRequest) originalRequest.clone();
     fixRequestForForking(clone, stripVia, stripRecordRoute);
     return clone;
   }
 
-  public static KeyGenerator getDESKeyGenerator()
-    throws NoSuchAlgorithmException {
-    //, NoSuchPaddingException, InvalidKeyException{
+  public static KeyGenerator getAESKeyGenerator() throws NoSuchAlgorithmException {
+    // , NoSuchPaddingException, InvalidKeyException{
     KeyGenerator keyGen;
 
     try {
       // first try to use preconfigured crypto provider
-      keyGen = KeyGenerator.getInstance("DES");
-      Log.info("Created default DES KeyGen");
+      keyGen = KeyGenerator.getInstance("AES");
+      Log.info("Created default AES KeyGen");
 
-    }
-    catch (NoSuchAlgorithmException e) {
-      Log.warn("Error getting default KeyGen for DES", e);
+    } catch (NoSuchAlgorithmException e) {
+      Log.warn("Error getting default KeyGen for AES", e);
       try {
 
         // if none configured, try to use the standard Sun provider
@@ -111,10 +95,9 @@ public class DsProxyUtils {
         Provider sunJCE = (Provider) sunJceClass.newInstance();
         Security.addProvider(sunJCE);
 
-        keyGen = KeyGenerator.getInstance("DES");
-      }
-      catch (Throwable e1) {
-        Log.warn("Error getting Sun's KeyGen for DES", e1);
+        keyGen = KeyGenerator.getInstance("AES");
+      } catch (Throwable e1) {
+        Log.warn("Error getting Sun's KeyGen for AES", e1);
         try {
           // if none configured, try to use the Open JCE provider
           // (still must be installed)
@@ -122,70 +105,25 @@ public class DsProxyUtils {
           Provider openJCE = (Provider) sunJceClass.newInstance();
           Security.addProvider(openJCE);
 
-          keyGen = KeyGenerator.getInstance("DES");
+          keyGen = KeyGenerator.getInstance("AES");
           Log.debug("Created Open JCE KeyGen");
-        }
-        catch (Throwable e2) {
-          Log.error("Cannot create a DES KeyGen", e2);
-          throw new NoSuchAlgorithmException("Cannot create DES KeyGen:" + e2.getMessage());
+        } catch (Throwable e2) {
+          Log.error("Cannot create a AES KeyGen", e2);
+          throw new NoSuchAlgorithmException("Cannot create AES KeyGen:" + e2.getMessage());
         }
       }
     }
     return keyGen;
   }
-  
-  public static KeyGenerator getAESKeyGenerator()
-		    throws NoSuchAlgorithmException {
-		    //, NoSuchPaddingException, InvalidKeyException{
-		    KeyGenerator keyGen;
-
-		    try {
-		      // first try to use preconfigured crypto provider
-		      keyGen = KeyGenerator.getInstance("AES");
-		      Log.info("Created default AES KeyGen");
-
-		    }
-		    catch (NoSuchAlgorithmException e) {
-		      Log.warn("Error getting default KeyGen for AES", e);
-		      try {
-
-		        // if none configured, try to use the standard Sun provider
-		        // (still must be installed)
-		        Class sunJceClass = Class.forName(SUN_JCE_PROVIDER);
-		        Provider sunJCE = (Provider) sunJceClass.newInstance();
-		        Security.addProvider(sunJCE);
-
-		        keyGen = KeyGenerator.getInstance("AES");
-		      }
-		      catch (Throwable e1) {
-		        Log.warn("Error getting Sun's KeyGen for AES", e1);
-		        try {
-		          // if none configured, try to use the Open JCE provider
-		          // (still must be installed)
-		          Class sunJceClass = Class.forName(OPEN_JCE_PROVIDER);
-		          Provider openJCE = (Provider) sunJceClass.newInstance();
-		          Security.addProvider(openJCE);
-
-		          keyGen = KeyGenerator.getInstance("AES");
-		          Log.debug("Created Open JCE KeyGen");
-		        }
-		        catch (Throwable e2) {
-		          Log.error("Cannot create a AES KeyGen", e2);
-		          throw new NoSuchAlgorithmException("Cannot create DES KeyGen:" + e2.getMessage());
-		        }
-		      }
-		    }
-		    return keyGen;
-		  }
 
   /**
    * Removes the top value of the header hdr
+   *
    * @param msg SIP message
    * @param hdr header name
    */
   public static void removeHeader(DsSipMessage msg, int hdr) {
-    if (msg == null)
-      return;
+    if (msg == null) return;
 
     msg.removeHeaders(hdr);
   }
@@ -195,99 +133,15 @@ public class DsProxyUtils {
   }
 
   /**
-   * This does a few sanity checks on the messages received by the proxy,
-   * namely, it check
-   * 1. Proxy-Require (this should probably be moved
-   * to Controller code
-   * 2. It checks for loops (a problem for the app server)
-   * 3. It checks Max-Forwards (this should probably be done in the Low Level
-   * @param request request to validate
-   */
-  protected static DsSipResponse validateRequest(DsSipRequest request,
-                                                 boolean checkProxyRequire) {
-
-    if (checkProxyRequire) {
-      // check any Proxy-Require headers
-      // should this be moved to ProxyController?
-      try {
-        DsSipHeaderList requireList = request.getHeadersValidate(DsSipConstants.PROXY_REQUIRE);
-
-        if (requireList != null) {
-
-          Log.info("Proxy-Require header present:");
-
-          DsSipProxyRequireHeader header;
-          DsByteString extension;
-          boolean allSupported = true;
-
-          int size = requireList.size();
-          int i;
-
-          for (i = 0; i < size; i++) {
-            // Combine lower loop with this loop, may want to use list
-            // iterator again - JPS
-            header = (DsSipProxyRequireHeader) requireList.get(i);
-            //extension = header.getOptionTag();
-            extension = header.getValue();
-
-            if (!DsSupportedExtensions.isSupported(extension)) {
-              allSupported = false;
-              break;
-            }
-          }
-
-          if (!allSupported) {
-
-            DsSipResponse response =
-              DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_BAD_EXTENSION, request);
-
-
-            for (; i < size; i++) {
-              // May want to use list iterator here - JPS
-              header = (DsSipProxyRequireHeader) requireList.get(i);
-              extension = header.getValue();
-              if (!DsSupportedExtensions.isSupported(extension)) {
-                DsSipUnsupportedHeader unsup = new DsSipUnsupportedHeader(extension);
-                DsSipHeaderList headerList = response.getHeaders(DsSipUnsupportedHeader.sID);
-                if (headerList == null) {
-                  response.addHeader(unsup, false, false);
-                }
-                else {
-                  headerList.addLast(unsup);
-                }
-              }
-            }
-
-            return response;
-          }
-        }
-      }
-      catch (Exception e) {
-         Log.error("Error processing a request with Proxy-Require", e);
-        try {
-          return DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR, request);
-        }
-        catch (Throwable t) {
-          Log.error("Error generating response", t);
-        }
-        return null;
-      }
-    }
-
-    return null;
-  }
-
-
-  /**
-   * Sends a final response without creating ProxyTransaction
-   * This is used to send error responses to requests that fail
-   * sanity checks performed in DsProxyUtils.validateRequest().
+   * Sends a final response without creating ProxyTransaction This is used to send error responses
+   * to requests that fail sanity checks performed in DsProxyUtils.validateRequest().
+   *
    * @param server request in question
    * @param response to send
    * @return DsSipServerTransaction transaction to return to Low Level
    */
-  protected static DsSipServerTransaction sendErrorResponse(DsSipServerTransaction server, DsSipResponse response)
-    throws DsException, IOException {
+  protected static DsSipServerTransaction sendErrorResponse(
+      DsSipServerTransaction server, DsSipResponse response) throws DsException, IOException {
     DsSipToHeader to = response.getToHeaderValidate();
 
     // To header is not null if we got to here
@@ -323,16 +177,19 @@ public class DsProxyUtils {
 
     if (url.getMAddrParam() != null) {
       b = recognize(url.getMAddrParam(), url.getPort(), url.getTransportParam(), myURL);
-    }
-    else {
+    } else {
       b = recognize(url.getHost(), url.getPort(), url.getTransportParam(), myURL);
     }
     return b;
   }
 
-  public static boolean recognize(DsByteString host, int port, int transport, DsSipURL myURL) {
+  public static boolean recognize(
+      DsByteString host, int port, Transport transport, DsSipURL myURL) {
     Log.debug("Entering recognize(" + host + ", " + port + ", " + transport + ", " + myURL + ")");
-    boolean b = (host.equals(myURL.getHost()) && port == myURL.getPort() && transport == myURL.getTransportParam());
+    boolean b =
+        (host.equals(myURL.getHost())
+            && port == myURL.getPort()
+            && transport == myURL.getTransportParam());
     Log.debug("Leaving recognize(), returning " + b);
     return b;
   }

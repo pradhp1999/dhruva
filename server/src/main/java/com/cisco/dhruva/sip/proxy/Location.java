@@ -9,12 +9,11 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.util.log.Trace;
 
 /**
+ * This class is used to encapsulate various parameters for an outgoing request uri. This object is
+ * the data structure used by XCL when dealing with next hops.
  *
- * This class is used to encapsulate various parameters for an outgoing request
- * uri. This object is the data structure used by XCL when dealing with next hops.
- * <p>
- * The default parameters for a Location is a null server
- * group, Qvalue set to 1, and failover turned off.
+ * <p>The default parameters for a Location is a null server group, Qvalue set to 1, and failover
+ * turned off.
  *
  * @author Mitch Rappard
  */
@@ -43,35 +42,38 @@ public final class Location implements Cloneable, Comparable {
 
   protected DsBindingInfo bindingInfo = null;
 
-  public static float DEFAULT_QVALUE = (float)1.0;
+  public static float DEFAULT_QVALUE = (float) 1.0;
 
-  /** our log object **/
+  /** our log object * */
   private static final Trace Log = Trace.getTrace(Location.class.getName());
 
-
   /**
-   *  Create a Location with the given URI, and
-   * all parameters set to their default.
+   * Create a Location with the given URI, and all parameters set to their default.
+   *
    * @param uri The DsURI to send to.
-   **/
-  public Location(DsURI uri ) {
-    this( uri, null, null, DEFAULT_QVALUE, 0 );
+   */
+  public Location(DsURI uri) {
+    this(uri, null, null, DEFAULT_QVALUE, 0);
   }
-
-
 
   /**
    * Create a Location with all the parameters specified.
+   *
    * @param uri The DsURI to send to.
    * @param serverGroupName The server group name that should be used when load balancing.
    * @param qValue The qValue for this contact/uri.
-   **/
-
-  public Location(DsURI uri, DsSipHeaderList routeHeaders, DsByteString serverGroupName, float qValue ) {
-    this (uri, routeHeaders, serverGroupName, qValue, 0);
+   */
+  public Location(
+      DsURI uri, DsSipHeaderList routeHeaders, DsByteString serverGroupName, float qValue) {
+    this(uri, routeHeaders, serverGroupName, qValue, 0);
   }
 
-  public Location(DsURI uri, DsSipHeaderList routeHeaders, DsByteString serverGroupName, float qValue, long lastUpdate ) {
+  public Location(
+      DsURI uri,
+      DsSipHeaderList routeHeaders,
+      DsByteString serverGroupName,
+      float qValue,
+      long lastUpdate) {
     this.uri = uri;
     this.serverGroupName = serverGroupName;
     this.routeHeaders = routeHeaders;
@@ -79,10 +81,9 @@ public final class Location implements Cloneable, Comparable {
     this.lastUpdate = lastUpdate;
   }
 
-  /** @noinspection CloneDoesntCallSuperClone*/
-  public Object clone()
-  {
-    DsURI clonedURI = (DsURI)uri.clone();
+  /** @noinspection CloneDoesntCallSuperClone */
+  public Object clone() {
+    DsURI clonedURI = (DsURI) uri.clone();
     Location location = new Location(clonedURI, routeHeaders, serverGroupName, qValue, lastUpdate);
     location.setLoadBalancer(lb);
     location.setProcessRoute(processRoute);
@@ -98,11 +99,11 @@ public final class Location implements Cloneable, Comparable {
     return location;
   }
 
-  public void setDefaultNetwork(DsNetwork defaultNetwork){
+  public void setDefaultNetwork(DsNetwork defaultNetwork) {
     this.defaultNetwork = defaultNetwork;
   }
 
-  public DsNetwork getDefaultNetwork(){
+  public DsNetwork getDefaultNetwork() {
     return defaultNetwork;
   }
 
@@ -138,7 +139,7 @@ public final class Location implements Cloneable, Comparable {
     return this.lb;
   }
 
-  public void setLoadBalancer ( LBInterface lb) {
+  public void setLoadBalancer(LBInterface lb) {
     this.lb = lb;
   }
 
@@ -150,67 +151,57 @@ public final class Location implements Cloneable, Comparable {
     return useDestInfo;
   }
 
-  public long getLastUpdate()
-  {
+  public long getLastUpdate() {
     return lastUpdate;
   }
 
-
-  public boolean equals(Object obj)
-  {
-    if (obj == null)
-      return false;
-    else
-      return equals((Location)obj);
+  public boolean equals(Object obj) {
+    if (obj == null) return false;
+    else return equals((Location) obj);
   }
 
   /**
-   *  Calls the equals method of the internal URI, compares the server
-   * group name, and the connection-id.  If all of these are equal, then we return true.
+   * Calls the equals method of the internal URI, compares the server group name, and the
+   * connection-id. If all of these are equal, then we return true.
+   *
    * @param lbURI The Location to compare.
    * @return <code>true</code> if the URI and server group are the same, false otherwise.
-   **/
+   */
   public boolean equals(Location lbURI) {
 
-    if(Log.on && Log.isTraceEnabled()) {
-      Log.debug( "Entering equals() for contact = " + lbURI );
-      Log.debug( "Current location is: " + this);
+    if (Log.on && Log.isTraceEnabled()) {
+      Log.debug("Entering equals() for contact = " + lbURI);
+      Log.debug("Current location is: " + this);
     }
 
-    //See if the URIs in the contact header match
+    // See if the URIs in the contact header match
     boolean equals = false;
 
     if (lbURI.getURI().equals(this.uri)) {
-      //See if the Server groups match
+      // See if the Server groups match
       boolean serverGroupMatch = false;
-      if( lbURI.getServerGroupName() != null && this.serverGroupName != null)
+      if (lbURI.getServerGroupName() != null && this.serverGroupName != null)
         serverGroupMatch = lbURI.getServerGroupName().equals(this.serverGroupName);
-      else
-        serverGroupMatch = lbURI.getServerGroupName() == null && serverGroupName == null;
+      else serverGroupMatch = lbURI.getServerGroupName() == null && serverGroupName == null;
 
       if (serverGroupMatch) {
         if (connectionID != null && lbURI.getConnectionID() != null)
           equals = connectionID.equals(lbURI.getConnectionID());
-        else
-          equals = connectionID == null && lbURI.getConnectionID() == null;
+        else equals = connectionID == null && lbURI.getConnectionID() == null;
       }
     }
     if (Log.on && Log.isTraceEnabled()) Log.trace("Leaving equals(), returning " + equals);
-    return  equals;
+    return equals;
   }
 
-  public int hashCode()
-  {
-    if (hashCode != -1)
-      return hashCode;
+  public int hashCode() {
+    if (hashCode != -1) return hashCode;
 
     int hashCode = 0;
 
-    if (serverGroupName != null)
-      hashCode += serverGroupName.hashCode();
+    if (serverGroupName != null) hashCode += serverGroupName.hashCode();
 
-    if (connectionID != null)
-      hashCode += connectionID.hashCode();
+    if (connectionID != null) hashCode += connectionID.hashCode();
 
     hashCode += uri.getValue().hashCode();
 
@@ -218,56 +209,56 @@ public final class Location implements Cloneable, Comparable {
   }
 
   public String toString() {
-    return this.uri.toString() +
-            ", Server Group: " + this.serverGroupName +
-            ", Route Headers: " + this.routeHeaders +
-            ", Connection-ID = " + connectionID +
-            ", Q-value= " + this.qValue +
-            ", Process Route: " + processRoute +
-            ", Use Dest Info: " + useDestInfo +
-            ", Network=" + network +
-            ", Default Network=" + defaultNetwork;
+    return this.uri.toString()
+        + ", Server Group: "
+        + this.serverGroupName
+        + ", Route Headers: "
+        + this.routeHeaders
+        + ", Connection-ID = "
+        + connectionID
+        + ", Q-value= "
+        + this.qValue
+        + ", Process Route: "
+        + processRoute
+        + ", Use Dest Info: "
+        + useDestInfo
+        + ", Network="
+        + network
+        + ", Default Network="
+        + defaultNetwork;
   }
 
   /**
-   * Compares this object with the specified object for order.  Returns a
-   * negative integer, zero, or a positive integer as this object is less
-   * than, equal to, or greater than the specified object.<p>
+   * Compares this object with the specified object for order. Returns a negative integer, zero, or
+   * a positive integer as this object is less than, equal to, or greater than the specified object.
    *
-   * The implementor must ensure <tt>sgn(x.compareTo(y)) ==
-   * -sgn(y.compareTo(x))</tt> for all <tt>x</tt> and <tt>y</tt>.  (This
-   * implies that <tt>x.compareTo(y)</tt> must throw an exception iff
-   * <tt>y.compareTo(x)</tt> throws an exception.)<p>
+   * <p>The implementor must ensure <tt>sgn(x.compareTo(y)) == -sgn(y.compareTo(x))</tt> for all
+   * <tt>x</tt> and <tt>y</tt>. (This implies that <tt>x.compareTo(y)</tt> must throw an exception
+   * iff <tt>y.compareTo(x)</tt> throws an exception.)
    *
-   * The implementor must also ensure that the relation is transitive:
-   * <tt>(x.compareTo(y)&gt;0 &amp;&amp; y.compareTo(z)&gt;0)</tt> implies
-   * <tt>x.compareTo(z)&gt;0</tt>.<p>
+   * <p>The implementor must also ensure that the relation is transitive: <tt>(x.compareTo(y)&gt;0
+   * &amp;&amp; y.compareTo(z)&gt;0)</tt> implies <tt>x.compareTo(z)&gt;0</tt>.
    *
-   * Finally, the implementer must ensure that <tt>x.compareTo(y)==0</tt>
-   * implies that <tt>sgn(x.compareTo(z)) == sgn(y.compareTo(z))</tt>, for
-   * all <tt>z</tt>.<p>
+   * <p>Finally, the implementer must ensure that <tt>x.compareTo(y)==0</tt> implies that
+   * <tt>sgn(x.compareTo(z)) == sgn(y.compareTo(z))</tt>, for all <tt>z</tt>.
    *
-   * It is strongly recommended, but <i>not</i> strictly required that
-   * <tt>(x.compareTo(y)==0) == (x.equals(y))</tt>.  Generally speaking, any
-   * class that implements the <tt>Comparable</tt> interface and violates
-   * this condition should clearly indicate this fact.  The recommended
-   * language is "Note: this class has a natural ordering that is
-   * inconsistent with equals."
+   * <p>It is strongly recommended, but <i>not</i> strictly required that <tt>(x.compareTo(y)==0) ==
+   * (x.equals(y))</tt>. Generally speaking, any class that implements the <tt>Comparable</tt>
+   * interface and violates this condition should clearly indicate this fact. The recommended
+   * language is "Note: this class has a natural ordering that is inconsistent with equals."
    *
-   * @param   o the Object to be compared.
-   * @return  a negative integer, zero, or a positive integer as this object
-   *		should appear after, equal to, or before the specified object.
-   *
-   * @throws ClassCastException if the specified object's type prevents it
-   *         from being compared to this Object.
+   * @param o the Object to be compared.
+   * @return a negative integer, zero, or a positive integer as this object should appear after,
+   *     equal to, or before the specified object.
+   * @throws ClassCastException if the specified object's type prevents it from being compared to
+   *     this Object.
    */
   public int compareTo(Object o) {
-    Location loc = (Location)o;
+    Location loc = (Location) o;
     int returnVal = 0;
     if (getQValue() > loc.getQValue()) returnVal = -1;
     else if (getQValue() < loc.getQValue()) returnVal = 1;
-    else
-    {
+    else {
       if (getLastUpdate() > loc.getLastUpdate()) returnVal = -1;
       else if (getLastUpdate() < loc.getLastUpdate()) returnVal = 1;
     }
@@ -278,32 +269,27 @@ public final class Location implements Cloneable, Comparable {
     return this.qValue;
   }
 
-  public void setQValue(float qValue)
-  {
+  public void setQValue(float qValue) {
     this.qValue = qValue;
   }
 
-  public void setURI( DsURI newURI ) {
+  public void setURI(DsURI newURI) {
     this.uri = newURI;
   }
 
-  public boolean processRoute()
-  {
+  public boolean processRoute() {
     return processRoute;
   }
 
-  public void setProcessRoute(boolean processRoute)
-  {
+  public void setProcessRoute(boolean processRoute) {
     this.processRoute = processRoute;
   }
 
-  public DsByteString getConnectionID()
-  {
+  public DsByteString getConnectionID() {
     return connectionID;
   }
 
-  public void setConnectionID(DsByteString connectionID)
-  {
+  public void setConnectionID(DsByteString connectionID) {
     this.connectionID = connectionID;
   }
 
@@ -315,34 +301,27 @@ public final class Location implements Cloneable, Comparable {
     this.bindingInfo = bindingInfo;
   }
 
-  public void setRemoveExistingRoutes(boolean flag)
-  {
+  public void setRemoveExistingRoutes(boolean flag) {
     removeExistingRoutes = flag;
   }
 
-  public boolean getRemoveExistingRoutes()
-  {
+  public boolean getRemoveExistingRoutes() {
     return removeExistingRoutes;
   }
 
-  public void setRemoveExistingRoutesOnRedirect(boolean flag)
-  {
+  public void setRemoveExistingRoutesOnRedirect(boolean flag) {
     removeExistingRoutesOnRedirect = flag;
   }
 
-  public boolean getRemoveExistingRoutesOnRedirect()
-  {
+  public boolean getRemoveExistingRoutesOnRedirect() {
     return removeExistingRoutesOnRedirect;
   }
 
-  public void setCopiedURIHeadersToRequest(boolean flag)
-  {
+  public void setCopiedURIHeadersToRequest(boolean flag) {
     copiedURIHeadersToRequest = flag;
   }
 
-  public boolean getCopiedURIHeadersToRequest()
-  {
+  public boolean getCopiedURIHeadersToRequest() {
     return copiedURIHeadersToRequest;
   }
 }
-

@@ -3,11 +3,11 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
+import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
 import com.cisco.dhruva.transport.Transport;
-import com.cisco.dhruva.util.cac.SIPSessions;
 import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.net.InetAddress;

@@ -3,6 +3,8 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
+import com.cisco.dhruva.sip.cac.SIPSession;
+import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipElementListener;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
@@ -13,8 +15,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.DsTokenSipInteger;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
-import com.cisco.dhruva.util.cac.SIPSession;
-import com.cisco.dhruva.util.cac.SIPSessions;
 import java.io.IOException;
 import java.io.OutputStream;
 

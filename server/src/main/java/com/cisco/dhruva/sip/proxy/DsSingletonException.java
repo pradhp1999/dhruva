@@ -16,12 +16,12 @@ package com.cisco.dhruva.sip.proxy;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 
 /**
- * DsSingletonException is thrown when a second instance
- * of a singleton class is attempted to be created
+ * DsSingletonException is thrown when a second instance of a singleton class is attempted to be
+ * created
  */
 public class DsSingletonException extends DsException {
 
   public DsSingletonException(String msg) {
-	super(msg);
+    super(msg);
   }
 }

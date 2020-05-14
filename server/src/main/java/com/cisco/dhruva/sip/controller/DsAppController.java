@@ -1,0 +1,159 @@
+package com.cisco.dhruva.sip.controller;
+
+import com.cisco.dhruva.Exception.DhruvaException;
+import com.cisco.dhruva.adaptor.AppAdaptorInterface;
+import com.cisco.dhruva.adaptor.ProxyAdaptorFactory;
+import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
+import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
+import com.cisco.dhruva.router.AppInterface;
+import com.cisco.dhruva.sip.proxy.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipClientTransactionImpl;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+
+import static java.util.Objects.requireNonNull;
+
+public class DsAppController extends DsProxyController implements DsControllerInterface {
+
+  // MEETPASS set through config
+  private boolean processRouteHeader = false;
+
+  protected static Logger Log = DhruvaLoggerFactory.getLogger(DsAppController.class);
+
+  private ProxyAdaptorFactoryInterface proxyAdaptorFactory;
+
+  private AppInterface appSession;
+
+  public DsAppController(ProxyAdaptorFactoryInterface f, AppInterface app) {
+    setAdaptorFactory(f);
+    setAppInterface(app);
+  }
+
+  /**
+   * The first method invoked by ProxyManager right after it has retreived a controller from the
+   * controller factory (this happens when it receives a new request). The implementation of this
+   * method MUST create a DsProxyTransaction object and return it to the ProxyManager
+   *
+   * @param request The incoming request that trigered this method
+   * @return ProxyStatelessTransaction
+   */
+  public DsProxyStatelessTransaction onNewRequest(
+      DsSipServerTransaction serverTrans, DsSipRequest request) {
+
+    DsProxyStatelessTransaction trans = super.onNewRequest(serverTrans, request);
+    Log.debug("DsAppController: onNewRequest {}" + Arrays.toString(request.getSessionId()));
+
+    if (respondedOnNewRequest) {
+      // request has been responded and no need to continue
+      return ourProxy;
+    }
+
+    try {
+      if (processRouteHeader
+          || request.getHeader(DsSipConstants.ROUTE) == null
+          || !DsSipClientTransactionImpl.isMidDialogRequest(request)) {
+        // request.setProcessRoute(false);
+
+        ProxyAdaptorFactoryInterface f = getAdaptorFactory();
+        AppAdaptorInterface adaptor = f.getProxyAdaptor(this, appSession);
+        adaptor.handleRequest(request);
+      } else {
+        // We don't want App Adaptor layer to process this request, so we by bypass it
+        // by making a call directly to the proxy core.  Note that failover
+        // will not be possible for this branch.  Nothng more will be done until
+        // the core makes the onBestResponse callback
+
+        Log.debug("Skipping XCL and sending to the URL in the " + " Route header");
+
+        Location loc = new Location(request.getURI());
+        loc.setProcessRoute(true);
+        this.usingRouteHeader = true;
+
+        this.proxyTo(loc, ourRequest, null);
+      }
+    } catch (Throwable e) {
+      // Error Logging
+      Log.error("onNewRequest() - Execution error while invoking adaptor layer " + e.getMessage());
+      // Set the request var in the proxy controller so it can send the response
+      ourRequest = request;
+      // Try to send a 500
+      sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
+      return ourProxy;
+    }
+
+    return ourProxy;
+  }
+
+  /** Send the cancel to App for processing. */
+  public void onCancel(
+      DsProxyTransaction proxy, DsProxyServerTransaction trans, DsSipCancelMessage cancel)
+      throws DsException {
+
+    Log.debug("Entering onCancel()");
+
+    gotCancel = true;
+
+    try {
+      //MEETPASS
+      //For Cancel, do we need a new proxyAdaptor
+      ProxyAdaptorFactoryInterface f = getAdaptorFactory();
+      AppAdaptorInterface adaptor = f.getProxyAdaptor(this, appSession);
+      adaptor.handleRequest(cancel);
+    } catch (DhruvaException e) {
+      Log.error(
+          "Exception while handling cancel message {}" + Arrays.toString(cancel.getSessionId()));
+      throw new DsException("AppAdaptor:OnCancel", e);
+    }
+  }
+
+  /** Send the ack to the App layer for processing. */
+  public void onAck(DsProxyTransaction proxy, DsProxyServerTransaction trans, DsSipAckMessage ack) {
+    Log.debug("Entering onAck() {}" + Arrays.toString(ack.getSessionId()));
+
+    try {
+      ProxyAdaptorFactoryInterface f = getAdaptorFactory();
+      AppAdaptorInterface adaptor = f.getProxyAdaptor(this, appSession);
+      adaptor.handleRequest(ack);
+    } catch (DhruvaException e) {
+      Log.error("Exception while handling cancel message {}" + Arrays.toString(ack.getSessionId()));
+    }
+  }
+
+  public void onBestResponse(DsProxyTransaction proxy, DsSipResponse response) {
+
+    Log.debug("Entering onBestResponse() {}" + Arrays.toString(response.getSessionId()));
+
+    // If we sent to a route header without the App layer, then we will use the
+    // best response that the core has.
+    if (usingRouteHeader) {
+      Log.debug(
+          "We must have sent to a route header or gotten a cancel, responding "
+              + " with the core's best respnonse: \n"
+              + response.maskAndWrapSIPMessageToSingleLineOutput());
+
+      // Forward the best response upstream
+      proxy.respond();
+    }
+  }
+  protected ProxyAdaptorFactoryInterface getAdaptorFactory() {
+    return proxyAdaptorFactory;
+  }
+
+  public void setAdaptorFactory(ProxyAdaptorFactoryInterface pf) {
+    requireNonNull(pf, "proxy adaptor interface cannot be null");
+    proxyAdaptorFactory = pf;
+  }
+
+  public void setAppInterface(AppInterface session) {
+    requireNonNull(session, "app session cannot be null");
+    appSession = session;
+  }
+}

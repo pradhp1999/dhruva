@@ -13,132 +13,128 @@
 
 package com.cisco.dhruva.sip.controller;
 
-
+import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.sip.proxy.DsListenInterface;
 import com.cisco.dhruva.sip.proxy.DsProxyParamsInterface;
 import com.cisco.dhruva.sip.proxy.DsViaListenInterface;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipPathHeader;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRecordRouteHeader;
+import com.cisco.dhruva.transport.Transport;
 
 /**
- * Encapsulates parameters that can be passed to
- * ProxyTransaction's constructor to control its behavior
+ * Encapsulates parameters that can be passed to ProxyTransaction's constructor to control its
+ * behavior
  */
-
-public class DsProxyParams extends DsProxyBranchParams
-  implements DsProxyParamsInterface {
+public class DsProxyParams extends DsProxyBranchParams implements DsProxyParamsInterface {
 
   protected int defaultPort;
-  protected int defaultProtocol;
+  protected Transport defaultProtocol;
   protected DsListenInterface reInterface = null;
   protected DsViaListenInterface reViaInterface = null;
   protected DsSipRecordRouteHeader recordRouteInterface = null;
   protected DsSipPathHeader pathInterface = null;
   protected DsProxyParamsInterface storedIface;
 
-  //Took out direction
-  //private String m_RequestDirection;
-  //See getInterface method for the only other significant change  MR
+  // Took out direction
+  // private String m_RequestDirection;
+  // See getInterface method for the only other significant change  MR
 
   /**
-   * Constructs a DsProxyParams object based on the config
-   * passed as a parameter
-   * @param config the configuration is copied into
-   * the params object being created
+   * Constructs a DsProxyParams object based on the config passed as a parameter
+   *
+   * @param config the configuration is copied into the params object being created
    */
-  public DsProxyParams(DsProxyParamsInterface config , String requestDirection) {
+  public DsProxyParams(DsProxyParamsInterface config, String requestDirection) {
     super(config, requestDirection);
 
     defaultPort = config.getDefaultPort();
     defaultProtocol = config.getDefaultProtocol();
 
-    storedIface = config;    
+    storedIface = config;
   }
 
-/*
-  public DsProxyParams(DsProxyParamsInterface config) {
-    this(config, DsControllerConfig.INBOUND);
-  }
-*/
-  /**
-   * @return default SIP port number to be used for
-   * this ProxyTransaction
-   */
+  /*
+    public DsProxyParams(DsProxyParamsInterface config) {
+      this(config, DsControllerConfig.INBOUND);
+    }
+  */
+  /** @return default SIP port number to be used for this ProxyTransaction */
   public int getDefaultPort() {
-	return defaultPort;
+    return defaultPort;
   }
 
-  /**
-   * @return the default protocol to be used for outgoing requests
-   * or to put in Record-Route
-   */
-  public int getDefaultProtocol() {
-	return defaultProtocol;
+  /** @return the default protocol to be used for outgoing requests or to put in Record-Route */
+  public Transport getDefaultProtocol() {
+    return defaultProtocol;
   }
 
   /**
    * Allows to overwrite SIP default port 5060
+   *
    * @param port port number to use instead of 5060
    */
   public void setDefaultPort(int port) {
-	if (port > 0) {
-	  defaultPort = port;
-	}
+    if (port > 0) {
+      defaultPort = port;
+    }
   }
 
   /**
    * Sets the default protocol to use for outgoing requests
-   * @param protocol one of DsProxyConfig.UDP or DsProxyConfig.TCP;
-   * any other value will be converted to UDP
+   *
+   * @param protocol one of DsProxyConfig.UDP or DsProxyConfig.TCP; any other value will be
+   *     converted to UDP
    */
   public void setDefaultProtocol(int protocol) {
-	  defaultProtocol = DsControllerConfig.normalizedProtocol(protocol);
+    defaultProtocol = Transport.valueOf(DsControllerConfig.normalizedProtocol(protocol)).get();
   }
 
-  public DsViaListenInterface getViaInterface( int protocol, String direction ) {
-    return ((DsControllerConfig)storedIface).getViaInterface(protocol, direction);
+  public DsViaListenInterface getViaInterface(int protocol, String direction) {
+    return ((DsControllerConfig) storedIface)
+        .getViaInterface(Transport.valueOf(protocol).get(), direction);
   }
-/*
-  public DsSipRecordRouteHeader getRecordRouteInterface() {
-    if (recordRouteInterface == null)
-        return null;
-    return (DsSipRecordRouteHeader)recordRouteInterface.clone();
-  }
-*/
+  /*
+    public DsSipRecordRouteHeader getRecordRouteInterface() {
+      if (recordRouteInterface == null)
+          return null;
+      return (DsSipRecordRouteHeader)recordRouteInterface.clone();
+    }
+  */
   /**
-   * Get the interface to be inserted into Path headers.  If the
-   * port of that interface is -1, no port will be used in the Path.
-   * If the transport is {@link DsSipTransportType#NONE},
-   * no transport parameter will be used the the Path.
-   * @return the interface to be inserted into a Path header, or
-   * <code>null</code> if no Path header should be used
+   * Get the interface to be inserted into Path headers. If the port of that interface is -1, no
+   * port will be used in the Path. If the transport is {@link DsSipTransportType#NONE}, no
+   * transport parameter will be used the the Path.
+   *
+   * @return the interface to be inserted into a Path header, or <code>null</code> if no Path header
+   *     should be used
    */
   public DsSipPathHeader getPathInterface(int transport, String direction) {
-    if(pathInterface == null)
-        pathInterface = storedIface.getPathInterface(transport, direction);
+    if (pathInterface == null) pathInterface = storedIface.getPathInterface(transport, direction);
     return pathInterface;
   }
-/*
-  public DsSipRecordRouteHeader getRecordRouteInterface( int direction ) {
-    //This method is logically incoherant...
-    if (recordRouteInterface == null)
-        return null;
-    return (DsSipRecordRouteHeader)recordRouteInterface.clone();
-  }
-*/
 
-  public DsSipRecordRouteHeader getRecordRouteInterface( String direction ) {
-    //This method is logically incoherant...
-    if (recordRouteInterface == null)
-    {
-        recordRouteInterface = storedIface.getRecordRouteInterface(direction);
+  @Override
+  public DsViaListenInterface getViaInterface(Transport protocol, String direction) {
+    return ((DsControllerConfig) storedIface).getViaInterface(protocol, direction);
+  }
+  /*
+    public DsSipRecordRouteHeader getRecordRouteInterface( int direction ) {
+      //This method is logically incoherant...
+      if (recordRouteInterface == null)
+          return null;
+      return (DsSipRecordRouteHeader)recordRouteInterface.clone();
+    }
+  */
+
+  public DsSipRecordRouteHeader getRecordRouteInterface(String direction) {
+    // This method is logically incoherant...
+    if (recordRouteInterface == null) {
+      recordRouteInterface = storedIface.getRecordRouteInterface(direction);
     }
     return recordRouteInterface;
   }
 
-  public String getRequestDirection()
-  {
-      return m_RequestDirection;
+  public String getRequestDirection() {
+    return m_RequestDirection;
   }
-
 }

@@ -13,21 +13,17 @@
  */
 package com.cisco.dhruva.sip.proxy;
 
-
+import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipDefaultBranchIdImpl;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-
-
 import java.net.InetAddress;
 
 public class DsMaxForwardsLoopDetector implements DsLoopCheckInterface {
 
-  protected static Logger Log =
-	DhruvaLoggerFactory.getLogger(DsMaxForwardsLoopDetector.class);
+  protected static Logger Log = DhruvaLoggerFactory.getLogger(DsMaxForwardsLoopDetector.class);
 
   static {
     try {
@@ -36,19 +32,17 @@ public class DsMaxForwardsLoopDetector implements DsLoopCheckInterface {
       Log.debug("Initializing branch-id creator with hostname: " + hostName);
 
       DsSipDefaultBranchIdImpl.init(hostName);
-    }
-    catch (Exception e) {
-       Log.warn("Error obtaining hostname for branch-id creator initialization");
+    } catch (Exception e) {
+      Log.warn("Error obtaining hostname for branch-id creator initialization");
     }
   }
 
   private static DsSipDefaultBranchIdImpl branchIdGenerator = new DsSipDefaultBranchIdImpl();
 
-  protected DsMaxForwardsLoopDetector(DsViaHandler viaHandler) {
-  }
+  protected DsMaxForwardsLoopDetector(DsViaHandler viaHandler) {}
 
   public final boolean isLooped(DsSipRequest request) {
-  	return false;
+    return false;
   }
 
   public final DsByteString getBranchID(int n_branch, DsSipRequest request) {
@@ -56,7 +50,6 @@ public class DsMaxForwardsLoopDetector implements DsLoopCheckInterface {
     // ensure that the same branch-ID is generated each time.
     if (DsControllerConfig.getCurrent().getStateMode() == DsControllerConfig.STATEFUL)
       return branchIdGenerator.nextBranchId(null);
-    else
-      return branchIdGenerator.nextBranchId(request);
+    else return branchIdGenerator.nextBranchId(request);
   }
 }
