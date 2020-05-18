@@ -12,6 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipCancelMessage;
@@ -28,7 +29,6 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.SIPMessageGenerator;
 import com.cisco.dhruva.util.SIPRequestBuilder;
 import com.cisco.dhruva.util.SIPRequestBuilder.RequestMethod;
-import com.cisco.dhruva.util.cac.SIPSessions;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;

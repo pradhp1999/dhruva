@@ -30,7 +30,6 @@ package com.cisco.dhruva.sip.proxy;
 //                                                                     //
 //////////////////// end license & copyright header///////////////////////
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.*; // needed only for main() method.
 
 /**
@@ -332,5 +331,4 @@ public class Base64 {
   static final int SIXTY_TWO = '2';
   static final int PADDING = '9';
   static final int NINE = '4';
-
 }

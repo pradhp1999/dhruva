@@ -233,8 +233,8 @@ public class DsProxyControllerServerTest {
 
   @Test(description = "Controller handling invite with Route header, should by-pass App layer")
   public void testOnNewRequestWithRouteHeader() throws Exception {
-    new SIPRequestBuilder();
-    DsSipRequest sipRequest = SIPRequestBuilder.getReInviteRequest(null);
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
     DsSipRouteHeader dsSipCurrentNodeRouteHeader =
         new DsSipRouteHeader(
             new String(
@@ -283,8 +283,8 @@ public class DsProxyControllerServerTest {
 
   @Test(description = "Controller receiving mid-dialog requests, should by-pass application layer")
   public void testOnNewRequestMidDialog() throws Exception {
-    new SIPRequestBuilder();
-    DsSipRequest sipRequest = SIPRequestBuilder.getReInviteRequest(null);
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
 
     dsNetwork.setRemoveOwnRouteHeader(true);
     DsSipTransactionKey key = sipRequest.forceCreateKey();
@@ -336,8 +336,9 @@ public class DsProxyControllerServerTest {
       description = "controller sending 200 Ok , but no server context set",
       expectedExceptions = {DhruvaException.class})
   public void testResponse200OkForInviteNoIntialRequestSent() throws Exception {
-    new SIPRequestBuilder();
-    DsSipRequest sipRequest = SIPRequestBuilder.getReInviteRequest(null);
+
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
 
     dsNetwork.setRemoveOwnRouteHeader(true);
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
@@ -386,8 +387,8 @@ public class DsProxyControllerServerTest {
 
   @Test(description = "success response path for invite transaction")
   public void testResponse200OkForInvite() throws Exception {
-    new SIPRequestBuilder();
-    DsSipRequest sipRequest = SIPRequestBuilder.getReInviteRequest(null);
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
 
     dsNetwork.setRemoveOwnRouteHeader(true);
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
@@ -443,8 +444,8 @@ public class DsProxyControllerServerTest {
 
   @Test(description = "controller forwarding 4xx response to invite request")
   public void testResponse4XXForInvite() throws Exception {
-    new SIPRequestBuilder();
-    DsSipRequest sipRequest = SIPRequestBuilder.getReInviteRequest(null);
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
 
     dsNetwork.setRemoveOwnRouteHeader(true);
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
@@ -503,8 +504,8 @@ public class DsProxyControllerServerTest {
 
   @Test(description = "controller forwarding 5xx response to invite request")
   public void testResponse5XXForInvite() throws Exception {
-    new SIPRequestBuilder();
-    DsSipRequest sipRequest = SIPRequestBuilder.getReInviteRequest(null);
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
 
     dsNetwork.setRemoveOwnRouteHeader(true);
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
@@ -563,8 +564,8 @@ public class DsProxyControllerServerTest {
 
   @Test(description = "controller forwarding 3xx response to invite request")
   public void testResponse3XXForInvite() throws Exception {
-    new SIPRequestBuilder();
-    DsSipRequest sipRequest = SIPRequestBuilder.getReInviteRequest(null);
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
 
     dsNetwork.setRemoveOwnRouteHeader(true);
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
@@ -623,8 +624,8 @@ public class DsProxyControllerServerTest {
 
   @Test(description = "controller forwarding 5xx response to invite request")
   public void testResponse5XXForInviteDestinationUnreachable() throws Exception {
-    new SIPRequestBuilder();
-    DsSipRequest sipRequest = SIPRequestBuilder.getReInviteRequest(null);
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
 
     dsNetwork.setRemoveOwnRouteHeader(true);
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
