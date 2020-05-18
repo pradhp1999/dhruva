@@ -33,8 +33,9 @@ public interface DsControllerFactoryInterface {
    *
    * @param request request being processed
    */
-  DsControllerInterface getController(DsSipServerTransaction server,
-                                      DsSipRequest request,
-                                      ProxyAdaptorFactoryInterface pf,
-                                      AppInterface app);
+  DsControllerInterface getController(
+      DsSipServerTransaction server,
+      DsSipRequest request,
+      ProxyAdaptorFactoryInterface pf,
+      AppInterface app);
 }

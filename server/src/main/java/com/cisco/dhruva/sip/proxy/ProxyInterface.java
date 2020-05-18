@@ -2,17 +2,18 @@ package com.cisco.dhruva.sip.proxy;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 
-
-//MEETPASS
-//ProxyResponseInterface not required since proxy adaptor manages the response
+// MEETPASS
+// ProxyResponseInterface not required since proxy adaptor manages the response
 public interface ProxyInterface {
 
-    void proxyTo(Location location, DsSipRequest request, ProxyResponseInterface callbackIf);
+  void proxyTo(Location location, DsSipRequest request, ProxyResponseInterface callbackIf);
 
-    void proxyTo(Location location, DsSipRequest request, ProxyResponseInterface callbackIf, long timeout);
+  void proxyTo(
+      Location location, DsSipRequest request, ProxyResponseInterface callbackIf, long timeout);
 
-    void cancel(Location location, boolean timedOut);
+  void cancel(Location location, boolean timedOut);
 
-    void respond(DsSipResponse response);
+  void respond(DsSipResponse response) throws DsException;
 }

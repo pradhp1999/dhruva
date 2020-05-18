@@ -29,9 +29,8 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import com.thoughtworks.qdox.Searcher;
-import org.springframework.stereotype.Component;
-
 import java.util.*;
+import org.springframework.stereotype.Component;
 
 /**
  * This abstract class handles failover and loadbalancing. When used in conjuction with a <code>
@@ -754,7 +753,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
             location, (DsSipRequest) preprocessedRequest.clone(), responseIf, timeToTry);
       } else if (responseIf != null)
         responseIf.onProxyFailure(location, ResponseReasonCodeConstants.ICMP);
-
     }
   }
 
@@ -886,7 +884,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       int errorCode,
       String errorPhrase,
       Throwable exception) {
-    Log.warn("onResponseFailure() - Could not send response", exception);
+    Log.warn("onResponseFailure()- Could not send response , exception" + exception.getMessage());
 
     if (proxyErrorAggregator != null) {
       DsSipResponse response = proxy.getBestResponse();
@@ -1031,26 +1029,33 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   }
 
   @Override
-  public void respond(DsSipResponse response) {
+  public void respond(DsSipResponse response) throws DsException {
+    Optional<DsSipRequest> request = Optional.ofNullable(this.ourRequest);
+    if (request.isPresent()) {
+      Log.info("sending response " + Arrays.toString(response.getSessionId()));
+      if ((ourRequest.getMethodID() != DsSipMessage.ACK)
+          && (ourRequest.getMethodID() != DsSipMessage.CANCEL)) {
+        // Change to statefull if we are stateless
+        if (stateMode != DsControllerConfig.STATEFUL) {
+          overwriteStatelessMode();
+        }
 
-    if ((ourRequest.getMethodID() != DsSipMessage.ACK)
-        && (ourRequest.getMethodID() != DsSipMessage.CANCEL)) {
-      // Change to statefull if we are stateless
-      if (stateMode != DsControllerConfig.STATEFUL) {
-        overwriteStatelessMode();
+        if (DsMappedResponseCreator.getInstance() != null) {
+          response =
+              DsMappedResponseCreator.getInstance()
+                  .createresponse(
+                      incomingNetwork.toString(),
+                      proxyErrorAggregator.getProxyErrorList(),
+                      response);
+        }
+
+        DsProxyResponseGenerator.sendResponse(response, (DsProxyTransaction) ourProxy);
+      } else {
+        Log.warn("in respond() - not forwarding response because request method was ACK");
       }
-
-      if (DsMappedResponseCreator.getInstance() != null) {
-        response =
-            DsMappedResponseCreator.getInstance()
-                .createresponse(
-                    incomingNetwork.toString(), proxyErrorAggregator.getProxyErrorList(), response);
-      }
-
-      DsProxyResponseGenerator.sendResponse(response, (DsProxyTransaction) ourProxy);
-    } else {
-      Log.warn("in respond() - not forwarding response because request method was ACK");
-    }
+    } else
+      throw new DsException(
+          "request is null for response" + Arrays.toString(response.getSessionId()));
   }
 
   /**
@@ -1476,7 +1481,9 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
           "Proxied the request to :"
               + location.getURI().toString()
               + " with requestTimeout = "
-              + timeToTry);
+              + timeToTry
+              + "request session id: "
+              + Arrays.toString(request.getSessionId()));
     }
   }
 
@@ -1742,7 +1749,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
               + ':'
               + lbServer.getPort());
 
-
       // See if we should set the outgoing host and port of the
       // Location object to that of the destination server group element
       if (location.useDestInfo()) {
@@ -1785,7 +1791,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       // add path header
       if (lbServer.getNetwork().equals(network.getName())) {
         if (firstTime) {
-          //MEETPASS
+          // MEETPASS
         }
       } else {
         network = DsNetwork.findNetwork(lbServer.getNetwork().toString());

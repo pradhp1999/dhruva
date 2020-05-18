@@ -8,11 +8,11 @@ import java.util.EventListener;
 
 public interface EndpointListener extends EventListener {
 
-  public void endpointUnreachable(EndpointEvent e);
+  void endpointUnreachable(EndpointEvent e);
 
-  public void endpointOverloaded(EndpointEvent e);
+  void endpointOverloaded(EndpointEvent e);
 
-  public void endpointUnreachableClear(EndpointEvent e);
+  void endpointUnreachableClear(EndpointEvent e);
 
-  public void endpointOverloadedClear(EndpointEvent e);
+  void endpointOverloadedClear(EndpointEvent e);
 }

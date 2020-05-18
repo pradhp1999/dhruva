@@ -15,7 +15,6 @@
 
 package com.cisco.dhruva.sip.controller;
 
-import com.cisco.dhruva.adaptor.ProxyAdaptorFactory;
 import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.loadbalancer.LBRepositoryHolder;
@@ -57,10 +56,10 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
    *@see DsScriptController
    */
   public DsControllerInterface getController(
-          DsSipServerTransaction serverTransaction,
-          DsSipRequest request,
-          ProxyAdaptorFactoryInterface pf,
-          AppInterface app) {
+      DsSipServerTransaction serverTransaction,
+      DsSipRequest request,
+      ProxyAdaptorFactoryInterface pf,
+      AppInterface app) {
 
     Log.debug(
         "Entering getController in DsControllerFactory {}"

@@ -103,7 +103,6 @@ public final class DsControllerConfig
 
   protected HashMap<ListenIf, ListenIf> listenIf = new HashMap<ListenIf, ListenIf>();
 
-
   protected DsSipPathHeader path = null;
 
   protected HashMap<DsNetwork, DsSipRecordRouteHeader> recordRoutesMap = new HashMap<>();
@@ -200,7 +199,6 @@ public final class DsControllerConfig
 
     return (byte) protocol;
   }
-
 
   public ViaObj getVia(Transport transport, DsNetwork direction) {
     HashMap viaDirMap = (HashMap) ViaIfMap.get(direction);
@@ -501,7 +499,6 @@ public final class DsControllerConfig
             + currentConfig.listenIf.keySet());
   }
 
-
   /** @return returns the <CODE>ArrayList</CODE> list containing <CODE>ListenIf</CODE> Objects */
   public ArrayList<ListenIf> getListenPorts() {
     return new ArrayList<>(listenIf.values());
@@ -590,7 +587,6 @@ public final class DsControllerConfig
     }
     return match;
   }
-
 
   // TODO check this logic
   public boolean isMasked(String direction, int hdr) {

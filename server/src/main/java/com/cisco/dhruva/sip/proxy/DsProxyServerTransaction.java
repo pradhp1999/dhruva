@@ -25,7 +25,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-
 import java.io.IOException;
 import java.util.StringTokenizer;
 
@@ -144,7 +143,6 @@ public class DsProxyServerTransaction {
         response.setBindingInfo(bindingInfo);
 
         if (DsControllerConfig.getCurrent().doRecordRoute()) setRecordRouteInterface(response);
-
       }
 
       serverTransaction.sendResponse(response);
@@ -160,7 +158,7 @@ public class DsProxyServerTransaction {
       }
 
     } catch (Exception e) {
-      throw new DsDestinationUnreachableException("Error sending a response", e);
+      throw new DsDestinationUnreachableException("Error sending a response" + e);
     }
   }
 

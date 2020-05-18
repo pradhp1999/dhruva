@@ -15,5 +15,7 @@ public class AppSession extends AbstractAppSession {
   }
 
   @Override
-  public void handleResponse(IDhruvaMessage response) {}
+  public void handleResponse(IDhruvaMessage response) {
+    super.handleResponse(response);
+  }
 }

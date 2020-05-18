@@ -97,7 +97,7 @@ public class DsSipProxyManager
     // implements the DsSipRequestInterface, so pass this to the
     // constructor
     transManager = new DsSipTransactionManager(transportLayer, this);
-    transManager.setProxyServerMode(true);
+    DsSipTransactionManager.setProxyServerMode(true);
     transManager.setStrayMessageInterface(this);
     transManager.setTransactionEventInterface(this);
 
@@ -200,6 +200,7 @@ public class DsSipProxyManager
   public void request(DsSipServerTransaction serverTransaction, DsSipRequest request) {
 
     DsLog4j.logSessionId(request);
+    Log.info("handle request " + Arrays.toString(request.getSessionId()) + request.getMethod());
 
     DsControllerFactoryInterface cf = getControllerFactory();
 

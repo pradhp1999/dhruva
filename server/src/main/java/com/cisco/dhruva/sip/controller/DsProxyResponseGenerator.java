@@ -12,7 +12,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /*
  * This class enapsulates the funtionality of several commonly sent responses.
@@ -40,8 +39,8 @@ public abstract class DsProxyResponseGenerator {
         contactHeader.setQvalue(location.getQValue());
         contactHeaders.addLast(contactHeader);
       } else {
-        for (Iterator i = locations.iterator(); i.hasNext(); ) {
-          Location location = (Location) i.next();
+        for (Object o : locations) {
+          Location location = (Location) o;
           DsURI uri = location.getURI();
           DsSipContactHeader contactHeader = new DsSipContactHeader(uri);
           contactHeader.setQvalue(location.getQValue());

@@ -1,7 +1,6 @@
 package com.cisco.dhruva.adaptor;
 
 import com.cisco.dhruva.router.AppInterface;
-import com.cisco.dhruva.router.AppSession;
 import com.cisco.dhruva.sip.controller.DsProxyController;
 
 public class ProxyAdaptorFactory implements ProxyAdaptorFactoryInterface {

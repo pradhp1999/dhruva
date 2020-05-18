@@ -83,6 +83,5 @@ public class SIPServerStatusMBeanImpl extends StandardMBean
     return broadcaster.getNotificationInfo();
   }
 
-  public void getElementStatus() {
-  }
+  public void getElementStatus() {}
 }

@@ -1,5 +1,7 @@
 package com.cisco.dhruva.adaptor;
 
+import static java.util.Objects.requireNonNull;
+
 import com.cisco.dhruva.Exception.DhruvaException;
 import com.cisco.dhruva.common.CommonContext;
 import com.cisco.dhruva.common.context.ExecutionContext;
@@ -14,14 +16,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 
-import static java.util.Objects.requireNonNull;
-
-@Component
 public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements AppAdaptorInterface {
 
   private Logger logger = DhruvaLoggerFactory.getLogger(ProxyAdaptor.class);
@@ -30,7 +26,6 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
    *
    * @param controller
    */
-
   protected DsProxyController controller;
 
   protected MessageListener handler;
@@ -42,7 +37,7 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
       super(controller);
   }
   */
-  @Autowired
+
   public ProxyAdaptor(DsProxyController controller, AppInterface appSession) {
     super();
     requireNonNull(controller, "controller cannot be null");
@@ -58,9 +53,9 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
    */
   @Override
   public void handleRequest(DsSipRequest request) throws DhruvaException {
-    logger.debug("ProxyAdaptor.handleRequest: {} " + Arrays.toString(request.getSessionId()));
+    logger.info("ProxyAdaptor.handleRequest: {} " + Arrays.toString(request.getSessionId()));
 
-    //MEETPASS, is final required?
+    // MEETPASS, is final required?
     final ExecutionContext context;
     handler = new RouteResponseHandler(this);
     context = new ExecutionContext();
@@ -69,7 +64,8 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
     IDhruvaMessage dhruvaRequest = buildDhruvaMessageFromSIPRequest(request, context);
 
     if (appSession == null) {
-      throw new DhruvaException("AppSession cannot be null" + Arrays.toString(request.getSessionId()));
+      throw new DhruvaException(
+          "AppSession cannot be null" + Arrays.toString(request.getSessionId()));
     }
     appSession.handleRequest(dhruvaRequest);
   }
@@ -79,13 +75,12 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
    */
   @Override
   public void handleResponse(DsSipResponse response) throws DhruvaException {
-    //MEETPASS TODO
+    // MEETPASS TODO
     appSession.handleResponse(null);
-
   }
 
   private IDhruvaMessage buildDhruvaMessageFromSIPRequest(
-      DsSipRequest request, ExecutionContext context) throws  DhruvaException {
+      DsSipRequest request, ExecutionContext context) throws DhruvaException {
 
     requireNonNull(request, "incoming request object cannot be null");
     requireNonNull(context, "incoming context object cannot be null");
@@ -93,7 +88,7 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
         request, MessageBodyType.SIPREQUEST, context);
   }
 
-  private IDhruvaMessage buildDhruvaMessageFromSIPResponse  (
+  private IDhruvaMessage buildDhruvaMessageFromSIPResponse(
       DsSipResponse response, ExecutionContext context) throws DhruvaException {
 
     return MessageConvertor.convertSipMessageToDhruvaMessage(

@@ -9,6 +9,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -18,6 +19,7 @@ import javax.crypto.*;
  * An auxilary singleton class used to do Via header encryption/decsryption and loop detection Note
  * that init() MUST be called before getInstance()
  */
+@SuppressFBWarnings
 public class DsViaHandler {
 
   // This is (almost) a singleton. Note that init() MUST be called
@@ -43,8 +45,6 @@ public class DsViaHandler {
     keyGen = DsProxyUtils.getAESKeyGenerator();
 
     desKey = keyGen.generateKey();
-//    encoder = Cipher.getInstance("AES/GCM/NoPadding");
-//    decoder = Cipher.getInstance("AES/GCM/NoPadding");
 
     encoder = Cipher.getInstance("AES/ECB/PKCS5Padding");
     decoder = Cipher.getInstance("AES/ECB/PKCS5Padding");
