@@ -42,10 +42,10 @@ public class DsSipTransactionManagerTest {
       sipTransactionManager = new DsSipTransactionManager(transportLayer, requestInterface);
     } catch (DsException e) {
       Assert.fail(
-          "DsSipTransactionManagerTest DsSipTransactionManager " + "object creation failed ", e);
+          "DsSipTransactionManagerTest DsSipTransactionManager " + "object creation failed " + e);
     }
 
-    sipTransactionManager.setProxyServerMode(true);
+    DsSipTransactionManager.setProxyServerMode(true);
     sipTransactionManager.setStrayMessageInterface(strayMessageInterface);
     sipTransactionManager.setTransactionEventInterface(transactionEventInterface);
   }
