@@ -9,6 +9,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsIntStrCache;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -36,6 +37,7 @@ public class DsViaHandler {
 
   private static final Logger Log = DhruvaLoggerFactory.getLogger(DsViaHandler.class);
 
+  @SuppressFBWarnings(value = {"CIPHER_INTEGRITY","ECB_MODE"})
   private DsViaHandler(DsSipTransportLayer transportLayer)
       throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
 

@@ -5,27 +5,31 @@
 
 package com.cisco.dhruva.util;
 
+import java.util.Random;
+
 public class SIPMessageGenerator {
 
   public static String getInviteMessage(String user) {
+
+    return getInviteMessage(user, "05e3b66d495da4d4f172a99384ce24bb", false);
+  }
+
+  public static String getInviteMessage(String user, String callId, boolean changeViaBranch) {
+
+    String viaBranch = "z9hG4bK5ff0ad26fe47a61fd87b6cdb166edc4a6241134";
+    if (changeViaBranch) {
+      Random random = new Random();
+      viaBranch += random.nextInt() % 10;
+    }
     String inviteMessage =
         "INVITE sip:"
             + user
             + "@cisco.webex.com SIP/2.0\n"
-            + "Via: SIP/2.0/TLS 161.165.195.10:5061;branch=z9hG4bK5ff0ad26fe47a61fd87b6cdb166edc4a6241134;"
-            + "rport=28958;egress-zone=WebExCMRPrimary;proxy-call-id=06e8fff6-d275-412c-8277-62a5fcb12f98\n"
+            + "Via: SIP/2.0/UDP 161.165.195.10:5061;"
+            + viaBranch
+            + ";rport\n"
             + "Via: SIP/2.0/TLS 161.165.195.10:5073;branch=z9hG4bK99631800958dc68b943bc4ce66ca023d480697;"
             + "rport=44543;x-cisco-local-service=nettle;received=161.165.195.10;ingress-zone=DefaultZone\n"
-            + "Via: SIP/2.0/TLS 161.165.195.140:5061;egress-zone=DefaultZone;"
-            + "branch=z9hG4bKb92619cf82bbbd10357031305e2a60346241133."
-            + "b46a2f38552105313c4bc0ab608da998;proxy-call-id=0dea678e-ea43-4386-a852-9468842136f0;rec"
-            + "eived=161.165.195.140;rport=28989\n"
-            + "Via: SIP/2.0/TCP 161.166.128.11:5060;egress-zone=acluster;branch=z9hG4bK5d6de5ecc7a36"
-            + "45e899cff6ca279a7ad147832731.d047a94727f8a5f64f7e996981dacc4b;proxy-call-id=b0fc23a5-"
-            + "5b2c-43bd-8f7f-6723edfd23b6;poison;received=161.166.128.11;rport=25059;ingress-zone="
-            + "videovcscluster\n"
-            + "Via: SIP/2.0/TLS 172.23.6.208:5061;branch=z9hG4bK9f767ec9b280c800ab7dbe7733a234ab;re"
-            + "ceived=172.23.6.208;rport=59580;ingress-zone=DefaultSubZone\n"
             + "Max-Forwards: 14\n"
             + "Record-Route: <sip:proxy-call-id=06e8fff6-d275-412c-8277-62a5fcb12f98@161.165.195.1"
             + "0:5061;transport=tls;lr>\n"
@@ -38,7 +42,9 @@ public class SIPMessageGenerator {
             + user
             + "@cisco.com>;tag=52e56d4a339dd9d0\n"
             + "Contact: <sip:161.165.195.10:5073;transport=tls>\n"
-            + "Call-ID: 05e3b66d495da4d4f172a99384ce24bb\n"
+            + "Call-ID: "
+            + callId
+            + "\n"
             + "CSeq: 100 INVITE\n"
             + "Content-Length: 4167\n"
             + "Allow: INVITE,ACK,BYE,CANCEL,INFO,OPTIONS,REFER,SUBSCRIBE,NOTIFY\n"
@@ -173,5 +179,9 @@ public class SIPMessageGenerator {
             + "a=ixmap:2 xccp";
 
     return inviteMessage;
+  }
+
+  public static String getInviteMessage(String user, String callId) {
+    return getInviteMessage(user, callId, false);
   }
 }

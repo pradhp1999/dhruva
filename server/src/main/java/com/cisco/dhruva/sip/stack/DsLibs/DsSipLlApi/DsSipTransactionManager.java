@@ -32,7 +32,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBuckets;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
@@ -41,7 +40,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsg
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsThrottle;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTlsUtil;
 import com.cisco.dhruva.transport.Transport;
@@ -74,6 +72,7 @@ import java.util.Set;
  * @author dynamicsoft, Inc.
  */
 public class DsSipTransactionManager {
+
   /** How to create transactions and server transaction interfaces. */
   private static DsSipTransactionFactory m_transactionFactory =
       new DsSipDefaultTransactionFactory();
@@ -101,10 +100,6 @@ public class DsSipTransactionManager {
   /** Binding transport unspecified. */
   private static final Transport BTU = DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED;
 
-  private static DsBuckets buckets;
-  private static boolean flowOK = true;
-  private static final String INCOMING_MESSAGE_THROTTLE = "Incoming_Message_Throttle";
-  private static final Object aLock = new Object(); // use as a lock
   private static HashMap m_dialogMap = new HashMap(16, .60f);
 
   private static final boolean shouldDecrementMaxForwards;
@@ -187,25 +182,8 @@ public class DsSipTransactionManager {
 
     boolean tempDec =
         !DsConfigManager.getProperty(DsConfigManager.PROP_MAXF, DsConfigManager.PROP_MAXF_DEFAULT);
-    boolean jain =
-        DsConfigManager.getProperty(DsConfigManager.PROP_JAIN, DsConfigManager.PROP_JAIN_DEFAULT);
-
-    if (jain) {
-      tempDec = false;
-
-      // The testSendCancel() method in the TCK sleeps 5 seconds
-      // and the test fails intermittantly because this timer is
-      // 5 seconds be default.
-      DsConfigManager.setTimerValue(DsSipConstants.T4, 6000);
-    }
 
     shouldDecrementMaxForwards = tempDec;
-
-    // ackCat.setLevel(Level.DEBUG); DsLog4j.thread(ackCat);
-    // reqCat.setLevel(Level.DEBUG); DsLog4j.thread(reqCat);
-    // cancelCat.setLevel(Level.DEBUG); DsLog4j.thread(cancelCat);
-    // respCat.setLevel(Level.DEBUG); DsLog4j.thread(respCat);
-    // generalCat.setLevel(Level.DEBUG); DsLog4j.thread(generalCat);
   }
 
   /** Different Cloudproxy Operational states */
@@ -224,7 +202,7 @@ public class DsSipTransactionManager {
     public String toString() {
       return value;
     }
-  };
+  }
 
   /** Redirect all incoming requests for shutdown. */
   public static final int REDIRECT_ON_SHUTDOWN = 1;
@@ -278,11 +256,6 @@ public class DsSipTransactionManager {
 
   private static DsSipTransactionInterfaceFactory m_transactionInterfaceFactory = null;
 
-  // if the user chooses to uses a queue for outbound requests, this is the
-  //    number of workers that service the queue
-  private static final int DEFAULT_REQ_WORKERS = 2;
-  private static final String REQUEST_OUT_QNAME = "REQUESTO";
-
   private static DsTransactionRemovalInterface m_transactionRemovalCb;
 
   // /////////////////////////////////////////////////
@@ -321,45 +294,16 @@ public class DsSipTransactionManager {
     }
   }
 
-  /**
-   * Constructs the DsSipTransactionManager and associates it with the transport layer and an
-   * outbound request queue. All outgoing requests will be enqueued.
-   *
-   * @param transportLayer transport layer to be associated with the transaction manager
-   * @param defaultInterface the default interface to be used
-   * @param max_len the maximum length of the outgoing request queue
-   * @throws DsException if the the max_len &LT 1 or the transaction manager has already been
-   *     constructed
-   */
-  public DsSipTransactionManager(
-      DsSipTransportLayer transportLayer, DsSipRequestInterface defaultInterface, int max_len)
-      throws DsException {
-    this(transportLayer, defaultInterface);
-    if (max_len < 1) {
-      throw new DsException(
-          "Invalid maximum outgoing request queue length [" + max_len + "], should be > 0");
-    }
+  /* used only for unit test*/
+  public static void setM_transactionTable(DsSipTransactionTable m_transactionTable) {
+    DsSipTransactionManager.m_transactionTable = m_transactionTable;
   }
 
-  /**
-   * Dump state to the log file. Useful for debugging.
-   *
-   * @return a debug string
-   * @deprecated This method is for debugging purpose only and is unsupported.
-   */
-  public static String dump() {
-    StringBuffer buf = new StringBuffer(128);
-    buf.append(m_transactionTable.dump());
-    buf.append(m_transportLayer.dump());
-    buf.append("---------------------------------------------------\n");
-    buf.append("-- number of Timers            --------------------\n");
-    buf.append("---------------------------------------------------\n");
-    // qfang - 07.05.06 - CSCse63190 switch to JDK's Timer implementation
-    // buf.append("" + DsTimer.size() + "\n");
-
-    String ret = buf.toString();
-    DsLog4j.dumpCat.info(ret);
-    return ret;
+  /* used only for unit test*/
+  public static void setTransportLayer(DsSipTransportLayer transportLayer) {
+    m_transportLayer = (DsSipTransportLayer) transportLayer;
+    // provides the transport layer hook to DsConfigManager
+    DsConfigManager.setTransportLayer(m_transportLayer);
   }
 
   /** This method is called to resume the processing of calls by cloudproxy. */
@@ -1450,21 +1394,24 @@ public class DsSipTransactionManager {
    * @param aMessage the message to add the received parameter to
    * @param originAddress the address to add
    */
-  private void addReceiveParameter(DsSipMessage aMessage, InetAddress originAddress) {
+  protected void addReceiveParameter(DsSipMessage aMessage, InetAddress originAddress) {
 
     try {
       DsSipViaHeader via = (DsSipViaHeader) aMessage.getHeaderValidate(DsSipConstants.VIA);
       if (via != null) {
-        // try to resolve the hosts and compare the fully qualified host names
         DsByteString addressStr = via.getHost();
         byte[] oriAddressStr = DsString.getHostBytes(originAddress);
         if (addressStr == null || !addressStr.equals(oriAddressStr)) {
           via.setReceived(new DsByteString(oriAddressStr));
+          logger.info(
+              "Top Via host {} and remoteIp {} differs , so Adding Received parameter to Via ={}",
+              addressStr,
+              originAddress,
+              via);
         }
       }
     } catch (Exception e) {
-
-      logger.error("Problem setting received parameter!", e);
+      logger.error("Exception while adding received parameter to via", e);
     }
   }
 
@@ -1474,16 +1421,18 @@ public class DsSipTransactionManager {
    * @param aMessage the message for which the rport needs to be set
    * @param port the rport to be set
    */
-  private void addRPortParameter(DsSipMessage aMessage, int port) {
+  protected void addRPortParameter(DsSipMessage aMessage, int port) {
     // here we must have a valid via header
     DsSipViaHeader viaHeader = null;
     try {
       viaHeader = aMessage.getViaHeaderValidate();
     } catch (Exception exc) {
-      // ??
     }
     if (viaHeader != null && viaHeader.isRPortPresent()) {
       viaHeader.setRPort(port);
+      logger.info(
+          "Top Via header has rPort param set , adding received port value to via , updated via = {}",
+          viaHeader);
     }
   }
 
@@ -1548,7 +1497,8 @@ public class DsSipTransactionManager {
    */
   public void processMessageBytes(SipMessageBytes msgBytes) {
 
-    DsSipMessage message;
+    DsSipMessage message = null;
+    boolean dropMessage = false;
     String badMessageReason = null;
     int code = 0;
 
@@ -1569,105 +1519,78 @@ public class DsSipTransactionManager {
       DsLog4j.logSessionId(message);
 
     } catch (DsSipParserException pe) {
-      // Level 1: here, the parser itself choked on the message
-      //          -- nothing we can do -- call malformed, then toss
-
       logger.warn("Parser Exception in Parsing the SIP message, dropping the message", pe);
-      message = null;
+      dropMessage = true;
     } catch (DsSipKeyValidationException kve) {
-      message = kve.getSipMessage();
-      boolean sentResponse = false;
-
-      if (message.isRequest()) // ignore malformed responses
-      {
-        DsSipRequest request = (DsSipRequest) message;
-        DsSipTransactionKey key = request.forceCreateKey();
-
-        if (key != null) {
-          try {
-            DsSipServerTransaction txn =
-                m_transactionFactory.createServerTransaction(request, key, key, false);
-
-            DsBindingInfo binfo = msgBytes.getBindingInfo();
-            message.setBindingInfo(binfo);
-
-            badMessageReason = kve.getMessage();
-            code = DsSipResponseCode.DS_RESPONSE_BAD_REQUEST;
-
-            sendErrorResponse(txn, request, badMessageReason, code);
-            sentResponse = true;
-          } catch (DsException e) {
-            // ignore exception, nothing we can do, just drop the message below
-          }
-        }
-      }
-
-      if (sentResponse) {
-        logger.warn(
-            "processMessageBytes: Can't construct key. Sent 400 response:\n"
-                + message.maskAndWrapSIPMessageToSingleLineOutput());
-      } else {
-        logger.warn(
-            "processMessageBytes: Can't construct key. dropping this message:\n"
-                + message.maskAndWrapSIPMessageToSingleLineOutput());
-      }
-      logger.warn("processMessageBytes: specific exception is:\n", kve);
-      message = null;
-    }
-    //
-    // Level 3: here, we can probably still do something (like: send
-    //     a response)
-    catch (DsSipVersionValidationException vve) {
+      sendErrorResponseForKeyValidationFailure(msgBytes, kve);
+      dropMessage = true;
+    } catch (DsSipVersionValidationException vve) {
       message = vve.getSipMessage();
       badMessageReason = vve.getMessage();
       code = DsSipResponseCode.DS_RESPONSE_SIP_VERSION_NOT_SUPPORTED;
-
-      logger.error("processMessageBytes: invalid SIP version, continuing to process\n", vve);
+      logger.info("processMessageBytes: invalid version, continuing to process\n", vve);
     } catch (DsSipMessageValidationException mve) {
-
       message = mve.getSipMessage();
       badMessageReason = mve.getMessage();
       code = DsSipResponseCode.DS_RESPONSE_BAD_REQUEST;
-
       logger.info("processMessageBytes: invalid message, continuing to process\n", mve);
     } catch (DsSipParserListenerException ple) {
       logger.error(
           "processMessageBytes: parser listener exception, message not available: message would be dropped\n",
           ple);
-      message = null;
+      dropMessage = true;
     }
 
-    // If there was an exception, it is possible that the message is null
-    // Not much we can do at this point, except logging.
-    if (message == null) {
+    if (dropMessage) {
       return;
     }
 
-    DsBindingInfo bi = msgBytes.getBindingInfo();
-    /*--
-            // The key construction itself will take care of setting the sent-by
-            // address and port number. The following code segment is not required
-            // any more.
+    message.setBindingInfo(msgBytes.getBindingInfo());
 
-            // Update the message key with the remote source address and port
-            DsSipTransactionKey key = message.getKey();
-            if (null != key)
-            {
-                key.setSourceAddress(DsString.getHostBytes(bi.getRemoteAddress()));
-                key.setSourcePort(bi.getRemotePort());
-            }
-    --*/
-    // add the binding info to the message
-    message.setBindingInfo(bi);
-
-    // send the message through the transaction manager
     try {
+
       processMessage(message, badMessageReason, code);
+
     } catch (Exception exc) {
       if (badMessageReason != null) {
         logger.error(badMessageReason);
       }
       logger.error("processMessageBytes: exception in processMessage:\n", exc);
+    }
+  }
+
+  private void sendErrorResponseForKeyValidationFailure(
+      SipMessageBytes msgBytes, DsSipKeyValidationException kve) {
+    DsSipMessage message;
+    message = kve.getSipMessage();
+    logger.warn("processMessageBytes: DsSipKeyValidationException in Parsing the Message", kve);
+
+    if (message.isRequest()) // ignore malformed responses
+    {
+      message.setBindingInfo(msgBytes.getBindingInfo());
+      DsSipRequest request = (DsSipRequest) message;
+      DsSipTransactionKey key = request.forceCreateKey();
+      message.setBindingInfo(msgBytes.getBindingInfo());
+
+      if (key != null) {
+        try {
+          DsSipServerTransaction txn =
+              m_transactionFactory.createServerTransaction(request, key, key, false);
+          logger.warn(
+              "processMessageBytes: Can't construct key. Sending 400 response and terminating Transaction\n"
+                  + message.maskAndWrapSIPMessageToSingleLineOutput());
+
+          sendErrorResponse(
+              txn, request, kve.getMessage(), DsSipResponseCode.DS_RESPONSE_BAD_REQUEST);
+
+        } catch (DsException e) {
+          // ignore exception, nothing we can do, just drop the message below
+        }
+      } else {
+        logger.warn(
+            "processMessageBytes: Can't construct key. dropping this message:\n"
+                + message.maskAndWrapSIPMessageToSingleLineOutput());
+      }
     }
   }
 
@@ -1694,102 +1617,104 @@ public class DsSipTransactionManager {
    */
   public void processMessage(DsSipMessage message, String badMessageReason, int code) {
     DsSipServerTransaction transaction;
-    // -- not used any more
-    // --        boolean                 bServerTrans = false;
     DsBindingInfo binding_info;
 
-    logger.debug(
-        "processMessage(): -----  BEGINING PROCESSING NEW MESSAGE ------\n"
-            + message.maskAndWrapSIPMessageToSingleLineOutput());
-
     if (badMessageReason != null) {
-      // CAFFEINE 2.0 DEVELOPMENT - check if warning enabled before logging messages.
-      logger.warn(
-          "MALFORMED MESSAGE , continuing processing Message"
-              + message.maskAndWrapSIPMessageToSingleLineOutput());
+      logger.warn("MALFORMED MESSAGE , continuing processing Message");
     }
 
     binding_info = message.getBindingInfo();
 
     int methodID = message.getCSeqType();
-    // Adding SessionID header
     message.addAndUpdateSessionIdHeader();
     DsLog4j.logSessionId(message);
-    if (message.isRequest()) // SIP Request
-    {
+
+    if (message.isRequest()) {
 
       addReceiveParameter(message, binding_info.getRemoteAddress());
       addRPortParameter(message, binding_info.getRemotePort());
 
-      // For an ACK call processAck
       if (methodID == DsSipConstants.ACK) {
-        DsSipAckMessage ack = (DsSipAckMessage) message;
-        transaction = processAck(ack);
-
-        // ACK retransmission
-        if (transaction != null) {
-          logger.info("Retransmitted ACK , Calling onACK on server transaction");
-
-          if (processMaxForwards(ack, transaction.isProxyServerMode())) {
-            // since the max forwards header is 0 and it is proxy server mode - we can not forward -
-            // must drop this msg
-            logger.warn("Max-Forwards exceeded, Dropping the ACK");
-          } else {
-            transaction.onAck(ack);
-          }
-        }
-      }
-      // For a CANCEL call processCancel
-      else if (methodID == DsSipConstants.CANCEL) {
-        DsSipCancelMessage cancel = (DsSipCancelMessage) message;
-        transaction = processCancel(cancel, badMessageReason, code);
-
-        // CANCEL retransmission
-        if (transaction != null) {
-          logger.info(
-              "processMessage(): calling DsSipServerTransaction.onRequestRetransmission for retransmitted CANCEL.");
-          transaction.onRequestRetransmission(cancel);
-        }
-      }
-      // CAFFEINE 2.0 DEVELOPMENT - PRACK required
-      // For a PRACK call processPrack
-      else if (methodID == DsSipConstants.PRACK && !isProxyServerMode()) {
-        // PRACK is a normal message for a proxy
-        DsSipPRACKMessage prack = (DsSipPRACKMessage) message;
-        transaction = processPrack(prack, badMessageReason, code);
-
-        // PRACK retransmission
-        if (transaction != null) {
-          logger.info(
-              "processMessage(): calling DsSipServerTransaction.Prack for retransmitted PRACK.");
-          // "..., a UAC SHOULD NOT retransmit the PRACK request when it
-          // receives a retransmission of a provisional response being
-          // acknowledged, although doing so does not create a protocol error."
-          // The following code calls execute(DS_ST_IN_REQUEST); In order to do
-          // this, we need add input REQ for Wait_PRACK and Relproceeding states
-          // on the STI_TABLE, otherwise, an exception will be thrown...
-          // For now, let's ignore it.
-          // transaction.onRequestRetransmission(prack);
-        }
+        handleAck((DsSipAckMessage) message);
+      } else if (methodID == DsSipConstants.CANCEL) {
+        handleCancel((DsSipCancelMessage) message, badMessageReason, code);
+      } else if (methodID == DsSipConstants.PRACK && !isProxyServerMode()) {
+        handlePrack((DsSipPRACKMessage) message, badMessageReason, code);
       }
       // For other requests call processRequest
       else {
-        DsSipRequest request = (DsSipRequest) message;
-
-        transaction = processRequest(request, request.getMethod(), badMessageReason, code);
-        // Request retransmission
-        if (transaction != null) {
-          logger.info(
-              "processMessage(): calling DsSipServerTransaction.onRequestRetransmission for retransmitted request.");
-          transaction.onRequestRetransmission(request);
-        }
+        handleRequest((DsSipRequest) message, badMessageReason, code);
       }
-    } else // SIP Response
-    {
-      logger.debug("Message is a Response , calling process Response");
+    } else {
       processResponse((DsSipResponse) message, badMessageReason);
     }
   } // end processMessage
+
+  private void handleRequest(DsSipRequest message, String badMessageReason, int code) {
+    DsSipServerTransaction transaction;
+    DsSipRequest request = message;
+
+    transaction = processRequest(request, request.getMethod(), badMessageReason, code);
+    // Request retransmission
+    if (transaction != null) {
+      logger.info(
+          "processMessage(): calling DsSipServerTransaction.onRequestRetransmission for retransmitted request.");
+      transaction.onRequestRetransmission(request);
+    }
+  }
+
+  private void handlePrack(DsSipPRACKMessage message, String badMessageReason, int code) {
+    DsSipServerTransaction transaction; // PRACK is a normal message for a proxy
+    DsSipPRACKMessage prack = message;
+    transaction = processPrack(prack, badMessageReason, code);
+
+    // PRACK retransmission
+    if (transaction != null) {
+      logger.info(
+          "processMessage(): calling DsSipServerTransaction.Prack for retransmitted PRACK.");
+      // "..., a UAC SHOULD NOT retransmit the PRACK request when it
+      // receives a retransmission of a provisional response being
+      // acknowledged, although doing so does not create a protocol error."
+      // The following code calls execute(DS_ST_IN_REQUEST); In order to do
+      // this, we need add input REQ for Wait_PRACK and Relproceeding states
+      // on the STI_TABLE, otherwise, an exception will be thrown...
+      // For now, let's ignore it.
+      // transaction.onRequestRetransmission(prack);
+    }
+  }
+
+  private void handleCancel(DsSipCancelMessage message, String badMessageReason, int code) {
+    DsSipServerTransaction transaction;
+    DsSipCancelMessage cancel = message;
+    transaction = processCancel(cancel, badMessageReason, code);
+
+    // CANCEL retransmission
+    if (transaction != null) {
+      logger.info(
+          "processMessage(): calling DsSipServerTransaction.onRequestRetransmission for retransmitted CANCEL, serverTransaction = {}",
+          transaction);
+      transaction.onRequestRetransmission(cancel);
+    }
+  }
+
+  private void handleAck(DsSipAckMessage message) {
+    DsSipServerTransaction transaction;
+    DsSipAckMessage ack = message;
+    transaction = processAck(ack);
+
+    // ACK retransmission
+    if (transaction != null) {
+      logger.info("Retransmitted ACK , Calling onACK on server transaction {} ", transaction);
+
+      if (processMaxForwards(ack, transaction.isProxyServerMode())) {
+        // since the max forwards header is 0 and it is proxy server mode - we can not forward -
+        // must drop this msg
+        logger.warn("Max-Forwards exceeded, Dropping the ACK");
+      } else {
+        transaction.onAck(ack);
+      }
+    }
+  }
 
   /**
    * Process a response. See comments in DsSipTransactionTable for algorithm details.
@@ -2052,22 +1977,12 @@ public class DsSipTransactionManager {
     Logger cat = reqCat;
     DsSipServerTransaction transaction = null;
 
-    boolean merge_detected = false, foundTransaction = true;
+    boolean isNewTransaction = false;
 
     try {
       transaction = m_transactionTable.findOrCreateServerTransaction(request, m_transactionFactory);
       if (transaction.isNew()) {
-        foundTransaction = false;
-        if (transaction.isMerged()) {
-          merge_detected = true;
-        } else {
-          DsBindingInfo bi = request.getBindingInfo();
-          if ((Transport.UDP == bi.getTransport()) && bi.isPendingClosure()) {
-            if (processRequestForListenerShutdown(request, transaction)) {
-              return null;
-            }
-          }
-        }
+        isNewTransaction = true;
       }
     } catch (Exception e) {
       logger.error(
@@ -2075,107 +1990,31 @@ public class DsSipTransactionManager {
           e);
     }
 
-    if (foundTransaction) {
+    if (!isNewTransaction) {
       logger.info(
           "processRequest(): Received a request retransmission for request with method " + method);
 
       return transaction;
     }
 
-    // since running status can only be changed by configure, no synchronization here
-    if (buckets != null && buckets.isRunning() && request.getMethodID() != DsSipConstants.BYE) {
-      if (!buckets.isOK()) {
-        logger.warn("processRequest(): sending 503 for new request b/c of throttling");
-
-        try {
-          DsSipViaHeader via = request.getViaHeaderValidate();
-          // don't create response bytes directly unless compression isn't being
-          //    used
-          if (via != null && via.getComp() == null) {
-            byte[] bytes =
-                DsSipResponse.createResponseBytes(
-                    DsSipResponseCode.DS_RESPONSE_SERVICE_UNAVAILABLE, request, null, null);
-            transaction.sendResponse(bytes, DsSipResponseCode.DS_RESPONSE_SERVICE_UNAVAILABLE);
-          } else {
-            DsSipResponse res =
-                new DsSipResponse(
-                    DsSipResponseCode.DS_RESPONSE_SERVICE_UNAVAILABLE, request, null, null);
-            transaction.sendResponse(res);
-          }
-        } catch (Exception e) {
-          cat.error("processRequest(): Exception sending a 503 response for Throttled Request", e);
-        }
-
-        synchronized (aLock) {
-          if (flowOK) {
-            DsConfigManager.raiseFlowExceedsThreshold(buckets.getName());
-            flowOK = false;
-          }
-        }
-
-        return null;
-      } else {
-        synchronized (aLock) {
-          if (!flowOK) {
-            DsConfigManager.raiseFlowOKAgain(buckets.getName());
-            flowOK = true;
-          }
-        }
-      }
-    }
-
     // Determine if the message received is valid.  If it isn't, handle it.
     if (badRequestReason != null) {
-      // Log the received malformed request and
-      // send a 400 response.
       sendErrorResponse(transaction, request, badRequestReason, code);
       return null;
     }
 
-    if (merge_detected) {
-      if (!isProxyServerMode()) {
-        logger.info(
-            "Merge detected. Sending "
-                + DsSipResponseCode.DS_RESPONSE_LOOP_DETECTED
-                + " response and returning");
-        try {
-          DsSipResponse response =
-              new DsSipResponse(DsSipResponseCode.DS_RESPONSE_LOOP_DETECTED, request, null, null);
-          // always a merged request at UA level, never a loop
-          response.setReasonPhrase(new DsByteString("Merged Request"));
-          transaction.sendResponse(response);
-        } catch (Exception e) {
-          logger.error("Exception sending a 482 (LOOP DETECTED) response to a merged request", e);
-        }
-        return null;
-      }
+    if (checkIfTransactionIsMerged(request, transaction, isNewTransaction)) {
+      return null;
     }
 
     DsSipRequestInterface requestInterface;
 
-    // Find the request interface associated with the request method and use it.
     if ((requestInterface = (DsSipRequestInterface) m_interfaceMap.get(method)) == null) {
-      // The default interface will be null unless explicitly set using setRequestInterface()
       requestInterface = m_defaultInterface;
     }
 
     if (requestInterface == null) {
-      logger.warn(
-          "No registered request interface  for processing the Message , Sending"
-              + DsSipResponseCode.DS_RESPONSE_METHOD_NOT_ALLOWED
-              + " response");
-
-      DsSipResponse response =
-          new DsSipResponse(DsSipResponseCode.DS_RESPONSE_METHOD_NOT_ALLOWED, request, null, null);
-      // CAFFEINE 2.0 DEVELOPMENT - required by PRACK.
-      boolean addPrack = m_100relSupport != DsSipConstants.UNSUPPORTED;
-      addAllowHeaders(response, addPrack);
-      try {
-        transaction.sendResponse(response);
-      } catch (DsException | IOException dse) {
-        cat.error("processRequest(): error sending 405 (METHOD_NOT_ALLOWED) response", dse);
-      }
-
+      sendResponseMethodNotAllowed(request, transaction);
       return null;
     }
 
@@ -2212,7 +2051,7 @@ public class DsSipTransactionManager {
         return null;
       }
 
-      if (request.getMethodID() == DsSipConstants.OPTIONS && processOptionsRequest(transaction)) {
+      if (processOptionsRequest(transaction)) {
 
         return null;
       }
@@ -2222,9 +2061,7 @@ public class DsSipTransactionManager {
         return null;
       }
 
-      if (!isProxyServerMode()
-          && request.getMethodID() == DsSipConstants.INVITE
-          && DsSipServerTransactionIImpl.send100UponInvite()) {
+      if (request.getMethodID() == DsSipConstants.INVITE) {
         transaction.sendResponse(null); // send 100
       }
 
@@ -2240,6 +2077,48 @@ public class DsSipTransactionManager {
     return null;
   } // End processRequest()
 
+  private void sendResponseMethodNotAllowed(
+      DsSipRequest request, DsSipServerTransaction transaction) {
+    logger.warn(
+        "No registered request interface  for processing the Message , Sending"
+            + DsSipResponseCode.DS_RESPONSE_METHOD_NOT_ALLOWED
+            + " response");
+
+    DsSipResponse response =
+        new DsSipResponse(DsSipResponseCode.DS_RESPONSE_METHOD_NOT_ALLOWED, request, null, null);
+    // CAFFEINE 2.0 DEVELOPMENT - required by PRACK.
+    boolean addPrack = m_100relSupport != DsSipConstants.UNSUPPORTED;
+    addAllowHeaders(response, addPrack);
+    response.addAndUpdateSessionIdHeader();
+    try {
+      transaction.sendResponse(response);
+    } catch (DsException | IOException dse) {
+      logger.error("processRequest(): error sending 405 (METHOD_NOT_ALLOWED) response", dse);
+    }
+  }
+
+  private boolean checkIfTransactionIsMerged(
+      DsSipRequest request, DsSipServerTransaction transaction, boolean isNewTransaction) {
+    if (isNewTransaction && transaction.isMerged() && !isProxyServerMode()) {
+      logger.info(
+          "Merge detected. Sending "
+              + DsSipResponseCode.DS_RESPONSE_LOOP_DETECTED
+              + " response and returning");
+      try {
+        DsSipResponse response =
+            new DsSipResponse(DsSipResponseCode.DS_RESPONSE_LOOP_DETECTED, request, null, null);
+        // always a merged request at UA level, never a loop
+        response.addAndUpdateSessionIdHeader();
+        response.setReasonPhrase(new DsByteString("Merged Request"));
+        transaction.sendResponse(response);
+      } catch (Exception e) {
+        logger.error("Exception sending a 482 (LOOP DETECTED) response to a merged request", e);
+      }
+      return true;
+    }
+    return false;
+  }
+
   /**
    * {@link DsSipRouteFixInterface} try to identify requestUri, <br>
    * If it matches CP ip, port & protocol, it sends 200 OK response and return true
@@ -2248,36 +2127,41 @@ public class DsSipTransactionManager {
    * @return
    */
   public boolean processOptionsRequest(DsSipServerTransaction serverTransaction) {
+
     DsSipRequest request = serverTransaction.getRequest();
-    try {
-      // If possible, form a 200 Ok response and send it.
-      DsSipResponse response =
-          new DsSipResponse(DsSipResponseCode.DS_RESPONSE_OK, request, null, null);
-      response.setApplicationReason(DsMessageLoggingInterface.REASON_AUTO);
+    if (request.getMethodID() == DsSipConstants.OPTIONS) {
+      try {
+        // If possible, form a 200 Ok response and send it.
+        DsSipResponse response =
+            new DsSipResponse(DsSipResponseCode.DS_RESPONSE_OK, request, null, null);
+        response.setApplicationReason(DsMessageLoggingInterface.REASON_AUTO);
 
-      // CAFFEINE 2.0 DEVELOPMENT - addAllowHeaders was modified with addPrack boolean.
-      DsSipTransactionManager.addAllowHeaders(response, false);
+        // CAFFEINE 2.0 DEVELOPMENT - addAllowHeaders was modified with addPrack boolean.
+        DsSipTransactionManager.addAllowHeaders(response, false);
 
-      if (m_supportedHeader != null) {
-        response.addHeaders(m_supportedHeader, false, false);
+        if (m_supportedHeader != null) {
+          response.addHeaders(m_supportedHeader, false, false);
+        }
+
+        if (m_serverHeader != null) {
+          response.addHeaders(m_serverHeader, false, false);
+        }
+
+        if (m_acceptHeader != null) {
+          response.addHeaders(m_acceptHeader, false, false);
+        }
+
+        serverTransaction.sendResponse(response);
+      } catch (Exception e) {
+        reqCat.error(
+            "Got Exception while trying to send 200 response for OPTIONS request Call-ID:"
+                + request.getCallId(),
+            e);
       }
-
-      if (m_serverHeader != null) {
-        response.addHeaders(m_serverHeader, false, false);
-      }
-
-      if (m_acceptHeader != null) {
-        response.addHeaders(m_acceptHeader, false, false);
-      }
-
-      serverTransaction.sendResponse(response);
-    } catch (Exception e) {
-      reqCat.error(
-          "Got Exception while trying to send 200 response for OPTIONS request Call-ID:"
-              + request.getCallId(),
-          e);
+      return true;
+    } else {
+      return false;
     }
-    return true;
   }
 
   /**
@@ -3014,16 +2898,14 @@ public class DsSipTransactionManager {
    */
   private void sendErrorResponse(
       DsSipServerTransaction transaction, DsSipRequest request, String reason, int code) {
-    logger.info("sendErrorResponse(): invalid request. Sending " + code + " response");
+    logger.info("Invalid request , Sending " + code + " response");
 
     try {
       // If possible, form 400 Bad REQUEST response and send it.
       DsSipResponse response = new DsSipResponse(code, request, null, null);
       response.setApplicationReason(DsMessageLoggingInterface.REASON_AUTO);
-      // response.setReasonPhrase(new DsByteString(reason));
-
-      // is this content-type ok? -dg
       response.setBody(new DsByteString(reason), new DsByteString("text/plain"));
+      response.addAndUpdateSessionIdHeader();
       transaction.sendResponse(response);
 
     } catch (Exception e) {
@@ -3555,25 +3437,6 @@ public class DsSipTransactionManager {
   /** */
   DsSipServerTransactionInterface getStatelessServerTransactionInterface() {
     return m_statelessTransactionInterface;
-  }
-
-  /**
-   * This method create a throttle for throttling of incoming new request other than BYE, ACK and
-   * CANCEL. It uses the parameter to create a DsBuckets object and thus limits the incoming token
-   * flow. User code can use the throttle it returns to control its action.
-   *
-   * @param setting a two-dimensional int array containing the configure value pairs for each of
-   *     buckets intended to create. The first value in the pair is the time interval(in seconds)
-   *     you want to limit number of tokens for and the second value is the number of tokens you
-   *     want to allow for that time interval.
-   * @return the DsThrottle that was created
-   * @throws DsException When the setting array is not a two-dimensional array or the values are not
-   *     all positive.
-   */
-  public static DsThrottle createIncomingMessageThrottle(int[][] setting) throws DsException {
-    buckets = new DsBuckets(setting);
-    buckets.setName(INCOMING_MESSAGE_THROTTLE);
-    return new DsThrottle(buckets);
   }
 
   //     public static void setTransKeyGenerator(DsSipTransKeyGenerator generator)

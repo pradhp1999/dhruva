@@ -2010,7 +2010,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
     try {
       Log.debug("Inside addSessionIDHeader()");
       DsSipHeaderInterface sessionIDHeader = getHeader(new DsByteString("Session-ID"));
-      if (sessionIDHeader == null) Log.debug("Session-Id header not found Adding one");
+      if (sessionIDHeader == null) Log.info("Session-Id header is not present in the Message");
 
       if (getCallId() != null) {
         if (sessionIDHeader == null || isSessionIdHeaderUpdateNeeded()) {
@@ -2056,11 +2056,11 @@ public abstract class DsSipMessage extends DsSipMessageBase {
                       sessionIdValue);
               if (sessionIDHeader == null) {
                 addHeader(sessionID);
-                Log.debug("Added Session-Id header " + sessionID);
+                Log.info("Added Session-Id header {} ", sessionID);
               } else {
                 removeHeader(new DsByteString("Session-ID"));
                 addHeader(sessionID);
-                Log.debug("Updated Session-Id header to " + sessionID);
+                Log.info("Updated Session-Id header to {}", sessionID);
               }
             }
           } else // check if this is options ping
@@ -2082,7 +2082,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
                 addHeader(sessionID);
               }
 
-              Log.debug("Added Session-Id Header " + sessionID + " to OPTIONS request");
+              Log.info("Added Session-Id Header " + sessionID + " to OPTIONS request");
             }
           }
         }

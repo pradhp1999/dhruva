@@ -10,12 +10,42 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum Transport {
-  NONE(0),
-  UDP(1),
-  TCP(2),
-  MULTICAST(3),
-  TLS(4),
-  SCTP(5);
+  NONE(0) {
+    @Override
+    public boolean isReliable() {
+      return false;
+    }
+  },
+  UDP(1) {
+    @Override
+    public boolean isReliable() {
+      return false;
+    }
+  },
+  TCP(2) {
+    @Override
+    public boolean isReliable() {
+      return true;
+    }
+  },
+  MULTICAST(3) {
+    @Override
+    public boolean isReliable() {
+      return false;
+    }
+  },
+  TLS(4) {
+    @Override
+    public boolean isReliable() {
+      return true;
+    }
+  },
+  SCTP(5) {
+    @Override
+    public boolean isReliable() {
+      return true;
+    }
+  };
 
   /** Byte mask constant for the transport type. */
   public static final byte UDP_MASK = 1;
@@ -66,6 +96,8 @@ public enum Transport {
   public int getValue() {
     return value;
   }
+
+  public abstract boolean isReliable();
 
   /**
    * Retrieves the transport type as an integer.

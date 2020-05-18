@@ -241,27 +241,12 @@ public final class DsString {
   /**
    * Just a wrapper for DsByteString.getBytes(addr.getHostAddress()). No longer optimized.
    *
-   * @param addr the address to get the host address of, must not be null
+   * @param address the address to get the host address of, must not be null
    * @return DsByteString.getBytes(addr.getHostAddress())
    */
-  public static byte getHostBytes(InetAddress addr)[] {
-    return DsByteString.getBytes(addr.getHostAddress());
-    /*
-            byte bytes[] = addr.getAddress();
-
-            ByteBuffer sb = ByteBuffer.newInstance(15); // max length = 111.111.111.111 - 15
-
-            // make sure that the ints are positive representations of the bytes
-            sb.write(DsIntStrCache.intToBytes((int)bytes[0] & 0x000000ff));
-            sb.write('.');
-            sb.write(DsIntStrCache.intToBytes((int)bytes[1] & 0x000000ff));
-            sb.write('.');
-            sb.write(DsIntStrCache.intToBytes((int)bytes[2] & 0x000000ff));
-            sb.write('.');
-            sb.write(DsIntStrCache.intToBytes((int)bytes[3] & 0x000000ff));
-
-            return sb.toByteArray();
-    */
+  public static byte getHostBytes(InetAddress address)[] {
+    if (address != null) return DsByteString.getBytes(address.getHostAddress());
+    return null;
   }
 
   public static String toStunDebugString(byte[] data) {

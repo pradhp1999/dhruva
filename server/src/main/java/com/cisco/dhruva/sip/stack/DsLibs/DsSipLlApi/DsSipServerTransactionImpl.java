@@ -504,7 +504,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
 
   /** Initialize the SIP timers. */
   protected void initializeTimers() {
-    if (DsSipTransportType.intern(m_connection.getTransport().ordinal()).isReliable()) {
+    if (m_connection.getTransport().isReliable()) {
       // reliable transport
       m_To = 0;
     } else {
