@@ -3,6 +3,9 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
+import com.cisco.dhruva.sip.cac.SIPSession;
+import com.cisco.dhruva.sip.cac.SIPSessionID;
+import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipCancelMessage;
@@ -29,9 +32,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException.TrackingExceptions;
 import com.cisco.dhruva.transport.Transport;
-import com.cisco.dhruva.util.cac.SIPSession;
-import com.cisco.dhruva.util.cac.SIPSessionID;
-import com.cisco.dhruva.util.cac.SIPSessions;
 import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.net.UnknownHostException;

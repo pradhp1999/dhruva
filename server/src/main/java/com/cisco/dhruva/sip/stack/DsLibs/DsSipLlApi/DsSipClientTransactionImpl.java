@@ -1806,11 +1806,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     DsByteString tag = request.getToTag();
 
     // If there is a To Tag, then this is a mid dialog request.
-    if ((tag != null) && (tag.length() > 0)) {
-      return true;
-    }
-
-    return false;
+    return (tag != null) && (tag.length() > 0);
   }
 
   // //////////////////////////////////////////////////////////////

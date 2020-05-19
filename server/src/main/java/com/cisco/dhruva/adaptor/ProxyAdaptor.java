@@ -1,16 +1,22 @@
 package com.cisco.dhruva.adaptor;
 
+import static java.util.Objects.requireNonNull;
+
 import com.cisco.dhruva.Exception.DhruvaException;
 import com.cisco.dhruva.common.CommonContext;
 import com.cisco.dhruva.common.context.ExecutionContext;
 import com.cisco.dhruva.common.messaging.MessageConvertor;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.common.messaging.models.MessageBodyType;
+import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
-import com.cisco.dhruva.sip.proxy.controller.DsControllerInterface;
+import com.cisco.dhruva.router.MessageListener;
+import com.cisco.dhruva.sip.controller.DsProxyController;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import java.util.Arrays;
 
 public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements AppAdaptorInterface {
 
@@ -20,11 +26,11 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
    *
    * @param controller
    */
-  protected DsControllerInterface controller;
+  protected DsProxyController controller;
 
-  protected RouteResponseHandler handler;
+  protected MessageListener handler;
 
-  protected AppSession appSession;
+  protected AppInterface appSession;
 
   /*
   public ProxyAdaptor(DsProxyController controller) {
@@ -32,34 +38,64 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
   }
   */
 
-  public ProxyAdaptor(DsControllerInterface controller) {
+  public ProxyAdaptor(DsProxyController controller, AppInterface appSession) {
     super();
+    requireNonNull(controller, "controller cannot be null");
+    requireNonNull(appSession, "app session interface cannot be null");
     this.controller = controller;
+    this.appSession = appSession;
   }
 
+  /*
+   * Handles the incoming request from proxy/controller
+   * Builds the execution context, dhruva message from sip request
+   * Forwards the request to the App
+   */
   @Override
   public void handleRequest(DsSipRequest request) throws DhruvaException {
-    logger.debug("ProxyAdaptor.handleRequest: ");
+    logger.info("ProxyAdaptor.handleRequest: {} " + Arrays.toString(request.getSessionId()));
+
+    // MEETPASS, is final required?
     final ExecutionContext context;
-    handler = new RouteResponseHandler(this.controller);
+    handler = new RouteResponseHandler(this);
     context = new ExecutionContext();
     context.set(CommonContext.PROXY_RESPONSE_HANDLER, handler);
 
     IDhruvaMessage dhruvaRequest = buildDhruvaMessageFromSIPRequest(request, context);
 
     if (appSession == null) {
-      this.appSession = new AppSession();
+      throw new DhruvaException(
+          "AppSession cannot be null" + Arrays.toString(request.getSessionId()));
     }
     appSession.handleRequest(dhruvaRequest);
+  }
 
-    return;
+  /*
+   * Handles the response from proxy/controller
+   */
+  @Override
+  public void handleResponse(DsSipResponse response) throws DhruvaException {
+    // MEETPASS TODO
+    appSession.handleResponse(null);
   }
 
   private IDhruvaMessage buildDhruvaMessageFromSIPRequest(
-      DsSipRequest request, ExecutionContext context) {
-    IDhruvaMessage message =
-        MessageConvertor.convertSipMessageToDhruvaMessage(
-            request, MessageBodyType.SIPREQUEST, context);
-    return message;
+      DsSipRequest request, ExecutionContext context) throws DhruvaException {
+
+    requireNonNull(request, "incoming request object cannot be null");
+    requireNonNull(context, "incoming context object cannot be null");
+    return MessageConvertor.convertSipMessageToDhruvaMessage(
+        request, MessageBodyType.SIPREQUEST, context);
+  }
+
+  private IDhruvaMessage buildDhruvaMessageFromSIPResponse(
+      DsSipResponse response, ExecutionContext context) throws DhruvaException {
+
+    return MessageConvertor.convertSipMessageToDhruvaMessage(
+        response, MessageBodyType.SIPRESPONSE, context);
+  }
+
+  public DsProxyController getProxyController() {
+    return this.controller;
   }
 }

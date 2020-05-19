@@ -17,6 +17,8 @@ public class DhruvaSIPConfigProperties {
 
   public static final String SIP_LISTEN_POINTS = "sipListenPoints";
 
+  public static final String PROXY = "proxy";
+
   public static final Transport DEFAULT_TRANSPORT = Transport.UDP;
 
   public static final boolean DEFAULT_RECORD_ROUTE_ENABLED = false;

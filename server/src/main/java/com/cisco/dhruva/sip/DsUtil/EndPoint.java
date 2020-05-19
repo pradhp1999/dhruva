@@ -13,10 +13,10 @@ public class EndPoint implements Cloneable {
   private static final Trace Log = Trace.getTrace(EndPoint.class.getName());
 
   /* The logical network for this end point */
-  protected DsByteString network = null;
+  protected DsByteString network;
 
   /* The host name of the end point */
-  protected DsByteString host = null;
+  protected DsByteString host;
 
   /* The port number of the end point */
   protected int port = 5060;
@@ -88,7 +88,7 @@ public class EndPoint implements Cloneable {
   public boolean equals(Object obj) {
     if (obj == null) return false;
     EndPoint ep = (EndPoint) obj;
-    return (_intern == ep._intern);
+    return (_intern.equals(ep._intern));
   }
 
   public String toString() {

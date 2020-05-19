@@ -14,21 +14,18 @@ public class MessageConvertor {
   public static IDhruvaMessage convertSipMessageToDhruvaMessage(
       DsSipMessage message, MessageBodyType type, ExecutionContext context) {
 
-    requireNonNull(message, "fqdn");
+    requireNonNull(message, "sip message should not be null");
     requireNonNull(context);
 
-    IDhruvaMessage dhruvaMsg =
-        RouteAppMessage.newBuilder()
-            .withContext(context)
-            .withPayload(MessageBody.fromPayloadData(message, type))
-            .build();
-
-    return dhruvaMsg;
+    return RouteAppMessage.newBuilder()
+        .withContext(context)
+        .withPayload(MessageBody.fromPayloadData(message, type))
+        .build();
   }
 
   public static DsSipMessage convertDhruvaMessageToSipMessage(IDhruvaMessage message) {
+    requireNonNull(message, "dhruva message cannot be null");
     MessageBody messageBody = message.getMessageBody();
-    DsSipMessage msg = (DsSipMessage) messageBody.getPayloadData();
-    return msg;
+    return (DsSipMessage) messageBody.getPayloadData();
   }
 }

@@ -3,6 +3,10 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
+import com.cisco.dhruva.sip.cac.SIPSession;
+import com.cisco.dhruva.sip.cac.SIPSessionID;
+import com.cisco.dhruva.sip.cac.SIPSessions;
+import com.cisco.dhruva.sip.cac.SessionStateType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.SubjectAltName;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipMime.DsMimeEntity;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.ReadOnly.DsSipReadOnlyElement;
@@ -20,10 +24,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
 import com.cisco.dhruva.transport.Transport;
-import com.cisco.dhruva.util.cac.SIPSession;
-import com.cisco.dhruva.util.cac.SIPSessionID;
-import com.cisco.dhruva.util.cac.SIPSessions;
-import com.cisco.dhruva.util.cac.SessionStateType;
 import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.io.OutputStream;
