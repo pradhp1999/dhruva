@@ -1,5 +1,6 @@
 package com.cisco.dhruva.util.log;
 
+import java.util.function.Supplier;
 import org.slf4j.event.Level;
 
 public class DhruvaLogger implements Logger {
@@ -37,6 +38,11 @@ public class DhruvaLogger implements Logger {
   }
 
   @Override
+  public void info(String format, Supplier<?>... suppliers) {
+    logger.info(format, getAllLamda(suppliers));
+  }
+
+  @Override
   public void info(String format, Object... arguments) {
     logger.info(format, arguments);
   }
@@ -67,8 +73,23 @@ public class DhruvaLogger implements Logger {
   }
 
   @Override
+  public void error(String format, Supplier<?>... suppliers) {
+    logger.error(format, getAllLamda(suppliers));
+  }
+
+  @Override
   public void debug(String message) {
     logger.debug(message);
+  }
+
+  @Override
+  public void debug(String format, Object... arguments) {
+    logger.debug(format, arguments);
+  }
+
+  @Override
+  public void debug(String format, Supplier<?>... suppliers) {
+    logger.debug(format, getAllLamda(suppliers));
   }
 
   @Override
@@ -151,5 +172,21 @@ public class DhruvaLogger implements Logger {
   @Override
   public boolean isInfoEnabled() {
     return logger.isInfoEnabled();
+  }
+
+
+  // Should be removed once we have lamda support in Slf4j
+  private Object[] getAllLamda(Supplier<?>[] suppliers) {
+    if (suppliers == null) {
+      return null;
+    } else {
+      Object[] arguements = new Object[suppliers.length];
+
+      for (int i = 0; i < arguements.length; ++i) {
+        arguements[i] = suppliers[i].get();
+      }
+
+      return arguements;
+    }
   }
 }

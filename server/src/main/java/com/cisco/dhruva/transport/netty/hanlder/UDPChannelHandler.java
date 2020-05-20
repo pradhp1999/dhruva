@@ -77,8 +77,8 @@ public class UDPChannelHandler extends AbstractChannelHandler {
       }
       logger.info(
           "UDP packet received from {} , Message is {} ",
-          bindingInfo,
-          DsSipMessage.maskAndWrapSIPMessageToSingleLineOutput(logString));
+          () -> bindingInfo,
+          () -> DsSipMessage.maskAndWrapSIPMessageToSingleLineOutput(logString));
       messageForwarder.processMessage(messageBytes, bindingInfo);
     } else {
       String errorMessage =
