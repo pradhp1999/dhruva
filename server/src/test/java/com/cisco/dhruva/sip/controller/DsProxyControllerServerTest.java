@@ -407,12 +407,13 @@ public class DsProxyControllerServerTest {
     DsSipServerTransaction serverTransaction = spy(sTransaction);
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
-    AppInterface app = new AppSession();
+
+    AppInterface app = mock(AppSession.class);
+    doNothing().when(app).handleRequest(null);
 
     DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
 
-    ProxyAdaptor adaptor =
-        (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, new AppSession());
+    ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
     final ExecutionContext context;
     MessageListener handler = new RouteResponseHandler(adaptor);
@@ -464,12 +465,13 @@ public class DsProxyControllerServerTest {
     DsSipServerTransaction serverTransaction = spy(sTransaction);
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
-    AppInterface app = new AppSession();
+
+    AppInterface app = mock(AppSession.class);
+    doNothing().when(app).handleRequest(null);
 
     DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
 
-    ProxyAdaptor adaptor =
-        (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, new AppSession());
+    ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
     final ExecutionContext context;
     MessageListener handler = new RouteResponseHandler(adaptor);
@@ -524,12 +526,13 @@ public class DsProxyControllerServerTest {
     DsSipServerTransaction serverTransaction = spy(sTransaction);
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
-    AppInterface app = new AppSession();
+
+    AppInterface app = mock(AppSession.class);
+    doNothing().when(app).handleRequest(null);
 
     DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
 
-    ProxyAdaptor adaptor =
-        (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, new AppSession());
+    ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
     final ExecutionContext context;
     MessageListener handler = new RouteResponseHandler(adaptor);
@@ -584,12 +587,13 @@ public class DsProxyControllerServerTest {
     DsSipServerTransaction serverTransaction = spy(sTransaction);
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
-    AppInterface app = new AppSession();
+
+    AppInterface app = mock(AppSession.class);
+    doNothing().when(app).handleRequest(null);
 
     DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
 
-    ProxyAdaptor adaptor =
-        (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, new AppSession());
+    ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
     final ExecutionContext context;
     MessageListener handler = new RouteResponseHandler(adaptor);

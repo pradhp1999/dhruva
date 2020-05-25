@@ -27,8 +27,8 @@ public abstract class AbstractAppSession implements AppInterface {
     }
     appEngine.handleMessage(request);
     try {
-      // IDhruvaMessage response = createDummyResponse(request);
-      // this.handleResponse(response);
+      // TODO MeetPass
+      logger.info("received request ()" + request.getSessionId() );
     } catch (Exception e) {
       logger.error("exception while creating response {}" + e.getMessage());
       throw new DhruvaException(
@@ -44,13 +44,4 @@ public abstract class AbstractAppSession implements AppInterface {
     handler.onMessage(response);
   }
 
-  IDhruvaMessage createDummyResponse(IDhruvaMessage request) throws Exception {
-    DsSipResponse resp =
-        DsProxyResponseGenerator.createResponse(
-            DsSipResponseCode.DS_RESPONSE_OK,
-            (DsSipRequest) request.getMessageBody().getPayloadData());
-
-    return MessageConvertor.convertSipMessageToDhruvaMessage(
-        resp, MessageBodyType.SIPRESPONSE, request.getContext());
-  }
 }
