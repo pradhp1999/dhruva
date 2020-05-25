@@ -34,6 +34,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -76,6 +77,11 @@ public class DsSipTransactionManagerTest {
     DsSipTransactionManager.setProxyServerMode(true);
     sipTransactionManager.setStrayMessageInterface(strayMessageInterface);
     sipTransactionManager.setTransactionEventInterface(transactionEventInterface);
+  }
+
+  @AfterClass
+  void cleanUp() {
+    DsSipTransactionManager.setSmp_theSingleton(null);
   }
 
   @AfterMethod

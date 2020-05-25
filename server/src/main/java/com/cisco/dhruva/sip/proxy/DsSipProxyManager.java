@@ -222,8 +222,7 @@ public class DsSipProxyManager
           // CANCEL. Since there is currently no efficient way to check
           // the request, I'm just leaving the log4j statement out for now.
 
-          // 		Log.warn(
-          // 				  "Exception aborting transaction. Must never happen", e1);
+          Log.warn("Exception aborting transaction. Must never happen", e1);
         }
       }
     }
