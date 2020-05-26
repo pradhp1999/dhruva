@@ -20,7 +20,7 @@ Dhruva:
     metricsUrl: https://metrics{{ .MeetPaas.messageClusterAddress }}/metrics/api/v1
     metrics_environment: '{{ .MeetPaas.clusterName }}'
     logback_kafka_appender_enabled: 'true'
-    logback_metrics_kafka_appender_enabled: 'true' 
+    logback_metrics_kafka_appender_enabled: 'true'
     jedisPoolHealthCheckMonitorEnabled: 'false'
     enableLettuceRedisDataSourceForAuthCache: 'true'
     enableLettuceRedisDataSourceForFlsCache: 'true'
