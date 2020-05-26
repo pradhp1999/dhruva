@@ -737,8 +737,6 @@ public class DsBindingInfo implements Cloneable, Serializable {
   @Override
   public String toString() {
     return new StringBuilder()
-        .append("Transport= ")
-        .append(getTransport().name())
         .append(" LocalIP= ")
         .append(getLocalAddress())
         .append(" LocalPort= ")
@@ -747,10 +745,10 @@ public class DsBindingInfo implements Cloneable, Serializable {
         .append(getRemoteAddress())
         .append(" RemotePort= ")
         .append(getRemotePort())
+        .append(" Transport= ")
+        .append(getTransport().name())
         .toString();
   }
-
-  public void updateBindingInfo(DsSocket socket) {}
 
   /**
    * TODO:DHRUVA , commenting for now have to take care if needed.

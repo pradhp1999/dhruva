@@ -29,6 +29,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipURL;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipVersionValidationException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
@@ -1411,7 +1412,11 @@ public class DsSipTransactionManager {
         }
       }
     } catch (Exception e) {
-      logger.error("Exception while adding received parameter to via", e);
+      logger.error(
+          "Exception while adding received parameter to via of "
+              + DsSipMsgParser.getMethod(aMessage.getMethodID())
+              + "Dhruva will continue processing the message",
+          e);
     }
   }
 
@@ -1467,7 +1472,7 @@ public class DsSipTransactionManager {
       // the via header gets set in the creation of the response
       transaction.sendResponse(response);
     } catch (Exception e) {
-      logger.error("processForiListenerShutdown(): Exception when sending Response", e);
+      logger.error("processForListenerShutdown(): Exception when sending Response", e);
     }
 
     return true;
@@ -1528,15 +1533,16 @@ public class DsSipTransactionManager {
       message = vve.getSipMessage();
       badMessageReason = vve.getMessage();
       code = DsSipResponseCode.DS_RESPONSE_SIP_VERSION_NOT_SUPPORTED;
-      logger.info("processMessageBytes: invalid version, continuing to process\n", vve);
+      logger.info(
+          "processMessageBytes: invalid version in SIP message, continuing to process\n", vve);
     } catch (DsSipMessageValidationException mve) {
       message = mve.getSipMessage();
       badMessageReason = mve.getMessage();
       code = DsSipResponseCode.DS_RESPONSE_BAD_REQUEST;
-      logger.info("processMessageBytes: invalid message, continuing to process\n", mve);
+      logger.info("processMessageBytes: invalid SIP message, continuing to process\n", mve);
     } catch (DsSipParserListenerException ple) {
       logger.error(
-          "processMessageBytes: parser listener exception, message not available: message would be dropped\n",
+          "processMessageBytes: Failed to parse the message parser listener exception, message not available: message would be dropped\n",
           ple);
       dropMessage = true;
     }
@@ -1555,7 +1561,8 @@ public class DsSipTransactionManager {
       if (badMessageReason != null) {
         logger.error(badMessageReason);
       }
-      logger.error("processMessageBytes: exception in processMessage:\n", exc);
+      logger.error(
+          "processMessageBytes: exception in processMessage , message would get dropped", exc);
     }
   }
 
@@ -1752,13 +1759,16 @@ public class DsSipTransactionManager {
           // Look for client transaction with key
           retrievedTransaction = m_transactionTable.findClientTransaction(key);
         } catch (Exception e) {
-          cat.error("processResponse(): Exception looking up transaction. Message not usable.", e);
+          cat.error(
+              "processResponse(): Exception Finding the Client Transaction using the To Tag"
+                  + " based key, Dhruva will try to find Client Transaction using Via as key",
+              e);
         }
 
         if (retrievedTransaction != null) // Client transaction found
         {
           logger.info(
-              "processResponse(1): client transaction found; calling onResponse and returning, retrievedTransaction = "
+              "processResponse(1): client transaction found; calling onResponse on Client Transaction and returning, retrievedTransaction = "
                   + retrievedTransaction);
 
           // Passing response to client transaction
@@ -1775,7 +1785,8 @@ public class DsSipTransactionManager {
             retrievedTransaction = m_transactionTable.findClientTransaction(key);
           } catch (Exception e) {
             cat.error(
-                "processResponse(): Exception looking up transaction. Message not usable.", e);
+                "processResponse():  Exception Finding the Client Transaction using Via as Key, Response will be processed as stray response",
+                e);
           }
 
           if (retrievedTransaction != null) // Client transaction found
@@ -1868,7 +1879,10 @@ public class DsSipTransactionManager {
           // Look for client transaction with key
           retrievedTransaction = m_transactionTable.findClientTransaction(key);
         } catch (Exception e) {
-          cat.warn("processResponse(): Exception looking up transaction. Message not usable.", e);
+          cat.warn(
+              "processResponse(): Exception finding the Client Transaction , "
+                  + "finding Client Transaction will be retried using VIA key",
+              e);
         }
 
         if (retrievedTransaction != null) // Client transaction found
@@ -1898,7 +1912,9 @@ public class DsSipTransactionManager {
             retrievedTransaction = m_transactionTable.findClientTransaction(key);
           } catch (Exception e) {
             cat.error(
-                "processResponse(): Exception looking up transaction. Message not usable.", e);
+                "processResponse():  Exception finding the Client Transaction using VIA also, "
+                    + "Response will be processed as Stray Response",
+                e);
           }
 
           if (retrievedTransaction != null) // Client transaction found
@@ -1936,7 +1952,10 @@ public class DsSipTransactionManager {
         retrievedTransaction = m_transactionTable.findClientTransaction(key);
       } catch (Exception e) {
 
-        logger.error("processResponse(): Exception looking up transaction. Message not usable.", e);
+        logger.error(
+            "processResponse(): Exception finding the Client Transaction using VIA "
+                + "(VIA was tried because there was no To Tag in the response), Response will be processed as Stray Response",
+            e);
       }
 
       if (retrievedTransaction != null) // Client transaction found
@@ -1956,7 +1975,9 @@ public class DsSipTransactionManager {
 
   private void passResponseToStrayMessageInterface(DsSipResponse response) {
     logger.info(
-        "processResponse(): Received a stray response; calling DsSipStrayMessageInterface.strayResponse (if set)");
+        "processResponse(): Received a stray response; calling DsSipStrayMessageInterface.strayResponse ,"
+            + " Stray Response interface = {}",
+        m_StrayMessageInterface);
 
     if (m_StrayMessageInterface != null) {
       m_StrayMessageInterface.strayResponse(response);
@@ -2071,7 +2092,8 @@ public class DsSipTransactionManager {
       requestInterface.request(transaction);
 
     } catch (DsException | IOException dse) {
-      logger.error("processRequest(): error on call to requestInterface.request(request)", dse);
+      logger.error(
+          "processRequest(): error in ProxyManger.request ,End of processing for message", dse);
     }
 
     return null;
@@ -2322,7 +2344,8 @@ public class DsSipTransactionManager {
 
       if (transactionCancel != null) // if the transaction being cancelled is found
       {
-        logger.info("processCancel(): Found transaction to cancel");
+        logger.info(
+            "processCancel(): Found transaction to cancel, trying to cancel the transaction");
         // This call will mark the transaction as cancelled if it
         //                has not yet been started. It is marked cancelled by
         //                setting the a private member equal to the server
@@ -2564,7 +2587,10 @@ public class DsSipTransactionManager {
               DsSipDialogID aDialogID = constructDialogID(request);
               transactionToBePracked = (DsSipServerTransaction) m_dialogMap.get(aDialogID);
             } catch (DsException e) {
-              cat.error("processPrack(): ", e);
+              cat.error(
+                  "processPrack(): Exceptin in constructing DialogID  for PRACK messaage"
+                      + " , PRACK will be processed as Stray PRACK",
+                  e);
 
               transactionToBePracked = null;
             }
@@ -2910,7 +2936,12 @@ public class DsSipTransactionManager {
 
     } catch (Exception e) {
 
-      logger.error("sendErrorResponse(): Exception sending " + code + " response", e);
+      logger.error(
+          "sendErrorResponse(): Exception sending "
+              + code
+              + " response , for Invalid Request , Request is dropped "
+              + "response wont be retried, end of transaction for sip message ",
+          e);
     }
   }
 
@@ -3019,11 +3050,15 @@ public class DsSipTransactionManager {
             response.addHeaders(m_acceptHeader, false, false);
           }
 
+          logger.warn(
+              "MaxForwards header of Message is zero , dropping request and sending {} response to client",
+              response.getStatusCode());
           transactionWithVia.sendResponse(response);
         } catch (Exception e) {
 
           logger.error(
-              "processMaxForwards(): Got Exception while trying sendResponse() with 483 Response. ",
+              "processMaxForwards(): Got Exception while trying sendResponse() with 483 Response (because of MaxForwards=0 , End of Processing for message "
+                  + ", message would be  dropped ",
               e);
         }
 
@@ -3041,7 +3076,7 @@ public class DsSipTransactionManager {
       maxForwardsHeader.setMaxForwards(maxForwards);
     }
 
-    logger.info("processMaxForwards(): decremented Max-Forwards to: " + maxForwards);
+    logger.info("Decremented Max-Forwards to: " + maxForwards);
 
     return false;
   }
@@ -3213,7 +3248,7 @@ public class DsSipTransactionManager {
         ((DsSipServerTransactionImpl) transaction).removeSession();
 
       } catch (Exception e) {
-        cat.error("Exception in Removing Session" + e);
+        cat.error("Exception in Removing Session in remove Transaction" + e);
       }
       logger.info("removeTransaction: trying to remove server transaction: " + transaction);
 

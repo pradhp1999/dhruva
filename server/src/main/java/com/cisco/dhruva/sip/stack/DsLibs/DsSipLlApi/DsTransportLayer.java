@@ -589,7 +589,12 @@ public abstract class DsTransportLayer
         }
       } catch (Exception e) {
         if (DsLog4j.connectionCat.isEnabled(Level.ERROR)) {
-          DsLog4j.connectionCat.error("Exception in isListenInterface: ", e);
+          DsLog4j.connectionCat.error(
+              "Exception checking host={}, port={}, Transport={}, Exception is ",
+              host,
+              port,
+              transport,
+              e);
         }
       }
     }

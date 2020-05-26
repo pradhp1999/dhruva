@@ -82,7 +82,8 @@ public class UDPChannelHandler extends AbstractChannelHandler {
       messageForwarder.processMessage(messageBytes, bindingInfo);
     } else {
       String errorMessage =
-          "Invalid message type in ChannelRead expecting DatagramPacket but received " + msg;
+          "Invalid message type in ChannelRead, This should never happen, expecting DatagramPacket but received "
+              + msg;
       logger.error(errorMessage, new Exception(errorMessage));
     }
 

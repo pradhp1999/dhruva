@@ -232,7 +232,7 @@ public final class DsSipConnectionAssociations {
         // setting the connection id so that the request binding info has connection id
         if (connection != null) connection.getBindingInfo().setConnectionId(connectionId);
       } catch (Exception exc) {
-        logger.error("Exception while Retreiving the connection", exc);
+        logger.error("Exception while Retrieving the connection", exc);
       }
     }
     if (logger.isDebugEnabled()) {

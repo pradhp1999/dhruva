@@ -42,8 +42,9 @@ public class DhruvaSIPConfigProperties {
                 JsonUtilFactory.getInstance(JsonUtilFactory.JsonUtilType.LOCAL)
                     .toObject(configuredListeningPoints, SIPListenPoint[].class));
       } catch (Exception e) {
+        // TODO shoould we generate an Alarm
         logger.error(
-            "Error converting JSON ListenPoint configuration , default listenpoint will be choosen ",
+            "Error converting JSON ListenPoint configuration provided in the environment , default listenpoint will be choosen ",
             e);
         listenPoints = getDefaultListenPoints();
       }
@@ -52,7 +53,7 @@ public class DhruvaSIPConfigProperties {
       listenPoints = getDefaultListenPoints();
     }
 
-    logger.info("Listen point list selected {}", listenPoints);
+    logger.info("Listen points from the {} configuration {}", SIP_LISTEN_POINTS, listenPoints);
 
     return listenPoints;
   }

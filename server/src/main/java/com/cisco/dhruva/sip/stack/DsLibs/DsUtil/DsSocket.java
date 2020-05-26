@@ -97,28 +97,6 @@ public class DsSocket {
   }
 
   /*
-   * sets the mNativeFd to fd associated with m_socket.
-   *
-   * @return <code>true</code> if mNativeFd is set.
-   */
-  protected boolean setNativeFd() {
-    boolean success = false;
-    try {
-      SocketImpl impl = (SocketImpl) DsSocket.ms_getImplSocketMethod.invoke(m_socket);
-      FileDescriptor fdescriptor =
-          (FileDescriptor) DsSocket.ms_getFileDescriptionMethod.invoke(impl);
-      mNativeFd = ((Integer) DsSocket.ms_fdSocketField.get(fdescriptor)).intValue();
-      success = true;
-    } catch (Exception e) {
-
-      DsLog4j.socketCat.error("Failed to get fd from socket ", e);
-
-      mNativeFd = -1;
-    }
-    return success;
-  }
-
-  /*
    * Set the SO_SNDTIMEO of the m_socket using
    * NativeSocket.
    *

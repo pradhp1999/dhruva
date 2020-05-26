@@ -81,7 +81,7 @@ public class SIPService {
 
     for (SIPListenPoint sipListenPoint : sipListenPoints) {
 
-      logger.info("Starting ListenPoint {} ", sipListenPoint);
+      logger.info("Trying to start server socket on {} ", sipListenPoint);
 
       networkConfig = DsNetwork.getNetwork(sipListenPoint.getName());
       networkConfig.setenv(env);
@@ -98,6 +98,7 @@ public class SIPService {
           (channel, throwable) -> {
             if (throwable == null) {
               try {
+                logger.info("Server socket created for {}", channel);
                 DsControllerConfig.addListenInterface(
                     networkConfig,
                     InetAddress.getByName(sipListenPoint.getHostIPAddress()),
@@ -114,9 +115,14 @@ public class SIPService {
                 }
               } catch (Exception e) {
                 logger.error(
-                    "Exception in ListenPointFuture.whenComplete while configuring DsController Config ",
+                    "Configuring Listenpoint in DsControllerConfig failed for ListenPoint  "
+                        + channel,
                     e);
               }
+            } else {
+              // TODO: should Dhruva exit ? or generate an Alarm
+              logger.error(
+                  "Server socket creation failed for {} , error is {} ", channel, throwable);
             }
           });
 

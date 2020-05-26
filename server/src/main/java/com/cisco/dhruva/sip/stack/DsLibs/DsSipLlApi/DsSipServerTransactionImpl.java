@@ -408,9 +408,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
 
     // We have to clone the binding info since request could change.
     m_bindingInfo = (DsBindingInfo) m_sipRequest.getBindingInfo().clone();
-    if (cat.isEnabled(Level.INFO)) {
-      cat.log(Level.INFO, "The Binding Info for the incoming request:\n" + m_bindingInfo);
-    }
+    cat.log(Level.DEBUG, "The Binding Info for the incoming request:\n" + m_bindingInfo);
 
     m_via = m_sipRequest.getViaHeaderValidate();
     m_method = (byte) request.getMethodID();
@@ -1968,10 +1966,11 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       }
       switch (type) {
         case (CB_ACK):
+          cbCat.info(
+              "CB_ACK,ServerTransactionCallback has received ACK, calling ack on callbackInterface ",
+              cb);
           if (cbCat.isEnabled(Level.DEBUG)) {
-            cbCat.debug("CB_ACK: ");
             cbCat.debug(String.valueOf(m_key));
-            cbCat.debug("CB_ACK: ");
             cbCat.debug(request.maskAndWrapSIPMessageToSingleLineOutput());
           }
 
@@ -1991,6 +1990,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           request = null;
           break;
         case (CB_CANCEL):
+          cbCat.info(
+              "CB_CANCEL: ServerTransactionCallback has received CANCEL, calling Cancel on callBackInterface",
+              cb);
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_CANCEL: ");
             cbCat.debug(String.valueOf(m_key));
@@ -2002,6 +2004,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           request = null;
           break;
         case (CB_TIMEOUT):
+          cbCat.info(
+              "CB_TIMEOUT: ServerTransactionCallback is in Request Timeout, calling timeout on callBackInterface",
+              cb);
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.debug("CB_TIMEOUT: ");
             cbCat.debug(String.valueOf(m_key));
@@ -2021,7 +2026,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
                     conn.closeSocket();
                   } catch (Exception e) {
                     if (genCat.isEnabled(Level.WARN)) {
-                      genCat.warn("Exception closing connection: ", e);
+                      genCat.warn(
+                          "Exception closing connection:  , Tried to close connection because of Timeout",
+                          e);
                     }
                   }
                 }
@@ -2038,15 +2045,20 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           // m_serverInterface = null;
           break;
         case (CB_EXCEPTION):
-          if (cbCat.isEnabled(Level.INFO)) {
-            cbCat.info("CB_EXCEPTION: ");
-            cbCat.info(String.valueOf(m_key));
-          }
+          cbCat.info(
+              "CB_EXCEPTION: ServerTransactionCallback is in Exception, Request Proxying might have failed because of an exception"
+                  + ", calling icmpError on callBackInterface",
+              cb);
+
+          cbCat.info("Transactio key for message {}", String.valueOf(m_key));
 
           cb.icmpError(DsSipServerTransactionImpl.this);
           break;
           // CAFFEINE 2.0 DEVELOPMENT - required by handling PRACK.
         case (CB_PRACK):
+          cbCat.info(
+              "CB_PRACK: ServerTransactionCallback has received PRACK, calling Prack on callBackInterface",
+              cb);
           if (cbCat.isEnabled(Level.DEBUG)) {
             cbCat.log(Level.DEBUG, "CB_PRACK: ");
             cbCat.log(Level.DEBUG, String.valueOf(m_key));

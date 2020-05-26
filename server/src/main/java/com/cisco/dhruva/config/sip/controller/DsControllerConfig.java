@@ -226,7 +226,6 @@ public final class DsControllerConfig
 
   public DsViaListenInterface getViaInterface(Transport protocol, String direction) {
 
-    Log.debug("Entering getViaInterface(protocol, direction)");
     DsNetwork net;
     // Grab the via interface if it has already been stored by protocol and direction
     DsViaListenInterface viaIf;
@@ -242,7 +241,7 @@ public final class DsControllerConfig
     }
     if (viaIf == null) {
 
-      Log.debug("No via interface stored for this protocol/direction pair, creating one");
+      Log.info("No via interface stored for this protocol/direction pair, creating one");
 
       // Find a listen if with the same protocol and direction, if there is more
       // than one the first on will be selected.

@@ -1546,7 +1546,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
         if (removeTopRoute) {
           request.removeHeader(DsSipConstants.ROUTE);
-          Log.info("Route header " + topRoute + " is current CP route , removing the Route header");
+          Log.info(
+              "Route header " + topRoute + " is current Dhruva route , removing the Route header");
         }
       }
     } catch (Exception e) {

@@ -108,7 +108,7 @@ public class DhruvaTransportLayer implements TransportLayer {
 
       if (connectionCompletableFuture != null) {
         logger.info(
-            "Returning a cached connection for localAddress {} remoteAddress {} , connectionfuture is {} ",
+            "Returning a cached connection for localAddress {} remoteAddress {} , connection future is {} ",
             localSocketAddress,
             remoteSocketAddress,
             connectionCompletableFuture);
@@ -143,7 +143,7 @@ public class DhruvaTransportLayer implements TransportLayer {
           });
 
       logger.info(
-          "Returning a new connection for localAddress {} remoteAddress {} , connectionfuture is {} ",
+          "Returning a new connection for localAddress {} remoteAddress {} , connection future is {} ",
           localSocketAddress,
           remoteSocketAddress,
           connectionCompletableFuture);

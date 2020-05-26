@@ -2649,7 +2649,9 @@ public class DsMimeEntity
     DsMimeContentProperties props = DsMimeContentManager.getProperties(type);
     if (props == null) {
       messageLogger.info(
-          "In DsMimeEntity.parseBody() - Content type " + type + " is unregistered.");
+          "In DsMimeEntity.parseBody() - Content type "
+              + type
+              + " is unregistered, skipping parsebody");
 
       return;
     }

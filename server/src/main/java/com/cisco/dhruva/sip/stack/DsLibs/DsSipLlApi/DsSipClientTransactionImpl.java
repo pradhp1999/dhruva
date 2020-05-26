@@ -2375,7 +2375,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
                   m_resolverInfo.getRemotePort(),
                   m_resolverInfo.getTransport());
 
-          genCat.info("tryConnect() - getConnection failed: ", e);
+          genCat.info("Getting Connection from transport layer failed ", e);
         }
 
         // Try again with the UDP itself.

@@ -101,7 +101,6 @@ public class DsSipProxyManager
     transManager.setStrayMessageInterface(this);
     transManager.setTransactionEventInterface(this);
 
-    Log.info("DsSipProxyManager created");
   }
 
   /**
@@ -112,7 +111,7 @@ public class DsSipProxyManager
    */
   public void setControllerFactory(DsControllerFactoryInterface cf) {
     if (cf == null) {
-      Log.info("null ControolerFactory passed to setControllerFactory!");
+      Log.info("null ControllerFactory passed to setControllerFactory!");
 
       throw new NullPointerException("ControllerFactory should not be null");
     }
@@ -292,8 +291,6 @@ public class DsSipProxyManager
 
   public void proxyStrayResponse(DsSipResponse response, String direction) {
 
-    Log.debug("Entering proxyStrayResponse(DsSipResponse response, int direction)");
-
     DsControllerConfig config = DsControllerConfig.getCurrent();
     // check the record route
     if (config.doRecordRoute()) {
@@ -314,7 +311,7 @@ public class DsSipProxyManager
       myVia = response.getViaHeaderValidate();
     } catch (DsException e) {
       myVia = null;
-      Log.error("Error in getting top Via header", e);
+      Log.error("Error in getting top Via header for sending stray response", e);
     }
     if (myVia == null) return;
 

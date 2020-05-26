@@ -370,7 +370,7 @@ public final class DsSipContactHeader extends DsSipNameAddressHeader {
             aLong /= 1000; // convert from milliseconds into seconds
           } catch (Exception e) {
             if (DsLog4j.headerCat.isEnabled(Level.ERROR)) {
-              DsLog4j.headerCat.error("expires string wrong format: ", e);
+              DsLog4j.headerCat.error("expires string wrong format: in Contact header", e);
             }
 
             return -1L;
@@ -380,7 +380,7 @@ public final class DsSipContactHeader extends DsSipNameAddressHeader {
             aLong = Long.parseLong(expires);
           } catch (NumberFormatException e) {
             if (DsLog4j.headerCat.isEnabled(Level.ERROR)) {
-              DsLog4j.headerCat.error("expires string wrong format: ", e);
+              DsLog4j.headerCat.error("expires string wrong format: in Contact header ", e);
             }
 
             return -1L;

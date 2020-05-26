@@ -2575,7 +2575,7 @@ public final class DsConfigManager implements DsSipConstants {
    *     infinite
    */
   public static void setWaitForConnection(int seconds) {
-    DsSocket.setTimeout(seconds);
+    // TODO check if this is needed once we have TCP/TLS flow
   }
 
   /**
@@ -2669,7 +2669,7 @@ public final class DsConfigManager implements DsSipConstants {
    *     infinite
    */
   public static void setWaitForTLSHandshake(int seconds) {
-    DsSocket.setTLSHandshakeTimeout(seconds);
+    // TODO check if this is needed once we have TCP/TLS flow
   }
 
   /**

@@ -756,7 +756,7 @@ public class DsProxyTransaction extends DsProxyStatelessTransaction {
     try {
       controller.onCancel(this, getServerTransaction(), cancel);
     } catch (DsException e) {
-      Log.warn("Exception at cancelCallBack", e);
+      Log.warn("Exception at cancel CallBack", e);
     }
     Log.debug("Leaving cancelCallBack()");
   }

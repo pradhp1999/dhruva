@@ -63,9 +63,15 @@ public class ConnectionCache {
                 }
               } catch (Exception e) {
                 logger.error(
-                    "Error getting connection from future in Connection Sweeper task exception is ",
+                    "Error getting connection from ConnectionFuture "
+                        + connectionFuture
+                        + " in Connection Sweeper task exception is ",
                     e);
               }
+            } else if (connectionFuture.isCompletedExceptionally()) {
+              logger.error(
+                  "Exceptionally completed Future is in Connection Cache ,"
+                      + " This should never happen, bug in code ");
             }
           }
         } catch (Exception e) {

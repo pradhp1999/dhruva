@@ -370,7 +370,10 @@ public class DsSipResponse extends DsSipMessage {
       }
 
     } catch (Exception e) {
-      Log.error("Exception in writeSessionId", e);
+      Log.error(
+          "Exception in writeSessionId to the response , sessionID header"
+              + " wont be present in the response",
+          e);
     }
   }
 

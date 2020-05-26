@@ -174,7 +174,6 @@ public class DhruvaLogger implements Logger {
     return logger.isInfoEnabled();
   }
 
-
   // Should be removed once we have lamda support in Slf4j
   private Object[] getAllLamda(Supplier<?>[] suppliers) {
     if (suppliers == null) {

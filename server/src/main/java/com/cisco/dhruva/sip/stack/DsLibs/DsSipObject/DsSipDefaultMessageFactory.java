@@ -154,7 +154,7 @@ public final class DsSipDefaultMessageFactory implements DsSipMessageFactory {
         if (message.isEncoded()) {
           if (keyCat.isEnabled(Level.INFO)) {
             keyCat.info(
-                "The incoming message is Tokinized SIP encoded. Decoding it and trying Classic Key");
+                "The incoming message is Tokenized SIP encoded. Decoding it and trying Classic Key");
           }
 
           ByteBuffer mesageBuffer = ByteBuffer.newInstance();

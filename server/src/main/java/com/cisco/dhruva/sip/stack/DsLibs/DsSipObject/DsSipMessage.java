@@ -36,6 +36,7 @@ import org.slf4j.event.Level;
 /** javadoc inherited. */
 // CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support
 public abstract class DsSipMessage extends DsSipMessageBase {
+
   static final String REGEX_CRYPT_LINE = "(a=crypto.*inline:).*";
   static final String REGEX_CRYPT_MASK = "$1********MASKED***************";
 
@@ -232,7 +233,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   }
 
   protected DsSipMessage(boolean encoded) {
-    if (Log.isDebugEnabled()) Log.debug("In encoded SIP message constructor");
+    if (Log.isDebugEnabled()) {
+      Log.debug("In encoded SIP message constructor");
+    }
     if (encoded == true) {
       m_isEncoded = true;
       headerType = new DsSipHeaderInterface[DsSipConstants.MAX_KNOWN_HEADER + 1];
@@ -244,6 +247,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   ////////////////////////////////////////////////////////////////////////////////
   // member functions
   ////////////////////////////////////////////////////////////////////////////////
+
   /**
    * Method used to retrieve the Authorization header or the Authentication header based on the
    * message whether being a request or a response.
@@ -489,8 +493,8 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   /**
    * Returns true if the specified byte array <code>data</code> is sigcomp compressed.
    *
-   * @return true if this byte[] is sigcomp compressed.
    * @param data the data to check
+   * @return true if this byte[] is sigcomp compressed.
    */
   public static final boolean isCompressed(byte[] data) {
     boolean ret = false;
@@ -550,7 +554,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @param binding_info the binding information for this message
    */
   public final void setBindingInfo(DsBindingInfo binding_info) {
-    if (binding_info != null) m_bindingInfo = binding_info;
+    if (binding_info != null) {
+      m_bindingInfo = binding_info;
+    }
   }
 
   /**
@@ -568,7 +574,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @param binding_info the updated binding information for this message
    */
   public final void updateBinding(DsBindingInfo binding_info) {
-    if (binding_info == null) return;
+    if (binding_info == null) {
+      return;
+    }
 
     if (null != m_bindingInfo) {
       m_bindingInfo.update(binding_info);
@@ -709,7 +717,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @param comparator the message whose semantics needs to be compared for equality against the
    *     semantics of this message object.
    * @return <code>true</code> if this message is semantically equal to the the specified <code>
-   *     comparator</code> message object, <code>false</code> otherwise.
+   * comparator</code> message object, <code>false</code> otherwise.
    */
   public boolean equals(Object comparator) {
     try {
@@ -726,7 +734,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @param message the message whose semantics needs to be compared for equality against the
    *     semantics of this message object.
    * @return <code>true</code> if this message is semantically equal to the the specified <code>
-   *     message</code>, <code>false</code> otherwise.
+   * message</code>, <code>false</code> otherwise.
    */
   public boolean equals(DsSipMessage message) {
     return super.equals(message);
@@ -806,6 +814,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   private static String removeSDP(String msg) {
     return msg.split(SDP_SPLIT_STRING)[0];
   }
+
   /**
    * Constructs and returns the transaction key for this message. The constructed key can be RFC
    * 3261 style transaction key or RFC 2543 style (for backwards compatibility) transaction key
@@ -826,7 +835,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
 
     if (NEW_KEY) {
       try {
-        if (Log.isDebugEnabled()) Log.debug("Creating new transaction key");
+        if (Log.isDebugEnabled()) {
+          Log.debug("Creating new transaction key");
+        }
 
         via = getViaHeaderValidate();
         DsByteString bs = via.getBranch();
@@ -901,19 +912,23 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   public void setViaTransport(Transport transport)
       throws DsSipParserException, DsSipParserListenerException {
     DsSipViaHeader via = getViaHeaderValidate();
-    if (via != null) via.setTransport(transport);
+    if (via != null) {
+      via.setTransport(transport);
+    }
   }
 
   /**
    * Checks whether the size of this message exceeds the size of the MTU.
    *
    * @return <code>true</code> if the size of this message is more than the MTU size, <code>false
-   *     </code> otherwise.
+   * </code> otherwise.
    */
   public boolean sizeExceedsMTU() {
     int mtu = getNetworkReliably().getMTU();
 
-    if (mtu == Integer.MAX_VALUE) return false;
+    if (mtu == Integer.MAX_VALUE) {
+      return false;
+    }
 
     DsByteString strValue;
     strValue = toByteString();
@@ -945,7 +960,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    */
   protected final DsURI createURI(DsSipHeaderInterface header, boolean clone)
       throws DsSipParserListenerException, DsSipParserException {
-    if (header == null) return null;
+    if (header == null) {
+      return null;
+    }
     DsURI ret = null;
     switch (header.getForm()) {
       case DsSipHeaderInterface.STRING:
@@ -1218,6 +1235,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   public static int getDefaultMaxForwards() {
     return MAX_FORWARDS_DEFAULT;
   }
+
   /**
    * Sets the default value of the Max-Forwards header.
    *
@@ -1270,7 +1288,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   public final void setEncoded() {
     // m_isEncoded = shouldEncode();
 
-    if (Log.isDebugEnabled()) Log.debug("In setEncoded.  Value is now " + m_isEncoded);
+    if (Log.isDebugEnabled()) {
+      Log.debug("In setEncoded.  Value is now " + m_isEncoded);
+    }
   }
 
   public final boolean isEncoded() {
@@ -1492,10 +1512,10 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   /**
    * Compares two request objects to see if they are logically equivalent.
    *
-   * @deprecated
    * @param message The message to compare to
    * @return integer 0 if the messages are equal; != 0 if they are not
    * @throws Exception
+   * @deprecated
    */
   public final int debugCompareTo(DsSipMessage message) throws Exception {
     if (isRequest()) {
@@ -1613,7 +1633,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
     headerList[1] = (DsSipHeaderInterface[]) message.getDebugHeadersList();
 
     for (int type = 0; type < headerList[0].length; type++) {
-      if (Log.isDebugEnabled()) Log.debug("Trying header " + type);
+      if (Log.isDebugEnabled()) {
+        Log.debug("Trying header " + type);
+      }
 
       if (DsTokenSipHeaderDictionary.isBlockedHeader(type) == false) {
         if (((headerList[0][type] == null) && (headerList[1][type] != null))
@@ -1627,7 +1649,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
               if (DsTokenSipHeaderDictionary.isBlockedHeader(
                       ((DsSipHeader) headerList[0][type]).getHeaderID())
                   == false) {
-                if (Log.isDebugEnabled()) Log.debug("Comparing individual header");
+                if (Log.isDebugEnabled()) {
+                  Log.debug("Comparing individual header");
+                }
                 if (debugCompareHeaders(
                         (DsSipHeader) headerList[0][type], (DsSipHeader) headerList[1][type])
                     == false) {
@@ -1649,7 +1673,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
               myFinalHeader.parse(finalstr.data(), finalstr.offset(), finalstr.length());
               if (DsTokenSipHeaderDictionary.isBlockedHeader(myOriginalHeader.getHeaderID())
                   == false) {
-                if (Log.isDebugEnabled()) Log.debug("Comparing string header");
+                if (Log.isDebugEnabled()) {
+                  Log.debug("Comparing string header");
+                }
                 if (debugCompareHeaders(myOriginalHeader, myFinalHeader) == false) {
                   return -29;
                 }
@@ -1769,10 +1795,10 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   /**
    * Private utility for debugCompareTo.
    *
-   * @deprecated
    * @param firstHeader
    * @param lastHeader
    * @return
+   * @deprecated
    */
   private final boolean debugCompareHeaders(DsSipHeader firstHeader, DsSipHeader lastHeader) {
     // hack for UA parameter comparison
@@ -1794,8 +1820,8 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   /**
    * Private utility for debugCompareTo.
    *
-   * @deprecated
    * @param myHeader
+   * @deprecated
    */
   private static final void debugStripParamQuotes(DsSipHeader myHeader) {
     if (myHeader instanceof DsSipParametricHeader) {
@@ -1813,16 +1839,18 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   /**
    * Private utility for debugCompareTo.
    *
-   * @deprecated
    * @return
    * @throws Exception
+   * @deprecated
    */
   private final DsSipHeaderInterface[] getDebugHeadersList() throws Exception {
     DsSipHeaderInterface headerList[] = new DsSipHeaderInterface[UNKNOWN_HEADER + 1];
     int len = headerType.length - 1;
 
     for (int type = 0; type < len; type++) {
-      if (Log.isDebugEnabled()) Log.debug("Trying header " + type);
+      if (Log.isDebugEnabled()) {
+        Log.debug("Trying header " + type);
+      }
       switch (type) {
         case CSEQ:
         case CALL_ID:
@@ -1837,7 +1865,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
               headerList[type] = getHeadersValidate(type);
             }
           } else {
-            if (Log.isDebugEnabled()) Log.debug("Header " + type + " is blocked");
+            if (Log.isDebugEnabled()) {
+              Log.debug("Header " + type + " is blocked");
+            }
           }
           break;
       }
@@ -1848,8 +1878,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
     if (finalList != null) {
       DsSipHeaderInterface l = (DsSipHeaderInterface) finalList.getFirst();
 
-      if (Log.isDebugEnabled())
+      if (Log.isDebugEnabled()) {
         Log.debug(finalList.size() + " number of headers present in the last header block");
+      }
 
       while (l != null) {
         headerList[l.getHeaderID()] = l;
@@ -1875,13 +1906,18 @@ public abstract class DsSipMessage extends DsSipMessageBase {
    * @return true if in-built headers are equal.
    */
   protected boolean equalsInBuiltHeaders(DsMimeEntity entity) {
-    if (!(entity instanceof DsSipMessage)) return false;
+    if (!(entity instanceof DsSipMessage)) {
+      return false;
+    }
     DsSipMessage message = (DsSipMessage) entity;
     // Call-ID
-    if (!DsByteString.equals(m_strCallId, message.m_strCallId)) return false;
-    // CSeq
-    if (m_lCSeq != message.m_lCSeq || !DsByteString.equals(m_strCSeq, message.m_strCSeq))
+    if (!DsByteString.equals(m_strCallId, message.m_strCallId)) {
       return false;
+    }
+    // CSeq
+    if (m_lCSeq != message.m_lCSeq || !DsByteString.equals(m_strCSeq, message.m_strCSeq)) {
+      return false;
+    }
     return true;
   }
 
@@ -2008,9 +2044,10 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   public void addSessionIDHeader() {
     // Check if Session-ID header exists
     try {
-      Log.debug("Inside addSessionIDHeader()");
       DsSipHeaderInterface sessionIDHeader = getHeader(new DsByteString("Session-ID"));
-      if (sessionIDHeader == null) Log.info("Session-Id header is not present in the Message");
+      if (sessionIDHeader == null) {
+        Log.debug("Session-Id header is not present in the Message");
+      }
 
       if (getCallId() != null) {
         if (sessionIDHeader == null || isSessionIdHeaderUpdateNeeded()) {
@@ -2056,11 +2093,17 @@ public abstract class DsSipMessage extends DsSipMessageBase {
                       sessionIdValue);
               if (sessionIDHeader == null) {
                 addHeader(sessionID);
-                Log.info("Added Session-Id header {} ", sessionID);
+                Log.info(
+                    "Added Session-Id header {} to {} ",
+                    sessionID,
+                    DsSipMsgParser.getMethod(getMethodID()));
               } else {
                 removeHeader(new DsByteString("Session-ID"));
                 addHeader(sessionID);
-                Log.info("Updated Session-Id header to {}", sessionID);
+                Log.info(
+                    "Updated Session-Id header to {} to {}",
+                    sessionID,
+                    DsSipMsgParser.getMethod(getMethodID()));
               }
             }
           } else // check if this is options ping
@@ -2088,7 +2131,10 @@ public abstract class DsSipMessage extends DsSipMessageBase {
         }
       }
     } catch (Exception e) {
-      Log.error("Exception in addSessionIDHeader ", e);
+      Log.error(
+          "Exception in addSessionIDHeader , sessionIdHeader is not added,"
+              + " This wont affect message processing, processing will continue without SessionId Header",
+          e);
     }
   }
 
@@ -2113,7 +2159,7 @@ public abstract class DsSipMessage extends DsSipMessageBase {
       }
     } else // This shouldn't happen
     {
-      Log.error("Binding info is null for message");
+      Log.error("Binding info is null for message, This shouldn't happen bug in code");
     }
     return isMessageFromUAS;
   }
@@ -2127,7 +2173,6 @@ public abstract class DsSipMessage extends DsSipMessageBase {
   private void updateSession(boolean forAck) {
 
     try {
-      Log.debug("Inside updateSession()");
       String callId = getCallId().toString();
       SIPSession sipSession = SIPSessions.getActiveSession(callId);
 
@@ -2135,7 +2180,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
         // If ACK is for the failure response we should not update the
         // session id
         if (forAck) {
-          if (sipSession.getSessionState() == SessionStateType.FAILED) return;
+          if (sipSession.getSessionState() == SessionStateType.FAILED) {
+            return;
+          }
         }
 
         DsSipHeaderInterface sessionIDHeader = getHeader(new DsByteString("Session-ID"));
@@ -2144,10 +2191,14 @@ public abstract class DsSipMessage extends DsSipMessageBase {
 
           String sessionIdValue = sessionIDHeader.getValue().toString().trim();
 
-          if (!isSessionIdHeaderValid()) return;
+          if (!isSessionIdHeaderValid()) {
+            return;
+          }
 
           boolean standardSessionIdImplementation = false;
-          if (sessionIdValue.contains(REMOTESTRING)) standardSessionIdImplementation = true;
+          if (sessionIdValue.contains(REMOTESTRING)) {
+            standardSessionIdImplementation = true;
+          }
 
           String localUuid = null;
           String remoteUuid = null;
@@ -2159,7 +2210,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
               remoteUuid = sessionIdValue.split(SEMICOLON)[0];
               if (remoteUuid.equals(NULLSESSIONID)) {
                 remoteUuid = SIPSessionID.generateUuid(this);
-                Log.info("Generated Remote Uuid for the remote peer Uuid= " + remoteUuid);
+                Log.info(
+                    "In SessionIdUpdation Generated Remote Uuid for the remote peer Uuid= "
+                        + remoteUuid);
               }
               sipSession.sessionAttrib.setUasStandardSessionIDImplementation(true);
             } else {
@@ -2180,14 +2233,14 @@ public abstract class DsSipMessage extends DsSipMessageBase {
           if (localUuid != null) {
             if (!localUuid.equals(sipSession.sessionAttrib.getLocalUuid())) {
               sipSession.sessionAttrib.setLocalUuid(localUuid);
-              Log.info("Updated Local uuid to " + localUuid);
+              Log.info("In SessionIdUpdatio  Updated Local uuid to " + localUuid);
             }
           }
 
           if (remoteUuid != null) {
             if (!remoteUuid.equals(sipSession.sessionAttrib.getRemoteUuid())) {
               sipSession.sessionAttrib.setRemoteUuid(remoteUuid);
-              Log.info("Updated Remote uuid to " + remoteUuid);
+              Log.info("In SessionIdUpdatio Updated Remote uuid to " + remoteUuid);
             }
           }
         } else {
@@ -2195,13 +2248,15 @@ public abstract class DsSipMessage extends DsSipMessageBase {
           if (isMessageFromUAS(sipSession)) {
             if (sipSession.sessionAttrib.getRemoteUuid().equals(NULLSESSIONID)) {
               sipSession.sessionAttrib.setRemoteUuid(SIPSessionID.generateUuid(this));
-              Log.info("Generated Remote uuid " + sipSession.sessionAttrib.getRemoteUuid());
+              Log.info(
+                  "In SessionIdUpdatioGenerated Remote uuid "
+                      + sipSession.sessionAttrib.getRemoteUuid());
             }
           }
         }
       }
     } catch (Exception e) {
-      Log.error("Exception in updateSession() ", e);
+      Log.error("Exception in updateSession(), Message processing will continue ", e);
     }
   }
 
@@ -2257,7 +2312,9 @@ public abstract class DsSipMessage extends DsSipMessageBase {
       } else if (sessionIDHeader != null && session != null) {
         String sessionIdValue = sessionIDHeader.getValue().toString().trim();
         boolean standardSessionIdImplementation = false;
-        if (sessionIdValue.contains(REMOTESTRING)) standardSessionIdImplementation = true;
+        if (sessionIdValue.contains(REMOTESTRING)) {
+          standardSessionIdImplementation = true;
+        }
 
         String localUuid = null;
         String remoteUuid = null;
@@ -2313,7 +2370,10 @@ public abstract class DsSipMessage extends DsSipMessageBase {
         isSessionIdHeaderUpdateNeeded = true;
       }
     } catch (Exception e) {
-      Log.error("Exception in isSessionIdHeaderUpdateNeeded ", e);
+      Log.error(
+          "Exception in determining isSessionIdHeaderUpdateNeeded , "
+              + "sessionID header will be updated",
+          e);
       isSessionIdHeaderUpdateNeeded = true; // If its not a valid
       // SessionId header we have
       // to
@@ -2344,8 +2404,11 @@ public abstract class DsSipMessage extends DsSipMessageBase {
     }
 
     DsSipHeaderInterface sessionIDHeader = this.getHeader(new DsByteString("Session-ID"));
-    if (sessionIDHeader == null) addSessionIDHeader();
-    else if (!isSessionIdHeaderValid()) addSessionIDHeader();
+    if (sessionIDHeader == null) {
+      addSessionIDHeader();
+    } else if (!isSessionIdHeaderValid()) {
+      addSessionIDHeader();
+    }
   }
 
   /**
