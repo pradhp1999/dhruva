@@ -13,6 +13,8 @@ Dhruva:
     kafkaSecurityProtocol: PLAINTEXT
     lmabufKafkaBootstrapServers: '{{ .MeetPaas.kafka.hostPortAddress }}'
     lmabufKafkaMaxBlockMs: '2000'
+    logstash_pii_sampling_rate: '1.0'
+    serviceLevel: integration
   deploy:
     CATALINA_OPTS: '-Dcom.sun.management.jmxremote
                         -Dcom.sun.management.jmxremote.host=127.0.0.1

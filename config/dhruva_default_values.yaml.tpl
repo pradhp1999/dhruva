@@ -6,6 +6,7 @@ Dhruva:
     aggrMetricsKafkaAddressPropertyName: lmabufKafkaBootstrapServers
     aggrMetricsKafkaTopicName: metrics_app_{{ .MeetPaas.internalSiteName }}_dhruva
     aggrMetricsViaKafkaEnabled: 'true'
+    appLogsKafkaTopic: logs_app_{{ .MeetPaas.internalSiteName }}_dhruva
     avroSchemaFallbackEnabled: 'true'
     avroSchemaJson: '{
       "subject": "LmaEventSchema",
@@ -17,6 +18,7 @@ Dhruva:
     avroSchemaTimeoutSecs: 10
     clientKeystorePass: changeit
     clientKeystorePath: /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security/client.jks
+    clusterid: '{{ .MeetPaas.clusterName }}'
     dataCenterIdentifier: '{{ .MeetPaas.meetClusterName }}'
     domain: meetapi.webex.com
     environment: '{{ .MeetPaas.clusterName }}'
@@ -24,6 +26,8 @@ Dhruva:
     kafkaDiagHostPortAddress: '{{ .MeetPaas.kafka.hostPortAddress }}'
     kafkaHostPortAddress: '{{ .MeetPaas.kafka.hostPortAddress }}'
     kafkaMeetHostPortAddress: '{{ .MeetPaas.kafka.hostPortAddress }}'
+    LOGBACK_HOSTNAME: ${HOSTNAME}
+    logstash_tags: dhruva
     metricsKafkaClusterConfig: '{{ .MeetPaas.kafka.hostPortAddress }}'
     metricsKafkaHostPortAddress: metricsKafkaClusterConfig
     metricsPublicUrl: null
@@ -61,6 +65,7 @@ Dhruva:
   deploy:
     APPLICATION_NAME: dhruva
     CATALINA_OPTS: null
+    canary: 'false'
     JAVA_OPTS: null
   secret:
     elasticache_dhruva_password: null
