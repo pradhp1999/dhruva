@@ -27,6 +27,13 @@ sparkPipeline {
         this.failBuildIfUnsuccessfulBuildResult("ERROR: Failed SpotBugs static analysis")
     }
 
+    /* Choices: For now, in meetpaas-int, we always want to deploy directly,
+    * without asking for a choice. In Prod, we always want to skip (since dhruva
+    * isn't there yet)
+    */
+    integration.deployMode = "deploy"
+    production.deployMode = "skip"
+
     /*
     * This next bit is temporary. Once we have the pipeline up in meet PaaS, revert to
     * default. Without these changes, the 'default' postDeployTests are called, and since
