@@ -8,6 +8,11 @@ Dhruva:
     elasticache_ratelimit_host: '{{ .MeetPaas.redisClusters.app.hostPort }}'
     elasticache_commonidentity_host: '{{ .MeetPaas.redisClusters.ci.hostPort }}'
     elasticache_fls_host: '{{ .MeetPaas.redisClusters.ci.hostPort }}'
+    kafkaConnectionTimeoutMillis: '540000'
+    kafkaReconnectBackOffMillis: '50'
+    kafkaSecurityProtocol: PLAINTEXT
+    lmabufKafkaBootstrapServers: '{{ .MeetPaas.kafka.hostPortAddress }}'
+    lmabufKafkaMaxBlockMs: '2000'
   deploy:
     CATALINA_OPTS: '-Dcom.sun.management.jmxremote
                         -Dcom.sun.management.jmxremote.host=127.0.0.1
