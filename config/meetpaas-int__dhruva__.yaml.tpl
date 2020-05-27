@@ -1,6 +1,8 @@
 Dhruva:
   config:
     sipListenPoints: '[{"name":"DhruvaIntUDPNetwork","transport":"UDP","port":5070,"recordRoute":false}]'
+    avroSchemaMetricsURL: https://prod-kafka-schema-registry.prodksr.wbx2.com:8082/subjects/LmaEventSchema/versions/1
+    avroSchemaURL: https://prod-kafka-schema-registry.prodksr.wbx2.com:8082/subjects/LmaEventSchema/versions/1
     metricsPublicUrl: https://metrics-intb.ciscospark.com/metrics/api/v1
     elasticache_dhruva_host: '{{ .MeetPaas.redisClusters.app.hostPort }}'
     elasticache_ratelimit_host: '{{ .MeetPaas.redisClusters.app.hostPort }}'

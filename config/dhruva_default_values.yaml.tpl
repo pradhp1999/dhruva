@@ -6,6 +6,17 @@ Dhruva:
     aggrMetricsKafkaAddressPropertyName: lmabufKafkaBootstrapServers
     aggrMetricsKafkaTopicName: metrics_app_{{ .MeetPaas.internalSiteName }}_dhruva
     aggrMetricsViaKafkaEnabled: 'true'
+    avroSchemaFallbackEnabled: 'true'
+    avroSchemaJson: '{
+      "subject": "LmaEventSchema",
+      "version": 1,
+      "id": 3,
+      "schema": "{\"type\":\"record\",\"name\":\"LmaEventSchema\",\"doc\":\"Used by LMA team for log aggregation\",\"fields\":[{\"name\":\"hostname\",\"type\":[\"null\",\"string\"],\"doc\":\"Hostname of machine sending event\",\"default\":null},{\"name\":\"payload\",\"type\":[\"null\",\"string\"],\"doc\":\"Contains the payload to transport\",\"default\":null},{\"name\":\"payload_type\",\"type\":[\"null\",\"string\"],\"doc\":\"Identifies the content type of the payload. E.g.: log, metric\",\"default\":null},{\"name\":\"payload_format\",\"type\":[\"null\",\"string\"],\"doc\":\"Identifies the format of the payload string. E.g.: json, none\",\"default\":null},{\"name\":\"tags\",\"type\":[{\"type\":\"array\",\"items\":\"string\"},\"null\"],\"doc\":\"A list of values that otherwise describe this event - e.g. security, access\",\"default\":[]},{\"name\":\"source\",\"type\":[\"null\",\"string\"],\"doc\":\"identifies the emitter e.g. mercury, locus\",\"default\":null},{\"name\":\"servicelevel\",\"type\":[\"null\",\"string\"],\"doc\":\"e.g. production, integration\",\"default\":null},{\"name\":\"datacenter\",\"type\":[\"null\",\"string\"],\"doc\":\"data center of log event e.g. achm, achm2\",\"default\":null},{\"name\":\"loglevel\",\"type\":[\"null\",\"string\"],\"doc\":\"log level e.g. DEBUG, INFO\",\"default\":null},{\"name\":\"environment\",\"type\":[\"null\",\"string\"],\"doc\":\"e.g. the application environment e.g. a6, a7\",\"default\":null},{\"name\":\"type\",\"type\":[\"null\",\"string\"],\"doc\":\"app (same for all logs emitted by logback)\",\"default\":null}]}"
+      }'
+    avroSchemaMetricsFallbackEnabled: 'true'
+    avroSchemaTimeoutSecs: 10
+    clientKeystorePass: changeit
+    clientKeystorePath: /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security/client.jks
     dataCenterIdentifier: '{{ .MeetPaas.meetClusterName }}'
     domain: meetapi.webex.com
     environment: '{{ .MeetPaas.clusterName }}'
