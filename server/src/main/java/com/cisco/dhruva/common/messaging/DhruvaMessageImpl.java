@@ -1,5 +1,6 @@
 package com.cisco.dhruva.common.messaging;
 
+import com.cisco.dhruva.common.CallType;
 import com.cisco.dhruva.common.context.ExecutionContext;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.common.messaging.models.MessageBody;
@@ -14,7 +15,7 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
   private MessageBody messageBody;
   private String sessionID;
   private String correlationID;
-  private String callType;
+  private CallType callType;
   private String reqURI;
 
   private boolean hasBody;
@@ -94,12 +95,12 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
   }
 
   @Override
-  public void setCallType(String callType) {
+  public void setCallType(CallType callType) {
     this.callType = callType;
   }
 
   @Override
-  public String getCallType() {
+  public CallType getCallType() {
     return this.callType;
   }
 

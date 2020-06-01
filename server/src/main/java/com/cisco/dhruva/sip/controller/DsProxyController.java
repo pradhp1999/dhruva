@@ -4,6 +4,7 @@
  */
 package com.cisco.dhruva.sip.controller;
 
+import com.cisco.dhruva.adaptor.AppAdaptorInterface;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.config.sip.controller.UACfgStats;
 import com.cisco.dhruva.loadbalancer.*;
@@ -406,7 +407,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     // Reset tries if we are load balancing
     // De-marshall the cookie
     DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
-    ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+    AppAdaptorInterface responseIf = cookieThing.getResponseInterface();
     Location location = cookieThing.getLocation();
 
     if (location.getLoadBalancer() != null)
@@ -419,7 +420,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     }
 
     // pass the provisional respnse back
-    if (responseIf != null) responseIf.onProvisionalResponse(location, response);
+    if (responseIf != null) responseIf.handleResponse(location, response, responseCode);
   }
 
   /**
@@ -446,7 +447,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // De-marshall the cookie
     DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
-    ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+    AppAdaptorInterface responseIf = cookieThing.getResponseInterface();
     Location location = cookieThing.getLocation();
 
     if (location.getLoadBalancer() != null)
@@ -463,7 +464,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // Pass the response callback to the searcher, who will cancel any outstanding branches
     if (responseIf != null)
-      responseIf.onSuccessResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+      responseIf.handleResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
 
     Log.debug("Leaving onSuccessResponse()");
   }
@@ -492,12 +493,12 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // De-marshall the cookie
     DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
-    ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+    AppAdaptorInterface responseIf = cookieThing.getResponseInterface();
     Location location = cookieThing.getLocation();
 
     // Have the searcher continue the search if recursion is on
     if (responseIf != null)
-      responseIf.onRedirectResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+      responseIf.handleResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
 
     Log.debug("Leaving onRedirectResponse()");
   }
@@ -527,7 +528,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // De-marshall the cookie
     DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
-    ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+    AppAdaptorInterface responseIf = cookieThing.getResponseInterface();
     Location location = cookieThing.getLocation();
 
     // If this response is an overload response, this brach has a server group, and
@@ -575,7 +576,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       locToTransMap.remove(location);
 
       if (responseIf != null)
-        responseIf.onFailureResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+        responseIf.handleResponse(location, response, response.getStatusCode());
     }
   }
 
@@ -601,7 +602,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // demarshall the cookie object
     DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
-    ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+    AppAdaptorInterface responseIf = cookieThing.getResponseInterface();
     Location location = cookieThing.getLocation();
 
     // Reset tries if we are load balancing
@@ -618,8 +619,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     }
 
     // Pass the response up the stack, the responseIf should do the CANCELing
-    if (responseIf != null)
-      responseIf.onGlobalFailureResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+    if (responseIf != null) responseIf.handleResponse(location, response, response.getStatusCode());
 
     Log.debug("Leaving onGlobalFailureReponse()");
   }
@@ -644,7 +644,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // demarshall the cookie object
     DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
-    ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+    AppAdaptorInterface responseIf = cookieThing.getResponseInterface();
     Location location = cookieThing.getLocation();
     // If this brach has a server group, and this branch is failing over, and we
     // haven't received a response yet for this transaction, then update the
@@ -681,7 +681,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   }
 
   /** Make a requestTimeout callback on the ProxyResponseInterface interface passed in */
-  private void makeRequestTimeoutCallback(Location location, ProxyResponseInterface responseIf) {
+  private void makeRequestTimeoutCallback(Location location, AppAdaptorInterface responseIf) {
     /**
      * ****** We should actually use the response created by the low-level here if we can get it -
      * JPS ***
@@ -696,7 +696,9 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       // Remove the mapping to this branch since we probably don't want to cancel it
       locToTransMap.remove(location);
 
-      if (responseIf != null) responseIf.onRequestTimeout(location, timeoutResponse);
+      if (responseIf != null)
+        responseIf.handleResponse(
+            location, timeoutResponse, DsSipResponseCode.DS_RESPONSE_REQUEST_TIMEOUT);
     } catch (DsException e) {
       Log.error("Error creating response", e);
     }
@@ -738,7 +740,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // demarshall the cookie object
     DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
-    ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+    AppAdaptorInterface responseIf = cookieThing.getResponseInterface();
     Location location = cookieThing.getLocation();
 
     // If we are stateful, if the failover action is failover, then failover,
@@ -752,7 +754,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         proxyToInternal(
             location, (DsSipRequest) preprocessedRequest.clone(), responseIf, timeToTry);
       } else if (responseIf != null)
-        responseIf.onProxyFailure(location, ResponseReasonCodeConstants.ICMP);
+        responseIf.handleResponse(location, null, ResponseReasonCodeConstants.ICMP);
     }
   }
 
@@ -776,7 +778,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     Log.debug("onProxyFailure() - Exception: " + exception);
 
     DsProxyCookieThing cookieThing = (DsProxyCookieThing) cookie;
-    ProxyResponseInterface responseIf = cookieThing.getResponseInterface();
+    AppAdaptorInterface responseIf = cookieThing.getResponseInterface();
     Location location = cookieThing.getLocation();
 
     // collect all errors if enabled
@@ -808,8 +810,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         // info CR8198
         ourRequest.setBindingInfo(new DsBindingInfo());
         if (errorCode != DsControllerInterface.DESTINATION_UNREACHABLE)
-          responseIf.onProxyFailure(location, ResponseReasonCodeConstants.PROXY_ERROR);
-        else responseIf.onProxyFailure(location, ResponseReasonCodeConstants.UNREACHABLE);
+          responseIf.handleResponse(location, null, ResponseReasonCodeConstants.PROXY_ERROR);
+        else responseIf.handleResponse(location, null, ResponseReasonCodeConstants.UNREACHABLE);
 
       } else if (usingRouteHeader) {
         try {
@@ -1066,7 +1068,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     DsProxyResponseGenerator.sendByteBasedTryingResponse((DsProxyTransaction) ourProxy);
   }
 
-  public void proxyTo(Location location, DsSipRequest request, ProxyResponseInterface responseIf) {
+  public void proxyTo(Location location, DsSipRequest request, AppAdaptorInterface responseIf) {
     proxyTo(location, request, responseIf, timeToTry);
   }
 
@@ -1260,7 +1262,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   }
 
   public void proxyTo(
-      Location location, DsSipRequest request, ProxyResponseInterface responseIf, long timeToTry) {
+      Location location, DsSipRequest request, AppAdaptorInterface responseIf, long timeToTry) {
 
     // clone the request with pre-normalization and xcl processing applied. This is a call from xcl
     preprocessedRequest = (DsSipRequest) request.clone();
@@ -1279,7 +1281,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
    * send to any of the elements in the server group, if there was a server group.
    */
   private void proxyToInternal(
-      Location location, DsSipRequest request, ProxyResponseInterface responseIf, long timeToTry) {
+      Location location, DsSipRequest request, AppAdaptorInterface responseIf, long timeToTry) {
     DsNetwork network;
 
     Log.debug("Entering proxyTo Location: " + location);
@@ -1639,7 +1641,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
   protected void proxyToServerGroup(
       Location location,
-      ProxyResponseInterface responseIf,
+      AppAdaptorInterface responseIf,
       DsSipRequest request,
       DsProxyCookieThing cookie,
       DsNetwork network,
@@ -1698,7 +1700,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         // Send a 500 response
         // sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
         if (responseIf != null)
-          responseIf.onProxyFailure(location, ResponseReasonCodeConstants.PROXY_ERROR);
+          responseIf.handleResponse(location, null, ResponseReasonCodeConstants.PROXY_ERROR);
         return;
       }
 

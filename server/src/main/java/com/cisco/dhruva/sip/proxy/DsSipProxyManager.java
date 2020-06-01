@@ -100,7 +100,6 @@ public class DsSipProxyManager
     DsSipTransactionManager.setProxyServerMode(true);
     transManager.setStrayMessageInterface(this);
     transManager.setTransactionEventInterface(this);
-
   }
 
   /**

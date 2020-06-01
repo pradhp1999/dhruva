@@ -1,5 +1,6 @@
 package com.cisco.dhruva.common.messaging.models;
 
+import com.cisco.dhruva.common.CallType;
 import com.cisco.dhruva.common.context.ExecutionContext;
 import java.util.Map;
 
@@ -34,9 +35,9 @@ public interface IDhruvaMessage extends Cloneable {
 
   public String getReqURI();
 
-  public void setCallType(String callType);
+  public void setCallType(CallType callType);
 
-  public String getCallType();
+  public CallType getCallType();
 
   public void setReqURI(String reqURI);
 

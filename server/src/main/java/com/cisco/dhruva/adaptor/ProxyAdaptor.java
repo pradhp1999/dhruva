@@ -12,6 +12,7 @@ import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
 import com.cisco.dhruva.router.MessageListener;
 import com.cisco.dhruva.sip.controller.DsProxyController;
+import com.cisco.dhruva.sip.proxy.Location;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
@@ -74,7 +75,8 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
    * Handles the response from proxy/controller
    */
   @Override
-  public void handleResponse(DsSipResponse response) throws DhruvaException {
+  public void handleResponse(Location loc, DsSipResponse response, int responseCode)
+      throws DhruvaException {
     // MEETPASS TODO
     appSession.handleResponse(null);
   }
