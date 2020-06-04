@@ -12,10 +12,12 @@ import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
 import com.cisco.dhruva.sip.controller.DsREControllerFactory;
 import com.cisco.dhruva.sip.proxy.DsSipProxyManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransactionImpl;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransactionManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransportLayer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.SipPacketProcessor;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.transport.DhruvaTransportLayer;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.transport.TransportLayerFactory;
@@ -57,8 +59,12 @@ public class SIPService {
     List<SIPListenPoint> sipListenPoints = dhruvaSIPConfigProperties.getListeningPoints();
     executorService = new ExecutorService("DhruvaSipServer");
     executorService.startExecutorService(ExecutorType.SIP_TRANSACTION_PROCESSOR, 10);
+    DsTimer.startTimers(executorService);
     sipPacketProcessor = new SipPacketProcessor(executorService);
     initTransportLayer(sipListenPoints);
+
+    DsSipServerTransactionImpl.configureExecutor(executorService);
+
     sipTransportLayer = new DsSipTransportLayer(null, sipPacketProcessor, dhruvaTransportLayer);
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipProxyManager proxyManager = new DsSipProxyManager(sipTransportLayer, controllerFactory);
@@ -130,5 +136,9 @@ public class SIPService {
     }
 
     listenPointFutures.forEach(CompletableFuture::join);
+  }
+
+  public ExecutorService getExecutorService() {
+    return executorService;
   }
 }

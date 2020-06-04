@@ -21,6 +21,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.SIPRequestBuilder;
 import java.net.InetAddress;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -50,6 +52,9 @@ public class DsProxyControllerServerTest {
     sipProxyManager = spy(dsSipProxyManager);
     DsSipProxyManager.setM_Singleton(sipProxyManager);
     sipProxyManager.setRouteFixInterface(controllerFactory);
+
+    DsSipServerTransactionImpl.setThreadPoolExecutor(
+        (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
 
     DsControllerConfig.addListenInterface(
         dsNetwork,

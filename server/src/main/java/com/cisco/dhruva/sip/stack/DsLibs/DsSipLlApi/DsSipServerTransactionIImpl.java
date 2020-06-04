@@ -6,6 +6,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.IOException;
+import java.util.concurrent.ScheduledFuture;
 import org.slf4j.event.Level;
 
 /**
@@ -40,7 +41,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
   private int m_T2; // = DsSipTimers.T2Value;
   private byte m_TCounter; // = 0;
 
-  DsDiscreteTimerTask m_TimerTaskT1;
+  ScheduledFuture m_TimerTaskT1;
 
   static {
     m_jainCompatability =
@@ -320,7 +321,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         if (cat.isEnabled(Level.DEBUG)) {
           debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
         }
-        m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
+        m_TimerTaskT1 = DsTimer.schedule(m_T1, this, IN_T1);
 
         break;
       case DS_WAIT_PRACK | DS_ST_IN_REL_PROVISIONAL:
@@ -347,7 +348,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
             if (cat.isEnabled(Level.DEBUG)) {
               debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
             }
-            m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
+            m_TimerTaskT1 = DsTimer.schedule(m_T1, this, IN_T1);
           } else {
             // If a reliable provisional response is retransmitted
             // for 64*T1 seconds without reception of a
@@ -448,7 +449,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
             if (cat.isEnabled(Level.DEBUG)) {
               debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
             }
-            m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
+            m_TimerTaskT1 = DsTimer.schedule(m_T1, this, IN_T1);
           } else {
             byte[] responseBytes =
                 DsSipResponse.createResponseBytes(
@@ -500,7 +501,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         if (cat.isEnabled(Level.DEBUG)) {
           debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
         }
-        m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
+        m_TimerTaskT1 = DsTimer.schedule(m_T1, this, IN_T1);
 
         break;
       case DS_COMPLETED | DS_ST_IN_REQUEST:
@@ -534,7 +535,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
           if (cat.isEnabled(Level.DEBUG)) {
             debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
           }
-          m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
+          m_TimerTaskT1 = DsTimer.schedule(m_T1, this, IN_T1);
         } else {
           execute(DS_ST_IN_T1_EXPIRED);
         }
@@ -547,7 +548,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         if (cat.isEnabled(Level.DEBUG)) {
           debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
         }
-        m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
+        m_TimerTaskT1 = DsTimer.schedule(m_T1, this, IN_T1);
 
         break;
       case DS_COMPLETED | DS_ST_IN_IO_EXCEPTION:
@@ -589,7 +590,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
           if (cat.isEnabled(Level.DEBUG)) {
             debugTraceTimer(true, "m_To", "IN_TIMEOUT", m_To);
           }
-          DsDiscreteTimerMgr.scheduleNoQ(m_To, this, IN_TIMEOUT);
+          DsTimer.schedule(m_To, this, IN_TIMEOUT);
         }
         cancelTn(); // transaction will terminate normally
         break;
@@ -737,13 +738,13 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
         if (cat.isEnabled(Level.DEBUG)) {
           debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
         }
-        m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
+        m_TimerTaskT1 = DsTimer.schedule(m_T1, this, IN_T1);
       } else {
         cancelTn();
         if (cat.isEnabled(Level.DEBUG)) {
           debugTraceTimer(true, "m_sipTimers.TU1Value", "IN_Tn", m_sipTimers.TU1Value);
         }
-        m_TimerTaskTn = DsDiscreteTimerMgr.scheduleNoQ(m_sipTimers.TU1Value, this, IN_Tn);
+        m_TimerTaskTn = DsTimer.schedule(m_sipTimers.TU1Value, this, IN_Tn);
       }
     }
   }
@@ -796,7 +797,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
             if (cat.isEnabled(Level.DEBUG)) {
               debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
             }
-            m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
+            m_TimerTaskT1 = DsTimer.schedule(m_T1, this, IN_T1);
           } else {
             execute(DS_ST_IN_T1_EXPIRED);
           }
@@ -808,7 +809,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
           if (cat.isEnabled(Level.DEBUG)) {
             debugTraceTimer(false, "m_T1", "IN_T1", m_T1);
           }
-          m_TimerTaskT1 = DsDiscreteTimerMgr.scheduleNoQ(m_T1, this, IN_T1);
+          m_TimerTaskT1 = DsTimer.schedule(m_T1, this, IN_T1);
 
           break;
         case DS_XCOMPLETED | DS_ST_IN_IO_EXCEPTION:
@@ -881,7 +882,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
             if (cat.isEnabled(Level.DEBUG)) {
               debugTraceTimer(true, "m_To", "IN_TIMEOUT", m_To);
             }
-            DsDiscreteTimerMgr.scheduleNoQ(m_To, this, IN_TIMEOUT);
+            DsTimer.schedule(m_To, this, IN_TIMEOUT);
           }
           cancelTn(); // transaction will terminate normally
           break;
@@ -946,7 +947,7 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
 
   final void cancelT1() {
     if (m_TimerTaskT1 != null) {
-      m_TimerTaskT1.cancel();
+      m_TimerTaskT1.cancel(false);
       m_TimerTaskT1 = null;
     }
   }

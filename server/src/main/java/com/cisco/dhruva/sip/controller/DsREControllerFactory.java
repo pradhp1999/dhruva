@@ -26,7 +26,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-import java.util.Arrays;
 import java.util.HashMap;
 
 /** This class returns the right Adaptor layer to communicate with App returns a DsAppController */
@@ -61,9 +60,7 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
       ProxyAdaptorFactoryInterface pf,
       AppInterface app) {
 
-    Log.debug(
-        "Entering getController in DsControllerFactory {}"
-            + Arrays.toString(request.getSessionId()));
+    Log.debug("Entering getController in DsControllerFactory {}");
 
     // Grab a snaphot of the config that will be used for the rest of the transaction
     DsControllerConfig ourConfig = DsControllerConfig.getCurrent();

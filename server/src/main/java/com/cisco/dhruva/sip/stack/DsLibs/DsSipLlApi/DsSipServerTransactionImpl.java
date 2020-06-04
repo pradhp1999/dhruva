@@ -3,17 +3,46 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.sip.cac.SIPSessions;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipCancelMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipDialogID;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipExpiresHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipPRACKMessage;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRSeqHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequireHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRouteFixInterface;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransactionKey;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipUnsupportedHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsUnitOfWork;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.TimerTask;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.event.Level;
 
 /**
@@ -33,8 +62,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
   ///////////////////////////////////////////////////////////////////////////
 
   // put this here for now
-  /** The queue through which to call the application code back. */
-  private static DsWorkQueue m_callbackQueue;
+
+  /** The Executor through which to call the application code back. */
+  private static ThreadPoolExecutor threadPoolExecutor;
   /** Size of the callback queue. */
   private static final int MAX_CALLBACK_EVENTS = 400;
   /** Number of threads in the callback queue. */
@@ -99,12 +129,6 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         DsConfigManager.getProperty(
             DsConfigManager.PROP_CLEANUP, DsConfigManager.PROP_CLEANUP_DEFAULT);
 
-    m_callbackQueue =
-        new DsWorkQueue(
-            DsWorkQueue.SERVER_CALLBACK_QNAME, MAX_CALLBACK_EVENTS, MAX_CALLBACK_THREADS);
-    m_callbackQueue.setDiscardPolicy(DsWorkQueue.GROW_WITHOUT_BOUND);
-    DsConfigManager.registerQueue(m_callbackQueue);
-
     m_autoResponseStatic =
         DsConfigManager.getProperty(
             DsConfigManager.PROP_AUTO_RESPONSE_CANCEL,
@@ -125,7 +149,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
   /** To. */
   protected int m_To;
   /** Reference to the timer task for Tn so that it can be cancelled. */
-  DsDiscreteTimerTask m_TimerTaskTn; // = null;
+  ScheduledFuture m_TimerTaskTn; // = null;
 
   /** The request that started this transaction. */
   protected DsSipRequest m_sipRequest;
@@ -189,11 +213,11 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
   Transport m_transport;
 
   /** Reference to the timer task for TPROVISIONAL so that it can be cancelled. */
-  DsDiscreteTimerTask m_TimerTaskTProvisional; // = null;
+  ScheduledFuture m_TimerTaskTProvisional; // = null;
 
   // maivu - 11.01.06 - CSCsg22401
   /** Reference to the timer task for Expiration so that it can be cancelled. */
-  private TimerTask m_expirationTimerTask;
+  private ScheduledFuture m_expirationTimerTask;
 
   /**
    * The auto response flag, that tells whether 487 response will be generated and sent on receiving
@@ -211,16 +235,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
   /** store normalization state for current response */
   protected SipMsgNormalizationState sipMsgNormalizationState = SipMsgNormalizationState.UNMODIFIED;
 
-  /** Resume callback queue workers. */
-  static void init() {
-    if (m_callbackQueue.getMaxThreads() == 0) {
-      m_callbackQueue.init();
-    }
-  }
-
   /** Stop callback queue workers. Used by DsSipTransactionManager as part of stack shutdown. */
   static void stop() {
-    m_callbackQueue.destroy();
+    threadPoolExecutor.shutdownNow();
   }
 
   /**
@@ -270,6 +287,19 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       } else {
         m_serverInterface = null;
       }
+    }
+  }
+
+  public static void setThreadPoolExecutor(ThreadPoolExecutor threadPoolExecutor) {
+    DsSipServerTransactionImpl.threadPoolExecutor = threadPoolExecutor;
+  }
+
+  public static void configureExecutor(ExecutorService executorService) {
+    if (threadPoolExecutor == null) {
+      executorService.startExecutorService(
+          ExecutorType.SERVER_TRANSACTION_CALLBACK, MAX_CALLBACK_THREADS);
+      threadPoolExecutor =
+          executorService.getExecutorThreadPool(ExecutorType.SERVER_TRANSACTION_CALLBACK);
     }
   }
 
@@ -434,7 +464,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       if (cat.isEnabled(Level.DEBUG)) {
         debugTraceTimer(true, "m_sipTimers.serverTnValue", "IN_Tn", m_sipTimers.serverTnValue);
       }
-      m_TimerTaskTn = DsDiscreteTimerMgr.scheduleNoQ(m_sipTimers.serverTnValue, this, IN_Tn);
+      m_TimerTaskTn = DsTimer.schedule(m_sipTimers.serverTnValue, this, IN_Tn);
     }
 
     // This is a timer to send a delayed provisional response for a
@@ -445,8 +475,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         debugTraceTimer(
             true, "m_sipTimers.TU3Value", "DS_ST_IN_TPROVISIONAL", m_sipTimers.TU3Value);
       }
-      m_TimerTaskTProvisional =
-          DsDiscreteTimerMgr.scheduleNoQ(m_sipTimers.TU3Value, this, IN_TPROVISIONAL);
+      m_TimerTaskTProvisional = DsTimer.schedule(m_sipTimers.TU3Value, this, IN_TPROVISIONAL);
     }
     // maivu - 11.01.06 - CSCsg22401
     // Start the timer to track the request expiration.  The timer does not apply to Proxy mode
@@ -616,7 +645,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         + state
         + " KEY: "
         + m_key
-        + "CALLID:: "
+        + " CALLID:: "
         + (cid != null ? DsByteString.toString(cid) : "null");
   }
 
@@ -1248,7 +1277,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           if (cat.isEnabled(Level.DEBUG)) {
             debugTraceTimer(true, "m_To", "IN_TIMEOUT", m_To);
           }
-          DsDiscreteTimerMgr.scheduleNoQ(m_To, this, IN_TIMEOUT);
+          DsTimer.schedule(m_To, this, IN_TIMEOUT);
         }
         cancelTn(); // transaction will terminate normally
         break;
@@ -1282,7 +1311,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           if (cat.isEnabled(Level.DEBUG)) {
             debugTraceTimer(true, "m_To", "IN_TIMEOUT", m_To);
           }
-          DsDiscreteTimerMgr.scheduleNoQ(m_To, this, IN_TIMEOUT);
+          DsTimer.schedule(m_To, this, IN_TIMEOUT);
         }
         cancelTn(); // transaction will terminate normally
         break;
@@ -1410,14 +1439,14 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
 
   final void cancelTn() {
     if (m_TimerTaskTn != null) {
-      m_TimerTaskTn.cancel();
+      m_TimerTaskTn.cancel(false);
       m_TimerTaskTn = null;
     }
   }
 
   private final void cancelTProvisional() {
     if (m_TimerTaskTProvisional != null) {
-      m_TimerTaskTProvisional.cancel();
+      m_TimerTaskTProvisional.cancel(false);
       m_TimerTaskTProvisional = null;
     }
   }
@@ -1425,7 +1454,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
   // maivu - 11.01.06 - CSCsg22401 Cancel the request expiration timer if it is set before.
   public final void cancelExpirationTimer() {
     if (m_expirationTimerTask != null) {
-      m_expirationTimerTask.cancel();
+      m_expirationTimerTask.cancel(false);
       m_expirationTimerTask = null;
     }
   }
@@ -1951,7 +1980,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
     }
 
     public void call() {
-      m_callbackQueue.nqueue(this);
+      threadPoolExecutor.submit(this);
     }
 
     public void run() {
@@ -2158,10 +2187,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
    */
   private class ExpirationTimer implements DsEvent {
     public void run(Object argument) {
-      if (genCat.isEnabled(Level.DEBUG)) {
-        genCat.debug("Server Transaction Expiration Timer FIRED");
-      }
-
+      genCat.debug("Server Transaction Expiration Timer FIRED");
       try {
         sendResponse(DsSipResponseCode.DS_RESPONSE_REQUEST_TERMINATED);
         new ServerTransactionCallback(ServerTransactionCallback.CB_TIMEOUT, null, m_serverInterface)

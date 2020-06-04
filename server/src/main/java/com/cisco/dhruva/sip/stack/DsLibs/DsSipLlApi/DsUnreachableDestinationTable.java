@@ -4,16 +4,17 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerMgr;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerTask;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.Logger;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
 import org.slf4j.event.Level;
 
 /**
@@ -95,15 +96,14 @@ public class DsUnreachableDestinationTable implements DsEvent {
                   + m_destinations.size());
         }
 
-        DsDiscreteTimerTask timerTask =
-            DsDiscreteTimerMgr.scheduleNoQ(UNREACH_DEST_TIMEOUT, this, key);
-        timerTask = (DsDiscreteTimerTask) m_destinations.put(key, timerTask);
+        ScheduledFuture timerTask = DsTimer.schedule(UNREACH_DEST_TIMEOUT, this, key);
+        timerTask = (ScheduledFuture) m_destinations.put(key, timerTask);
         if (timerTask != null) {
           // it's unsual this happen, possible sign of duplicated call
           if (cat.isEnabled(Level.DEBUG)) {
             cat.debug("UnreachableDestinationTable - cancel previous timer for (" + key + ")");
           }
-          timerTask.cancel();
+          timerTask.cancel(false);
         }
       }
     }

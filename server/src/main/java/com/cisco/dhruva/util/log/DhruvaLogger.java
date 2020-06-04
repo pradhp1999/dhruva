@@ -1,6 +1,8 @@
 package com.cisco.dhruva.util.log;
 
+import java.util.Map;
 import java.util.function.Supplier;
+import org.slf4j.MDC;
 import org.slf4j.event.Level;
 
 public class DhruvaLogger implements Logger {
@@ -90,6 +92,26 @@ public class DhruvaLogger implements Logger {
   @Override
   public void debug(String format, Supplier<?>... suppliers) {
     logger.debug(format, getAllLamda(suppliers));
+  }
+
+  @Override
+  public void setMDC(String key, String value) {
+    MDC.put(key, value);
+  }
+
+  @Override
+  public void setMDC(Map<String, String> map) {
+    map.forEach((key, value) -> MDC.put(key, value));
+  }
+
+  @Override
+  public void clearMDC() {
+    MDC.clear();
+  }
+
+  @Override
+  public Map<String, String> getMDCMap() {
+    return MDC.getCopyOfContextMap();
   }
 
   @Override

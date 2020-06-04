@@ -32,6 +32,8 @@ import com.cisco.dhruva.util.SIPRequestBuilder.RequestMethod;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -66,6 +68,9 @@ public class DsSipTransactionManagerTest {
         new DsBindingInfo(localAddress, localPort, localAddress, remotePort, Transport.UDP);
     DsNetwork dsNetwork = DsNetwork.getNetwork("Default");
     incomingMessageBindingInfo.setNetwork(dsNetwork);
+
+    DsSipServerTransactionImpl.setThreadPoolExecutor(
+        (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
 
     try {
       sipTransactionManager = new DsSipTransactionManager(transportLayer, requestInterface);

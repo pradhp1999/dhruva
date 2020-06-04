@@ -45,6 +45,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTlsUtil;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.LogContext;
 import com.cisco.dhruva.util.log.Logger;
 import com.cisco.dhruva.util.log.Trace;
 import java.io.FileInputStream;
@@ -186,7 +187,6 @@ public class DsSipTransactionManager {
 
     shouldDecrementMaxForwards = tempDec;
   }
-
   /** Different Cloudproxy Operational states */
   public enum OperationalState {
     RUNNING("Running"),
@@ -1521,7 +1521,6 @@ public class DsSipTransactionManager {
 
       message = DsSipMessage.createMessage(msgBytes.getMessageBytes(), true, true);
       message.setTimestamp(msgBytes.getTimestamp());
-      DsLog4j.logSessionId(message);
 
     } catch (DsSipParserException pe) {
       logger.warn("Parser Exception in Parsing the SIP message, dropping the message", pe);
@@ -1551,6 +1550,8 @@ public class DsSipTransactionManager {
       return;
     }
 
+    populateTrackingIdInLog(message);
+
     message.setBindingInfo(msgBytes.getBindingInfo());
 
     try {
@@ -1564,6 +1565,12 @@ public class DsSipTransactionManager {
       logger.error(
           "processMessageBytes: exception in processMessage , message would get dropped", exc);
     }
+  }
+
+  private void populateTrackingIdInLog(DsSipMessage message) {
+    new LogContext()
+        .getLogContext(message)
+        .ifPresent(logContext -> logger.setMDC(logContext.getLogContextAsMap()));
   }
 
   private void sendErrorResponseForKeyValidationFailure(
@@ -1602,17 +1609,6 @@ public class DsSipTransactionManager {
   }
 
   /**
-   * Deprecated - use one of the other processMessage methods.
-   *
-   * @param message the message to process
-   * @param badMessageReason the message to use with a 400 response
-   * @deprecated use processMessage(DsSipMessage, String, int)
-   */
-  public void processMessage(DsSipMessage message, String badMessageReason) {
-    processMessage(message, badMessageReason, DsSipResponseCode.DS_RESPONSE_BAD_REQUEST);
-  }
-
-  /**
    * Process a message. This method looks up the transaction in the map using the full key (with the
    * Via). For requests it then delegates to either processCancel, processAck, processPrack, or
    * processRequest (for requests other than ACK, PRACK, and CANCEL). For responses it delegates to
@@ -1634,7 +1630,7 @@ public class DsSipTransactionManager {
 
     int methodID = message.getCSeqType();
     message.addAndUpdateSessionIdHeader();
-    DsLog4j.logSessionId(message);
+    populateTrackingIdInLog(message);
 
     if (message.isRequest()) {
 
@@ -2000,6 +1996,11 @@ public class DsSipTransactionManager {
 
     boolean isNewTransaction = false;
 
+    createSIPSession(
+        DsMessageLoggingInterface.REASON_REGULAR, DsMessageLoggingInterface.DIRECTION_IN, request);
+
+    populateTrackingIdInLog(request);
+
     try {
       transaction = m_transactionTable.findOrCreateServerTransaction(request, m_transactionFactory);
       if (transaction.isNew()) {
@@ -2038,11 +2039,6 @@ public class DsSipTransactionManager {
       sendResponseMethodNotAllowed(request, transaction);
       return null;
     }
-
-    createSIPSession(
-        DsMessageLoggingInterface.REASON_REGULAR, DsMessageLoggingInterface.DIRECTION_IN, request);
-
-    DsLog4j.logSessionId(request);
 
     addCiscoPeerCertInfoHeader(request);
 

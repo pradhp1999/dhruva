@@ -16,7 +16,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-import java.util.Arrays;
 
 public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements AppAdaptorInterface {
 
@@ -53,7 +52,7 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
    */
   @Override
   public void handleRequest(DsSipRequest request) throws DhruvaException {
-    logger.info("ProxyAdaptor.handleRequest: {} " + Arrays.toString(request.getSessionId()));
+    logger.info("ProxyAdaptor.handleRequest:");
 
     // MEETPASS, is final required?
     final ExecutionContext context;
@@ -64,8 +63,7 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
     IDhruvaMessage dhruvaRequest = buildDhruvaMessageFromSIPRequest(request, context);
 
     if (appSession == null) {
-      throw new DhruvaException(
-          "AppSession cannot be null" + Arrays.toString(request.getSessionId()));
+      throw new DhruvaException("AppSession cannot be null");
     }
     appSession.handleRequest(dhruvaRequest);
   }

@@ -2,13 +2,7 @@ package com.cisco.dhruva.router;
 
 import com.cisco.dhruva.Exception.DhruvaException;
 import com.cisco.dhruva.common.CommonContext;
-import com.cisco.dhruva.common.messaging.MessageConvertor;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
-import com.cisco.dhruva.common.messaging.models.MessageBodyType;
-import com.cisco.dhruva.sip.controller.DsProxyResponseGenerator;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 
@@ -21,14 +15,14 @@ public abstract class AbstractAppSession implements AppInterface {
   public AbstractAppSession() {}
 
   public void handleRequest(IDhruvaMessage request) {
-    logger.info("handleIncomingRequest {}" + request.getSessionId());
+    logger.info("handleIncomingRequest");
     if (appEngine == null) {
       appEngine = new AppEngine(this);
     }
     appEngine.handleMessage(request);
     try {
       // TODO MeetPass
-      logger.info("received request ()" + request.getSessionId() );
+      logger.info("received request ");
     } catch (Exception e) {
       logger.error("exception while creating response {}" + e.getMessage());
       throw new DhruvaException(
@@ -43,5 +37,4 @@ public abstract class AbstractAppSession implements AppInterface {
     // MEETPASS for end to end test
     handler.onMessage(response);
   }
-
 }

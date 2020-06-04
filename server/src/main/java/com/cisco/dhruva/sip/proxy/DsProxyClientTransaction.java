@@ -20,7 +20,7 @@ import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.TimerTask;
+import java.util.concurrent.ScheduledFuture;
 
 /**
  * This is a wrapper class for the ClientTransaction, which adds some additional data members needed
@@ -63,7 +63,7 @@ public class DsProxyClientTransaction {
   // We also need to remove this timer if the transaction completes in some
   // other way so that we don't hold the references unnecessarily (this
   // will enable garbage collection)
-  private TimerTask timeoutTimer = null;
+  private ScheduledFuture timeoutTimer = null;
 
   private boolean isTimedOut = false;
 
@@ -236,7 +236,7 @@ public class DsProxyClientTransaction {
     Log.debug("Entering removeTimeout()");
     boolean success = false;
     if (timeoutTimer != null) {
-      timeoutTimer.cancel();
+      timeoutTimer.cancel(false);
       timeoutTimer = null;
       success = true;
     }
