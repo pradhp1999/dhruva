@@ -117,7 +117,7 @@ public final class DsControllerConfig
   protected static DsControllerConfig currentConfig;
   protected static boolean updated = false;
 
-  //MEETPASS Adding by default
+  // MEETPASS Adding by default
   protected boolean doRecordRoute = true;
 
   protected boolean isRecursing = false;
@@ -131,7 +131,8 @@ public final class DsControllerConfig
 
   private Transport defaultProtocol;
 
-  private DsSipServerLocatorFactory dsSIPServerLocatorFactory = DsSipServerLocatorFactory.getInstance();
+  private DsSipServerLocatorFactory dsSIPServerLocatorFactory =
+      DsSipServerLocatorFactory.getInstance();
   /** Our Constructor */
   private DsControllerConfig() {}
 
@@ -438,7 +439,6 @@ public final class DsControllerConfig
     }
     // Check popid
     return false;
-
   }
 
   /*
@@ -448,33 +448,40 @@ public final class DsControllerConfig
    *
    */
 
-  public  boolean recognize(DsByteString user,DsByteString host,
-                            int port, Transport transport, DsNetwork network,
-                            boolean fallBackToAQuery) throws UnknownHostException, DsSipHostNotValidException, DsSipServerNotFoundException {
+  public boolean recognize(
+      DsByteString user,
+      DsByteString host,
+      int port,
+      Transport transport,
+      DsNetwork network,
+      boolean fallBackToAQuery)
+      throws UnknownHostException, DsSipHostNotValidException, DsSipServerNotFoundException {
 
-    //check for IP and cases where host matches aliases.
-    if(recognize(user, host, port, transport))
-      return true;
+    // check for IP and cases where host matches aliases.
+    if (recognize(user, host, port, transport)) return true;
 
     if (!IPValidator.hostIsIPAddr(host.toString())) {
       DsSipServerLocator dnsResolver = dsSIPServerLocatorFactory.createNewSIPServerLocator();
       DsSipServerLocator.setAQuery(fallBackToAQuery);
       try {
-        dnsResolver.initialize(network, null, DsSipResolverUtils.LPU, host.toString(), port,
-                transport, false);
+        dnsResolver.initialize(
+            network, null, DsSipResolverUtils.LPU, host.toString(), port, transport, false);
         boolean isDNSResolverEmpty = true;
         while (dnsResolver.hasNextBindingInfo()) {
           isDNSResolverEmpty = false;
           DsBindingInfo bindingInfo = dnsResolver.getNextBindingInfo();
-          if (recognize(user, new DsByteString(bindingInfo.getRemoteAddressStr()),
-                  bindingInfo.getRemotePort(), bindingInfo.getTransport())) {
+          if (recognize(
+              user,
+              new DsByteString(bindingInfo.getRemoteAddressStr()),
+              bindingInfo.getRemotePort(),
+              bindingInfo.getTransport())) {
             return true;
           }
         }
         if (isDNSResolverEmpty) {
           throw new DsSipHostNotValidException(dnsResolver.getFailureException());
         }
-      } catch (UnknownHostException | DsSipHostNotValidException | DsSipServerNotFoundException e ) {
+      } catch (UnknownHostException | DsSipHostNotValidException | DsSipServerNotFoundException e) {
         Log.error("Exception in resolving " + host, e);
         throw e;
       }

@@ -16,10 +16,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
-import com.cisco.dhruva.util.log.DhruvaLogger;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-import com.cisco.dhruva.util.log.Trace;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -118,7 +116,7 @@ public class ParseProxyParamUtil {
     Transport networkTransport = Transport.NONE;
     for (Transport transport : Transports) {
       if (network != null
-              && DsControllerConfig.getCurrent().getInterface(transport, network) != null) {
+          && DsControllerConfig.getCurrent().getInterface(transport, network) != null) {
         networkTransport = transport;
         break;
       }

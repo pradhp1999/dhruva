@@ -34,7 +34,7 @@ public class DhruvaSIPConfigPropertiesTest {
             .setHostIPAddress("0.0.0.0")
             .setTransport(Transport.UDP)
             .setPort(5060)
-            .setRecordRoute(false)
+            .setRecordRoute(true)
             .build();
 
     tcpListenPoint =

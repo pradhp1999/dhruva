@@ -11,7 +11,6 @@ import com.cisco.dhruva.loadbalancer.*;
 import com.cisco.dhruva.sip.DsUtil.DsReConstants;
 import com.cisco.dhruva.sip.cac.SIPSession;
 import com.cisco.dhruva.sip.cac.SIPSessions;
-import com.cisco.dhruva.sip.controller.exceptions.DsSipHostNotValidException;
 import com.cisco.dhruva.sip.controller.util.CompressorUtil;
 import com.cisco.dhruva.sip.controller.util.ParseProxyParamUtil;
 import com.cisco.dhruva.sip.proxy.*;
@@ -20,8 +19,6 @@ import com.cisco.dhruva.sip.proxy.MappedResponse.DsMappedResponseCreator;
 import com.cisco.dhruva.sip.servergroups.AbstractServerGroup;
 import com.cisco.dhruva.sip.servergroups.DnsServerGroupUtil;
 import com.cisco.dhruva.sip.servergroups.ServerGroupInterface;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipClientTransactionImpl;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipResolverUtils;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
@@ -31,8 +28,6 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import com.thoughtworks.qdox.Searcher;
-
-import java.net.UnknownHostException;
 import java.util.*;
 import org.springframework.stereotype.Component;
 
@@ -169,9 +164,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   private AppParamsInterface appParamsTrigger = null;
 
   // Order in which the transport is selected.
-  private static final Transport[] Transports = {
-    Transport.TLS, Transport.TCP, Transport.UDP
-  };
+  private static final Transport[] Transports = {Transport.TLS, Transport.TCP, Transport.UDP};
 
   protected boolean respondedOnNewRequest = false;
   HashMap dnsServerGroups = new HashMap<>();
@@ -1319,7 +1312,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       request.addHeaders(routeHeaders, false);
     }
 
-    removeOwnRouteHeader(request, location.getNetwork());
     // Create the cookie object to pass to the core.  It has the responseIf
     // we will make our callback on when the response is received.
     DsProxyCookieThing cookie = new DsProxyCookieThing(location, responseIf, request);
@@ -1427,8 +1419,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
                */
               boolean interfaceSet = false;
               for (Transport transport : Transports) {
-                if (DsControllerConfig.getCurrent()
-                        .getInterface(transport, request.getNetwork())
+                if (DsControllerConfig.getCurrent().getInterface(transport, request.getNetwork())
                     != null) {
                   dpp.setProxyToProtocol(transport);
                   interfaceSet = true;
@@ -1485,93 +1476,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
               + "request session id: "
               + Arrays.toString(request.getSessionId()));
     }
-  }
-
-  /*
-  This function is used in Short-URI interregion and MC online (ShortURI) sites without DNS scenarios.
-
-  In Case of ShortURI, In the Route Group we add Two Route headers
-     Route: site.webex.com
-     Route: icp.webex.com/vcs.webex.com
-
-  First Route is added because in case if the call belongs to another region we want to route to corresponding region.
-
-  If the call belongs to same region or not is checked here , by doing SRV resolution of the Top Route (site) and
-  comparing it with present node ListenPoints. If it matches then the Call belongs to same region so Top Route should be
-  removed and Call should be routed to Second Route
-
-  In case of MC-Online (ShortURI) calls with Sites having no SRV configured, We have to remove the TOP route as anyway DNS resolution
-  is not possible. So In case of No SRV also we remove the TOP Route
-
-   */
-  protected void removeOwnRouteHeader(DsSipRequest request, DsNetwork network) {
-    if (network == null
-        || !network.isRemoveOwnRouteHeader()
-        || DsSipClientTransactionImpl.isMidDialogRequest(request)) {
-      Log.info("Skipping removeOwnRouteHeader based on the configuration.");
-      return;
-    }
-    try {
-      DsSipRouteHeader topRoute =
-          (DsSipRouteHeader) request.getHeaderValidate(DsSipConstants.ROUTE);
-      if (topRoute == null) return;
-      DsURI topRouteURI = topRoute.getURI();
-      if (topRouteURI != null && topRouteURI.isSipURL()) {
-        DsSipURL topRouteSipUrl = (DsSipURL) topRouteURI;
-
-        int port = DsSipResolverUtils.RPU;
-        if (topRouteSipUrl.hasPort()) {
-          port = topRouteSipUrl.getPort();
-        }
-        Transport transport = getBestTransport(topRouteSipUrl, network);
-        DsByteString host = topRouteSipUrl.getMAddrParam();
-        if (host == null) host = topRouteSipUrl.getHost();
-
-        boolean removeTopRoute = false;
-        // MEETPASS
-        try {
-          removeTopRoute =
-              DsControllerConfig.getCurrent()
-                  .recognize(null, host, port, transport,
-                              network, false);
-        } catch (UnknownHostException | DsSipHostNotValidException e) {
-          removeTopRoute = true;
-          Log.info(
-              "Domain doesnot exist for host = {} , going to remove TOP header= {} , exception is  = {} ",
-              host,
-              topRouteURI,
-              e);
-        }
-
-        if (removeTopRoute) {
-          request.removeHeader(DsSipConstants.ROUTE);
-          Log.info(
-              "Route header " + topRoute + " is current Dhruva route , removing the Route header");
-        }
-      }
-    } catch (Exception e) {
-      Log.error("Error in removing Own Route ", e);
-    }
-  }
-
-  private Transport getBestTransport(DsSipURL sipURL, DsNetwork network) {
-    if (sipURL.hasTransport()) {
-      return sipURL.getTransportParam();
-    } else {
-      return getTransportFromNetwork(network);
-    }
-  }
-
-  private Transport getTransportFromNetwork(DsNetwork network) {
-
-    for ( Transport transport : Transports) {
-      if (DsControllerConfig.getCurrent()
-              .getInterface(transport, network)
-              != null) {
-        return transport;
-      }
-    }
-    return Transport.UDP;
   }
 
   private void proxyRouteSetBindingInfo(DsSipRequest request) {

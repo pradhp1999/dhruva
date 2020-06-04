@@ -21,8 +21,8 @@ public class DhruvaSIPConfigProperties {
 
   public static final Transport DEFAULT_TRANSPORT = Transport.UDP;
 
-  //MeetPass TODO
-  //Env is not read properly, hence setting it here to true
+  // MeetPass TODO
+  // Env is not read properly, hence setting it here to true
   public static final boolean DEFAULT_RECORD_ROUTE_ENABLED = true;
 
   private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaSIPConfigProperties.class);

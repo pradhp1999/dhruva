@@ -33,7 +33,8 @@ public class RouteResponseHandler implements MessageListener {
     this.proxyAdaptor = proxyAdaptor;
   }
 
-  public Location constructProxyLocation(DsSipRequest request, String routeResult) throws DhruvaException {
+  public Location constructProxyLocation(DsSipRequest request, String routeResult)
+      throws DhruvaException {
     try {
       DsURI uri = DsURI.constructFrom(routeResult);
       DsNetwork network = request.getNetwork();

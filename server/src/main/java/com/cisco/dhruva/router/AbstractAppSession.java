@@ -5,7 +5,6 @@ import com.cisco.dhruva.common.CommonContext;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-
 import java.util.Objects;
 
 public abstract class AbstractAppSession implements AppInterface {
@@ -17,7 +16,7 @@ public abstract class AbstractAppSession implements AppInterface {
   public AbstractAppSession() {}
 
   public void handleRequest(IDhruvaMessage request) {
-    logger.info("handleIncomingRequest session Id's {}" ,  request.getSessionId());
+    logger.info("handleIncomingRequest session Id's {}", request.getSessionId());
     if (appEngine == null) {
       appEngine = new AppEngine(this);
     }
