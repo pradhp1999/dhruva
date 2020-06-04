@@ -10,10 +10,17 @@ import com.cisco.dhruva.sip.DsUtil.ListenIf;
 import com.cisco.dhruva.sip.DsUtil.ViaListenIf;
 import com.cisco.dhruva.sip.controller.DsProxyController;
 import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationException;
+import com.cisco.dhruva.sip.controller.exceptions.DsSipHostNotValidException;
 import com.cisco.dhruva.sip.proxy.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipResolverUtils;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerLocator;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerLocatorFactory;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerNotFoundException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.IPValidator;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
@@ -105,12 +112,13 @@ public final class DsControllerConfig
 
   protected DsSipPathHeader path = null;
 
-  protected HashMap<DsNetwork, DsSipRecordRouteHeader> recordRoutesMap = new HashMap<>();
+  protected HashMap<String, DsSipRecordRouteHeader> recordRoutesMap = new HashMap<>();
 
   protected static DsControllerConfig currentConfig;
   protected static boolean updated = false;
 
-  protected boolean doRecordRoute;
+  //MEETPASS Adding by default
+  protected boolean doRecordRoute = true;
 
   protected boolean isRecursing = false;
 
@@ -123,6 +131,7 @@ public final class DsControllerConfig
 
   private Transport defaultProtocol;
 
+  private DsSipServerLocatorFactory dsSIPServerLocatorFactory = DsSipServerLocatorFactory.getInstance();
   /** Our Constructor */
   private DsControllerConfig() {}
 
@@ -237,7 +246,7 @@ public final class DsControllerConfig
     }
     viaIf = getVia(protocol, net);
     if (viaIf == null) {
-      viaIf = (DsViaListenInterface) ViaListenHash.get(new Integer(String.valueOf(protocol)));
+      viaIf = (DsViaListenInterface) ViaListenHash.get(protocol.getValue());
     }
     if (viaIf == null) {
 
@@ -269,7 +278,7 @@ public final class DsControllerConfig
           viaListenHashDir = new HashMap();
           ViaListenHash.put(direction, viaListenHashDir);
         }
-        viaListenHashDir.put(new Integer(String.valueOf(protocol)), viaIf);
+        viaListenHashDir.put(protocol.getValue(), viaIf);
       }
     }
 
@@ -419,26 +428,57 @@ public final class DsControllerConfig
   public boolean recognize(DsByteString user, DsByteString host, int port, Transport transport) {
     // Check Record-Route
     Log.debug("Checking Record-Route interfaces");
+
     if (null != checkRecordRoutes(user, host, port, transport)) return true;
 
     Log.debug("Checking listen interfaces");
     ArrayList<ListenIf> listenList = getListenPorts();
-    if (listenList != null) {
-      for (int i = 0; i < listenList.size(); i++) {
-        if (isMyRoute(host, port, transport, listenList.get(i))) return true;
+    for (ListenIf anIf : listenList) {
+      if (isMyRoute(host, port, transport, anIf)) return true;
+    }
+    // Check popid
+    return false;
+
+  }
+
+  /*
+   * Checks if the passed host,transport,port,user info is recognized.
+   * If host is Domain name , this methods first resolves the domain to IP and then
+   * checks if its recognized.This method only works for SRV
+   *
+   */
+
+  public  boolean recognize(DsByteString user,DsByteString host,
+                            int port, Transport transport, DsNetwork network,
+                            boolean fallBackToAQuery) throws UnknownHostException, DsSipHostNotValidException, DsSipServerNotFoundException {
+
+    //check for IP and cases where host matches aliases.
+    if(recognize(user, host, port, transport))
+      return true;
+
+    if (!IPValidator.hostIsIPAddr(host.toString())) {
+      DsSipServerLocator dnsResolver = dsSIPServerLocatorFactory.createNewSIPServerLocator();
+      DsSipServerLocator.setAQuery(fallBackToAQuery);
+      try {
+        dnsResolver.initialize(network, null, DsSipResolverUtils.LPU, host.toString(), port,
+                transport, false);
+        boolean isDNSResolverEmpty = true;
+        while (dnsResolver.hasNextBindingInfo()) {
+          isDNSResolverEmpty = false;
+          DsBindingInfo bindingInfo = dnsResolver.getNextBindingInfo();
+          if (recognize(user, new DsByteString(bindingInfo.getRemoteAddressStr()),
+                  bindingInfo.getRemotePort(), bindingInfo.getTransport())) {
+            return true;
+          }
+        }
+        if (isDNSResolverEmpty) {
+          throw new DsSipHostNotValidException(dnsResolver.getFailureException());
+        }
+      } catch (UnknownHostException | DsSipHostNotValidException | DsSipServerNotFoundException e ) {
+        Log.error("Exception in resolving " + host, e);
+        throw e;
       }
     }
-
-    // Check popid
-    Log.debug("Checking pop-ids");
-    if (ourRoutes.contains(host.toLowerCase())) return true;
-
-    /*  //Check Path
-    // graivitt Commenting as its not used now
-    Log.debug("Checking Path interface");
-    if (null != checkPaths(user, host, port, transport))
-      return true;*/
-
     return false;
   }
 
@@ -451,9 +491,9 @@ public final class DsControllerConfig
           || usr.contains(DsReConstants.RR_TOKEN2)) {
         Set rrs = recordRoutesMap.keySet();
         String key;
-        for (Iterator i = rrs.iterator(); i.hasNext(); ) {
-          key = (String) i.next();
-          DsSipRecordRouteHeader rr = (DsSipRecordRouteHeader) recordRoutesMap.get(key);
+        for (Object o : rrs) {
+          key = (String) o;
+          DsSipRecordRouteHeader rr = recordRoutesMap.get(key);
           if (rr != null) {
             if (DsProxyUtils.recognize(host, port, transport, (DsSipURL) rr.getURI())) return key;
           }
@@ -542,7 +582,7 @@ public final class DsControllerConfig
     sipURL.setLRParam();
     DsSipRecordRouteHeader rr = new DsSipRecordRouteHeader(sipURL);
 
-    currentConfig.recordRoutesMap.put(direction, rr);
+    currentConfig.recordRoutesMap.put(direction.getName(), rr);
 
     Log.info("Setting record route(" + rr + ") on network: " + direction);
   }

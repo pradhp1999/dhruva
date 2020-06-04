@@ -16,6 +16,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 
@@ -32,10 +33,13 @@ public class RouteResponseHandler implements MessageListener {
     this.proxyAdaptor = proxyAdaptor;
   }
 
-  public Location constructProxyLocation(String routeResult) throws DhruvaException {
+  public Location constructProxyLocation(DsSipRequest request, String routeResult) throws DhruvaException {
     try {
       DsURI uri = DsURI.constructFrom(routeResult);
-      return new Location(uri);
+      DsNetwork network = request.getNetwork();
+      Location loc = new Location(uri);
+      loc.setNetwork(network);
+      return loc;
     } catch (DsSipParserException ex) {
       throw new DhruvaException(
           "failed to construct location from route result", ex.getCause(), ex.getMessage());
@@ -55,9 +59,11 @@ public class RouteResponseHandler implements MessageListener {
       case SIPREQUEST:
         ExecutionContext ctx = message.getContext();
         String routeResult = (String) ctx.get(PROXY_ROUTE_RESULT);
-        Location loc = constructProxyLocation(routeResult);
+
         DsSipRequest request =
             (DsSipRequest) MessageConvertor.convertDhruvaMessageToSipMessage(message);
+        Location loc = constructProxyLocation(request, routeResult);
+        logger.info("route result {}", routeResult, "request session id", request.getSessionId());
         controller.proxyTo(loc, request, proxyAdaptor);
         break;
 

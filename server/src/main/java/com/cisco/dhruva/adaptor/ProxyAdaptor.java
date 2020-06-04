@@ -78,7 +78,15 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
   public void handleResponse(Location loc, DsSipResponse response, int responseCode)
       throws DhruvaException {
     // MEETPASS TODO
-    appSession.handleResponse(null);
+
+    final ExecutionContext context;
+    handler = new RouteResponseHandler(this);
+    context = new ExecutionContext();
+    context.set(CommonContext.PROXY_RESPONSE_HANDLER, handler);
+
+    IDhruvaMessage dhruvaResponse = buildDhruvaMessageFromSIPResponse(response, context);
+
+    appSession.handleResponse(dhruvaResponse);
   }
 
   private IDhruvaMessage buildDhruvaMessageFromSIPRequest(
