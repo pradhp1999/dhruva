@@ -29,7 +29,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -599,9 +598,7 @@ public final class DsControllerConfig
    * the first interface in our hashmap that is useing the specified protocol.
    */
   public DsListenInterface getInterface(Transport protocol, DsNetwork direction) {
-    Iterator<ListenIf> listenEntries = listenIf.values().iterator();
-    while (listenEntries.hasNext()) {
-      ListenIf li = listenEntries.next();
+    for (ListenIf li : listenIf.values()) {
       if (li.getProtocol() == protocol && li.getNetwork().equals(direction)) {
         return li;
       }

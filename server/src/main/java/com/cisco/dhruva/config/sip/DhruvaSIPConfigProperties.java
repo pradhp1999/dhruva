@@ -1,6 +1,7 @@
 package com.cisco.dhruva.config.sip;
 
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
+import com.cisco.dhruva.sip.bean.SIPProxy;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.JsonUtilFactory;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
@@ -17,13 +18,17 @@ public class DhruvaSIPConfigProperties {
 
   public static final String SIP_LISTEN_POINTS = "sipListenPoints";
 
-  public static final String PROXY = "proxy";
+  public static final String SIP_PROXY = "sipProxy";
 
   public static final Transport DEFAULT_TRANSPORT = Transport.UDP;
 
   // MeetPass TODO
   // Env is not read properly, hence setting it here to true
   public static final boolean DEFAULT_RECORD_ROUTE_ENABLED = true;
+
+  public static final boolean DEFAULT_PROXY_ERROR_AGGREGATOR_ENABLED = false;
+
+  public static final boolean DEFAULT_PROXY_CREATE_DNSSERVERGROUP_ENABLED = false;
 
   private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaSIPConfigProperties.class);
 
@@ -69,5 +74,36 @@ public class DhruvaSIPConfigProperties {
     listenPoints.add(udpListenPoint);
 
     return listenPoints;
+  }
+
+  private SIPProxy getSIPProxy() {
+
+    String configuredSipProxy = env.getProperty(SIP_PROXY);
+
+    SIPProxy proxy;
+
+    if (configuredSipProxy != null) {
+      try {
+        proxy =
+            JsonUtilFactory.getInstance(JsonUtilFactory.JsonUtilType.LOCAL)
+                .toObject(configuredSipProxy, SIPProxy.class);
+      } catch (Exception e) {
+        logger.error(
+            "Error converting JSON sipProxy configuration provided in the environment , default sipProxy will be choosen ",
+            e);
+        proxy = getDefaultSIPProxy();
+      }
+
+    } else {
+      proxy = getDefaultSIPProxy();
+    }
+
+    logger.info("sip proxy config from the {} configuration {}", SIP_PROXY, proxy);
+
+    return proxy;
+  }
+
+  private SIPProxy getDefaultSIPProxy() {
+    return new SIPProxy.SIPProxyBuilder().build();
   }
 }

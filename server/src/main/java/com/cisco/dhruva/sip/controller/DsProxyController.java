@@ -27,7 +27,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-import com.thoughtworks.qdox.Searcher;
 import java.util.*;
 import org.springframework.stereotype.Component;
 
@@ -88,9 +87,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
   // Forking types
   public static final byte SEARCH_PARALLEL = 0;
-  public static final byte SEARCH_SEQUENTIAL = 1;
-  public static final byte SEARCH_HIGHEST = 2;
-  public static final int SEQUENTIAL_SEARCH_TIMEOUT_DEFAULT = 60000;
+
   static final boolean mEmulate2543 =
       DsConfigManager.getProperty(
           DsConfigManager.PROP_EMULATE_RFC2543_RESPONSES,
@@ -124,12 +121,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   protected DsProxyStatelessTransaction ourProxy;
   /** Timeout max request timeout in ms */
   protected int timeToTry = UACfgStats.uaMaxRequestTimeoutDefault;
-  /** The sequential timeout if we are doing a sequential search * */
-  protected int sequentialSearchTimeout = SEQUENTIAL_SEARCH_TIMEOUT_DEFAULT;
   /** remember the cancel request * */
   protected boolean gotCancel;
-  /* Our searcher object */
-  protected Searcher searcher;
   /* A mapping of Locations to client transactions used when cancelling */
   protected HashMap locToTransMap = new HashMap(11);
   /* Used to get the repository when creating a load balancer */
@@ -205,14 +198,12 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   public void init(
       byte searchType,
       int timeout,
-      int sequentialSearchTimeout,
       byte stateMode,
       boolean isRecursing,
       DsProxyParamsInterface ppIface) {
     init(
         searchType,
         timeout,
-        sequentialSearchTimeout,
         stateMode,
         isRecursing,
         ppIface,
@@ -237,7 +228,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   public void init(
       byte searchType,
       int timeout,
-      int sequentialSearchTimeout,
       byte stateMode,
       boolean isRecursing,
       DsProxyParamsInterface ppIface,
@@ -247,10 +237,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     Log.debug("DsProxyController: Entering init()");
 
     Log.debug("Timeout value for init is: " + timeout);
-    Log.debug("Sequential search timeout value for init is: " + sequentialSearchTimeout);
 
     this.searchType = searchType;
-    this.sequentialSearchTimeout = sequentialSearchTimeout;
     this.stateMode = stateMode;
     this.isRecursing = isRecursing;
     this.ppIface = ppIface;
@@ -1727,8 +1715,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       }
       // todo increment the servergroup usage counter
       ourProxy.proxyTo(request, cookie, params);
-
-      Log.debug("Leaving proxyTo");
     }
   }
 
@@ -1862,23 +1848,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
   private static final DsByteString compress(String result) {
     return CompressorUtil.compress(result);
-  }
-
-  public DsByteString getPathParams(DsSipRequest request, boolean escape) {
-    Log.debug("Entering getPathParams()");
-    DsByteString pathUser = getSerializedProxyParams(DsReConstants.PATH, false);
-    if (pathUser == null) {
-      pathUser = new DsByteString("");
-    }
-    pathUser.append(DsReConstants.BS_PR_TOKEN);
-    pathUser.append(DsReConstants.BS_NETWORK_TOKEN);
-    pathUser.append(incomingNetwork);
-    if (escape) {
-      pathUser = DsSipURL.getEscapedString(pathUser, DsSipURL.USER_ESCAPE_BYTES);
-    }
-
-    Log.debug("Leaving getPathParams(), returning" + pathUser);
-    return pathUser;
   }
 
   public DsByteString getRecordRouteParams(DsSipRequest request, boolean escape) {

@@ -34,13 +34,6 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
 
   protected static Logger Log = DhruvaLoggerFactory.getLogger(DsREControllerFactory.class);
 
-  // the time before the actual timeout that you want to generate a cancel.
-  // default 5 seconds
-  public static final int REQUEST_TIMEOUT_OFFSET =
-      Integer.parseInt(System.getProperty("REQUEST_TIMEOUT_OFFSET", "5000"));
-  public static final int SEQ_REQUEST_TIMEOUT_DIVISIBLE =
-      Integer.parseInt(System.getProperty("SEQ_REQUEST_TIMEOUT_DIVISIBLE", "2"));
-
   /** */
   public DsREControllerFactory() {
     // temporary!!!! for testing only !!!!!1
@@ -72,7 +65,6 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
 
     int requestTimeout =
         DsConfigManager.getTimerValue(request.getNetwork(), DsSipConstants.serverTn);
-    int sequentialSearchTimeout = requestTimeout / SEQ_REQUEST_TIMEOUT_DIVISIBLE;
 
     // MEETPASS
     LBRepositoryHolder sgConfig = HashMap::new;
@@ -80,7 +72,6 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
     controller.init(
         ourConfig.getSearchType(),
         requestTimeout,
-        sequentialSearchTimeout,
         ourConfig.getStateMode(),
         ourConfig.isRecursing(),
         ourConfig,
