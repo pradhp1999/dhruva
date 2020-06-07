@@ -396,7 +396,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     }
 
     // pass the provisional respnse back
-    if (responseIf != null) responseIf.handleResponse(location, response, responseCode);
+    if (responseIf != null)
+      responseIf.handleResponse(location, Optional.of(response), responseCode);
   }
 
   /**
@@ -440,7 +441,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // Pass the response callback to the searcher, who will cancel any outstanding branches
     if (responseIf != null)
-      responseIf.handleResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+      responseIf.handleResponse(
+          location, Optional.of(response), ResponseReasonCodeConstants.SUCCESS);
 
     Log.debug("Leaving onSuccessResponse()");
   }
@@ -474,7 +476,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // Have the searcher continue the search if recursion is on
     if (responseIf != null)
-      responseIf.handleResponse(location, response, ResponseReasonCodeConstants.SUCCESS);
+      responseIf.handleResponse(
+          location, Optional.of(response), ResponseReasonCodeConstants.SUCCESS);
 
     Log.debug("Leaving onRedirectResponse()");
   }
@@ -552,7 +555,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       locToTransMap.remove(location);
 
       if (responseIf != null)
-        responseIf.handleResponse(location, response, response.getStatusCode());
+        responseIf.handleResponse(location, Optional.of(response), response.getStatusCode());
     }
   }
 
@@ -595,7 +598,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     }
 
     // Pass the response up the stack, the responseIf should do the CANCELing
-    if (responseIf != null) responseIf.handleResponse(location, response, response.getStatusCode());
+    if (responseIf != null)
+      responseIf.handleResponse(location, Optional.of(response), response.getStatusCode());
 
     Log.debug("Leaving onGlobalFailureReponse()");
   }
@@ -674,7 +678,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
       if (responseIf != null)
         responseIf.handleResponse(
-            location, timeoutResponse, DsSipResponseCode.DS_RESPONSE_REQUEST_TIMEOUT);
+            location, Optional.of(timeoutResponse), DsSipResponseCode.DS_RESPONSE_REQUEST_TIMEOUT);
     } catch (DsException e) {
       Log.error("Error creating response", e);
     }
@@ -730,7 +734,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         proxyToInternal(
             location, (DsSipRequest) preprocessedRequest.clone(), responseIf, timeToTry);
       } else if (responseIf != null)
-        responseIf.handleResponse(location, null, ResponseReasonCodeConstants.ICMP);
+        responseIf.handleResponse(location, Optional.empty(), ResponseReasonCodeConstants.ICMP);
     }
   }
 
@@ -786,8 +790,11 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         // info CR8198
         ourRequest.setBindingInfo(new DsBindingInfo());
         if (errorCode != DsControllerInterface.DESTINATION_UNREACHABLE)
-          responseIf.handleResponse(location, null, ResponseReasonCodeConstants.PROXY_ERROR);
-        else responseIf.handleResponse(location, null, ResponseReasonCodeConstants.UNREACHABLE);
+          responseIf.handleResponse(
+              location, Optional.empty(), ResponseReasonCodeConstants.PROXY_ERROR);
+        else
+          responseIf.handleResponse(
+              location, Optional.empty(), ResponseReasonCodeConstants.UNREACHABLE);
 
       } else if (usingRouteHeader) {
         try {
@@ -1589,7 +1596,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         // Send a 500 response
         // sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
         if (responseIf != null)
-          responseIf.handleResponse(location, null, ResponseReasonCodeConstants.PROXY_ERROR);
+          responseIf.handleResponse(
+              location, Optional.empty(), ResponseReasonCodeConstants.PROXY_ERROR);
         return;
       }
 

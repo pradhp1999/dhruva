@@ -30,6 +30,8 @@ public class DhruvaSIPConfigProperties {
 
   public static final boolean DEFAULT_PROXY_CREATE_DNSSERVERGROUP_ENABLED = false;
 
+  public static final boolean DEFAULT_PROXY_PROCESS_ROUTE_HEADER_ENABLED = false;
+
   private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaSIPConfigProperties.class);
 
   public static int DEFAULT_PORT_UDP = 5060;

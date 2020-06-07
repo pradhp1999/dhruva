@@ -147,7 +147,7 @@ public class DsAppController extends DsProxyController implements DsControllerIn
     if (usingRouteHeader) {
       Log.debug(
           "We must have sent to a route header or gotten a cancel, responding "
-              + " with the core's best respnonse: \n"
+              + " with the core's best response: \n"
               + response.maskAndWrapSIPMessageToSingleLineOutput());
 
       // Forward the best response upstream

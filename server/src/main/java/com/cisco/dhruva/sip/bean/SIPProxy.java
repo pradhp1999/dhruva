@@ -9,10 +9,12 @@ public class SIPProxy {
 
   private boolean errorAggregrator;
   private boolean createDNSServerGroup;
+  private boolean processRouteHeader;
 
   private SIPProxy(SIPProxyBuilder proxyBuilder) {
     this.errorAggregrator = proxyBuilder.errorAggregrator;
     this.createDNSServerGroup = proxyBuilder.createDNSServerGroup;
+    this.processRouteHeader = proxyBuilder.processRouteHeader;
   }
 
   public boolean isErrorAggregratorEnabled() {
@@ -23,11 +25,17 @@ public class SIPProxy {
     return createDNSServerGroup;
   }
 
+  public boolean isprocessRouteHeaderEnabled() {
+    return processRouteHeader;
+  }
+
   public String toString() {
     return new StringBuilder("SIPProxy isErrorAggregratorEnabled = ")
         .append(errorAggregrator)
         .append(" isCreateDNSServergroupEnabled = ")
         .append(createDNSServerGroup)
+        .append("isprocessRouteHeaderEnabled")
+        .append(processRouteHeader)
         .toString();
   }
 
@@ -41,6 +49,7 @@ public class SIPProxy {
     return new EqualsBuilder()
         .append(errorAggregrator, otherProxy.isErrorAggregratorEnabled())
         .append(createDNSServerGroup, otherProxy.isCreateDNSServergroupEnabled())
+        .append(processRouteHeader, otherProxy.isprocessRouteHeaderEnabled())
         .isEquals();
   }
 
@@ -54,10 +63,14 @@ public class SIPProxy {
 
     @JsonProperty private boolean createDNSServerGroup;
 
+    @JsonProperty private boolean processRouteHeader;
+
     public SIPProxyBuilder() {
       this.errorAggregrator = DhruvaSIPConfigProperties.DEFAULT_PROXY_ERROR_AGGREGATOR_ENABLED;
       this.createDNSServerGroup =
           DhruvaSIPConfigProperties.DEFAULT_PROXY_CREATE_DNSSERVERGROUP_ENABLED;
+      this.processRouteHeader =
+          DhruvaSIPConfigProperties.DEFAULT_PROXY_PROCESS_ROUTE_HEADER_ENABLED;
     }
 
     public SIPProxyBuilder setErrorAggregrator(boolean errorAggregrator) {
@@ -67,6 +80,11 @@ public class SIPProxy {
 
     public SIPProxyBuilder setCreateDNSServergroup(boolean createDNSServerGroup) {
       this.createDNSServerGroup = createDNSServerGroup;
+      return this;
+    }
+
+    public SIPProxyBuilder setProcessRouteHeader(boolean processRouteHeader) {
+      this.processRouteHeader = processRouteHeader;
       return this;
     }
 
