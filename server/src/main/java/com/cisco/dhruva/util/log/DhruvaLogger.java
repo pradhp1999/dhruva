@@ -1,12 +1,17 @@
 package com.cisco.dhruva.util.log;
 
+import com.cisco.dhruva.util.log.event.Event.EventSubType;
+import com.cisco.dhruva.util.log.event.Event.EventType;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import org.slf4j.MDC;
 import org.slf4j.event.Level;
 
 public class DhruvaLogger implements Logger {
 
+  private static final String EVENT_TYPE = "eventType";
+  private static final String EVENT_SUBTYPE = "eventSubType";
   private org.slf4j.Logger logger;
 
   public DhruvaLogger(org.slf4j.Logger logger) {
@@ -92,6 +97,26 @@ public class DhruvaLogger implements Logger {
   @Override
   public void debug(String format, Supplier<?>... suppliers) {
     logger.debug(format, getAllLamda(suppliers));
+  }
+
+  @Override
+  public void emitEvent(EventType eventType, Optional<EventSubType> eventSubType,
+      String message,
+      Optional<Map<String, String>> additionalKeyValueInfo) {
+
+    Map<String, String> contextMapCopy = MDC.getCopyOfContextMap();
+
+    MDC.put(EVENT_TYPE, eventType.name());
+    eventSubType.ifPresent(eventSubTypeValue -> MDC.put(EVENT_TYPE, eventSubTypeValue.name()));
+    additionalKeyValueInfo.ifPresent(additionalKeyValueInfoMap -> additionalKeyValueInfoMap
+        .forEach((key, value) -> MDC.put(key, value)));
+
+    logger.info(message);
+
+    MDC.clear();
+    if (contextMapCopy != null && !contextMapCopy.isEmpty()) {
+      MDC.setContextMap(contextMapCopy);
+    }
   }
 
   @Override

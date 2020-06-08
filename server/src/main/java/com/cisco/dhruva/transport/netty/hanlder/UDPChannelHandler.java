@@ -14,12 +14,16 @@ import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import com.cisco.dhruva.util.log.event.Event.EventSubType;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.ReferenceCountUtil;
 import java.net.InetSocketAddress;
+import java.util.Optional;
 
 public class UDPChannelHandler extends AbstractChannelHandler {
 
@@ -42,6 +46,7 @@ public class UDPChannelHandler extends AbstractChannelHandler {
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    super.channelActive(ctx);
     logger.info("Channel Active {}", ctx.channel());
   }
 

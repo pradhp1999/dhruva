@@ -5,7 +5,11 @@
 
 package com.cisco.dhruva.util.log;
 
+import com.cisco.dhruva.util.log.event.Event;
+import com.cisco.dhruva.util.log.event.Event.EventSubType;
+import com.cisco.dhruva.util.log.event.Event.EventType;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import org.slf4j.event.Level;
 
@@ -42,6 +46,9 @@ public interface Logger {
   void debug(String format, Object... arguments);
 
   void debug(String format, Supplier<?>... arguments);
+
+  void emitEvent(EventType eventType, Optional<EventSubType> eventSubType, String message,
+      Optional<Map<String, String>> additionalKeyValueInfo);
 
   void setMDC(String key, String value);
 

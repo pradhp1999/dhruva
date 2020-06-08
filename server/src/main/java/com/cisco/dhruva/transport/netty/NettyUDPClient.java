@@ -27,6 +27,7 @@ public class NettyUDPClient extends AbstractClient {
     channelInitializer = new BaseChannelInitializer();
 
     channelHandler = new UDPChannelHandler(messageForwarder, networkConfig, executorService);
+    channelHandler.setServerMode(false);
     channelInitializer.channelHanlder(channelHandler);
 
     bootstrap =

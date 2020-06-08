@@ -126,7 +126,7 @@ public class DsSipTransactionManagerTest {
     DsSipConnection responseConnection = mock(DsSipConnection.class);
     when(responseConnection.getBindingInfo()).thenReturn(incomingMessageBindingInfo);
     when(responseConnection.getTransportType()).thenReturn(Transport.UDP);
-    ArgumentCaptor<byte[]> argumentCaptorTryingResponse = ArgumentCaptor.forClass(byte[].class);
+    ArgumentCaptor<DsSipMessage> argumentCaptorTryingResponse = ArgumentCaptor.forClass(DsSipMessage.class);
     when(transportLayer.getConnection(
             incomingMessageBindingInfo.getNetwork(),
             localAddress,
@@ -148,8 +148,7 @@ public class DsSipTransactionManagerTest {
             eq(incomingMessageBindingInfo.getRemotePort()),
             any(DsSipServerTransactionIImpl.class));
 
-    DsSipResponse responseReceivedAtConnection =
-        SIPRequestBuilder.createResponse(argumentCaptorTryingResponse.getValue());
+    DsSipResponse responseReceivedAtConnection = (DsSipResponse) argumentCaptorTryingResponse.getValue();
     Assert.assertNotNull(responseReceivedAtConnection);
     Assert.assertEquals(responseReceivedAtConnection.getMethodID(), 1);
     Assert.assertEquals(responseReceivedAtConnection.getStatusCode(), 100);

@@ -61,10 +61,10 @@ public class DsAppController extends DsProxyController implements DsControllerIn
         Log.info(
             "sending the request to adaptor layer for further processing "
                 + !DsSipClientTransactionImpl.isMidDialogRequest(request)
-                + "route"
+                + "route "
                 + request.getHeader(DsSipConstants.ROUTE)
                 + " "
-                + "processRoute"
+                + "processRoute "
                 + processRouteHeader);
         AppAdaptorInterface proxyAdaptor = getProxyAdaptor();
         Optional<AppAdaptorInterface> p = Optional.ofNullable(proxyAdaptor);

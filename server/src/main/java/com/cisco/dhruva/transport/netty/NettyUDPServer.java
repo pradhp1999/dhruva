@@ -30,6 +30,7 @@ public class NettyUDPServer implements Server {
     this.networkConfig = networkConfig;
     channelInitializer = new BaseChannelInitializer();
     udpChannelHander = new UDPChannelHandler(messageForwarder, networkConfig, executorService);
+    udpChannelHander.setServerMode(true);
     udpChannelHander.messageForwarder(messageForwarder);
     channelInitializer.channelHanlder(udpChannelHander);
     this.udpBootstrap =
