@@ -78,30 +78,33 @@ public abstract class AbstractChannelHandler implements ChannelInboundHandler {
     notifyChannelEventsToListeners(cause);
   }
 
-
   @Override
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
     InetSocketAddress localAddress = (InetSocketAddress) ctx.channel().localAddress();
     InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 
     if (localAddress != null && remoteAddress != null) {
-      logger.emitEvent(EventSubType.UDPCONNECTION.getEventType(),
+      logger.emitEvent(
+          EventSubType.UDPCONNECTION.getEventType(),
           Optional.of(EventSubType.UDPCONNECTION),
-          "Connection active"
-          , Optional.of(Maps.newHashMap(ImmutableMap.of(Event.LOCALIP,
-              localAddress.getHostString(),
-              Event.LOCALPORT, String.valueOf(localAddress.getPort()),
-              Event.REMOTEIP, remoteAddress.getHostString(),
-              Event.REMOTEPORT,
-              String.valueOf((remoteAddress.getPort())),
-              Event.DIRECTION, serverMode ? "IN" : "OUT"
-              ))
-          ));
+          "Connection active",
+          Optional.of(
+              Maps.newHashMap(
+                  ImmutableMap.of(
+                      Event.LOCALIP,
+                      localAddress.getHostString(),
+                      Event.LOCALPORT,
+                      String.valueOf(localAddress.getPort()),
+                      Event.REMOTEIP,
+                      remoteAddress.getHostString(),
+                      Event.REMOTEPORT,
+                      String.valueOf((remoteAddress.getPort())),
+                      Event.DIRECTION,
+                      serverMode ? "IN" : "OUT"))));
     }
   }
 
   public void setServerMode(boolean serverMode) {
     this.serverMode = serverMode;
   }
-
 }

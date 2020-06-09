@@ -17,10 +17,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-
-import java.util.Arrays;
 import java.util.Optional;
-
 
 public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements AppAdaptorInterface {
 

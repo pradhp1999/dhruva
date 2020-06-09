@@ -4,7 +4,6 @@
 
 package com.cisco.dhruva.util.log.event;
 
-
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
@@ -29,12 +28,14 @@ public class Event {
   private static Logger logger = DhruvaLoggerFactory.getLogger(Event.class);
 
   public enum EventType {
-    CONNECTION, SIPMESSAGE
+    CONNECTION,
+    SIPMESSAGE
   }
 
   public enum EventSubType {
-    UDPCONNECTION(EventType.CONNECTION), TCPCONNECTION(EventType.CONNECTION), TLSCONNECTION(
-        EventType.CONNECTION);
+    UDPCONNECTION(EventType.CONNECTION),
+    TCPCONNECTION(EventType.CONNECTION),
+    TLSCONNECTION(EventType.CONNECTION);
     private EventType eventType;
 
     EventSubType(EventType eventType) {
@@ -46,9 +47,8 @@ public class Event {
     }
   }
 
-
-  public static void emitMessageEvent(DsBindingInfo messageBindingInfo, DsSipMessage message,
-      String direction) {
+  public static void emitMessageEvent(
+      DsBindingInfo messageBindingInfo, DsSipMessage message, String direction) {
     String sipMessageType, sipMethod, requestUri;
     if (message.isRequest()) {
       sipMessageType = "request";
@@ -61,17 +61,25 @@ public class Event {
       requestUri = ((DsSipResponse) message).getReasonPhrase().toString();
     }
 
-    Map<String,String> messageInfoMap = Maps.newHashMap(ImmutableMap.of("sipMessageType", sipMessageType,
-        "sipMethod", sipMethod, "cseqMethod", message.getCSeqMethod().toString(), "requestUri",
-        requestUri,
-        Event.REMOTEIP, messageBindingInfo.getRemoteAddressStr()));
+    Map<String, String> messageInfoMap =
+        Maps.newHashMap(
+            ImmutableMap.of(
+                "sipMessageType",
+                sipMessageType,
+                "sipMethod",
+                sipMethod,
+                "cseqMethod",
+                message.getCSeqMethod().toString(),
+                "requestUri",
+                requestUri,
+                Event.REMOTEIP,
+                messageBindingInfo.getRemoteAddressStr()));
     messageInfoMap.put(Event.REMOTEPORT, String.valueOf(messageBindingInfo.getRemotePort()));
     messageInfoMap.put(Event.DIRECTION, direction);
-    messageInfoMap.put(Event.LOCALIP,messageBindingInfo.getLocalAddress().getHostAddress());
-    messageInfoMap.put(Event.LOCALPORT,String.valueOf(messageBindingInfo.getLocalPort()));
+    messageInfoMap.put(Event.LOCALIP, messageBindingInfo.getLocalAddress().getHostAddress());
+    messageInfoMap.put(Event.LOCALPORT, String.valueOf(messageBindingInfo.getLocalPort()));
 
-    logger.emitEvent(EventType.SIPMESSAGE, Optional.empty(), message.toString(), Optional.of(messageInfoMap));
+    logger.emitEvent(
+        EventType.SIPMESSAGE, Optional.empty(), message.toString(), Optional.of(messageInfoMap));
   }
-
-
 }

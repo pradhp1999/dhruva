@@ -64,7 +64,7 @@ public class RouteResponseHandler implements MessageListener {
         DsSipRequest request =
             (DsSipRequest) MessageConvertor.convertDhruvaMessageToSipMessage(message);
         Location loc = constructProxyLocation(request, routeResult);
-        logger.info("route result {}", routeResult, "request session id", request.getSessionId());
+        logger.info("route result {}", routeResult);
         controller.proxyTo(loc, request, proxyAdaptor);
         break;
 
