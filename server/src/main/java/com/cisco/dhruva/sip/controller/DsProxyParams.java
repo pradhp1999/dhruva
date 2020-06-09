@@ -102,8 +102,8 @@ public class DsProxyParams extends DsProxyBranchParams implements DsProxyParamsI
   */
   /**
    * Get the interface to be inserted into Path headers. If the port of that interface is -1, no
-   * port will be used in the Path. If the transport is {@link DsSipTransportType#NONE}, no
-   * transport parameter will be used the the Path.
+   * port will be used in the Path. If the transport is {@link Transport#NONE}, no transport
+   * parameter will be used the the Path.
    *
    * @return the interface to be inserted into a Path header, or <code>null</code> if no Path header
    *     should be used

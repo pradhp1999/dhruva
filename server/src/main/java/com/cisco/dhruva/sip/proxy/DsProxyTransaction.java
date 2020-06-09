@@ -1,7 +1,6 @@
 package com.cisco.dhruva.sip.proxy;
 
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
-import com.cisco.dhruva.sip.DsUtil.EndPoint;
 import com.cisco.dhruva.sip.cac.SIPSession;
 import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.controller.DsProxyResponseGenerator;
@@ -443,13 +442,16 @@ public class DsProxyTransaction extends DsProxyStatelessTransaction {
 
         // adding end point to the sip session
         if (sipSession != null) {
-          EndPoint ep =
-              new EndPoint(
-                  DsByteString.newInstance(request.getBindingInfo().getNetwork().toString()),
-                  DsByteString.newInstance(request.getBindingInfo().getRemoteAddressStr()),
-                  request.getBindingInfo().getRemotePort(),
-                  request.getBindingInfo().getTransport());
-          sipSession.setDestination(ep);
+          // MEETPASS TODO
+          //          EndPoint ep =
+          //              new EndPoint(
+          //
+          // DsByteString.newInstance(request.getBindingInfo().getNetwork().toString()),
+          //
+          // DsByteString.newInstance(request.getBindingInfo().getRemoteAddressStr()),
+          //                  request.getBindingInfo().getRemotePort(),
+          //                  request.getBindingInfo().getTransport());
+          //          sipSession.setDestination(ep);
         }
 
         if ((!m_isForked) && (m_originalClientTrans == null)) {

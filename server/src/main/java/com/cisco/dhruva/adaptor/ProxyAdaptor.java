@@ -12,10 +12,15 @@ import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
 import com.cisco.dhruva.router.MessageListener;
 import com.cisco.dhruva.sip.controller.DsProxyController;
+import com.cisco.dhruva.sip.proxy.Location;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 
 public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements AppAdaptorInterface {
 
@@ -54,7 +59,7 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
   public void handleRequest(DsSipRequest request) throws DhruvaException {
     logger.info("ProxyAdaptor.handleRequest:");
 
-    // MEETPASS, is final required?
+    // MEETPASS
     final ExecutionContext context;
     handler = new RouteResponseHandler(this);
     context = new ExecutionContext();
@@ -72,9 +77,22 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
    * Handles the response from proxy/controller
    */
   @Override
-  public void handleResponse(DsSipResponse response) throws DhruvaException {
+  public void handleResponse(Location loc, Optional<DsSipResponse> response, int responseCode)
+      throws DhruvaException {
     // MEETPASS TODO
-    appSession.handleResponse(null);
+    if (response.isPresent()) {
+      final ExecutionContext context;
+      handler = new RouteResponseHandler(this);
+      context = new ExecutionContext();
+      context.set(CommonContext.PROXY_RESPONSE_HANDLER, handler);
+
+      IDhruvaMessage dhruvaResponse = buildDhruvaMessageFromSIPResponse(response.get(), context);
+
+      appSession.handleResponse(dhruvaResponse);
+    } else {
+      logger.info("response object is empty");
+      // Handle failure scenarios, failure callbacks with empty response
+    }
   }
 
   private IDhruvaMessage buildDhruvaMessageFromSIPRequest(

@@ -50,13 +50,13 @@ public class RouteAppMessageTest {
             .sessionId("testSession")
             .reqURI("sip:test@webex.com")
             .correlationId("ABCD")
-            .callType("sip")
+            .callType(CallType.SIP)
             .build();
 
     Assert.assertEquals(message.getMessageBody().getPayloadData(), request);
     Assert.assertEquals(message.getContext(), context);
     Assert.assertNotNull(message.getHeaders());
-    Assert.assertEquals(message.getCallType(), "sip");
+    Assert.assertEquals(message.getCallType(), CallType.SIP);
     Assert.assertEquals(message.getCorrelationId(), "ABCD");
     Assert.assertEquals(message.getReqURI(), "sip:test@webex.com");
     Assert.assertEquals(message.getSessionId(), "testSession");

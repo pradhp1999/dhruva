@@ -72,13 +72,10 @@ public class DsMappedResponseCreator {
       }
 
       // Find an error mapping
-      List<DsProxyError> proxyErrorListTemp = new LinkedList<>();
-      for (DsProxyError proxyError : proxyErrorList) {
-        proxyErrorListTemp.add(proxyError);
-      }
+      List<DsProxyError> proxyErrorListTemp = new LinkedList<>(proxyErrorList);
 
-      DsErrorMapping errorMapping = null;
-      DsProxyError proxyError = null;
+      DsErrorMapping errorMapping;
+      DsProxyError proxyError;
       do {
         proxyError = proxyErrorListTemp.get(0);
         for (int i = 1; i < proxyErrorListTemp.size(); i++) {
@@ -256,9 +253,7 @@ public class DsMappedResponseCreator {
             + xCiscoInternalReason
             + ";source="
             + xCiscoInternalSource;
-    DsSipUnknownHeader reasonHeader =
-        new DsSipUnknownHeader(X_CISCO_INTERNAL_REASON_HEADER, new DsByteString(value));
-    return reasonHeader;
+    return new DsSipUnknownHeader(X_CISCO_INTERNAL_REASON_HEADER, new DsByteString(value));
   }
 
   @SuppressFBWarnings(value = {"PATH_TRAVERSAL_IN"})

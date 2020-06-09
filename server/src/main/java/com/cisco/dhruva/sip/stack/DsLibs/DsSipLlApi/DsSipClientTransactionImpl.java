@@ -2561,12 +2561,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
                 }*/
       }
 
-      if (!isSupported(transport)) {
-        throw new DsSipServerNotFoundException(
-            "This stack does not support(not listening on) "
-                + DsSipTransportType.intern(transport));
-      }
-
       if (port == DsBindingInfo.REMOTE_PORT_UNSPECIFIED) {
         if (transport == Transport.TLS) {
           port = DsSipTransportType.T_TLS.getDefaultPort();

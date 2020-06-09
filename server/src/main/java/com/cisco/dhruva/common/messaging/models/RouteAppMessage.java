@@ -1,5 +1,6 @@
 package com.cisco.dhruva.common.messaging.models;
 
+import com.cisco.dhruva.common.CallType;
 import com.cisco.dhruva.common.context.ExecutionContext;
 import com.cisco.dhruva.common.messaging.DhruvaMessageImpl;
 import org.springframework.util.Assert;
@@ -17,7 +18,7 @@ public final class RouteAppMessage {
 
     private ExecutionContext context;
 
-    private String callType;
+    private CallType callType;
     private String sessionID;
     private String correlationID;
     private String reqURI;
@@ -30,7 +31,7 @@ public final class RouteAppMessage {
         ExecutionContext context,
         MessageHeaders headers,
         MessageBody payload,
-        String callType,
+        CallType callType,
         String sessionID,
         String correlationID,
         String reqURI) {
@@ -85,7 +86,7 @@ public final class RouteAppMessage {
           context, headers, payload, callType, sessionID, correlationID, reqURI);
     }
 
-    public RouteAppMessageBuilder callType(String callType) {
+    public RouteAppMessageBuilder callType(CallType callType) {
       return new RouteAppMessageBuilder(
           context, headers, payload, callType, sessionID, correlationID, reqURI);
     }

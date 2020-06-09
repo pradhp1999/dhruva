@@ -16,7 +16,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
-import com.cisco.dhruva.util.log.Trace;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -24,8 +25,8 @@ import java.util.StringTokenizer;
 public class ParseProxyParamUtil {
 
   // Order in which the transport is selected.
-  private static final Transport Transports[] = {Transport.TLS, Transport.TCP, Transport.UDP};
-  protected static final Trace LOG = Trace.getTrace(ParseProxyParamUtil.class.getName());
+  private static final Transport[] Transports = {Transport.TLS, Transport.TCP, Transport.UDP};
+  protected static final Logger logger = DhruvaLoggerFactory.getLogger(ParseProxyParamUtil.class);
 
   private ParseProxyParamUtil() {}
 
@@ -36,7 +37,7 @@ public class ParseProxyParamUtil {
         return getParsedProxyParams(
             request, DsReConstants.MY_URI, false, DsReConstants.DELIMITER_STR);
       } catch (DsException e) {
-        LOG.error("Unable to get parsed proxy params for MY_URI.", e);
+        logger.error("Unable to get parsed proxy params for MY_URI.", e);
       }
       return null;
     };
@@ -44,7 +45,7 @@ public class ParseProxyParamUtil {
 
   public static Map<String, String> getParsedProxyParams(
       DsSipRequest request, int type, boolean decompress, String delimiter) throws DsException {
-
+    logger.info("Dhruva getParsedProxyParams" + type);
     DsByteString userPortion = null;
     DsSipNameAddressHeader header = null;
     switch (type) {
@@ -70,7 +71,7 @@ public class ParseProxyParamUtil {
       default:
         break;
     }
-
+    logger.info("Dhruva getParsedProxyParams" + userPortion);
     if (userPortion == null) {
       return null;
     }
@@ -113,10 +114,10 @@ public class ParseProxyParamUtil {
 
   public static Transport getNetworkTransport(DsNetwork network) {
     Transport networkTransport = Transport.NONE;
-    for (int i = 0; i < Transports.length; i++) {
+    for (Transport transport : Transports) {
       if (network != null
-          && DsControllerConfig.getCurrent().getInterface(Transports[i], network) != null) {
-        networkTransport = Transports[i];
+          && DsControllerConfig.getCurrent().getInterface(transport, network) != null) {
+        networkTransport = transport;
         break;
       }
     }

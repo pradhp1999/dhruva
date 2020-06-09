@@ -252,12 +252,12 @@ public class DsSipSimpleResolver implements DsSipResolver {
         }
       }
     }
-
-    if (!isSupported(transport)) {
-      throw new DsSipServerNotFoundException(
-          "This stack does not support(not listening on) "
-              + DsSipTransportType.intern(transport.name()));
-    }
+    // MEETPASS TODO
+    //    if (!isSupported(transport)) {
+    //      throw new DsSipServerNotFoundException(
+    //          "This stack does not support(not listening on) "
+    //              + DsSipTransportType.intern(transport.name()));
+    //    }
 
     if (port == DsBindingInfo.REMOTE_PORT_UNSPECIFIED) {
       if (transport == Transport.TLS) {

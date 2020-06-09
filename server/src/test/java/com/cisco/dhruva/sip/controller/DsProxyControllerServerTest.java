@@ -98,11 +98,6 @@ public class DsProxyControllerServerTest {
 
     Assert.assertNotNull(proxy);
     Assert.assertTrue(proxy instanceof DsProxyTransaction);
-
-    proxy = controller.onNewRequest(serverTransaction, sipRequest);
-
-    Assert.assertNotNull(proxy);
-    Assert.assertTrue(proxy instanceof DsProxyTransaction);
   }
 
   @Test(
