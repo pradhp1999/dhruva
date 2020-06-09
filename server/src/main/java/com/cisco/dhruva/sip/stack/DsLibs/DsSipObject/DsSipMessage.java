@@ -1247,24 +1247,30 @@ public abstract class DsSipMessage extends DsSipMessageBase {
         new DsSipHeaderString(MAX_FORWARDS, BS_MAX_FORWARDS, DsByteString.valueOf(maxForwards));
   }
 
-  /*Returns the local and remote sessionid
-   */
-  public String[] getSessionId() {
-    String[] sessionIdValue = new String[2];
-    sessionIdValue[0] = sessionIdValue[1] = null;
+  public Optional<String> getLocalSessionId() {
+    Optional<String> localSessionId = Optional.empty();
     DsSipHeaderInterface sessionHeader = getHeader(DsSipConstants.BS_SESSION_ID);
     if (null != sessionHeader) {
       String[] sessionID = sessionHeader.getValue().toString().split(DsSipMessage.SEMICOLON);
-      sessionIdValue[0] = sessionID[0];
+      localSessionId = Optional.of(sessionID[0]);
+    }
+    return localSessionId;
+  }
+
+  public Optional<String> getRemoteSessionId() {
+    Optional<String> remoteSessionId = Optional.empty();
+    DsSipHeaderInterface sessionHeader = getHeader(DsSipConstants.BS_SESSION_ID);
+    if (null != sessionHeader) {
+      String[] sessionID = sessionHeader.getValue().toString().split(DsSipMessage.SEMICOLON);
       if (sessionID.length == 2
           && sessionID[1].toLowerCase().startsWith(DsSipMessage.REMOTESTRING)) {
         String[] remoteID = sessionID[1].split("=");
         if (remoteID.length == 2) {
-          sessionIdValue[1] = remoteID[1];
+          remoteSessionId = Optional.of(remoteID[1]);
         }
       }
     }
-    return sessionIdValue;
+    return remoteSessionId;
   }
 
   /* CAFFEINE 2.0 DEVELOPMENT - Changed class hierarchy to add MIME body and Sipfrag support

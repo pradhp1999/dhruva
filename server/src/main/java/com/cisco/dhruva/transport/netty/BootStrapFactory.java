@@ -13,7 +13,8 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 public class BootStrapFactory {
 
   private static BootStrapFactory bootStrapFactory = new BootStrapFactory();
-  private Bootstrap udpBootstrap;
+  private Bootstrap udpClientBootstrap;
+  private Bootstrap udpServerBootstrap;
   private Object lock = new Object();
 
   public static BootStrapFactory getInstance() {
@@ -25,8 +26,8 @@ public class BootStrapFactory {
     switch (transport) {
       case UDP:
         synchronized (lock) {
-          if (udpBootstrap == null) {
-            udpBootstrap =
+          if (udpClientBootstrap == null) {
+            udpClientBootstrap =
                 new Bootstrap()
                     .channel(NioDatagramChannel.class)
                     .handler(baseChannelInitializer)
@@ -34,7 +35,7 @@ public class BootStrapFactory {
           }
         }
 
-        return udpBootstrap;
+        return udpClientBootstrap;
     }
 
     return null;
@@ -46,8 +47,8 @@ public class BootStrapFactory {
     switch (transport) {
       case UDP:
         synchronized (lock) {
-          if (udpBootstrap == null) {
-            udpBootstrap =
+          if (udpServerBootstrap == null) {
+            udpServerBootstrap =
                 new Bootstrap()
                     .channel(NioDatagramChannel.class)
                     .handler(baseChannelInitializer)
@@ -55,13 +56,17 @@ public class BootStrapFactory {
           }
         }
 
-        return udpBootstrap;
+        return udpServerBootstrap;
     }
 
     return null;
   }
 
+  /*
+  only used for Testing
+   */
   public void setUdpBootstrap(Bootstrap udpBootstrap) {
-    this.udpBootstrap = udpBootstrap;
+    this.udpClientBootstrap = udpBootstrap;
+    this.udpServerBootstrap = udpBootstrap;
   }
 }

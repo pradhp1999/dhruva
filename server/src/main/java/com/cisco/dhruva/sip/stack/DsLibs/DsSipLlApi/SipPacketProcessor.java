@@ -5,6 +5,8 @@ import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.transport.MessageForwarder;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -16,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 public class SipPacketProcessor implements MessageForwarder {
 
   protected static SipPacketProcessor smp_theSingleton = null;
+  private Logger logger = DhruvaLoggerFactory.getLogger(this.getClass());
 
   protected ExecutorService sipProcessor;
 
@@ -64,6 +67,11 @@ public class SipPacketProcessor implements MessageForwarder {
         CompletableFuture.runAsync(
             createMessageBytes(messageBytes, (DsBindingInfo) bindingInfo.clone()),
             sipProcessor.getExecutorThreadPool(ExecutorType.SIP_TRANSACTION_PROCESSOR));
+
+    runAsync.whenComplete(
+        (aVoid, throwable) -> {
+          if (throwable != null) logger.error("Completed Exceptionally ", throwable.getCause());
+        });
   }
 
   /**

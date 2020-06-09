@@ -6,6 +6,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.transport.Connection;
+import com.cisco.dhruva.util.log.event.Event;
 import java.io.IOException;
 import java.net.InetAddress;
 import org.slf4j.event.Level;
@@ -26,7 +27,7 @@ public class DsSipUdpConnection extends DsUdpConnection implements DsSipConnecti
    * @throws IOException if there is an I/O error while sending the message
    */
   public byte[] send(DsSipMessage message) throws IOException {
-    if (DsLog4j.connectionCat.isEnabled(Level.INFO)) {
+    if (DsLog4j.connectionCat.isEnabled(Level.DEBUG)) {
       DsLog4j.connectionCat.info(
           "Trying to send message to address {} \n {}", bindingInfo, message);
     }
@@ -36,6 +37,7 @@ public class DsSipUdpConnection extends DsUdpConnection implements DsSipConnecti
     buffer = message.toByteArray();
     super.send(buffer);
     message.updateBinding(bindingInfo);
+    Event.emitMessageEvent(bindingInfo, message, Event.OUT);
 
     return buffer;
   }

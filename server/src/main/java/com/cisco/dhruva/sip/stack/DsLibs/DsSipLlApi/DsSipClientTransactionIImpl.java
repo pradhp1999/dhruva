@@ -22,13 +22,13 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipURL;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsDiscreteTimerMgr;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsEvent;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsStateMachineException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTrackingException.TrackingExceptions;
 import com.cisco.dhruva.transport.Transport;
@@ -480,7 +480,7 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
           if (cat.isEnabled(Level.DEBUG)) {
             debugTraceTimer(true, "m_To", "IN_TIMEOUT", m_To);
           }
-          DsDiscreteTimerMgr.scheduleNoQ(m_To, this, IN_TIMEOUT);
+          DsTimer.schedule(m_To, this, IN_TIMEOUT);
         }
         cancelTn(); // transaction will terminate normally
         break;
@@ -498,7 +498,7 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
           if (cat.isEnabled(Level.DEBUG)) {
             debugTraceTimer(true, "m_To", "IN_TIMEOUT", m_To);
           }
-          DsDiscreteTimerMgr.scheduleNoQ(m_To, this, IN_TIMEOUT);
+          DsTimer.schedule(m_To, this, IN_TIMEOUT);
         }
         cancelTn(); // transaction will terminate normally
         break;
@@ -591,7 +591,7 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
               debugTraceTimer(
                   true, "64 * DsSipTimers.T1Value", "IN_TIMEOUT", 64 * m_sipTimers.T1Value);
             }
-            DsDiscreteTimerMgr.scheduleNoQ(64 * m_sipTimers.T1Value, this, IN_TIMEOUT);
+            DsTimer.schedule(64 * m_sipTimers.T1Value, this, IN_TIMEOUT);
 
             cancelTn(); // transaction will terminate normally
           } else {
@@ -599,7 +599,7 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
             if (cat.isEnabled(Level.DEBUG)) {
               debugTraceTimer(true, "m_sipTimers.TU1Value", "IN_Tn", m_sipTimers.TU1Value);
             }
-            m_TimerTaskTn = DsDiscreteTimerMgr.scheduleNoQ(m_sipTimers.TU1Value, this, IN_Tn);
+            m_TimerTaskTn = DsTimer.schedule(m_sipTimers.TU1Value, this, IN_Tn);
           }
         }
         break;
@@ -1088,13 +1088,13 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
           m_ackMessage = null;
         }
       } catch (IOException ioe) {
-        DsDiscreteTimerMgr.scheduleNoQ(m_timeout, this, null);
+        DsTimer.schedule(m_timeout, this, null);
         throw ioe;
       } catch (Exception exc) {
-        DsDiscreteTimerMgr.scheduleNoQ(m_timeout, this, null);
+        DsTimer.schedule(m_timeout, this, null);
         throw new DsException(exc);
       }
-      DsDiscreteTimerMgr.scheduleNoQ(m_timeout, this, null);
+      DsTimer.schedule(m_timeout, this, null);
     }
 
     public boolean isStarted() {
@@ -1135,7 +1135,7 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
       DsByteString cid = (m_ackMessage == null) ? new DsByteString("??") : m_ackMessage.getCallId();
       return "CLIENT_TRANS (503 handler) METHOD: INVITE STATE: N/A  KEY: "
           + m_key
-          + "\nCALLID:: "
+          + " CALLID:: "
           + (cid != null ? DsByteString.toString(cid) : "null");
     }
   }

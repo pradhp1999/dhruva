@@ -16,13 +16,14 @@ public abstract class AbstractAppSession implements AppInterface {
   public AbstractAppSession() {}
 
   public void handleRequest(IDhruvaMessage request) {
+
     logger.info("handleIncomingRequest session Id's {}", request.getSessionId());
+
     if (appEngine == null) {
       appEngine = new AppEngine(this);
     }
 
     try {
-      // TODO MeetPass
       appEngine.handleMessage(request);
     } catch (Exception e) {
       logger.error("exception while creating response {}", e.getMessage());

@@ -565,7 +565,7 @@ public class DsProxyTransaction extends DsProxyStatelessTransaction {
         getServerTransaction().respond(response);
 
         assert response != null;
-        Log.debug("Response sent for {}" + Arrays.toString(response.getSessionId()));
+        Log.debug("Response sent for");
       }
       Log.info("Didn't send response to stray ACK or CANCEL: " + getStrayStatus());
     } catch (DsDestinationUnreachableException e) {

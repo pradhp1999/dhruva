@@ -1017,7 +1017,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   public void respond(DsSipResponse response) throws DsException {
     Optional<DsSipRequest> request = Optional.ofNullable(this.ourRequest);
     if (request.isPresent()) {
-      Log.info("sending response " + Arrays.toString(response.getSessionId()));
+      Log.info("sending response ");
       if ((ourRequest.getMethodID() != DsSipMessage.ACK)
           && (ourRequest.getMethodID() != DsSipMessage.CANCEL)) {
         // Change to statefull if we are stateless
@@ -1038,9 +1038,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       } else {
         Log.warn("in respond() - not forwarding response because request method was ACK");
       }
-    } else
-      throw new DsException(
-          "request is null for response" + Arrays.toString(response.getSessionId()));
+    } else throw new DsException("request is null for response");
   }
 
   /**
@@ -1467,9 +1465,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
           "Proxied the request to :"
               + location.getURI().toString()
               + " with requestTimeout = "
-              + timeToTry
-              + "request session id: "
-              + Arrays.toString(request.getSessionId()));
+              + timeToTry);
     }
   }
 

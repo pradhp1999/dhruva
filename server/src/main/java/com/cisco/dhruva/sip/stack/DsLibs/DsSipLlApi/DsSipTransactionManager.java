@@ -45,8 +45,13 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTlsUtil;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.LogContext;
 import com.cisco.dhruva.util.log.Logger;
 import com.cisco.dhruva.util.log.Trace;
+import com.cisco.dhruva.util.log.event.Event;
+import com.cisco.dhruva.util.log.event.Event.EventType;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -56,6 +61,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -74,31 +80,51 @@ import java.util.Set;
  */
 public class DsSipTransactionManager {
 
-  /** How to create transactions and server transaction interfaces. */
+  /**
+   * How to create transactions and server transaction interfaces.
+   */
   private static DsSipTransactionFactory m_transactionFactory =
       new DsSipDefaultTransactionFactory();
 
-  /** Request logging category. */
+  /**
+   * Request logging category.
+   */
   private static Logger reqCat = DsLog4j.transMReqCat;
-  /** CANCEL logging category. */
+  /**
+   * CANCEL logging category.
+   */
   private static Logger cancelCat = DsLog4j.transMCancelCat;
   // CAFFEINE 2.0 DEVELOPMENT - PRACK required
-  /** PRACK logging category. */
+  /**
+   * PRACK logging category.
+   */
   private static Logger prackCat = DsLog4j.transMPrackCat;
-  /** ACK logging category. */
+  /**
+   * ACK logging category.
+   */
   private static Logger ackCat = DsLog4j.transMAckCat;
-  /** Response logging category. */
+  /**
+   * Response logging category.
+   */
   private static Logger respCat = DsLog4j.transMRespCat;
-  /** General logging category. */
+  /**
+   * General logging category.
+   */
   private static Logger generalCat = DsLog4j.transMCat;
 
   private static Logger logger = DhruvaLoggerFactory.getLogger(DsSipTransactionManager.class);
 
-  /** Local port unspecified. */
+  /**
+   * Local port unspecified.
+   */
   private static final int LPU = DsBindingInfo.LOCAL_PORT_UNSPECIFIED;
-  /** Remote port unspecified. */
+  /**
+   * Remote port unspecified.
+   */
   private static final int RPU = DsBindingInfo.REMOTE_PORT_UNSPECIFIED;
-  /** Binding transport unspecified. */
+  /**
+   * Binding transport unspecified.
+   */
   private static final Transport BTU = DsBindingInfo.BINDING_TRANSPORT_UNSPECIFIED;
 
   private static HashMap m_dialogMap = new HashMap(16, .60f);
@@ -112,7 +138,9 @@ public class DsSipTransactionManager {
 
   private static volatile OperationalState operationalState;
 
-  /** <code>true</code> if emulating RFC 2543 responses. */
+  /**
+   * <code>true</code> if emulating RFC 2543 responses.
+   */
   static final boolean m_emulate2543Responses =
       DsConfigManager.getProperty(
           DsConfigManager.PROP_EMULATE_RFC2543_RESPONSES,
@@ -187,7 +215,9 @@ public class DsSipTransactionManager {
     shouldDecrementMaxForwards = tempDec;
   }
 
-  /** Different Cloudproxy Operational states */
+  /**
+   * Different Cloudproxy Operational states
+   */
   public enum OperationalState {
     RUNNING("Running"),
     SUSPENDED("Suspended"),
@@ -205,10 +235,14 @@ public class DsSipTransactionManager {
     }
   }
 
-  /** Redirect all incoming requests for shutdown. */
+  /**
+   * Redirect all incoming requests for shutdown.
+   */
   public static final int REDIRECT_ON_SHUTDOWN = 1;
 
-  /** Reject all incoming requests for shutdown. */
+  /**
+   * Reject all incoming requests for shutdown.
+   */
   public static final int REJECT_ON_SHUTDOWN = 2;
 
   public static final int REJECT_ALL = 3;
@@ -218,7 +252,9 @@ public class DsSipTransactionManager {
   // /////////////////////////////////////////////////
   // Static Data
 
-  /** The singleton representation of the transaction manager. */
+  /**
+   * The singleton representation of the transaction manager.
+   */
   protected static DsSipTransactionManager smp_theSingleton = null;
 
   private static DsSipTransportLayer m_transportLayer;
@@ -229,12 +265,16 @@ public class DsSipTransactionManager {
 
   private static DsSipRouteFixInterface m_routeFixInterface;
 
-  /** The default interface and the map of specific interfaces. */
+  /**
+   * The default interface and the map of specific interfaces.
+   */
   private static DsSipRequestInterface m_defaultInterface;
   // holds DsByteStrings now, rather than Strings - jsm 06/17/2002
   private static Map m_interfaceMap = new HashMap();
 
-  /** <code>true</code> if running as a proxy server. */
+  /**
+   * <code>true</code> if running as a proxy server.
+   */
   protected static boolean m_proxyServerMode = false;
 
   private static boolean m_autoResponseToStrayCancel = true;
@@ -265,7 +305,7 @@ public class DsSipTransactionManager {
   /**
    * Constructs the DsSipTransactionManager and associates it with the transport layer.
    *
-   * @param transportLayer transport layer to be associated with the transaction manager
+   * @param transportLayer   transport layer to be associated with the transaction manager
    * @param defaultInterface the default interface to be used
    * @throws DsException if the transaction manager has already been constructed
    */
@@ -307,7 +347,9 @@ public class DsSipTransactionManager {
     DsConfigManager.setTransportLayer(m_transportLayer);
   }
 
-  /** This method is called to resume the processing of calls by cloudproxy. */
+  /**
+   * This method is called to resume the processing of calls by cloudproxy.
+   */
   public static synchronized void resume() {
     if (operationalState == OperationalState.SUSPENDED) {
       String currentState = operationalState.toString();
@@ -317,7 +359,9 @@ public class DsSipTransactionManager {
     }
   }
 
-  /** This method is called to retrieve CP operationalState */
+  /**
+   * This method is called to retrieve CP operationalState
+   */
   public static String getOperationalState() {
     return operationalState.toString();
   }
@@ -356,17 +400,18 @@ public class DsSipTransactionManager {
    * Obtain a connection to a server for a given request. If server should be searched for,
    * initialize the provided DsSipResolver and return null.
    *
-   * @param message the message for which to obtain a connection
+   * @param message  the message for which to obtain a connection
    * @param resolver a DsSipResolver to fill in in case we should search for a server
    * @return null if there is more than a single possible <port, IP address, protocol> tuple to try
-   *     to connect to per the SIP RFC paragraph on server location. In this case, the resolver
-   *     parameter will be initialized with a list of services to try
-   * @throws SocketException if there is an error while creating the socket for the specified
-   *     transport type
+   * to connect to per the SIP RFC paragraph on server location. In this case, the resolver
+   * parameter will be initialized with a list of services to try
+   * @throws SocketException      if there is an error while creating the socket for the specified
+   *                              transport type
    * @throws UnknownHostException if the host address is not known
-   * @throws IOException if error occurs while creating a message reader for stream protocol
-   * @throws DsException if either remote address not set on non-SIP URI or transport protocol not
-   *     supported for this element
+   * @throws IOException          if error occurs while creating a message reader for stream
+   *                              protocol
+   * @throws DsException          if either remote address not set on non-SIP URI or transport
+   *                              protocol not supported for this element
    * @see DsSipResolver
    */
   public static DsSipConnection getRequestConnection(DsSipMessage message, DsSipResolver resolver)
@@ -511,19 +556,20 @@ public class DsSipTransactionManager {
    * Obtain a connection to a server for a given url. If server should be searched for, initialize
    * the provided DsSipResolver and return null.
    *
-   * @param network the network associated with this connection
-   * @param lAddr local address
-   * @param lPort local port
-   * @param url the URL to connect to
+   * @param network  the network associated with this connection
+   * @param lAddr    local address
+   * @param lPort    local port
+   * @param url      the URL to connect to
    * @param resolver a DsSipResolver to fill in in case we should search for a server
    * @return <code>null</code> if there is more than a single possible &LTport, IP address,
-   *     protocol&GT tuple to try to connect to per the SIP RFC paragraph on server location. In
-   *     this case, the resolver parameter will be initialized with a list of services to try
-   * @throws SocketException if there is an error while creating the socket for the specified
-   *     transport type
+   * protocol&GT tuple to try to connect to per the SIP RFC paragraph on server location. In this
+   * case, the resolver parameter will be initialized with a list of services to try
+   * @throws SocketException      if there is an error while creating the socket for the specified
+   *                              transport type
    * @throws UnknownHostException if the host address is not known
-   * @throws IOException if error occurs while creating a message reader for stream protocol
-   * @throws DsException if transport protocol not supported for this element
+   * @throws IOException          if error occurs while creating a message reader for stream
+   *                              protocol
+   * @throws DsException          if transport protocol not supported for this element
    * @see DsSipResolver
    */
   protected static DsSipConnection getSRVConnection(
@@ -562,22 +608,22 @@ public class DsSipTransactionManager {
   /**
    * Obtain a connection based on the rules for locating a server specified in the SIP RFC.
    *
-   * @param network the network associated with this connection
-   * @param lAddr local address
-   * @param lPort local port
-   * @param host the host to connect to
-   * @param port the port to connection to
-   * @param transport the transport to use for the connection or
-   *     DsSipBindingInfo.BINDING_TRANSPORT_UNSPECIFIED
-   * @param resolver a DsSipResolver to initialize if SRV searching should be performed according to
-   *     the SIP spec
+   * @param network   the network associated with this connection
+   * @param lAddr     local address
+   * @param lPort     local port
+   * @param host      the host to connect to
+   * @param port      the port to connection to
+   * @param transport the transport to use for the connection or DsSipBindingInfo.BINDING_TRANSPORT_UNSPECIFIED
+   * @param resolver  a DsSipResolver to initialize if SRV searching should be performed according
+   *                  to the SIP spec
    * @return a DsSipConnection for this host, port and transport or null if the server should be
-   *     searched for according to the SIP specification
-   * @throws SocketException if there is an error while creating the socket for the specified
-   *     transport type
+   * searched for according to the SIP specification
+   * @throws SocketException      if there is an error while creating the socket for the specified
+   *                              transport type
    * @throws UnknownHostException if the host address is not known
-   * @throws IOException if error occurs while creating a message reader for stream protocol
-   * @throws DsException if transport protocol not supported for this element
+   * @throws IOException          if error occurs while creating a message reader for stream
+   *                              protocol
+   * @throws DsException          if transport protocol not supported for this element
    */
   protected static DsSipConnection getSRVConnection(
       DsNetwork network,
@@ -647,20 +693,20 @@ public class DsSipTransactionManager {
   /**
    * Obtain a connection based on the rules for locating a server specified in the SIP RFC.
    *
-   * @param network the network associated with this connection
-   * @param host the host to connect to
-   * @param port the port to connection to
-   * @param transport the transport to use for the connection or
-   *     DsSipBindingInfo.BINDING_TRANSPORT_UNSPECIFIED
-   * @param resolver a DsSipResolver to initialize if SRV searching should be performed according to
-   *     the SIP spec
+   * @param network   the network associated with this connection
+   * @param host      the host to connect to
+   * @param port      the port to connection to
+   * @param transport the transport to use for the connection or DsSipBindingInfo.BINDING_TRANSPORT_UNSPECIFIED
+   * @param resolver  a DsSipResolver to initialize if SRV searching should be performed according
+   *                  to the SIP spec
    * @return a DsSipConnection for this host, port and transport or null if the server should be
-   *     searched for according to the SIP specification
-   * @throws SocketException if there is an error while creating the socket for the specified
-   *     transport type
+   * searched for according to the SIP specification
+   * @throws SocketException      if there is an error while creating the socket for the specified
+   *                              transport type
    * @throws UnknownHostException if the host address is not known
-   * @throws IOException if error occurs while creating a message reader for stream protocol
-   * @throws DsException if transport protocol not supported for this element
+   * @throws IOException          if error occurs while creating a message reader for stream
+   *                              protocol
+   * @throws DsException          if transport protocol not supported for this element
    */
   protected static DsSipConnection getSRVConnection(
       DsNetwork network, String host, int port, Transport transport, DsSipResolver resolver)
@@ -707,17 +753,18 @@ public class DsSipTransactionManager {
    * Obtain a connection to a server for a given url. If server should be searched for, initialize
    * the provided DsSipResolver and return null.
    *
-   * @param network the network associated with this connection
-   * @param url the URL to connect to
+   * @param network  the network associated with this connection
+   * @param url      the URL to connect to
    * @param resolver a DsSipResolver to fill in in case we should search for a server
    * @return null if there is more than a single possible <port, IP address, protocol> tuple to try
-   *     to connect to per the SIP RFC paragraph on server location. In this case, the resolver
-   *     parameter will be initialized with a list of services to try
-   * @throws SocketException if there is an error while creating the socket for the specified
-   *     transport type
+   * to connect to per the SIP RFC paragraph on server location. In this case, the resolver
+   * parameter will be initialized with a list of services to try
+   * @throws SocketException      if there is an error while creating the socket for the specified
+   *                              transport type
    * @throws UnknownHostException if the host address is not known
-   * @throws IOException if error occurs while creating a message reader for stream protocol
-   * @throws DsException if transport protocol not supported for this element
+   * @throws IOException          if error occurs while creating a message reader for stream
+   *                              protocol
+   * @throws DsException          if transport protocol not supported for this element
    * @see DsSipResolver
    */
   protected static DsSipConnection getSRVConnection(
@@ -756,7 +803,7 @@ public class DsSipTransactionManager {
    * Connect to URI, with DsBindingInfo overriding DsURI. If the URI parameter isn't a SIP URL, the
    * binding info's address must be present or an IOException will be thrown.
    *
-   * @param uri the URI to get the connection for
+   * @param uri  the URI to get the connection for
    * @param info the binding info to get the connection for
    * @return the connection that matches the supplied URI and binding info
    * @throws IOException if thrown by the underlying connection
@@ -869,12 +916,14 @@ public class DsSipTransactionManager {
    *
    * @param message the message for which to obtain a connection
    * @return connection for the given message
-   * @throws SocketException if there is an error while creating the socket for the specified
-   *     transport type
+   * @throws SocketException      if there is an error while creating the socket for the specified
+   *                              transport type
    * @throws UnknownHostException if the host address is not known
-   * @throws IOException if error occurs while creating a message reader for stream protocol
-   * @throws DsException if either remote address not set on non-SIP URI or transport protocol not
-   *     supported for this proxy or invalid VIA header in the message
+   * @throws IOException          if error occurs while creating a message reader for stream
+   *                              protocol
+   * @throws DsException          if either remote address not set on non-SIP URI or transport
+   *                              protocol not supported for this proxy or invalid VIA header in the
+   *                              message
    */
   public static DsSipConnection getConnection(DsSipMessage message)
       throws SocketException, DsException, UnknownHostException, IOException {
@@ -907,19 +956,23 @@ public class DsSipTransactionManager {
    *
    * @param viaHeader the Via header for which to obtain the connection
    * @return the found connection
-   * @throws SocketException if there is an error while creating the socket for the specified
-   *     transport type
+   * @throws SocketException      if there is an error while creating the socket for the specified
+   *                              transport type
    * @throws UnknownHostException if the host address is not known
-   * @throws IOException if error occurs while creating a message reader for stream protocol
-   * @throws DsException if either remote address not set on non-SIP URI or transport protocol not
-   *     supported for this proxy or invalid VIA header in the message
+   * @throws IOException          if error occurs while creating a message reader for stream
+   *                              protocol
+   * @throws DsException          if either remote address not set on non-SIP URI or transport
+   *                              protocol not supported for this proxy or invalid VIA header in the
+   *                              message
    */
   public static DsSipConnection getConnection(DsSipViaHeader viaHeader)
       throws SocketException, DsException, UnknownHostException, IOException {
     return getConnection(null, viaHeader);
   }
 
-  /** Obtain a connection based on the Via header following the rules for maddr, rport etc. */
+  /**
+   * Obtain a connection based on the Via header following the rules for maddr, rport etc.
+   */
   private static DsSipConnection getConnection(DsBindingInfo info, DsSipViaHeader viaHeader)
       throws SocketException, DsException, UnknownHostException, IOException {
     // Check for the connection ID
@@ -1025,7 +1078,7 @@ public class DsSipTransactionManager {
    * call the ClientTransaction.finalResponse() method.
    *
    * @param proxyServerMode Pass in true to place Transaction Manager in Proxy Server mode and false
-   *     to turn off Proxy Server mode.
+   *                        to turn off Proxy Server mode.
    */
   public static final void setProxyServerMode(boolean proxyServerMode) {
     m_proxyServerMode = proxyServerMode;
@@ -1036,7 +1089,7 @@ public class DsSipTransactionManager {
    * Use isProxyServerMode() to see if the TransactionManager is in Proxy mode.
    *
    * @return If the TransactionManager is in proxy mode, true is returned. Otherwise false is
-   *     returned.
+   * returned.
    */
   public static final boolean isProxyServerMode() {
     return m_proxyServerMode;
@@ -1049,7 +1102,7 @@ public class DsSipTransactionManager {
    * "Unsupported" (UNSUPPORTED)
    *
    * @param attribute pass in one of the above attributes; if null is passed, the default is in
-   *     effect.
+   *                  effect.
    */
   public void set100relSupport(byte attribute) {
     Logger cat = generalCat;
@@ -1087,7 +1140,7 @@ public class DsSipTransactionManager {
    * exist. This method allows turning on and off this automatic sending of responses.
    *
    * @param autoRespond boolean to indicate whether 481 responses should be automatically sent or
-   *     not.
+   *                    not.
    */
   public static final void autoResponseToStrayCancel(boolean autoRespond) {
     m_autoResponseToStrayCancel = autoRespond;
@@ -1162,8 +1215,9 @@ public class DsSipTransactionManager {
    * Returns the total number of transactions (client & server) that are in progress plus the
    * transactions that have reached the terminated state.
    *
-   * @param isCurrent <code>false</code> if you want to get count since reboot <code>false</code> if
-   *     you want to get last snapshot counts.
+   * @param isCurrent <code>false</code> if you want to get count since reboot <code>false</code>
+   *                  if
+   *                  you want to get last snapshot counts.
    */
   public int getTotalTransactionCount(boolean isCurrent) {
     if (isCurrent) {
@@ -1190,13 +1244,13 @@ public class DsSipTransactionManager {
   /**
    * Factory interface for DsSipClientTransaction.
    *
-   * @param request Handle of message to be sent to server.
-   * @param clientInterface Optional callback interface to user-level callbacks.
+   * @param request             Handle of message to be sent to server.
+   * @param clientInterface     Optional callback interface to user-level callbacks.
    * @param clientTransportInfo If the client wishes to use transport information other than that
-   *     held by transport layer, DsSipClientTransportInfo is implemented and passed to this
-   *     constructor
+   *                            held by transport layer, DsSipClientTransportInfo is implemented and
+   *                            passed to this constructor
    * @return the new client transaction or null if the transaction manager is asynchronous mode and
-   *     the outgoing request queue is full
+   * the outgoing request queue is full
    * @throws DsException if stack is shut down
    */
   public DsSipClientTransaction createClientTransaction(
@@ -1212,13 +1266,13 @@ public class DsSipTransactionManager {
   /**
    * Factory interface for DsSipClientTransaction. Also starts the transaction.
    *
-   * @param request Handle of message to be sent to server.
-   * @param clientInterface Optional callback interface to user-level callbacks.
+   * @param request             Handle of message to be sent to server.
+   * @param clientInterface     Optional callback interface to user-level callbacks.
    * @param clientTransportInfo If the client wishes to use transport information other than that
-   *     held by transport layer, DsSipClientTransportInfo is implemented and passed to this
-   *     constructor
+   *                            held by transport layer, DsSipClientTransportInfo is implemented and
+   *                            passed to this constructor
    * @return the new client transaction or null if the transaction manager is asynchronous mode and
-   *     the outgoing request queue is full
+   * the outgoing request queue is full
    * @throws IOException if the execution of the state machine results in an IOException
    * @throws DsException if stack is shut down
    */
@@ -1235,11 +1289,11 @@ public class DsSipTransactionManager {
   /**
    * Factory interface for DsSipClientTransaction.
    *
-   * @param request Handle of message to be sent to server.
-   * @param clientInterface Optional callback interface to user-level callbacks.
+   * @param request           Handle of message to be sent to server.
+   * @param clientInterface   Optional callback interface to user-level callbacks.
    * @param transactionParams Optional. Reserved for future use.
    * @return the new client transaction or null if the transaction manager is asynchronous mode and
-   *     the outgoing request queue is full
+   * the outgoing request queue is full
    * @throws DsException if stack is shut down
    */
   public DsSipClientTransaction createClientTransaction(
@@ -1254,11 +1308,11 @@ public class DsSipTransactionManager {
   /**
    * Factory interface for DsSipClientTransaction. Also starts the transaction.
    *
-   * @param request Handle of message to be sent to server.
-   * @param clientInterface optional callback interface to user-level callbacks.
+   * @param request           Handle of message to be sent to server.
+   * @param clientInterface   optional callback interface to user-level callbacks.
    * @param transactionParams optional, reserved for future use.
    * @return the new client transaction or null if the transaction manager is asynchronous mode and
-   *     the outgoing request queue is full
+   * the outgoing request queue is full
    * @throws IOException if the execution of the state machine results in an IOException
    * @throws DsException if stack is shut down
    */
@@ -1278,7 +1332,7 @@ public class DsSipTransactionManager {
    *
    * @param txn the transaction to start
    * @return the new client transaction or null if the transaction manager is asynchronous mode and
-   *     the outgoing request queue is full
+   * the outgoing request queue is full
    * @throws IOException if the execution of the state machine results in an IOException
    * @throws DsException if stack is shut down
    */
@@ -1319,7 +1373,7 @@ public class DsSipTransactionManager {
    * case-sensitive.
    *
    * @param defaultInterface the interface called when a SIP request arrives
-   * @param method the name of the SIP method corresponding to the interface
+   * @param method           the name of the SIP method corresponding to the interface
    * @throws DsException if method specified is CANCEL
    */
   public synchronized void setRequestInterface(
@@ -1392,7 +1446,7 @@ public class DsSipTransactionManager {
   /**
    * Adds the received parameter to the Via header.
    *
-   * @param aMessage the message to add the received parameter to
+   * @param aMessage      the message to add the received parameter to
    * @param originAddress the address to add
    */
   protected void addReceiveParameter(DsSipMessage aMessage, InetAddress originAddress) {
@@ -1424,7 +1478,7 @@ public class DsSipTransactionManager {
    * Checks if the rport flag is set in this message. If yes then adds the rport parameter.
    *
    * @param aMessage the message for which the rport needs to be set
-   * @param port the rport to be set
+   * @param port     the rport to be set
    */
   protected void addRPortParameter(DsSipMessage aMessage, int port) {
     // here we must have a valid via header
@@ -1446,7 +1500,7 @@ public class DsSipTransactionManager {
    * down. During listener shutdown, non-ACK requests are either rejected(SERVICE_UNAVAILABLE
    * response) or redirected(MOVED_TEMPORARILY response). according to user configuration.
    *
-   * @param request the request to process
+   * @param request     the request to process
    * @param transaction the transaction to use for processing the request
    * @return true if the message is a request other than ACK, otherwise returns false
    */
@@ -1520,8 +1574,11 @@ public class DsSipTransactionManager {
       }
 
       message = DsSipMessage.createMessage(msgBytes.getMessageBytes(), true, true);
+
+      populateTrackingIdInLog(message);
+      Event.emitMessageEvent(msgBytes.getBindingInfo(), message, Event.IN);
+
       message.setTimestamp(msgBytes.getTimestamp());
-      DsLog4j.logSessionId(message);
 
     } catch (DsSipParserException pe) {
       logger.warn("Parser Exception in Parsing the SIP message, dropping the message", pe);
@@ -1551,6 +1608,8 @@ public class DsSipTransactionManager {
       return;
     }
 
+    populateTrackingIdInLog(message);
+
     message.setBindingInfo(msgBytes.getBindingInfo());
 
     try {
@@ -1564,6 +1623,12 @@ public class DsSipTransactionManager {
       logger.error(
           "processMessageBytes: exception in processMessage , message would get dropped", exc);
     }
+  }
+
+  private void populateTrackingIdInLog(DsSipMessage message) {
+    new LogContext()
+        .getLogContext(message)
+        .ifPresent(logContext -> logger.setMDC(logContext.getLogContextAsMap()));
   }
 
   private void sendErrorResponseForKeyValidationFailure(
@@ -1602,25 +1667,14 @@ public class DsSipTransactionManager {
   }
 
   /**
-   * Deprecated - use one of the other processMessage methods.
-   *
-   * @param message the message to process
-   * @param badMessageReason the message to use with a 400 response
-   * @deprecated use processMessage(DsSipMessage, String, int)
-   */
-  public void processMessage(DsSipMessage message, String badMessageReason) {
-    processMessage(message, badMessageReason, DsSipResponseCode.DS_RESPONSE_BAD_REQUEST);
-  }
-
-  /**
    * Process a message. This method looks up the transaction in the map using the full key (with the
    * Via). For requests it then delegates to either processCancel, processAck, processPrack, or
    * processRequest (for requests other than ACK, PRACK, and CANCEL). For responses it delegates to
    * processResponse.
    *
-   * @param message the message to be processed
+   * @param message          the message to be processed
    * @param badMessageReason the message to use with a 400 response
-   * @param code the response code to use
+   * @param code             the response code to use
    */
   public void processMessage(DsSipMessage message, String badMessageReason, int code) {
     DsSipServerTransaction transaction;
@@ -1634,7 +1688,7 @@ public class DsSipTransactionManager {
 
     int methodID = message.getCSeqType();
     message.addAndUpdateSessionIdHeader();
-    DsLog4j.logSessionId(message);
+    populateTrackingIdInLog(message);
 
     if (message.isRequest()) {
 
@@ -1989,9 +2043,9 @@ public class DsSipTransactionManager {
    * algorithm details.
    *
    * @param request the request to process
-   * @param method the method extracted by the processMessage
+   * @param method  the method extracted by the processMessage
    * @return the transaction found with the full transaction key or null if the transaction is
-   *     created and/or processed here
+   * created and/or processed here
    */
   private DsSipServerTransaction processRequest(
       DsSipRequest request, DsByteString method, String badRequestReason, int code) {
@@ -1999,6 +2053,11 @@ public class DsSipTransactionManager {
     DsSipServerTransaction transaction = null;
 
     boolean isNewTransaction = false;
+
+    createSIPSession(
+        DsMessageLoggingInterface.REASON_REGULAR, DsMessageLoggingInterface.DIRECTION_IN, request);
+
+    populateTrackingIdInLog(request);
 
     try {
       transaction = m_transactionTable.findOrCreateServerTransaction(request, m_transactionFactory);
@@ -2038,11 +2097,6 @@ public class DsSipTransactionManager {
       sendResponseMethodNotAllowed(request, transaction);
       return null;
     }
-
-    createSIPSession(
-        DsMessageLoggingInterface.REASON_REGULAR, DsMessageLoggingInterface.DIRECTION_IN, request);
-
-    DsLog4j.logSessionId(request);
 
     addCiscoPeerCertInfoHeader(request);
 
@@ -2142,8 +2196,8 @@ public class DsSipTransactionManager {
   }
 
   /**
-   * {@link DsSipRouteFixInterface} try to identify requestUri, <br>
-   * If it matches CP ip, port & protocol, it sends 200 OK response and return true
+   * {@link DsSipRouteFixInterface} try to identify requestUri, <br> If it matches CP ip, port &
+   * protocol, it sends 200 OK response and return true
    *
    * @param serverTransaction
    * @return
@@ -2204,8 +2258,8 @@ public class DsSipTransactionManager {
   }
 
   /**
-   * TODO CP checks the state (Running | Suspend).<br>
-   * if its in Suspend state, sends 503 response to Client and return true;
+   * TODO CP checks the state (Running | Suspend).<br> if its in Suspend state, sends 503 response
+   * to Client and return true;
    *
    * @param serverTransaction
    * @return
@@ -2312,8 +2366,8 @@ public class DsSipTransactionManager {
               | DsSipTransactionKey.USE_VIA
               | DsSipTransactionKey.LOOKUP
               | (DsSipTransactionTable.getUseRequestURI()
-                  ? DsSipTransactionKey.USE_URI
-                  : DsSipTransactionKey.NONE));
+              ? DsSipTransactionKey.USE_URI
+              : DsSipTransactionKey.NONE));
 
       transactionCancel = m_transactionTable.findMergedTransaction(keyCancel);
 
@@ -2328,8 +2382,8 @@ public class DsSipTransactionManager {
             DsSipTransactionKey.INCOMING
                 | DsSipTransactionKey.LOOKUP
                 | (DsSipTransactionTable.getUseRequestURI()
-                    ? DsSipTransactionKey.USE_URI
-                    : DsSipTransactionKey.NONE));
+                ? DsSipTransactionKey.USE_URI
+                : DsSipTransactionKey.NONE));
 
         //                -look in server table
         transactionCancel = m_transactionTable.findServerTransaction(keyCancel);
@@ -2557,8 +2611,8 @@ public class DsSipTransactionManager {
               | DsSipTransactionKey.USE_VIA
               | DsSipTransactionKey.LOOKUP
               | (DsSipTransactionTable.getUseRequestURI()
-                  ? DsSipTransactionKey.USE_URI
-                  : DsSipTransactionKey.NONE));
+              ? DsSipTransactionKey.USE_URI
+              : DsSipTransactionKey.NONE));
 
       transactionToBePracked = m_transactionTable.findMergedTransaction(keyPrack);
 
@@ -2569,8 +2623,8 @@ public class DsSipTransactionManager {
             DsSipTransactionKey.INCOMING
                 | DsSipTransactionKey.LOOKUP
                 | (DsSipTransactionTable.getUseRequestURI()
-                    ? DsSipTransactionKey.USE_URI
-                    : DsSipTransactionKey.NONE));
+                ? DsSipTransactionKey.USE_URI
+                : DsSipTransactionKey.NONE));
 
         //                -look in server table
         transactionToBePracked = m_transactionTable.findServerTransaction(keyPrack);
@@ -2765,8 +2819,8 @@ public class DsSipTransactionManager {
             | DsSipTransactionKey.USE_VIA
             | DsSipTransactionKey.LOOKUP
             | (DsSipTransactionTable.getUseRequestURI()
-                ? DsSipTransactionKey.USE_URI
-                : DsSipTransactionKey.NONE));
+            ? DsSipTransactionKey.USE_URI
+            : DsSipTransactionKey.NONE));
 
     // --        } catch (Exception e){}
 
@@ -2797,8 +2851,8 @@ public class DsSipTransactionManager {
         DsSipTransactionKey.INCOMING
             | DsSipTransactionKey.LOOKUP
             | (DsSipTransactionTable.getUseRequestURI()
-                ? DsSipTransactionKey.USE_URI
-                : DsSipTransactionKey.NONE));
+            ? DsSipTransactionKey.USE_URI
+            : DsSipTransactionKey.NONE));
 
     try {
       //                -look in server table
@@ -2903,7 +2957,7 @@ public class DsSipTransactionManager {
             sipSession.activity(request);
           }
         } else if ((request.getMethodID() == DsSipRequest.INVITE
-                || request.getMethodID() == DsSipRequest.OPTIONS)
+            || request.getMethodID() == DsSipRequest.OPTIONS)
             && request.getToTag() == null) {
           logger.info("session created: sessionid=" + sessionId + " for " + request.getMethod());
           SIPSessions.createSession(request);
@@ -2919,8 +2973,8 @@ public class DsSipTransactionManager {
    * Send a 400 response to a request.
    *
    * @param transaction the server transaction
-   * @param request the request
-   * @param reason the reason phrase for the response
+   * @param request     the request
+   * @param reason      the reason phrase for the response
    */
   private void sendErrorResponse(
       DsSipServerTransaction transaction, DsSipRequest request, String reason, int code) {
@@ -2949,7 +3003,7 @@ public class DsSipTransactionManager {
    * Validates and decrements Max-Forwards for an ACK request. This ACK may be associated with a
    * transaction or a stray.
    *
-   * @param ack the ACK message to be validated
+   * @param ack               the ACK message to be validated
    * @param isProxyServerMode true if we are acting as a proxy
    * @return boolean true if max forwards is == 0 and is proxyServerMode is true
    */
@@ -3088,7 +3142,7 @@ public class DsSipTransactionManager {
    * Set the Stray Message interface.
    *
    * @param strayInterface Implementation of stray message interface in which to notify of stray
-   *     messages.
+   *                       messages.
    */
   public void setStrayMessageInterface(DsSipStrayMessageInterface strayInterface) {
     m_StrayMessageInterface = strayInterface;
@@ -3150,9 +3204,9 @@ public class DsSipTransactionManager {
    * from the transaction.
    *
    * @param transaction the transaction whose key is being replaced
-   * @param old_key the old key
+   * @param old_key     the old key
    * @throws DsException not thrown any more, but its there for backward compatibility and may be
-   *     removed in the next release
+   *                     removed in the next release
    */
   protected static synchronized void replaceClientKey(
       DsSipTransaction transaction, DsSipTransactionKey old_key) throws DsException {
@@ -3164,7 +3218,7 @@ public class DsSipTransactionManager {
    *
    * @param request the SIP request for which a server transaction is being sought
    * @return the server transaction found by constructing a full key (with Via) or null if no server
-   *     transaction exists for the given request or the key could not be constructed
+   * transaction exists for the given request or the key could not be constructed
    */
   public DsSipServerTransaction findServerTransaction(DsSipRequest request) {
     if (request == null) {
@@ -3186,8 +3240,8 @@ public class DsSipTransactionManager {
    * scope. So try to avoid using it in your code.
    *
    * @param transaction the transaction to be added
-   * @param isClient if its client transaction
-   * @param useVia whether use VIA header
+   * @param isClient    if its client transaction
+   * @param useVia      whether use VIA header
    * @throws DsException if the transaction is already in the table
    */
   public static void addTransaction(DsSipTransaction transaction, boolean isClient, boolean useVia)
@@ -3205,9 +3259,9 @@ public class DsSipTransactionManager {
    * scope. So try to avoid using it in your code.
    *
    * @param transaction the transaction to be added
-   * @param isClient if its client transaction
-   * @param useVia whether use VIA header
-   * @param toTag whether to use To tag
+   * @param isClient    if its client transaction
+   * @param useVia      whether use VIA header
+   * @param toTag       whether to use To tag
    * @throws DsException if the transaction is already in the table
    */
   public static void addTransaction(
@@ -3225,7 +3279,7 @@ public class DsSipTransactionManager {
    *
    * @param key the key of the client transaction to remove
    * @throws DsException not thrown any more, but its there for backward compatibility and may be
-   *     removed in the next release
+   *                     removed in the next release
    */
   protected void removeClientTransaction(DsSipMessage key) throws DsException {
     m_transactionTable.removeClientTransaction(key.getKey());
@@ -3355,7 +3409,7 @@ public class DsSipTransactionManager {
    * @param message the SIP message to use to find the connection
    * @return the connection for the binding information in <code>message</code>.
    * @throws IllegalArgumentException if the connection table does not have an entry corresponding
-   *     to <code>message</code>
+   *                                  to <code>message</code>
    */
   public final DsConnection findConnection(DsSipMessage message) {
     DsBindingInfo bindingInfo = message.getBindingInfo();
@@ -3368,11 +3422,12 @@ public class DsSipTransactionManager {
    *
    * @param request the SIP message to use to find the connection
    * @return the connection for the binding information in <code>request</code>.
-   * @throws SocketException if there is an error while creating the socket for the specified
-   *     transport type
+   * @throws SocketException      if there is an error while creating the socket for the specified
+   *                              transport type
    * @throws UnknownHostException if the host address is not known
-   * @throws IOException if error occurs while creating a message reader for stream protocol
-   * @throws DsException if transport protocol not supported for this element
+   * @throws IOException          if error occurs while creating a message reader for stream
+   *                              protocol
+   * @throws DsException          if transport protocol not supported for this element
    */
   public final DsConnection persistRequestConnection(DsSipRequest request)
       throws SocketException, DsException, UnknownHostException, IOException {
@@ -3427,7 +3482,7 @@ public class DsSipTransactionManager {
    * This static method allows the user to set default Supported header for automated responses.
    *
    * @param header The Supported header to become the default Supported header for automated
-   *     responses
+   *               responses
    */
   public static synchronized void setSupportedHeader(DsSipHeaderList header) {
     m_supportedHeader = header;
@@ -3464,12 +3519,16 @@ public class DsSipTransactionManager {
     super.finalize();
   }
 
-  /** */
+  /**
+   *
+   */
   DsSipClientTransactionInterface getStatelessClientTransactionInterface() {
     return m_statelessTransactionInterface;
   }
 
-  /** */
+  /**
+   *
+   */
   DsSipServerTransactionInterface getStatelessServerTransactionInterface() {
     return m_statelessTransactionInterface;
   }
@@ -3479,7 +3538,9 @@ public class DsSipTransactionManager {
   //         m_transactionTable.setTransKeyGenerator(generator);
   //     }
 
-  /** */
+  /**
+   *
+   */
   class StatelessTransactionInterface
       implements DsSipClientTransactionInterface, DsSipServerTransactionInterface {
 
@@ -3496,11 +3557,14 @@ public class DsSipTransactionManager {
       }
     }
 
-    public void timeOut(DsSipClientTransaction clientTransaction) {}
+    public void timeOut(DsSipClientTransaction clientTransaction) {
+    }
 
-    public void icmpError(DsSipClientTransaction clientTransaction) {}
+    public void icmpError(DsSipClientTransaction clientTransaction) {
+    }
 
-    public void close(DsSipClientTransaction clientTransaction) {}
+    public void close(DsSipClientTransaction clientTransaction) {
+    }
 
     public void ack(DsSipServerTransaction serverTransaction, DsSipAckMessage ackMessage) {
       // don't need to call route fix interface here since it has been
@@ -3535,11 +3599,14 @@ public class DsSipTransactionManager {
       }
     }
 
-    public void close(DsSipServerTransaction serverTransaction) {}
+    public void close(DsSipServerTransaction serverTransaction) {
+    }
 
-    public void timeOut(DsSipServerTransaction serverTransaction) {}
+    public void timeOut(DsSipServerTransaction serverTransaction) {
+    }
 
-    public void icmpError(DsSipServerTransaction serverTransaction) {}
+    public void icmpError(DsSipServerTransaction serverTransaction) {
+    }
   }
 
   private StatelessTransactionInterface m_statelessTransactionInterface;

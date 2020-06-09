@@ -5,42 +5,58 @@
 
 package com.cisco.dhruva.util.log;
 
+import com.cisco.dhruva.util.log.event.Event;
+import com.cisco.dhruva.util.log.event.Event.EventSubType;
+import com.cisco.dhruva.util.log.event.Event.EventType;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import org.slf4j.event.Level;
 
 public interface Logger {
 
-  public void info(String message, Object object);
+  void info(String message, Object object);
 
-  public void info(String message);
+  void info(String message);
 
-  public void info(String format, Object arg1, Object arg2);
+  void info(String format, Object arg1, Object arg2);
 
-  public void info(String format, Supplier<?>... var2);
+  void info(String format, Supplier<?>... var2);
 
-  public void info(String format, Object... arguments);
+  void info(String format, Object... arguments);
 
-  public void warn(String message, Throwable throwable);
+  void warn(String message, Throwable throwable);
 
-  public void warn(String message, Object... arguments);
+  void warn(String message, Object... arguments);
 
-  public void warn(String format, Object arg1, Object arg2);
+  void warn(String format, Object arg1, Object arg2);
 
-  public void error(String format, Object arg1, Object arg2);
+  void error(String format, Object arg1, Object arg2);
 
-  public void error(String format, Object... arguments);
+  void error(String format, Object... arguments);
 
-  public void error(String format, Supplier<?>... arguments);
+  void error(String format, Supplier<?>... arguments);
 
-  public void debug(String message);
+  void debug(String message);
 
-  public void error(String message, Throwable throwable);
+  void error(String message, Throwable throwable);
 
-  public void error(String message);
+  void error(String message);
 
-  public void debug(String format, Object... arguments);
+  void debug(String format, Object... arguments);
 
-  public void debug(String format, Supplier<?>... arguments);
+  void debug(String format, Supplier<?>... arguments);
+
+  void emitEvent(EventType eventType, Optional<EventSubType> eventSubType, String message,
+      Optional<Map<String, String>> additionalKeyValueInfo);
+
+  void setMDC(String key, String value);
+
+  void setMDC(Map<String, String> map);
+
+  void clearMDC();
+
+  Map<String, String> getMDCMap();
 
   String getName();
 

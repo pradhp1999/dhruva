@@ -14,7 +14,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class DsSipProxyManager
@@ -198,7 +197,7 @@ public class DsSipProxyManager
   public void request(DsSipServerTransaction serverTransaction, DsSipRequest request) {
 
     DsLog4j.logSessionId(request);
-    Log.info("handle request " + Arrays.toString(request.getSessionId()) + request.getMethod());
+    Log.info("handle request " + request.getMethod());
 
     DsControllerFactoryInterface cf = getControllerFactory();
 
@@ -278,9 +277,7 @@ public class DsSipProxyManager
    * @param response the response to be proxied
    */
   public void proxyStrayResponse(DsSipResponse response) {
-    Log.debug(
-        "Entering proxyStrayResponse(DsSipResponse response) {}"
-            + Arrays.toString(response.getSessionId()));
+    Log.debug("Entering proxyStrayResponse(DsSipResponse response)");
 
     String direction = response.getNetwork().getName();
 

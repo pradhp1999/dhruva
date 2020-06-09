@@ -13,7 +13,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-import java.util.Arrays;
 import java.util.Optional;
 
 public class DsAppController extends DsProxyController implements DsControllerInterface {
@@ -47,7 +46,7 @@ public class DsAppController extends DsProxyController implements DsControllerIn
 
     DsProxyStatelessTransaction trans = super.onNewRequest(serverTrans, request);
     if (trans == null) throw new AssertionError();
-    Log.debug("DsAppController: onNewRequest {}" + Arrays.toString(request.getSessionId()));
+    Log.debug("DsAppController: onNewRequest {}");
 
     if (respondedOnNewRequest) {
       // request has been responded and no need to continue
@@ -62,15 +61,15 @@ public class DsAppController extends DsProxyController implements DsControllerIn
         Log.info(
             "sending the request to adaptor layer for further processing "
                 + !DsSipClientTransactionImpl.isMidDialogRequest(request)
-                + "route"
+                + "route "
                 + request.getHeader(DsSipConstants.ROUTE)
                 + " "
-                + "processRoute"
+                + "processRoute "
                 + processRouteHeader);
         AppAdaptorInterface proxyAdaptor = getProxyAdaptor();
         Optional<AppAdaptorInterface> p = Optional.ofNullable(proxyAdaptor);
         if (p.isPresent()) proxyAdaptor.handleRequest(request);
-        else Log.warn("proxy adaptor null " + Arrays.toString(request.getSessionId()));
+        else Log.warn("proxy adaptor null ");
       } else {
         // We don't want App Adaptor layer to process this request, so we by bypass it
         // by making a call directly to the proxy core.  Note that failover
@@ -116,15 +115,14 @@ public class DsAppController extends DsProxyController implements DsControllerIn
         adaptor.handleRequest(cancel);
       }
     } catch (DhruvaException e) {
-      Log.error(
-          "Exception while handling cancel message {}" + Arrays.toString(cancel.getSessionId()));
+      Log.error("Exception while handling cancel message");
       throw new DsException("AppAdaptor:OnCancel", e);
     }
   }
 
   /** Send the ack to the App layer for processing. */
   public void onAck(DsProxyTransaction proxy, DsProxyServerTransaction trans, DsSipAckMessage ack) {
-    Log.debug("Entering onAck() {}" + Arrays.toString(ack.getSessionId()));
+    Log.debug("Entering onAck() {}");
 
     try {
       AppAdaptorInterface adaptor = this.getProxyAdaptor();
@@ -133,14 +131,13 @@ public class DsAppController extends DsProxyController implements DsControllerIn
         adaptor.handleRequest(ack);
       }
     } catch (DhruvaException e) {
-      Log.error(
-          "Exception while handling cancel message {} " + Arrays.toString(ack.getSessionId()));
+      Log.error("Exception while handling cancel message");
     }
   }
 
   public void onBestResponse(DsProxyTransaction proxy, DsSipResponse response) {
 
-    Log.debug("Entering onBestResponse() {}" + Arrays.toString(response.getSessionId()));
+    Log.debug("Entering onBestResponse() ");
 
     // If we sent to a route header without the App layer, then we will use the
     // best response that the core has.

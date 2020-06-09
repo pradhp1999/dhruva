@@ -35,7 +35,7 @@ Dhruva:
     metricsUrl: https://metrics{{ .MeetPaas.messageClusterAddress }}/metrics/api/v1
     metrics_environment: '{{ .MeetPaas.clusterName }}'
     logback_kafka_appender_enabled: 'true'
-    logback_metrics_kafka_appender_enabled: 'true'
+    logback_metrics_kafka_appender_enabled: 'false'
     jedisPoolHealthCheckMonitorEnabled: 'false'
     enableLettuceRedisDataSourceForAuthCache: 'true'
     enableLettuceRedisDataSourceForFlsCache: 'true'
@@ -62,6 +62,7 @@ Dhruva:
     elasticache_ratelimit_startTlsEnabled: 'false'
     elasticache_ratelimit_host: null
     elasticache_ratelimit_commandTimeoutMillis: 2000
+    stdout_level_threshold: 'OFF'
   deploy:
     APPLICATION_NAME: dhruva
     CATALINA_OPTS: null
