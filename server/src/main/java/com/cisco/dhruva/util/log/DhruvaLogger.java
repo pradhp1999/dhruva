@@ -100,7 +100,9 @@ public class DhruvaLogger implements Logger {
   }
 
   @Override
-  public void emitEvent(EventType eventType, Optional<EventSubType> eventSubType,
+  public void emitEvent(
+      EventType eventType,
+      Optional<EventSubType> eventSubType,
       String message,
       Optional<Map<String, String>> additionalKeyValueInfo) {
 
@@ -108,8 +110,9 @@ public class DhruvaLogger implements Logger {
 
     MDC.put(EVENT_TYPE, eventType.name());
     eventSubType.ifPresent(eventSubTypeValue -> MDC.put(EVENT_TYPE, eventSubTypeValue.name()));
-    additionalKeyValueInfo.ifPresent(additionalKeyValueInfoMap -> additionalKeyValueInfoMap
-        .forEach((key, value) -> MDC.put(key, value)));
+    additionalKeyValueInfo.ifPresent(
+        additionalKeyValueInfoMap ->
+            additionalKeyValueInfoMap.forEach((key, value) -> MDC.put(key, value)));
 
     logger.info(message);
 

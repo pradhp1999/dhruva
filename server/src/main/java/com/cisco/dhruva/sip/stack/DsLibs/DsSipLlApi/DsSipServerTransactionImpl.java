@@ -871,8 +871,9 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
     m_sipResponse =
         new DsSipResponse(DsSipResponseCode.DS_RESPONSE_TRYING, m_sipRequest, null, null);
 
-    //Commenting this code, We need the response for logging , today first we build the bytes and then again parse it
-    //and build the object
+    // Commenting this code, We need the response for logging , today first we build the bytes and
+    // then again parse it
+    // and build the object
     /*if (m_via.getComp() == null) {
       m_sipResponseBytes =
           DsSipResponse.createResponseBytes(
