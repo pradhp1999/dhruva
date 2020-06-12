@@ -7,8 +7,10 @@ It is deployed in Meetings Platform (meet-PaaS).
 ## Getting Started
 
 ### Prerequisites
+- Ensure you have access to clone this repo.
 - Redis is needed to run Integration tests.
-- Clone the repo in your IDE (IntelliJ Ultimate recommended (see below)).
+  - If you have docker, try this: `docker run -d -p 6379:6379 redis:6`
+- Clone the repo in your IDE (IntelliJ Ultimate recommended (see below)) and make sure you have JDK8.
 - Setup [secure access to Cisco's artifactory](https://sqbu-github.cisco.com/pages/WebexSquared/docs/DeveloperTools/maven.html).
 
 #### Intellij Ultimate
@@ -21,6 +23,7 @@ It is deployed in Meetings Platform (meet-PaaS).
  
 ### Build/Tests
 - `mvn clean verify` at the top level builds and runs all tests.
+
 ### Running in Tomcat in Intellij IDE
 - Go to Run -> Edit Configurations
 - Click on + sign in new window and find Tomcat Server and select Local
@@ -34,5 +37,5 @@ It is deployed in Meetings Platform (meet-PaaS).
 - Now run the application. You should be able to curl `http://localhost:8080/dhruva_server_war_exploded/api/v1/greetings/testuser`
 ## References
 
-- [Dhruva Wiki Home](https://wiki.cisco.com/display/WX2/Dhruva+-+Next+Gen+SIP+Edge)
+- [Dhruva Wiki Home](https://confluence-eng-gpk2.cisco.com/conf/display/DHRUVA/Dhruva+-+Next+Gen+SIP+Edge)
 - [Meetings Platform documentation](https://sqbu-github.cisco.com/pages/WebexPlatform/docs/)

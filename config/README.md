@@ -30,6 +30,35 @@ yamllint -d \
   '{extends: default, rules: {line-length: {max: 2048}, indentation: {spaces: 2, indent-sequences: consistent}, document-start: disable}}' \
   meetpaas-int__dhruva__.yaml.tpl
 ```
-## Roadmap
+## Rendering configs
 
-- Some kind of linting/verification is required. Errors need to be caught before merge.
+`meet-apps-charts` has the helm cfg and final helm charts for dhruva. So the following commands 
+need to be run in that repo:
+
+**Note:** Make sure you run this with helm v2.
+
+### Update dependencies and Generate configs
+``` sh
+cd stable/dhruva
+helm dependency update; helm cfg build --define service=dhruva,env=wsjcint01,cloud=int,\
+profile=dhruva,cceEnv=meetpaas-int
+```
+
+### Lint chart
+
+``` sh
+cd dhruva
+helm lint . --namespace dhruva -f ../meet-app-base/base_values.yaml,values.yaml,data/helm-values.yaml \
+--set vault.token="sdsd",vault.address="Asdsd",clusterName=wsjcint01
+```
+### Render templates locally
+
+``` sh
+helm template -n dhruva --namespace dhruva  -f ../meet-app-base/base_values.yaml,values.yaml,data/helm-values.yaml \
+--set image.credentials.username=asdasd,image.credentials.password=defdef,\
+vault.token=qweqwe,vault.address=123123,clusterName=wsjcint01,image.tag=6493-190514-283b6 .
+```
+
+Please see the 
+[meet-apps-charts README](https://sqbu-github.cisco.com/WebexPlatform/meet-apps-charts) for 
+further details.
