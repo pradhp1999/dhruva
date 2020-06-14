@@ -994,13 +994,6 @@ public class DsProxyTransaction extends DsProxyStatelessTransaction {
         case 3:
         case 4:
         case 5:
-          if (proxyClientTransaction.isInvite())
-            try {
-              proxyClientTransaction.ack();
-            } catch (Exception e) {
-              Log.error("Exception sending ACK: ", e);
-            }
-          break;
         case 6:
           if (proxyClientTransaction.isInvite())
             try {

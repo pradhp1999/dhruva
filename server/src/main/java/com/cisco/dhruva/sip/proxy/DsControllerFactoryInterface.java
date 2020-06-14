@@ -37,5 +37,6 @@ public interface DsControllerFactoryInterface {
       DsSipServerTransaction server,
       DsSipRequest request,
       ProxyAdaptorFactoryInterface pf,
-      AppInterface app);
+      AppInterface app,
+      DsProxyFactoryInterface proxyFactory);
 }

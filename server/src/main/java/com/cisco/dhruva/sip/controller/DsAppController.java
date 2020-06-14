@@ -50,7 +50,7 @@ public class DsAppController extends DsProxyController implements DsControllerIn
 
     if (respondedOnNewRequest) {
       // request has been responded and no need to continue
-      return ourProxy;
+      return (DsProxyStatelessTransaction) ourProxy;
     }
 
     try {
@@ -91,10 +91,10 @@ public class DsAppController extends DsProxyController implements DsControllerIn
       ourRequest = request;
       // Try to send a 500
       sendFailureResponse(DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR);
-      return ourProxy;
+      return (DsProxyStatelessTransaction) ourProxy;
     }
 
-    return ourProxy;
+    return (DsProxyStatelessTransaction) ourProxy;
   }
 
   /** Send the cancel to App for processing. */

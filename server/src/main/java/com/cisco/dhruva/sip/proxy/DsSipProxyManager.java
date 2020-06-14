@@ -77,7 +77,10 @@ public class DsSipProxyManager
    * @param transportLayer transport layer to use in DsLibs
    * @param cf ControllerFactory
    */
-  public DsSipProxyManager(DsSipTransportLayer transportLayer, DsControllerFactoryInterface cf)
+  public DsSipProxyManager(
+      DsSipTransportLayer transportLayer,
+      DsControllerFactoryInterface cf,
+      DsSipTransactionFactory tf)
       throws DsSingletonException, DsException, DsCryptoInitException {
 
     if (m_Singleton != null) {
@@ -95,7 +98,7 @@ public class DsSipProxyManager
     // construct a low level transaction manager. The proxy manager
     // implements the DsSipRequestInterface, so pass this to the
     // constructor
-    transManager = new DsSipTransactionManager(transportLayer, this);
+    transManager = new DsSipTransactionManager(transportLayer, this, tf);
     DsSipTransactionManager.setProxyServerMode(true);
     transManager.setStrayMessageInterface(this);
     transManager.setTransactionEventInterface(this);
@@ -205,7 +208,10 @@ public class DsSipProxyManager
 
     AppInterface app = new AppSession();
 
-    DsControllerInterface controller = cf.getController(serverTransaction, request, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, request, pf, app, proxyFactory);
 
     DsProxyStatelessTransaction proxy = controller.onNewRequest(serverTransaction, request);
 

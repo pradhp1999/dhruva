@@ -47,16 +47,6 @@ public final class DsControllerConfig
   public static final byte STATELESS = (byte) RE.index_dsReStateMode_stateless;
   public static final byte FAILOVER_STATEFUL = (byte) RE.index_dsReStateMode_failover_stateful;
 
-  public static final String INBOUND =
-      "inbound"; // TODO both these values are bogus and are slated for removal
-  public static final String OUTBOUND =
-      "outbound"; // TODO both these values are bogus and are slated for removal
-
-  public static final String LISTEN_INTERNAL =
-      "internal"; // TODO both these values are bogus and are slated for removal
-  public static final String LISTEN_EXTERNAL =
-      "external"; // TODO both these values are bogus and are slated for removal
-
   public static final short MASK_VIA = 1;
 
   public static final byte FAILOVER = 0;
@@ -65,7 +55,6 @@ public final class DsControllerConfig
   public static final String FAILOVER_TOKEN = "failover";
   public static final String DROP_TOKEN = "drop";
 
-  protected static HashMap onNextHopFailureMap = null;
   protected byte stateMode =
       (byte) RE.getValidValueAsInt(RE.dsReStateMode, RE.dsReStateModeDefault);
   protected static Logger Log = DhruvaLoggerFactory.getLogger(DsControllerConfig.class);
@@ -93,9 +82,6 @@ public final class DsControllerConfig
   // TODO optimize below, we don't need the objects created even before configured
   protected HashMap NetworkIf = new HashMap<>();
   protected HashMap NetworkIfMap = new HashMap<>();
-
-  protected HashMap<Integer, PathObj> PathIf = new HashMap<Integer, PathObj>();
-  protected HashMap PathIfMap = new HashMap<>();
 
   protected HashMap ViaIf = new HashMap<>();
   protected HashMap ViaIfMap = new HashMap<>();
@@ -128,7 +114,7 @@ public final class DsControllerConfig
     currentConfig = new DsControllerConfig();
   }
 
-  private Transport defaultProtocol;
+  private Transport defaultProtocol = Transport.UDP;
 
   private DsSipServerLocatorFactory dsSIPServerLocatorFactory =
       DsSipServerLocatorFactory.getInstance();
@@ -179,11 +165,6 @@ public final class DsControllerConfig
    */
   public DsSipRecordRouteHeader getRecordRouteInterface(String direction) {
     return getRecordRouteInterface(direction, true);
-  }
-
-  @Override
-  public DsSipPathHeader getPathInterface(int protocol, String direction) {
-    return null;
   }
 
   public static int getTimerInterval() {
@@ -300,7 +281,7 @@ public final class DsControllerConfig
    */
   @Override
   public Transport getDefaultProtocol() {
-    return Transport.UDP;
+    return defaultProtocol;
   }
 
   /**

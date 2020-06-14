@@ -23,34 +23,12 @@ import com.cisco.dhruva.transport.Transport;
  */
 public interface DsProxyBranchParamsInterface {
 
-  // should use constants from DsSipTransportType instead
-
-  //   public static final int UDP = DsSipTransportType.UDP;
-  //   public static final int TCP = DsSipTransportType.TCP;
-  //   public static final int TLS = DsSipTransportType.TLS;
-  //   public static final int NONE = DsSipTransportType.NONE;
-
-  public static final int HIDE_NONE = 0;
-  public static final int HIDE_HOP = 1;
-  public static final int HIDE_ROUTE = 2;
-
   /**
    * Specifies whether the proxy needs to insert itself into the Record-Route
    *
    * @return Record-Route setting
    */
   public boolean doRecordRoute();
-
-  // This was both unnecessary and confusing so I just removed
-  // it. The same functionality is achieved by setting
-  // proxyToAddress/Port/Protocol, which had to be set anyway.
-
-  //   /** Returns true if the user set outbound IP address/port
-  //    * @return true if set, false otherwise
-  //    * When used in DsProxyParamsInterface, it effectively
-  //    * specifies the local outbound proxy
-  //    */
-  //   public boolean isLocalProxySet();
 
   /**
    * Returns the address to proxy to

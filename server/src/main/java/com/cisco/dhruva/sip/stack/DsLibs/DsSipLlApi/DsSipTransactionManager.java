@@ -77,8 +77,7 @@ import java.util.Set;
 public class DsSipTransactionManager {
 
   /** How to create transactions and server transaction interfaces. */
-  private static DsSipTransactionFactory m_transactionFactory =
-      new DsSipDefaultTransactionFactory();
+  private static DsSipTransactionFactory m_transactionFactory;
 
   /** Request logging category. */
   private static Logger reqCat = DsLog4j.transMReqCat;
@@ -171,7 +170,7 @@ public class DsSipTransactionManager {
     //            generalCat.warn(Version.getLongVersionAsString());
     //        }
 
-    m_transactionFactory = new DsSipDefaultTransactionFactory();
+    // m_transactionFactory = new DsSipDefaultTransactionFactory();
 
     // Loads the DsTimer class which in turn will instantiate and register the
     // Timer queue. Also loads the transaction factory.
@@ -272,7 +271,9 @@ public class DsSipTransactionManager {
    * @throws DsException if the transaction manager has already been constructed
    */
   public DsSipTransactionManager(
-      DsSipTransportLayer transportLayer, DsSipRequestInterface defaultInterface)
+      DsSipTransportLayer transportLayer,
+      DsSipRequestInterface defaultInterface,
+      DsSipTransactionFactory transactionFactory)
       throws DsException {
     Logger cat = generalCat;
 
@@ -286,6 +287,8 @@ public class DsSipTransactionManager {
     operationalState = OperationalState.RUNNING;
     m_transportLayer = transportLayer;
     m_defaultInterface = defaultInterface;
+
+    m_transactionFactory = transactionFactory;
 
     // provides the transport layer hook to DsConfigManager
     DsConfigManager.setTransportLayer(m_transportLayer);

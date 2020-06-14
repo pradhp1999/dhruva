@@ -34,7 +34,7 @@ import java.util.Iterator;
  * request DsProxyTransaction inherits from from StatelessTransaction and defines lots of additional
  * operations
  */
-public class DsProxyStatelessTransaction {
+public class DsProxyStatelessTransaction implements DsProxyInterface {
 
   // internal state constants
   /** The transaction is in the initial state when created */
