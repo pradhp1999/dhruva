@@ -218,7 +218,7 @@ public class DsProxyControllerClientTest {
     DsControllerInterface controller =
         cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
-    doNothing().when(app).handleResponse(null);
+    doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
 
     ProxyAdaptorFactory f = new ProxyAdaptorFactory();

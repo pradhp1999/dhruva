@@ -14,7 +14,6 @@ import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.controller.util.ParseProxyParamUtil;
 import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.proxy.Errors.DsProxyErrorAggregator;
-import com.cisco.dhruva.sip.proxy.MappedResponse.DsMappedResponseCreator;
 import com.cisco.dhruva.sip.servergroups.AbstractServerGroup;
 import com.cisco.dhruva.sip.servergroups.DnsServerGroupUtil;
 import com.cisco.dhruva.sip.servergroups.ServerGroupInterface;
@@ -47,35 +46,13 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
           DsConfigManager.PROP_ENABLE_ERROR_AGGREGATOR,
           DsConfigManager.PROP_ENABLE_ERROR_AGGREGATOR_DEFAULT);
 
-  private static boolean errorMappedResponseEnabled =
-      DsConfigManager.getProperty(
-          DsConfigManager.PROP_ENABLE_ERROR_MAPPED_RESPONSE,
-          DsConfigManager.PROP_ENABLE_ERROR_MAPPED_RESPONSE_DEFAULT);
 
   private static boolean isCreateDnsServerGroup =
       DsConfigManager.getProperty(
           DsConfigManager.PROP_CREATE_DNS_SERVER_GROUP,
-          DsConfigManager.PROP_CREATE_DNS_SERVER_GROUP_DEFAULT);;
+          DsConfigManager.PROP_CREATE_DNS_SERVER_GROUP_DEFAULT);
 
-  /**
-   * Indicates whether or not the Supported: path header value is required when adding a Path header
-   * to REGISTER requests. If <code>true</code>, and the REGISTER request does NOT contain a
-   * Supported: path header value, and the the server is configured to add a Path header, the
-   * request is rejected with a 421 response. Otherwise, the server adds the Supported: path header
-   * (if not present) in addition to the Path header.
-   */
-  public static final boolean REQUIRE_SUPPORTED_HEADER =
-      Boolean.getBoolean("com.dynamicsoft.DsLibs.REQUIRE_SUPPORTED_HEADER");
-  /**
-   * This flag determines whether the ProxyController needs to add Supported: path if not present.
-   *
-   * <p>By default, ProxyController adds the Supported: path if not present.
-   *
-   * <p>Note that if REQUIRE_SUPPORTED_HEADER flag has been set to "true", this option is
-   * meaningless as the Proxy expects to receive a Supported path header.
-   */
-  public static final boolean ADD_SUPPORTED_PATH =
-      Boolean.getBoolean("com.dynamicsoft.DsLibs.ADD_SUPPORTED_PATH");
+
 
   public static final DsByteString BS_L_PATH = DsSipConstants.BS_PATH;
 
@@ -166,18 +143,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   private DsProxyErrorAggregator proxyErrorAggregator;
 
   static {
-    if (errorMappedResponseEnabled && errorAggregatorEnabled) {
-      try {
-        DsMappedResponseCreator.initialize();
-      } catch (Exception e) {
-        Log.info("Failed to enable error mapped response. [" + e.getLocalizedMessage() + "]");
-      }
-    }
-
     Log.info("error Aggregator is " + ((errorAggregatorEnabled) ? "enabled" : "disabled"));
-    Log.info(
-        "error mapped response is "
-            + ((DsMappedResponseCreator.getInstance() != null) ? "enabled" : "disabled"));
   }
 
   public DsProxyController() {
@@ -1038,15 +1004,15 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         if (stateMode != DsControllerConfig.STATEFUL) {
           overwriteStatelessMode();
         }
-
-        if (DsMappedResponseCreator.getInstance() != null) {
-          response =
-              DsMappedResponseCreator.getInstance()
-                  .createresponse(
-                      incomingNetwork.toString(),
-                      proxyErrorAggregator.getProxyErrorList(),
-                      response);
-        }
+        //MEETPASS TODO
+//        if (DsMappedResponseCreator.getInstance() != null) {
+//          response =
+//              DsMappedResponseCreator.getInstance()
+//                  .createresponse(
+//                      incomingNetwork.toString(),
+//                      proxyErrorAggregator.getProxyErrorList(),
+//                      response);
+//        }
 
         DsProxyResponseGenerator.sendResponse(response, (DsProxyTransaction) ourProxy);
       } else {
@@ -1828,7 +1794,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     }
 
     if (proxyParams == null) {
-      Log.info("Dhruva getParsedProxyParams");
       proxyParams =
           ParseProxyParamUtil.getParsedProxyParams(ourRequest, type, decompress, delimiter);
     }

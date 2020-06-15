@@ -99,29 +99,6 @@ public class DsProxyErrorAggregator {
     add(new DsProxyFailureResponse(response));
   }
 
-  public void onXclRoutingFailure(DsSipResponse response) {
-    DsProxyError proxyError = new DsXclRoutingFailureException(response);
-    add(proxyError);
-
-    int statusCode = response.getStatusCode();
-    int reason = response.getApplicationReason();
-
-    // log only when response is "no matching algorithm found" | "routing policy has no algorithms?"
-    /**
-     * xcl failure is called when CP can't find any routeGroup, connection refused & retry of next
-     * server group failure<br>
-     * CAEvent should be logged only when there is no routeGroup. Other failure logging is done
-     * wherever its required.<br>
-     * (ie) When connection refused & retry failure happens CA logging is done at
-     * DsProxyController#onProxyFailure()
-     *
-     * <p>Refer dsnrs_route.xcl for more details
-     */
-    if (statusCode == 404 && reason == REASON_AUTO) {
-      notifyError(proxyError, ErrorType.XCL_FAILURE);
-    }
-  }
-
   public void onServerGroupDown(String sgName, boolean sgDownAlready) {
     DsProxyError proxyError = new DsProxyServerGroupDownError(sgName);
     add(proxyError);
