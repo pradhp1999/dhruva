@@ -13,6 +13,7 @@ import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
 import com.cisco.dhruva.router.MessageListener;
+import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationException;
 import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
@@ -58,15 +59,19 @@ public class DsProxyControllerServerTest {
     DsSipServerTransactionImpl.setThreadPoolExecutor(
         (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
 
-    DsControllerConfig.addListenInterface(
-        dsNetwork,
-        InetAddress.getByName("0.0.0.0"),
-        5060,
-        Transport.UDP,
-        InetAddress.getByName("0.0.0.0"));
+    try {
+      DsControllerConfig.addListenInterface(
+          dsNetwork,
+          InetAddress.getByName("0.0.0.0"),
+          5060,
+          Transport.UDP,
+          InetAddress.getByName("0.0.0.0"));
 
-    DsControllerConfig.addRecordRouteInterface(
-        InetAddress.getByName("0.0.0.0"), 5060, Transport.UDP, dsNetwork);
+      DsControllerConfig.addRecordRouteInterface(
+          InetAddress.getByName("0.0.0.0"), 5060, Transport.UDP, dsNetwork);
+    } catch (DsInconsistentConfigurationException ignored) {
+      // In this case it was already set, there is no means to remove the key from map
+    }
   }
 
   @AfterClass
