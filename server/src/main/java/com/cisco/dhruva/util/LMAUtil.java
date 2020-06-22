@@ -22,9 +22,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class LMAUtil {
 
-  @Autowired private static MetricService metricService;
+  private static MetricService metricService;
 
-  public static void setMetricService(MetricService metricService) {
+  @Autowired
+  public LMAUtil(MetricService metricService) {
     LMAUtil.metricService = metricService;
   }
 

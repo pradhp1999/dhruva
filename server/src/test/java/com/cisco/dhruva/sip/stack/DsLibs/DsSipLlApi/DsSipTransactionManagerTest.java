@@ -37,6 +37,8 @@ import java.net.UnknownHostException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -54,12 +56,12 @@ public class DsSipTransactionManagerTest {
   private InetAddress localAddress;
   private InetAddress remoteAddress;
   private int localPort, remotePort;
-  private MetricService metricService;
+  @InjectMocks private MetricService metricService;
+  @InjectMocks private LMAUtil lmaUtil;
 
   @BeforeClass
   public void init() throws UnknownHostException, DsException {
     metricService = mock(MetricService.class);
-    LMAUtil.setMetricService(metricService);
     transportLayer = mock(DsSipTransportLayer.class);
     strayMessageInterface = mock(DsSipStrayMessageInterface.class);
     requestInterface = mock(DsSipRequestInterface.class);
@@ -86,6 +88,8 @@ public class DsSipTransactionManagerTest {
     DsSipTransactionManager.setProxyServerMode(true);
     sipTransactionManager.setStrayMessageInterface(strayMessageInterface);
     sipTransactionManager.setTransactionEventInterface(transactionEventInterface);
+
+    MockitoAnnotations.initMocks(this);
   }
 
   @AfterClass

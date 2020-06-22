@@ -58,8 +58,7 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
   }
 
   @Bean
-  public ExecutorService getExecutorService()
-  {
+  public ExecutorService getExecutorService() {
     return new ExecutorService("DhruvaSipServer");
   }
 

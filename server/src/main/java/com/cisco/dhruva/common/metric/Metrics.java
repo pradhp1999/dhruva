@@ -10,10 +10,7 @@ public final class Metrics {
     INFLUX
   }
 
-  public static Metric newMetric(MetricType metricType) {
-    if (metricType == MetricType.INFLUX) {
-      return new InfluxMetric();
-    }
-    return null;
+  public static Metric newMetric() {
+    return new InfluxMetric();
   }
 }

@@ -138,6 +138,10 @@ public class ConnectionCache {
     connectionMap.remove(connectionKey, connectionCompletableFuture);
   }
 
+  protected ConcurrentHashMap<ConnectionKey, CompletableFuture<Connection>> getConnectionMap() {
+    return connectionMap;
+  }
+
   protected void clear() {
     connectionMap.clear();
   }

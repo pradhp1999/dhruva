@@ -11,12 +11,11 @@ import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.common.metric.Metric;
 import com.cisco.dhruva.common.metric.MetricClient;
 import com.cisco.dhruva.common.metric.Metrics;
-import com.cisco.dhruva.common.metric.Metrics.MetricType;
 import com.cisco.dhruva.transport.Connection;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.event.Event.DIRECTION;
 import com.cisco.dhruva.util.log.event.Event.MESSAGE_TYPE;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -29,36 +28,31 @@ public class MetricService {
 
   private static final String DHRUVA = "dhruva";
   private final ScheduledThreadPoolExecutor scheduledExecutor;
-  @Autowired
   private ExecutorService executorService;
+  MetricClient metricClient;
 
-  public MetricService() {
+  @Autowired
+  public MetricService(MetricClient metricClient, ExecutorService executorService) {
+    this.metricClient = metricClient;
+    this.executorService = executorService;
     executorService.startScheduledExecutorService(ExecutorType.METRIC_SERVICE, 4);
-    scheduledExecutor = executorService.getScheduledExecutorThreadPool(ExecutorType.SIP_TIMER);
+    scheduledExecutor = executorService.getScheduledExecutorThreadPool(ExecutorType.METRIC_SERVICE);
   }
 
-  public void registerPeriodicMetric(String measurement, Supplier<Metric> metricSupplier,
-      int interval, TimeUnit timeUnit) {
-    scheduledExecutor
-        .scheduleAtFixedRate(getMetricFromSupplier(measurement, metricSupplier), interval, interval,
-            timeUnit);
+  public void registerPeriodicMetric(
+      String measurement, Supplier<Set<Metric>> metricSupplier, int interval, TimeUnit timeUnit) {
+    scheduledExecutor.scheduleAtFixedRate(
+        getMetricFromSupplier(measurement, metricSupplier), interval, interval, timeUnit);
   }
 
   @NotNull
-  private Runnable getMetricFromSupplier(String measurement, Supplier<Metric> metricSupplier) {
+  private Runnable getMetricFromSupplier(String measurement, Supplier<Set<Metric>> metricSupplier) {
     return () -> {
-
-      Metric metric = metricSupplier.get();
-      if (metric != null) {
-        metric.measurement(prefixDhruvaToMeasurementName(measurement));
-        sendMetric(metric);
-      }
-
+      Set<Metric> metrics = metricSupplier.get();
+      metrics.forEach(metric -> metric.measurement(prefixDhruvaToMeasurementName(measurement)));
+      sendMetric(metrics);
     };
   }
-
-  @Autowired
-  MetricClient metricClient;
 
   public void sendConnectionMetric(
       String localIp,
@@ -70,7 +64,7 @@ public class MetricService {
       Connection.STATE connectionState) {
 
     Metric metric =
-        Metrics.newMetric(MetricType.INFLUX)
+        Metrics.newMetric()
             .measurement(prefixDhruvaToMeasurementName("Connection"))
             .tag("transport", transport.toString())
             .tag("direction", direction.name())
@@ -78,7 +72,6 @@ public class MetricService {
             .field("localPort", localPort)
             .field("remoteIp", remoteIp)
             .field("remotePort", remotePort);
-
     sendMetric(metric);
   }
 
@@ -94,7 +87,7 @@ public class MetricService {
       long dhruvaProcessingDelayInMillis) {
 
     Metric metric =
-        Metrics.newMetric(MetricType.INFLUX)
+        Metrics.newMetric()
             .measurement(prefixDhruvaToMeasurementName("SipMessage"))
             .tag("method", method)
             .tag("messageType", messageType.name())
@@ -106,7 +99,6 @@ public class MetricService {
     if (direction == OUT && !isInternallyGenerated) {
       metric.field("dhruvaProcessingDelayInMillis", dhruvaProcessingDelayInMillis);
     }
-
     sendMetric(metric);
   }
 
@@ -117,5 +109,9 @@ public class MetricService {
 
   private void sendMetric(Metric metric) {
     metricClient.sendMetric(metric);
+  }
+
+  private void sendMetric(Set<Metric> metrics) {
+    metricClient.sendMetrics(metrics);
   }
 }

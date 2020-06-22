@@ -47,8 +47,7 @@ public class SIPService {
 
   private DsSipTransactionManager sipTransactionManager;
 
-  @Autowired
-  private ExecutorService executorService;
+  @Autowired private ExecutorService executorService;
 
   @Autowired private Environment env;
 

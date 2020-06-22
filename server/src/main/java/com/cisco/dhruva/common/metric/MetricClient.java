@@ -4,7 +4,11 @@
 
 package com.cisco.dhruva.common.metric;
 
+import java.util.Set;
+
 public interface MetricClient {
 
   public void sendMetric(Metric metric);
+
+  void sendMetrics(Set<Metric> metrics);
 }
