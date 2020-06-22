@@ -22,10 +22,7 @@ import org.testng.annotations.Test;
 
 public class DsProxyErrorAggregatorTest {
 
-  private DsSipTransportLayer transportLayer;
-  private DsSipProxyManager sipProxyManager;
   DsSipTransactionFactory transactionFactory;
-  DsSipTransactionManager transactionManager;
   private AppAdaptorInterface adaptorInterface;
   private ProxyAdaptorFactoryInterface proxyAdaptorFactoryInterface;
   DsNetwork dsNetwork;
@@ -45,13 +42,13 @@ public class DsProxyErrorAggregatorTest {
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipProxyManager dsSipProxyManager = DsSipProxyManager.getInstance();
     if (dsSipProxyManager == null) {
-      transportLayer = mock(DsSipTransportLayer.class);
+      DsSipTransportLayer transportLayer = mock(DsSipTransportLayer.class);
       // Mock the stack interfaces
       transactionFactory = mock(DsSipDefaultTransactionFactory.class);
       dsSipProxyManager =
           new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
     }
-    sipProxyManager = spy(dsSipProxyManager);
+    DsSipProxyManager sipProxyManager = spy(dsSipProxyManager);
     DsSipProxyManager.setM_Singleton(sipProxyManager);
     sipProxyManager.setRouteFixInterface(controllerFactory);
 

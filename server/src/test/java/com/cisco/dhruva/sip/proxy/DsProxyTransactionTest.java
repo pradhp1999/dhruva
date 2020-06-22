@@ -30,8 +30,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class DsProxyTransactionTest {
-  private DsSipTransportLayer transportLayer;
-  private DsSipProxyManager sipProxyManager;
   DsSipTransactionFactory transactionFactory;
   DsSipTransactionManager transactionManager;
   private AppAdaptorInterface adaptorInterface;
@@ -53,13 +51,13 @@ public class DsProxyTransactionTest {
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipProxyManager dsSipProxyManager = DsSipProxyManager.getInstance();
     if (dsSipProxyManager == null) {
-      transportLayer = mock(DsSipTransportLayer.class);
+      DsSipTransportLayer transportLayer = mock(DsSipTransportLayer.class);
       // Mock the stack interfaces
       transactionFactory = mock(DsSipDefaultTransactionFactory.class);
       dsSipProxyManager =
           new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
     }
-    sipProxyManager = spy(dsSipProxyManager);
+    DsSipProxyManager sipProxyManager = spy(dsSipProxyManager);
     DsSipProxyManager.setM_Singleton(sipProxyManager);
     sipProxyManager.setRouteFixInterface(controllerFactory);
 

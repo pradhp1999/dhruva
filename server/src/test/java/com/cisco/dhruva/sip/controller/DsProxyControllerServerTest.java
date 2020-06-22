@@ -32,7 +32,6 @@ import org.testng.annotations.Test;
 
 public class DsProxyControllerServerTest {
 
-  private DsSipTransportLayer transportLayer;
   private DsSipProxyManager sipProxyManager;
   DsNetwork dsNetwork;
   private AppAdaptorInterface adaptorInterface;
@@ -47,7 +46,7 @@ public class DsProxyControllerServerTest {
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipProxyManager dsSipProxyManager = DsSipProxyManager.getInstance();
     if (dsSipProxyManager == null) {
-      transportLayer = mock(DsSipTransportLayer.class);
+      DsSipTransportLayer transportLayer = mock(DsSipTransportLayer.class);
       DsSipTransactionFactory transactionFactory = new DsSipDefaultTransactionFactory();
       dsSipProxyManager =
           new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
