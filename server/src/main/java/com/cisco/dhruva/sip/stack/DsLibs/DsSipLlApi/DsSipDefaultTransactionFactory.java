@@ -76,21 +76,6 @@ public class DsSipDefaultTransactionFactory implements DsSipTransactionFactory {
     }
   }
 
-  /*
-   * javadoc inherited
-   */
-  public DsSipClientTransaction createClientTransaction(
-      DsSipRequest request,
-      DsSipClientTransactionInterface clientInterface,
-      DsSipTransactionParams transactionParams)
-      throws DsException {
-    if (request.getMethodID() == DsSipConstants.INVITE) {
-      return new DsSipClientTransactionIImpl(request, clientInterface, transactionParams);
-    } else {
-      return new DsSipClientTransactionImpl(request, clientInterface, transactionParams);
-    }
-  }
-
   /**
    * Set the transaction interface factory.
    *

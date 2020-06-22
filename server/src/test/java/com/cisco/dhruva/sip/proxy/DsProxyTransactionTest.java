@@ -9,6 +9,7 @@ import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
 import com.cisco.dhruva.sip.controller.*;
+import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
@@ -65,8 +66,8 @@ public class DsProxyTransactionTest {
     adaptorInterface = mock(AppAdaptorInterface.class);
     proxyAdaptorFactoryInterface = mock(ProxyAdaptorFactoryInterface.class);
 
-    localAddress = InetAddress.getByName("127.0.0.1");
-    remoteAddress = InetAddress.getByName("127.0.0.1");
+    localAddress = InetAddress.getByName("0.0.0.0");
+    remoteAddress = InetAddress.getByName("0.0.0.0");
     localPort = 5060;
     remotePort = 5070;
     incomingMessageBindingInfo =
@@ -77,17 +78,24 @@ public class DsProxyTransactionTest {
     DsSipServerTransactionImpl.setThreadPoolExecutor(
         (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
 
+    DsSipClientTransactionImpl.setThreadPoolExecutor(
+        (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
+
     // Add listen interfaces in DsControllerConfig, causes issues in getVia while sending out the
     // packet
-    DsControllerConfig.addListenInterface(
-        dsNetwork,
-        InetAddress.getByName("0.0.0.0"),
-        5060,
-        Transport.UDP,
-        InetAddress.getByName("0.0.0.0"));
+    try {
+      DsControllerConfig.addListenInterface(
+          dsNetwork,
+          InetAddress.getByName("0.0.0.0"),
+          5060,
+          Transport.UDP,
+          InetAddress.getByName("0.0.0.0"));
 
-    DsControllerConfig.addRecordRouteInterface(
-        InetAddress.getByName("0.0.0.0"), 5060, Transport.UDP, dsNetwork);
+      DsControllerConfig.addRecordRouteInterface(
+          InetAddress.getByName("0.0.0.0"), 5060, Transport.UDP, dsNetwork);
+    } catch (DsInconsistentConfigurationException ignored) {
+      // In this case it was already set, there is no means to remove the key from map
+    }
   }
 
   @AfterClass
@@ -170,6 +178,227 @@ public class DsProxyTransactionTest {
         .when(appInterfaceMock)
         .handleResponse(any(Location.class), any(Optional.class), any(int.class));
     ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
+
+    Assert.assertNotNull(proxy.getClientTransaction());
+
+    DsProxyTransaction.TransactionInterfaces transactionInterfaces =
+        proxy.getTransactionInterfaces();
+
+    DsSipResponse resp =
+        DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_OK, sipRequest);
+
+    transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
+
+    verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
+    // Retransmission of 200 OK should not be sent upwards
+    transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
+    // No increment in verify, same as previous
+    verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+  }
+
+  @Test
+  public void testProxyToAddViaClientTransaction() throws DsException, IOException {
+
+    reset(transactionFactory);
+
+    DsSipRequest sipRequest =
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
+    DsSipTransactionKey key = sipRequest.forceCreateKey();
+    sipRequest.setNetwork(dsNetwork);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+
+    DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
+
+    DsSipServerTransaction serverTransaction =
+        m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
+
+    DsControllerFactoryInterface cf = new DsREControllerFactory();
+
+    AppInterface app = mock(AppSession.class);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
+
+    when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
+        .thenReturn(adaptorInterface);
+
+    DsProxyTransaction proxy =
+        (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
+
+    Assert.assertNotNull(proxy);
+
+    DsSipTransactionManager stackManager = DsSipTransactionManager.getTransactionManager();
+    transactionManager = spy(stackManager);
+
+    DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
+
+    doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
+    // when(transactionFactory.createClientTransaction(sipRequest, null,
+    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+    doReturn(mockSipClientTransaction)
+        .when(transactionFactory)
+        .createClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+    doNothing().when(mockSipClientTransaction).start();
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(mockSipClientTransaction);
+    // when(transactionManager.startClientTransaction(mockSipClientTransaction)).thenReturn(mockSipClientTransaction);
+
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+
+    DsProxyController ctrlr = spy((DsProxyController) controller);
+
+    Location loc = new Location(sipRequest.getURI());
+    loc.setProcessRoute(true);
+    loc.setNetwork(dsNetwork);
+
+    AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
+    doNothing()
+        .when(appInterfaceMock)
+        .handleResponse(any(Location.class), any(Optional.class), any(int.class));
+
+    ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
+
+    ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
+
+    verify(transactionFactory)
+        .createClientTransaction(
+            argumentCaptor.capture(),
+            any(DsSipClientTransportInfo.class),
+            any(DsSipClientTransactionInterface.class));
+
+    DsSipRequest request = argumentCaptor.getValue();
+    Assert.assertNotNull(request);
+
+    DsSipViaHeader sipViaHeader = (DsSipViaHeader) request.getViaHeader();
+
+    Assert.assertEquals(request.getMethod(), DsByteString.newInstance("INVITE"));
+
+    Assert.assertEquals(
+        sipViaHeader.getHost().toString(),
+        incomingMessageBindingInfo.getLocalAddress().getHostAddress());
+
+    Assert.assertNotNull(proxy.getClientTransaction());
+
+    DsProxyTransaction.TransactionInterfaces transactionInterfaces =
+        proxy.getTransactionInterfaces();
+
+    DsSipResponse resp =
+        DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_OK, sipRequest);
+
+    transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
+
+    verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
+    // Retransmission of 200 OK should not be sent upwards
+    transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
+    // No increment in verify, same as previous
+    verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+  }
+
+  @Test
+  public void testProxyToAddRRClientTransaction() throws DsException, IOException {
+
+    reset(transactionFactory);
+
+    DsSipRequest sipRequest =
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
+    DsSipTransactionKey key = sipRequest.forceCreateKey();
+    sipRequest.setNetwork(dsNetwork);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+
+    DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
+
+    DsSipServerTransaction serverTransaction =
+        m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
+
+    DsControllerFactoryInterface cf = new DsREControllerFactory();
+
+    AppInterface app = mock(AppSession.class);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
+
+    when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
+        .thenReturn(adaptorInterface);
+
+    DsProxyTransaction proxy =
+        (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
+
+    Assert.assertNotNull(proxy);
+
+    DsSipTransactionManager stackManager = DsSipTransactionManager.getTransactionManager();
+    transactionManager = spy(stackManager);
+
+    DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
+
+    doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
+    // when(transactionFactory.createClientTransaction(sipRequest, null,
+    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+    doReturn(mockSipClientTransaction)
+        .when(transactionFactory)
+        .createClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+    doNothing().when(mockSipClientTransaction).start();
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(mockSipClientTransaction);
+    // when(transactionManager.startClientTransaction(mockSipClientTransaction)).thenReturn(mockSipClientTransaction);
+
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+
+    DsProxyController ctrlr = spy((DsProxyController) controller);
+
+    Location loc = new Location(sipRequest.getURI());
+    loc.setProcessRoute(true);
+    loc.setNetwork(dsNetwork);
+
+    AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
+    doNothing()
+        .when(appInterfaceMock)
+        .handleResponse(any(Location.class), any(Optional.class), any(int.class));
+
+    ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
+
+    ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
+
+    verify(transactionFactory)
+        .createClientTransaction(
+            argumentCaptor.capture(),
+            any(DsSipClientTransportInfo.class),
+            any(DsSipClientTransactionInterface.class));
+
+    DsSipRequest request = argumentCaptor.getValue();
+    Assert.assertNotNull(request);
+
+    DsSipHeaderList rrHeader = request.getHeaders(DsSipConstants.RECORD_ROUTE);
+
+    Assert.assertEquals(request.getMethod(), DsByteString.newInstance("INVITE"));
+
+    DsSipRecordRouteHeader addedRRHeader =
+        new DsSipRecordRouteHeader("<sip:rr,n=Default@0.0.0.0:5060;transport=udp;lr>".getBytes());
+
+    Assert.assertEquals(rrHeader.getFirst(), addedRRHeader);
 
     Assert.assertNotNull(proxy.getClientTransaction());
 
@@ -1016,5 +1245,237 @@ public class DsProxyTransactionTest {
     transactionInterfaces.timeOut(serverTransaction);
     // Logging purpose, no message is passed to upper layer, 1 is for onNewRequest
     verify(appInterfaceMock, times(1)).handleRequest(any(DsSipRequest.class));
+  }
+
+  @Test
+  public void testProxyToStrayACKClientTransaction() throws DsException, IOException {
+
+    reset(transactionFactory);
+
+    DsSipRequest sipRequest =
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.ACK));
+
+    DsSipTransactionKey key = sipRequest.forceCreateKey();
+    sipRequest.setNetwork(dsNetwork);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+
+    DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
+
+    DsSipServerTransaction serverTransaction =
+        m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
+
+    DsControllerFactoryInterface cf = new DsREControllerFactory();
+
+    AppInterface app = mock(AppSession.class);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
+
+    when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
+        .thenReturn(adaptorInterface);
+
+    DsProxyTransaction proxy =
+        (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
+
+    Assert.assertNotNull(proxy);
+
+    DsSipTransactionManager stackManager = DsSipTransactionManager.getTransactionManager();
+    transactionManager = spy(stackManager);
+
+    DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
+
+    doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
+    // when(transactionFactory.createClientTransaction(sipRequest, null,
+    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+    doReturn(mockSipClientTransaction)
+        .when(transactionFactory)
+        .createClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+    doNothing().when(mockSipClientTransaction).start();
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(mockSipClientTransaction);
+    // when(transactionManager.startClientTransaction(mockSipClientTransaction)).thenReturn(mockSipClientTransaction);
+
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+
+    DsProxyController ctrlr = spy((DsProxyController) controller);
+
+    Location loc = new Location(sipRequest.getURI());
+    loc.setProcessRoute(true);
+    loc.setNetwork(dsNetwork);
+
+    AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
+    doNothing()
+        .when(appInterfaceMock)
+        .handleResponse(any(Location.class), any(Optional.class), any(int.class));
+
+    ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
+
+    // Client transaction is not created for Stray ACK
+    verify(transactionFactory, times(0))
+        .createClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsSipClientTransactionInterface.class));
+  }
+
+  // Test all exceptions
+
+  @Test()
+  public void testClientInvalidParamException() throws DsException, IOException {
+    reset(transactionFactory);
+
+    DsSipRequest sipRequest =
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
+    DsSipTransactionKey key = sipRequest.forceCreateKey();
+    sipRequest.setNetwork(dsNetwork);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+
+    DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
+
+    DsSipServerTransaction serverTransaction =
+        m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
+
+    DsControllerFactoryInterface cf = new DsREControllerFactory();
+
+    AppInterface app = mock(AppSession.class);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
+
+    AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
+
+    when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
+        .thenReturn(appInterfaceMock);
+
+    DsProxyTransaction proxy =
+        (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
+
+    Assert.assertNotNull(proxy);
+
+    DsSipTransactionManager stackManager = DsSipTransactionManager.getTransactionManager();
+    transactionManager = spy(stackManager);
+
+    DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
+
+    doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
+    doReturn(mockSipClientTransaction)
+        .when(transactionFactory)
+        .createClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+
+    doThrow(new DsException("test")).when(mockSipClientTransaction).start();
+
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(mockSipClientTransaction);
+
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+
+    DsProxyController ctrlr = spy((DsAppController) controller);
+
+    Location loc = new Location(sipRequest.getURI());
+    loc.setProcessRoute(true);
+    loc.setNetwork(dsNetwork);
+
+    doNothing().when(appInterfaceMock).handleRequest(any(DsSipRequest.class));
+
+    ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
+
+    // errorCode 10 for PROXY_ERROR
+    verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(10));
+  }
+
+  @Test()
+  public void testClientDestinationUnreachableException() throws DsException, IOException {
+    reset(transactionFactory);
+
+    DsSipRequest sipRequest =
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
+    DsSipTransactionKey key = sipRequest.forceCreateKey();
+    sipRequest.setNetwork(dsNetwork);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+
+    DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
+
+    DsSipServerTransaction serverTransaction =
+        m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
+
+    DsControllerFactoryInterface cf = new DsREControllerFactory();
+
+    AppInterface app = mock(AppSession.class);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
+
+    AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
+
+    when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
+        .thenReturn(appInterfaceMock);
+
+    DsProxyTransaction proxy =
+        (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
+
+    Assert.assertNotNull(proxy);
+
+    DsSipTransactionManager stackManager = DsSipTransactionManager.getTransactionManager();
+    transactionManager = spy(stackManager);
+
+    DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
+
+    doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
+    doReturn(mockSipClientTransaction)
+        .when(transactionFactory)
+        .createClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+
+    doThrow(new IOException("test unreachable")).when(mockSipClientTransaction).start();
+
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(mockSipClientTransaction);
+
+    doReturn(mockSipClientTransaction)
+        .when(transactionManager)
+        .startClientTransaction(
+            any(DsSipRequest.class),
+            any(DsSipClientTransportInfo.class),
+            any(DsProxyTransaction.TransactionInterfaces.class));
+
+    DsProxyController ctrlr = spy((DsAppController) controller);
+
+    Location loc = new Location(sipRequest.getURI());
+    loc.setProcessRoute(true);
+    loc.setNetwork(dsNetwork);
+
+    doNothing().when(appInterfaceMock).handleRequest(any(DsSipRequest.class));
+
+    ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
+
+    // ErroCode UNREACHABLE = 6
+    verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(6));
   }
 }

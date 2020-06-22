@@ -8,7 +8,8 @@ import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.util.log.Trace;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,7 +31,7 @@ public class DsProxyErrorAggregator {
   private List<DsProxyError> proxyErrorList;
   private DsSipRequest request;
 
-  private static Trace Log = Trace.getTrace(DsProxyErrorAggregator.class.getName());
+  private static final Logger Log = DhruvaLoggerFactory.getLogger(DsProxyErrorAggregator.class);
 
   public DsProxyErrorAggregator() {
     this.proxyErrorList = new LinkedList<>();
@@ -116,8 +117,7 @@ public class DsProxyErrorAggregator {
 
     try {
       proxyErrorList.add(proxyError);
-      if (Log.on && Log.isInfoEnabled())
-        Log.info("proxyError[added]: " + proxyError.getDescription());
+      Log.info("proxyError[added]: " + proxyError.getDescription());
     } catch (Throwable t) {
       Log.error("proxyError exception", t);
     }

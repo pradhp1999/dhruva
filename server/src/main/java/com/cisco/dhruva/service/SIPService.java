@@ -62,6 +62,8 @@ public class SIPService {
 
     DsSipServerTransactionImpl.configureExecutor(executorService);
 
+    DsSipClientTransactionImpl.configureExecutor(executorService);
+
     sipTransportLayer = new DsSipTransportLayer(null, sipPacketProcessor, dhruvaTransportLayer);
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipTransactionFactory transactionFactory = new DsSipDefaultTransactionFactory();

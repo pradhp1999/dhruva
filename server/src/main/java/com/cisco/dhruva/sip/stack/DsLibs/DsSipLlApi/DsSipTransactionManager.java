@@ -1238,47 +1238,6 @@ public class DsSipTransactionManager {
   }
 
   /**
-   * Factory interface for DsSipClientTransaction.
-   *
-   * @param request Handle of message to be sent to server.
-   * @param clientInterface Optional callback interface to user-level callbacks.
-   * @param transactionParams Optional. Reserved for future use.
-   * @return the new client transaction or null if the transaction manager is asynchronous mode and
-   *     the outgoing request queue is full
-   * @throws DsException if stack is shut down
-   */
-  public DsSipClientTransaction createClientTransaction(
-      DsSipRequest request,
-      DsSipClientTransactionInterface clientInterface,
-      DsSipTransactionParams transactionParams)
-      throws DsException {
-    return m_transactionFactory.createClientTransaction(
-        request, clientInterface, transactionParams);
-  }
-
-  /**
-   * Factory interface for DsSipClientTransaction. Also starts the transaction.
-   *
-   * @param request Handle of message to be sent to server.
-   * @param clientInterface optional callback interface to user-level callbacks.
-   * @param transactionParams optional, reserved for future use.
-   * @return the new client transaction or null if the transaction manager is asynchronous mode and
-   *     the outgoing request queue is full
-   * @throws IOException if the execution of the state machine results in an IOException
-   * @throws DsException if stack is shut down
-   */
-  public DsSipClientTransaction startClientTransaction(
-      DsSipRequest request,
-      DsSipClientTransactionInterface clientInterface,
-      DsSipTransactionParams transactionParams)
-      throws DsException, IOException {
-
-    DsSipClientTransaction txn =
-        m_transactionFactory.createClientTransaction(request, clientInterface, transactionParams);
-    return startClientTransaction(txn);
-  }
-
-  /**
    * Start the client transaction, enqueuing it if there is an outbound queue defined.
    *
    * @param txn the transaction to start
