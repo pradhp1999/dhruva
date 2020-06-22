@@ -88,6 +88,7 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
       appSession.handleResponse(dhruvaResponse);
     } else {
       logger.info("response object is empty");
+      // TODO
       // Handle failure scenarios, failure callbacks with empty response
     }
   }

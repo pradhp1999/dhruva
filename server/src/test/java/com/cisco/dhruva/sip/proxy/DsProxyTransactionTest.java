@@ -57,9 +57,9 @@ public class DsProxyTransactionTest {
       dsSipProxyManager =
           new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
     }
-    DsSipProxyManager sipProxyManager = spy(dsSipProxyManager);
-    DsSipProxyManager.setM_Singleton(sipProxyManager);
-    sipProxyManager.setRouteFixInterface(controllerFactory);
+    // DsSipProxyManager sipProxyManager = spy(dsSipProxyManager);
+    DsSipProxyManager.setM_Singleton(dsSipProxyManager);
+    dsSipProxyManager.setRouteFixInterface(controllerFactory);
 
     adaptorInterface = mock(AppAdaptorInterface.class);
     proxyAdaptorFactoryInterface = mock(ProxyAdaptorFactoryInterface.class);
