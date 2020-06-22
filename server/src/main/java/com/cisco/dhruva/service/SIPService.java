@@ -47,6 +47,7 @@ public class SIPService {
 
   private DsSipTransactionManager sipTransactionManager;
 
+  @Autowired
   private ExecutorService executorService;
 
   @Autowired private Environment env;
@@ -57,14 +58,12 @@ public class SIPService {
 
   @Autowired public MetricService metricsService;
 
+  @Autowired LMAUtil lmaUtil;
+
   @PostConstruct
   public void init() throws Exception {
 
     List<SIPListenPoint> sipListenPoints = dhruvaSIPConfigProperties.getListeningPoints();
-
-    LMAUtil.setMetricService(metricsService);
-
-    executorService = new ExecutorService("DhruvaSipServer");
     executorService.startExecutorService(ExecutorType.SIP_TRANSACTION_PROCESSOR, 10);
     DsTimer.startTimers(executorService);
     sipPacketProcessor = new SipPacketProcessor(executorService);

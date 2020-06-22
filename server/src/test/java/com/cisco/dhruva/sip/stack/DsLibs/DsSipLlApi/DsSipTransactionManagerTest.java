@@ -12,6 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
@@ -26,6 +27,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
+import com.cisco.dhruva.util.LMAUtil;
 import com.cisco.dhruva.util.SIPMessageGenerator;
 import com.cisco.dhruva.util.SIPRequestBuilder;
 import com.cisco.dhruva.util.SIPRequestBuilder.RequestMethod;
@@ -52,14 +54,16 @@ public class DsSipTransactionManagerTest {
   private InetAddress localAddress;
   private InetAddress remoteAddress;
   private int localPort, remotePort;
+  private MetricService metricService;
 
   @BeforeClass
   public void init() throws UnknownHostException, DsException {
+    metricService = mock(MetricService.class);
+    LMAUtil.setMetricService(metricService);
     transportLayer = mock(DsSipTransportLayer.class);
     strayMessageInterface = mock(DsSipStrayMessageInterface.class);
     requestInterface = mock(DsSipRequestInterface.class);
     transactionEventInterface = mock(DsSipTransactionEventInterface.class);
-
     localAddress = InetAddress.getByName("127.0.0.1");
     remoteAddress = InetAddress.getByName("127.0.0.1");
     localPort = 5060;

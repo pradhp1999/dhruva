@@ -16,10 +16,13 @@ import com.cisco.dhruva.util.log.event.Event;
 import com.cisco.dhruva.util.log.event.Event.DIRECTION;
 import com.cisco.dhruva.util.log.event.Event.MESSAGE_TYPE;
 import java.util.GregorianCalendar;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 public class LMAUtil {
 
-  private static MetricService metricService;
+  @Autowired private static MetricService metricService;
 
   public static void setMetricService(MetricService metricService) {
     LMAUtil.metricService = metricService;

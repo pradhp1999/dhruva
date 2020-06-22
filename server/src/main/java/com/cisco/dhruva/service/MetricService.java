@@ -6,6 +6,8 @@ package com.cisco.dhruva.service;
 
 import static com.cisco.dhruva.util.log.event.Event.DIRECTION.OUT;
 
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.common.metric.Metric;
 import com.cisco.dhruva.common.metric.MetricClient;
 import com.cisco.dhruva.common.metric.Metrics;
@@ -14,6 +16,10 @@ import com.cisco.dhruva.transport.Connection;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.event.Event.DIRECTION;
 import com.cisco.dhruva.util.log.event.Event.MESSAGE_TYPE;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +28,35 @@ import org.springframework.stereotype.Service;
 public class MetricService {
 
   private static final String DHRUVA = "dhruva";
+  private final ScheduledThreadPoolExecutor scheduledExecutor;
+  @Autowired
+  private ExecutorService executorService;
+
+  public MetricService() {
+    executorService.startScheduledExecutorService(ExecutorType.METRIC_SERVICE, 4);
+    scheduledExecutor = executorService.getScheduledExecutorThreadPool(ExecutorType.SIP_TIMER);
+  }
+
+  public void registerPeriodicMetric(String measurement, Supplier<Metric> metricSupplier,
+      int interval, TimeUnit timeUnit) {
+    scheduledExecutor
+        .scheduleAtFixedRate(getMetricFromSupplier(measurement, metricSupplier), interval, interval,
+            timeUnit);
+  }
+
+  @NotNull
+  private Runnable getMetricFromSupplier(String measurement, Supplier<Metric> metricSupplier) {
+    return () -> {
+
+      Metric metric = metricSupplier.get();
+      if (metric != null) {
+        metric.measurement(prefixDhruvaToMeasurementName(measurement));
+        sendMetric(metric);
+      }
+
+    };
+  }
+
   @Autowired
   MetricClient metricClient;
 
