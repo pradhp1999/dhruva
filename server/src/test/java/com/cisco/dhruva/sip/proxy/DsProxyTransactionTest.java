@@ -50,10 +50,10 @@ public class DsProxyTransactionTest {
     // This is required to set the via handler, route fix interface, global states are maintained
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipProxyManager dsSipProxyManager = DsSipProxyManager.getInstance();
+    // Mock the stack interfaces
+    transactionFactory = mock(DsSipDefaultTransactionFactory.class);
     if (dsSipProxyManager == null) {
       DsSipTransportLayer transportLayer = mock(DsSipTransportLayer.class);
-      // Mock the stack interfaces
-      transactionFactory = mock(DsSipDefaultTransactionFactory.class);
       dsSipProxyManager =
           new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
     }

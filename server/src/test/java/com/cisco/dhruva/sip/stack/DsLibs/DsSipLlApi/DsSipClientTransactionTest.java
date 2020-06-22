@@ -115,6 +115,7 @@ public class DsSipClientTransactionTest {
   @AfterClass
   void cleanUp() {
     DsSipTransactionManager.setSmp_theSingleton(null);
+    DsSipProxyManager.setM_Singleton(null);
   }
 
   @AfterMethod
