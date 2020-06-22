@@ -6,6 +6,7 @@
 package com.cisco.dhruva.transport;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DhruvaTransportLayer implements TransportLayer {
 
   private final ExecutorService executorService;
+  private final MetricService metricService;
   private MessageForwarder messageForwarder;
 
   private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaTransportLayer.class);
@@ -31,9 +33,13 @@ public class DhruvaTransportLayer implements TransportLayer {
   private ConcurrentHashMap<ConnectionKey, Server> listenServers = new ConcurrentHashMap<>();
   private int maxConnections;
 
-  public DhruvaTransportLayer(MessageForwarder messageForwarder, ExecutorService executorService) {
+  public DhruvaTransportLayer(
+      MessageForwarder messageForwarder,
+      ExecutorService executorService,
+      MetricService metricService) {
     this.messageForwarder = messageForwarder;
     this.executorService = executorService;
+    this.metricService = metricService;
   }
 
   @Override
@@ -58,7 +64,8 @@ public class DhruvaTransportLayer implements TransportLayer {
     try {
       Server server =
           ServerFactory.getInstance()
-              .getServer(transportType, messageForwarder, transportConfig, executorService);
+              .getServer(
+                  transportType, messageForwarder, transportConfig, executorService, metricService);
       server.startListening(address, port, serverStartFuture);
       serverStartFuture.whenComplete(
           (channel, throwable) -> {
@@ -117,7 +124,8 @@ public class DhruvaTransportLayer implements TransportLayer {
 
       Client client =
           ClientFactory.getInstance()
-              .getClient(transportType, networkConfig, messageForwarder, executorService);
+              .getClient(
+                  transportType, networkConfig, messageForwarder, executorService, metricService);
       connectionCompletableFuture =
           connectionCache.computeIfAbsent(
               localSocketAddress,

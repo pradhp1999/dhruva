@@ -6,10 +6,12 @@
 package com.cisco.dhruva.transport.netty.hanlder;
 
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.testng.Assert.*;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
@@ -25,6 +27,8 @@ import org.testng.annotations.Test;
 public class UDPChannelHandlerTest {
 
   private ExecutorService executorService = new ExecutorService("DhruvaSipServer");
+
+  MetricService metricService = mock(MetricService.class);
 
   @Test(
       enabled = true,
@@ -58,7 +62,7 @@ public class UDPChannelHandlerTest {
     doReturn(localAddress).when(embeddedChannel).localAddress();
 
     ChannelHandler udpChannelHandler =
-        new UDPChannelHandler(messageForwarder, null, executorService);
+        new UDPChannelHandler(messageForwarder, null, executorService, metricService);
     embeddedChannel.pipeline().addLast(udpChannelHandler);
 
     embeddedChannel.writeOneInbound(inviteDatagramPacket);
@@ -111,7 +115,7 @@ public class UDPChannelHandlerTest {
     doReturn(localAddress2).when(embeddedChannel2).localAddress();
 
     ChannelHandler udpChannelHandler =
-        new UDPChannelHandler(messageForwarder, null, executorService);
+        new UDPChannelHandler(messageForwarder, null, executorService, metricService);
     embeddedChannel1.pipeline().addLast(udpChannelHandler);
     embeddedChannel2.pipeline().addLast(udpChannelHandler);
 

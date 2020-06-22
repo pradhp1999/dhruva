@@ -9,6 +9,7 @@ import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.netty.BaseChannelInitializer;
@@ -57,6 +58,8 @@ public class DhruvaTransportLayerTest {
 
   ExecutorService executorService = new ExecutorService("DhruvaSipServer");
 
+  MetricService metricService = mock(MetricService.class);
+
   Logger logger = DhruvaLoggerFactory.getLogger(DhruvaTransportLayerTest.class);
 
   @BeforeClass
@@ -65,7 +68,8 @@ public class DhruvaTransportLayerTest {
     networkConfig = DsNetwork.getNetwork("Test");
     DsNetwork.setenv(env);
     handler = mock(MessageForwarder.class);
-    ChannelHandler channelHandler = new UDPChannelHandler(handler, networkConfig, executorService);
+    ChannelHandler channelHandler =
+        new UDPChannelHandler(handler, networkConfig, executorService, metricService);
     channelInitializer = new BaseChannelInitializer();
     channelInitializer.channelHanlder(channelHandler);
     bootstrap = (Bootstrap) Mockito.spy(Bootstrap.class);
@@ -94,7 +98,8 @@ public class DhruvaTransportLayerTest {
       EmbeddedChannel embeddedChannel = new EmbeddedChannel();
       ChannelFuture bindFuture = mock(ChannelFuture.class);
       transportLayer =
-          TransportLayerFactory.getInstance().getTransportLayer(handler, executorService);
+          TransportLayerFactory.getInstance()
+              .getTransportLayer(handler, executorService, metricService);
 
       // Return success future when bind is called
       doAnswer(
@@ -134,7 +139,9 @@ public class DhruvaTransportLayerTest {
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       String exceptionError = "Bind failed";
       int port = 5060;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null, executorService);
+      transportLayer =
+          TransportLayerFactory.getInstance()
+              .getTransportLayer(null, executorService, metricService);
       // Return Future which failed when bind is called
       doAnswer(
               invocation -> {
@@ -183,7 +190,9 @@ public class DhruvaTransportLayerTest {
       DsNetwork.setenv(env);
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port = 5060;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null, executorService);
+      transportLayer =
+          TransportLayerFactory.getInstance()
+              .getTransportLayer(null, executorService, metricService);
       CompletableFuture startListenFuture =
           transportLayer.startListening(Transport.UDP, networkConfig, null, port, handler);
 
@@ -220,7 +229,9 @@ public class DhruvaTransportLayerTest {
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port1 = 5060;
       int port2 = 5070;
-      transportLayer = TransportLayerFactory.getInstance().getTransportLayer(null, executorService);
+      transportLayer =
+          TransportLayerFactory.getInstance()
+              .getTransportLayer(null, executorService, metricService);
 
       EmbeddedChannel embeddedChannel1 = new EmbeddedChannel();
       EmbeddedChannel embeddedChannel2 = new EmbeddedChannel();
@@ -285,8 +296,7 @@ public class DhruvaTransportLayerTest {
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
       byte[] inviteMessageToSend = SIPMessageGenerator.getInviteMessage("graivitt").getBytes();
       byte[] receivedMessage;
-      transportLayer =
-          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
+      transportLayer = getTransportLayer();
 
       EmbeddedChannel channel = spy(EmbeddedChannel.class);
 
@@ -357,8 +367,7 @@ public class DhruvaTransportLayerTest {
       int localPort = 5070, remotePort = 5060;
       InetSocketAddress remoteSocketAddress = new InetSocketAddress(remoteAddress, remotePort);
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
-      transportLayer =
-          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
+      transportLayer = getTransportLayer();
 
       // Return failure future when connect is called
       EmbeddedChannel channel = new EmbeddedChannel();
@@ -402,8 +411,7 @@ public class DhruvaTransportLayerTest {
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
       byte[] inviteMessageToSend = SIPMessageGenerator.getInviteMessage("graivitt").getBytes();
       byte[] receivedMessage;
-      transportLayer =
-          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
+      transportLayer = getTransportLayer();
 
       EmbeddedChannel channel = spy(EmbeddedChannel.class);
 
@@ -472,8 +480,7 @@ public class DhruvaTransportLayerTest {
       InetAddress remoteAddress = null; // remote address is null for this test
       int localPort = 5070, remotePort = 5060;
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
-      transportLayer =
-          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
+      transportLayer = getTransportLayer();
 
       CompletableFuture<Connection> connectionFuture =
           transportLayer.getConnection(
@@ -507,8 +514,7 @@ public class DhruvaTransportLayerTest {
       InetAddress remoteAddress = InetAddress.getByName("10.78.98.22");
       ; // remote address is null for this test
       InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
-      transportLayer =
-          TransportLayerFactory.getInstance().getTransportLayer((a, b) -> {}, executorService);
+      transportLayer = getTransportLayer();
 
       CompletableFuture<Connection> connectionFuture =
           transportLayer.getConnection(
@@ -525,6 +531,11 @@ public class DhruvaTransportLayerTest {
             + remotePort;
     assertEquals(receivedException.getCause().getClass(), Exception.class);
     assertEquals(receivedException.getCause().getMessage(), expectedExceptionMessage);
+  }
+
+  private TransportLayer getTransportLayer() {
+    return TransportLayerFactory.getInstance()
+        .getTransportLayer((a, b) -> {}, executorService, metricService);
   }
 
   @Test(

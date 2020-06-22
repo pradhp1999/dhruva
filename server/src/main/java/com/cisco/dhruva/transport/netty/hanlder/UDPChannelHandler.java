@@ -6,6 +6,7 @@
 package com.cisco.dhruva.transport.netty.hanlder;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
@@ -26,8 +27,11 @@ public class UDPChannelHandler extends AbstractChannelHandler {
   private Logger logger = DhruvaLoggerFactory.getLogger(UDPChannelHandler.class);
 
   public UDPChannelHandler(
-      MessageForwarder messageForwarder, DsNetwork network, ExecutorService executorService) {
-    super(messageForwarder, network, executorService);
+      MessageForwarder messageForwarder,
+      DsNetwork network,
+      ExecutorService executorService,
+      MetricService metricService) {
+    super(messageForwarder, network, executorService, metricService);
   }
 
   @Override
@@ -44,6 +48,11 @@ public class UDPChannelHandler extends AbstractChannelHandler {
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
     super.channelActive(ctx);
     logger.info("Channel Active {}", ctx.channel());
+  }
+
+  @Override
+  protected Transport getTransport() {
+    return Transport.UDP;
   }
 
   @Override

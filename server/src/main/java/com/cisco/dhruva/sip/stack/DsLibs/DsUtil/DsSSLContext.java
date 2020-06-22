@@ -3,7 +3,6 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
-import com.sun.net.ssl.internal.ssl.Provider;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -95,14 +94,16 @@ public class DsSSLContext {
       System.out.println("initializeSslMode: " + ex.getMessage());
     }
 
-    fips = Provider.isFIPS();
-    if (fips) {
-      FIPS_PROVIDER_NAME =
-          DsConfigManager.getProperty(
-              DsConfigManager.PROP_FIPS_PROVIDER, DsConfigManager.PROP_FIPS_PROVIDER_DEFAULT);
-    } else {
-      FIPS_PROVIDER_NAME = "UNKNOWN";
-    }
+    /*  TODO: Take care of FIPS mode
+        fips = Provider.isFIPS();
+        if (fips) {
+          FIPS_PROVIDER_NAME =
+              DsConfigManager.getProperty(
+                  DsConfigManager.PROP_FIPS_PROVIDER, DsConfigManager.PROP_FIPS_PROVIDER_DEFAULT);
+        } else {
+          FIPS_PROVIDER_NAME = "UNKNOWN";
+        }
+    */
 
     System.out.println("initializeSslMode: FipsStatus.isReady: " + FipsStatus.isReady());
   }

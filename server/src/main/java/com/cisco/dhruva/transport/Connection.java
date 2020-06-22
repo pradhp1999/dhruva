@@ -48,7 +48,9 @@ public interface Connection {
   int referenceCount();
 
   public enum STATE {
+    CONNECTED,
     ACTIVE,
-    INACTIVE
+    INACTIVE,
+    DISCONNECTED
   }
 }
