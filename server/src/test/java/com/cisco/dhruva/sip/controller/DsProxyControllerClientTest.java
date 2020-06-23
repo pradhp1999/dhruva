@@ -114,7 +114,7 @@ public class DsProxyControllerClientTest {
     ctrlr.usingRouteHeader = false;
 
     // This is to set ourRequest global variable
-    // ctrlr.onNewRequest(serverTransaction, sipRequest);
+
     ctrlr.setRequest(sipRequest);
     ctrlr.setProxyTransaction(proxyInterface);
 
@@ -127,6 +127,69 @@ public class DsProxyControllerClientTest {
             argumentCaptor.capture(),
             any(DsProxyCookieInterface.class),
             any(DsProxyBranchParamsInterface.class));
+
+    DsSipRequest requestReceived = argumentCaptor.getValue();
+    Assert.assertNotNull(requestReceived);
+  }
+
+  @Test(description = "test flow from onNewRequest -> App layer -> ProxyTo ")
+  public void testAppHandleRequest() throws DsException {
+    DsSipRequest sipRequest =
+            SIPRequestBuilder.createRequest(
+                    new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
+    DsSipTransactionKey key = sipRequest.forceCreateKey();
+    sipRequest.setNetwork(dsNetwork);
+    //Let the App handle
+    sipRequest.removeHeaders(DsSipConstants.ROUTE);
+
+    DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
+
+    DsSipServerTransaction serverTransaction =
+            m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
+
+    DsControllerFactoryInterface cf = new DsREControllerFactory();
+
+    ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
+
+    AppInterface app = new AppSession();
+    DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
+    DsProxyInterface proxyInterface;
+    DsProxyStatelessTransaction statelessTransaction = mock(DsProxyStatelessTransaction.class);
+    DsProxyCookieInterface cookie = mock(DsProxyCookieInterface.class);
+    DsProxyParamsInterface ppIface = ourConfig;
+
+    DsControllerInterface controller =
+            cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
+
+    when(proxyFactory.createProxyTransaction(controller, ppIface, serverTransaction, sipRequest))
+            .thenReturn(statelessTransaction);
+
+    doNothing().when(statelessTransaction).addProxyRecordRoute(sipRequest, ppIface);
+    doNothing().when(statelessTransaction).proxyTo(sipRequest, cookie, ppIface);
+
+    DsProxyController ctrlr = (DsAppController) controller;
+    proxyInterface = ctrlr.onNewRequest(serverTransaction, sipRequest);
+//    Assert.assertNotNull(proxy);
+
+//    Location loc = new Location(sipRequest.getURI());
+//    // loc.setProcessRoute(true);
+//    loc.setNetwork(dsNetwork);
+//    ctrlr.usingRouteHeader = false;
+//
+//    // This is to set ourRequest global variable
+//
+//    ctrlr.setRequest(sipRequest);
+//    ctrlr.setProxyTransaction(proxyInterface);
+//
+//    ctrlr.proxyTo(loc, sipRequest, null);
+
+    ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
+
+    verify(proxyInterface)
+            .proxyTo(
+                    argumentCaptor.capture(),
+                    any(DsProxyCookieInterface.class),
+                    any(DsProxyBranchParamsInterface.class));
 
     DsSipRequest requestReceived = argumentCaptor.getValue();
     Assert.assertNotNull(requestReceived);
@@ -171,8 +234,6 @@ public class DsProxyControllerClientTest {
     loc.setNetwork(dsNetwork);
     ctrlr.usingRouteHeader = false;
 
-    // This is to set ourRequest global variable
-    // ctrlr.onNewRequest(serverTransaction, sipRequest);
     ctrlr.setRequest(sipRequest);
     ctrlr.setProxyTransaction(proxyInterface);
 
@@ -210,7 +271,6 @@ public class DsProxyControllerClientTest {
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
-    // DsProxyCookieInterface cookie = mock(DsProxyCookieInterface.class);
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
@@ -261,7 +321,7 @@ public class DsProxyControllerClientTest {
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
-    // DsProxyCookieInterface cookie = mock(DsProxyCookieInterface.class);
+
 
     DsControllerInterface controller =
         cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
@@ -320,7 +380,7 @@ public class DsProxyControllerClientTest {
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
-    // DsProxyCookieInterface cookie = mock(DsProxyCookieInterface.class);
+
 
     DsControllerInterface controller =
         cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
@@ -376,7 +436,7 @@ public class DsProxyControllerClientTest {
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
-    // DsProxyCookieInterface cookie = mock(DsProxyCookieInterface.class);
+
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
@@ -426,7 +486,7 @@ public class DsProxyControllerClientTest {
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
-    // DsProxyCookieInterface cookie = mock(DsProxyCookieInterface.class);
+
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
@@ -478,7 +538,7 @@ public class DsProxyControllerClientTest {
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
-    // DsProxyCookieInterface cookie = mock(DsProxyCookieInterface.class);
+
 
     DsControllerInterface controller =
         cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
@@ -496,7 +556,6 @@ public class DsProxyControllerClientTest {
 
     ((DsProxyController) controller).setRequest(sipRequest);
     ArgumentCaptor<Optional> argumentCaptor = ArgumentCaptor.forClass(Optional.class);
-    ArgumentCaptor<Integer> argumentCaptorResponseCode = ArgumentCaptor.forClass(Integer.class);
 
     controller.onICMPError(proxyTransaction, cookie, clientTrans);
 

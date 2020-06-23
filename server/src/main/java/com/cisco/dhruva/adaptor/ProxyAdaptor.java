@@ -12,9 +12,12 @@ import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
 import com.cisco.dhruva.router.MessageListener;
 import com.cisco.dhruva.sip.controller.DsProxyController;
+import com.cisco.dhruva.sip.controller.DsProxyResponseGenerator;
 import com.cisco.dhruva.sip.proxy.Location;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.util.Optional;
@@ -76,21 +79,29 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
   @Override
   public void handleResponse(Location loc, Optional<DsSipResponse> response, int responseCode)
       throws DhruvaException {
-    // MEETPASS TODO
-    if (response.isPresent()) {
-      final ExecutionContext context;
-      handler = new RouteResponseHandler(this);
-      context = new ExecutionContext();
-      context.set(CommonContext.PROXY_RESPONSE_HANDLER, handler);
-
-      IDhruvaMessage dhruvaResponse = buildDhruvaMessageFromSIPResponse(response.get(), context);
-
-      appSession.handleResponse(dhruvaResponse);
-    } else {
+    DsSipResponse resp;
+    if (!response.isPresent()) {
       logger.info("response object is empty");
-      // TODO
-      // Handle failure scenarios, failure callbacks with empty response
+      try {
+        resp = DsProxyResponseGenerator.createResponse(
+                responseCode, this.controller.getRequest());
+      }
+      catch (DsException e) {
+        logger.error("exception while handling response ", e.getMessage());
+        throw new DhruvaException("exception in handling empty response", e.getMessage());
+      }
+    } else {
+      resp = response.get();
     }
+
+    final ExecutionContext context;
+    handler = new RouteResponseHandler(this);
+    context = new ExecutionContext();
+    context.set(CommonContext.PROXY_RESPONSE_HANDLER, handler);
+
+    IDhruvaMessage dhruvaResponse = buildDhruvaMessageFromSIPResponse(resp, context);
+    appSession.handleResponse(dhruvaResponse);
+
   }
 
   private IDhruvaMessage buildDhruvaMessageFromSIPRequest(

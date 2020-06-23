@@ -57,7 +57,7 @@ public class DsProxyTransactionTest {
       dsSipProxyManager =
           new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
     }
-    // DsSipProxyManager sipProxyManager = spy(dsSipProxyManager);
+
     DsSipProxyManager.setM_Singleton(dsSipProxyManager);
     dsSipProxyManager.setRouteFixInterface(controllerFactory);
 
@@ -102,8 +102,6 @@ public class DsProxyTransactionTest {
     DsSipProxyManager.setM_Singleton(null);
   }
 
-  @BeforeMethod
-  void initController() {}
 
   @Test
   public void testProxyClientTransaction() throws DsException, IOException {
@@ -234,8 +232,7 @@ public class DsProxyTransactionTest {
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
-    // when(transactionFactory.createClientTransaction(sipRequest, null,
-    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+
     doReturn(mockSipClientTransaction)
         .when(transactionFactory)
         .createClientTransaction(
@@ -246,7 +243,7 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-    // when(transactionManager.startClientTransaction(mockSipClientTransaction)).thenReturn(mockSipClientTransaction);
+
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
@@ -344,8 +341,7 @@ public class DsProxyTransactionTest {
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
-    // when(transactionFactory.createClientTransaction(sipRequest, null,
-    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+
     doReturn(mockSipClientTransaction)
         .when(transactionFactory)
         .createClientTransaction(
@@ -356,7 +352,6 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-    // when(transactionManager.startClientTransaction(mockSipClientTransaction)).thenReturn(mockSipClientTransaction);
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
@@ -456,8 +451,7 @@ public class DsProxyTransactionTest {
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
-    // when(transactionFactory.createClientTransaction(sipRequest, null,
-    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+
     doReturn(mockSipClientTransaction)
         .when(transactionFactory)
         .createClientTransaction(
@@ -468,7 +462,6 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-    // when(transactionManager.startClientTransaction(mockSipClientTransaction)).thenReturn(mockSipClientTransaction);
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
@@ -551,8 +544,7 @@ public class DsProxyTransactionTest {
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
-    // when(transactionFactory.createClientTransaction(sipRequest, null,
-    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+
     doReturn(mockSipClientTransaction)
         .when(transactionFactory)
         .createClientTransaction(
@@ -563,7 +555,7 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-    // when(transactionManager.startClientTransaction(mockSipClientTransaction)).thenReturn(mockSipClientTransaction);
+
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
@@ -632,8 +624,7 @@ public class DsProxyTransactionTest {
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
-    // when(transactionFactory.createClientTransaction(sipRequest, null,
-    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+
     doReturn(mockSipClientTransaction)
         .when(transactionFactory)
         .createClientTransaction(
@@ -710,8 +701,6 @@ public class DsProxyTransactionTest {
     transactionManager = spy(stackManager);
 
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
-
-    ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
     doReturn(mockSipClientTransaction)
@@ -813,11 +802,9 @@ public class DsProxyTransactionTest {
 
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
 
-    ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
-    // when(transactionFactory.createClientTransaction(sipRequest, null,
-    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+
     doReturn(mockSipClientTransaction)
         .when(transactionFactory)
         .createClientTransaction(
@@ -828,7 +815,7 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-    // when(transactionManager.startClientTransaction(mockSipClientTransaction)).thenReturn(mockSipClientTransaction);
+
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
@@ -895,8 +882,7 @@ public class DsProxyTransactionTest {
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
-    // when(transactionFactory.createClientTransaction(sipRequest, null,
-    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+
     doReturn(mockSipClientTransaction)
         .when(transactionFactory)
         .createClientTransaction(
@@ -970,11 +956,9 @@ public class DsProxyTransactionTest {
 
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
 
-    ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
-    // when(transactionFactory.createClientTransaction(sipRequest, null,
-    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+
     doReturn(mockSipClientTransaction)
         .when(transactionFactory)
         .createClientTransaction(
@@ -1285,8 +1269,7 @@ public class DsProxyTransactionTest {
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
-    // when(transactionFactory.createClientTransaction(sipRequest, null,
-    // proxy.getTransactionInterfaces())).thenReturn(mockSipClientTransaction);
+
     doReturn(mockSipClientTransaction)
         .when(transactionFactory)
         .createClientTransaction(
@@ -1297,7 +1280,7 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-    // when(transactionManager.startClientTransaction(mockSipClientTransaction)).thenReturn(mockSipClientTransaction);
+
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
