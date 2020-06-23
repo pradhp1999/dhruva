@@ -11,7 +11,7 @@ public class TransportLayerFactory {
 
   private static TransportLayerFactory transportLayerFactory = new TransportLayerFactory();
   private static DhruvaTransportLayer dhruvaTransportLayer;
-  private Object lock = new Object();
+  private final Object lock = new Object();
 
   public static TransportLayerFactory getInstance() {
     return transportLayerFactory;

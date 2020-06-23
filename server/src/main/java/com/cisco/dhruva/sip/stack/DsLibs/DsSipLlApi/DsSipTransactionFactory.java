@@ -41,22 +41,6 @@ public interface DsSipTransactionFactory {
    *
    * @param request Handle of message to be sent to server.
    * @param clientInterface Optional callback interface to user-level callbacks.
-   * @param transactionParams Optional. Reserved for future use.
-   * @return the new client transaction
-   * @throws DsException not thrown any more, but its there for backward compatibility and may be
-   *     removed in the next release
-   */
-  DsSipClientTransaction createClientTransaction(
-      DsSipRequest request,
-      DsSipClientTransactionInterface clientInterface,
-      DsSipTransactionParams transactionParams)
-      throws DsException;
-
-  /**
-   * Factory method for a client transaction.
-   *
-   * @param request Handle of message to be sent to server.
-   * @param clientInterface Optional callback interface to user-level callbacks.
    * @param clientTransportInfo If the client wishes to use transport information other than that
    *     held by transport layer, DsSipClientTransportInfo is implemented and passed to this
    *     constructor

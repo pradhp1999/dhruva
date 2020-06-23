@@ -10,7 +10,7 @@ import java.io.IOException;
  * Implement this interface and pass it to the transaction manager in order to get notified about
  * new requests that arrive on the network.
  */
-// MEETPASS @Functional interface
+@FunctionalInterface
 public interface DsSipRequestInterface {
   /**
    * This method should be implemented to allow higher layers to receive incoming requests which

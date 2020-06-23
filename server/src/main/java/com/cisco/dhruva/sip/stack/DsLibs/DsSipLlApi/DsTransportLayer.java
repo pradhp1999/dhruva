@@ -376,6 +376,7 @@ public abstract class DsTransportLayer
             network, transport, localAddress, localPort, remoteAddress, remotePort);
 
     try {
+      // TODO
       connection = connectionFuture.get(network.getTcpConnectionTimeout(), TimeUnit.MILLISECONDS);
     } catch (Exception exception) {
       logger.error(

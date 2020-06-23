@@ -77,8 +77,7 @@ import java.util.Set;
 public class DsSipTransactionManager {
 
   /** How to create transactions and server transaction interfaces. */
-  private static DsSipTransactionFactory m_transactionFactory =
-      new DsSipDefaultTransactionFactory();
+  private static DsSipTransactionFactory m_transactionFactory;
 
   /** Request logging category. */
   private static Logger reqCat = DsLog4j.transMReqCat;
@@ -171,7 +170,7 @@ public class DsSipTransactionManager {
     //            generalCat.warn(Version.getLongVersionAsString());
     //        }
 
-    m_transactionFactory = new DsSipDefaultTransactionFactory();
+    // m_transactionFactory = new DsSipDefaultTransactionFactory();
 
     // Loads the DsTimer class which in turn will instantiate and register the
     // Timer queue. Also loads the transaction factory.
@@ -272,7 +271,9 @@ public class DsSipTransactionManager {
    * @throws DsException if the transaction manager has already been constructed
    */
   public DsSipTransactionManager(
-      DsSipTransportLayer transportLayer, DsSipRequestInterface defaultInterface)
+      DsSipTransportLayer transportLayer,
+      DsSipRequestInterface defaultInterface,
+      DsSipTransactionFactory transactionFactory)
       throws DsException {
     Logger cat = generalCat;
 
@@ -286,6 +287,8 @@ public class DsSipTransactionManager {
     operationalState = OperationalState.RUNNING;
     m_transportLayer = transportLayer;
     m_defaultInterface = defaultInterface;
+
+    m_transactionFactory = transactionFactory;
 
     // provides the transport layer hook to DsConfigManager
     DsConfigManager.setTransportLayer(m_transportLayer);
@@ -1231,47 +1234,6 @@ public class DsSipTransactionManager {
       throws DsException, IOException {
     DsSipClientTransaction txn =
         m_transactionFactory.createClientTransaction(request, clientTransportInfo, clientInterface);
-    return startClientTransaction(txn);
-  }
-
-  /**
-   * Factory interface for DsSipClientTransaction.
-   *
-   * @param request Handle of message to be sent to server.
-   * @param clientInterface Optional callback interface to user-level callbacks.
-   * @param transactionParams Optional. Reserved for future use.
-   * @return the new client transaction or null if the transaction manager is asynchronous mode and
-   *     the outgoing request queue is full
-   * @throws DsException if stack is shut down
-   */
-  public DsSipClientTransaction createClientTransaction(
-      DsSipRequest request,
-      DsSipClientTransactionInterface clientInterface,
-      DsSipTransactionParams transactionParams)
-      throws DsException {
-    return m_transactionFactory.createClientTransaction(
-        request, clientInterface, transactionParams);
-  }
-
-  /**
-   * Factory interface for DsSipClientTransaction. Also starts the transaction.
-   *
-   * @param request Handle of message to be sent to server.
-   * @param clientInterface optional callback interface to user-level callbacks.
-   * @param transactionParams optional, reserved for future use.
-   * @return the new client transaction or null if the transaction manager is asynchronous mode and
-   *     the outgoing request queue is full
-   * @throws IOException if the execution of the state machine results in an IOException
-   * @throws DsException if stack is shut down
-   */
-  public DsSipClientTransaction startClientTransaction(
-      DsSipRequest request,
-      DsSipClientTransactionInterface clientInterface,
-      DsSipTransactionParams transactionParams)
-      throws DsException, IOException {
-
-    DsSipClientTransaction txn =
-        m_transactionFactory.createClientTransaction(request, clientInterface, transactionParams);
     return startClientTransaction(txn);
   }
 
