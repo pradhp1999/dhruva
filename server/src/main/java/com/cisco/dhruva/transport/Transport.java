@@ -82,6 +82,7 @@ public enum Transport {
   public static final DsByteString BS_UDP = new DsByteString(STR_UDP);
   public static final DsByteString BS_TCP = new DsByteString(STR_TCP);
   public static final DsByteString BS_TLS = new DsByteString(STR_TLS);
+  public static final String TRANSPORT = "transport";
 
   private int value;
 

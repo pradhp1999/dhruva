@@ -14,6 +14,7 @@ Dhruva:
     lmabufKafkaBootstrapServers: '{{ .MeetPaas.kafka.hostPortAddress }}'
     lmabufKafkaMaxBlockMs: '2000'
     logstash_pii_sampling_rate: '1.0'
+    influxDBUrl: https://influxdb.int.{{ .MeetPaas.clusterManagerAddress }}:8086
     serviceLevel: integration
   deploy:
     CATALINA_OPTS: '-Dcom.sun.management.jmxremote

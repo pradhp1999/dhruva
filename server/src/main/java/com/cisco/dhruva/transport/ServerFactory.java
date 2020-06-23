@@ -6,6 +6,7 @@
 package com.cisco.dhruva.transport;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.netty.NettyUDPServer;
 
@@ -28,7 +29,8 @@ public class ServerFactory {
       Transport transport,
       MessageForwarder messageForwarder,
       DsNetwork networkConfig,
-      ExecutorService executorService)
+      ExecutorService executorService,
+      MetricService metricService)
       throws Exception {
     Server server = null;
     switch (transport) {
@@ -36,7 +38,9 @@ public class ServerFactory {
         if (udpServer == null) {
           synchronized (lock) {
             if (udpServer == null) {
-              udpServer = new NettyUDPServer(messageForwarder, networkConfig, executorService);
+              udpServer =
+                  new NettyUDPServer(
+                      messageForwarder, networkConfig, executorService, metricService);
             }
           }
         }

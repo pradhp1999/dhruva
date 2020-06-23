@@ -6,6 +6,7 @@
 package com.cisco.dhruva.transport;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.service.MetricService;
 
 public class TransportLayerFactory {
 
@@ -18,11 +19,14 @@ public class TransportLayerFactory {
   }
 
   public TransportLayer getTransportLayer(
-      MessageForwarder messageForwarder, ExecutorService executorService) {
+      MessageForwarder messageForwarder,
+      ExecutorService executorService,
+      MetricService metricService) {
     if (dhruvaTransportLayer == null) {
       synchronized (lock) {
         if (dhruvaTransportLayer == null) {
-          dhruvaTransportLayer = new DhruvaTransportLayer(messageForwarder, executorService);
+          dhruvaTransportLayer =
+              new DhruvaTransportLayer(messageForwarder, executorService, metricService);
         }
       }
     }

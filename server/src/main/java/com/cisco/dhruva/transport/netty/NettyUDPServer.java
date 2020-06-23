@@ -6,6 +6,7 @@
 package com.cisco.dhruva.transport.netty;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Server;
@@ -26,10 +27,14 @@ public class NettyUDPServer implements Server {
   private UDPChannelHandler udpChannelHander;
 
   public NettyUDPServer(
-      MessageForwarder messageForwarder, DsNetwork networkConfig, ExecutorService executorService) {
+      MessageForwarder messageForwarder,
+      DsNetwork networkConfig,
+      ExecutorService executorService,
+      MetricService metricService) {
     this.networkConfig = networkConfig;
     channelInitializer = new BaseChannelInitializer();
-    udpChannelHander = new UDPChannelHandler(messageForwarder, networkConfig, executorService);
+    udpChannelHander =
+        new UDPChannelHandler(messageForwarder, networkConfig, executorService, metricService);
     udpChannelHander.setServerMode(true);
     udpChannelHander.messageForwarder(messageForwarder);
     channelInitializer.channelHanlder(udpChannelHander);

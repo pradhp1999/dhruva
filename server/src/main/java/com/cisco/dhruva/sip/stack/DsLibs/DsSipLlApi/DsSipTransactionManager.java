@@ -44,11 +44,12 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTlsUtil;
 import com.cisco.dhruva.transport.Transport;
+import com.cisco.dhruva.util.LMAUtil;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.LogContext;
 import com.cisco.dhruva.util.log.Logger;
 import com.cisco.dhruva.util.log.Trace;
-import com.cisco.dhruva.util.log.event.Event;
+import com.cisco.dhruva.util.log.event.Event.DIRECTION;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -58,6 +59,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -112,7 +114,6 @@ public class DsSipTransactionManager {
   private static long eventSequenceNumber = 0;
 
   private static volatile OperationalState operationalState;
-
   /** <code>true</code> if emulating RFC 2543 responses. */
   static final boolean m_emulate2543Responses =
       DsConfigManager.getProperty(
@@ -1484,9 +1485,11 @@ public class DsSipTransactionManager {
       }
 
       message = DsSipMessage.createMessage(msgBytes.getMessageBytes(), true, true);
+      message.setIsInternallyGenerated(false);
 
       populateTrackingIdInLog(message);
-      Event.emitMessageEvent(msgBytes.getBindingInfo(), message, Event.IN);
+
+      LMAUtil.emitEventAndMetrics(message, msgBytes.getBindingInfo(), DIRECTION.IN);
 
       message.setTimestamp(msgBytes.getTimestamp());
 
@@ -1937,6 +1940,104 @@ public class DsSipTransactionManager {
     }
   } // End processResponse
 
+  public Optional<DsSipClientTransaction> getClientTransaction(DsSipResponse response) {
+    Logger cat = respCat;
+    DsSipTransactionKey key = response.getKey();
+    DsSipClientTransaction retrievedTransaction = null;
+    if (key == null) {
+      return Optional.empty();
+    }
+    DsByteString responseToTag = key.getToTag();
+
+    if (responseToTag != null) // If response has To tag
+    {
+      if (DsSipConstants.BS_INVITE.equals(response.getCSeqMethod())) {
+        response.setKeyContext(DsSipTransactionKey.USE_VIA | DsSipTransactionKey.USE_TO_TAG);
+        try {
+          // Look for client transaction with key
+          retrievedTransaction = m_transactionTable.findClientTransaction(key);
+        } catch (Exception e) {
+          cat.error(
+              "getClientTransaction(): Exception Finding the Client Transaction using the To Tag"
+                  + " based key, Dhruva will try to find Client Transaction using Via as key",
+              e);
+        }
+
+        if (retrievedTransaction == null) // Client transaction not found
+        {
+          response.setKeyContext(DsSipTransactionKey.USE_VIA);
+          try {
+            // Look for client transaction with key
+            retrievedTransaction = m_transactionTable.findClientTransaction(key);
+          } catch (Exception e) {
+            cat.error(
+                "getClientTransaction():  Exception Finding the Client Transaction using Via as Key",
+                e);
+          }
+        }
+      } else // non-INVITE response
+      {
+        if (DsSipConstants.BS_PRACK.equals(
+            response.getCSeqMethod())) { // Set the key context the sme way when the PRACK txn was
+          // created.
+          response.setKeyContext(DsSipTransactionKey.USE_VIA | DsSipTransactionKey.USE_METHOD);
+        } else {
+          response.setKeyContext(DsSipTransactionKey.USE_VIA | DsSipTransactionKey.USE_TO_TAG);
+        }
+        try {
+          // Look for client transaction with key
+          retrievedTransaction = m_transactionTable.findClientTransaction(key);
+        } catch (Exception e) {
+          cat.warn(
+              "getClientTransaction(): Exception finding the Client Transaction , "
+                  + "finding Client Transaction will be retried using VIA key",
+              e);
+        }
+
+        if (retrievedTransaction == null)
+        // Client transaction not found
+        {
+          if (DsSipConstants.BS_PRACK.equals(
+              response.getCSeqMethod())) { // Set the key context the sme way when the PRACK txn was
+            // created.
+            response.setKeyContext(DsSipTransactionKey.USE_VIA | DsSipTransactionKey.USE_METHOD);
+          } else {
+            response.setKeyContext(DsSipTransactionKey.USE_VIA);
+          }
+          try {
+            // Look for client transaction with key
+            retrievedTransaction = m_transactionTable.findClientTransaction(key);
+          } catch (Exception e) {
+            cat.error(
+                "getClientTransaction():  Exception finding the Client Transaction using VIA also, "
+                    + "Response will be processed as Stray Response",
+                e);
+          }
+        }
+      }
+    } else // response has no To tag
+    {
+      if (DsSipConstants.BS_PRACK.equals(
+          response.getCSeqMethod())) { // Set the key context the sme way when the PRACK txn was
+        // created.
+        response.setKeyContext(DsSipTransactionKey.USE_VIA | DsSipTransactionKey.USE_METHOD);
+      } else {
+        response.setKeyContext(DsSipTransactionKey.USE_VIA);
+      }
+      try {
+        // Look for client transaction with key
+        retrievedTransaction = m_transactionTable.findClientTransaction(key);
+      } catch (Exception e) {
+
+        logger.error(
+            "getClientTransaction(): Exception finding the Client Transaction using VIA "
+                + "(VIA was tried because there was no To Tag in the response)",
+            e);
+      }
+    }
+    return Optional.ofNullable(retrievedTransaction);
+  }
+
   private void passResponseToStrayMessageInterface(DsSipResponse response) {
     logger.info(
         "processResponse(): Received a stray response; calling DsSipStrayMessageInterface.strayResponse ,"
@@ -2182,7 +2283,7 @@ public class DsSipTransactionManager {
 
   void addCiscoPeerCertInfoHeader(DsSipRequest request) {
     DsBindingInfo bindingInfo = request.getBindingInfo();
-    boolean isMidCall = request.getToTag() != null;
+    boolean isMidCall = request.isMidCall();
     if (request.getMethodID() == DsSipConstants.INVITE
         && !isMidCall
         && bindingInfo instanceof DsSSLBindingInfo) {

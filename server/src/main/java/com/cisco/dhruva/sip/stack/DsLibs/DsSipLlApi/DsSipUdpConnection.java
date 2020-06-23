@@ -6,7 +6,8 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.transport.Connection;
-import com.cisco.dhruva.util.log.event.Event;
+import com.cisco.dhruva.util.LMAUtil;
+import com.cisco.dhruva.util.log.event.Event.DIRECTION;
 import java.io.IOException;
 import java.net.InetAddress;
 import org.slf4j.event.Level;
@@ -37,7 +38,8 @@ public class DsSipUdpConnection extends DsUdpConnection implements DsSipConnecti
     buffer = message.toByteArray();
     super.send(buffer);
     message.updateBinding(bindingInfo);
-    Event.emitMessageEvent(bindingInfo, message, Event.OUT);
+
+    LMAUtil.emitEventAndMetrics(message, bindingInfo, DIRECTION.OUT);
 
     return buffer;
   }

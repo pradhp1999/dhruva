@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.netty.UDPConnection;
@@ -50,8 +51,9 @@ public class ConnectionCacheTest {
           public void processMessage(byte[] messageBytes, DsBindingInfo bindingInfo) {}
         };
     ExecutorService executorService = new ExecutorService("DhruvaSipServer");
+    MetricService metricService = mock(MetricService.class);
     AbstractChannelHandler channelHandler =
-        new UDPChannelHandler(messageForwarder, null, executorService);
+        new UDPChannelHandler(messageForwarder, null, executorService, metricService);
     try {
 
       when(networkConfig.connectionCacheConnectionIdleTimeout()).thenReturn(1);

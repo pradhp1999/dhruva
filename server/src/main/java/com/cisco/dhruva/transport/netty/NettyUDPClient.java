@@ -6,6 +6,7 @@
 package com.cisco.dhruva.transport.netty;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Connection;
 import com.cisco.dhruva.transport.MessageForwarder;
@@ -22,11 +23,15 @@ public class NettyUDPClient extends AbstractClient {
   private Logger logger = DhruvaLoggerFactory.getLogger(NettyUDPClient.class);
 
   public NettyUDPClient(
-      DsNetwork networkConfig, MessageForwarder messageForwarder, ExecutorService executorService) {
+      DsNetwork networkConfig,
+      MessageForwarder messageForwarder,
+      ExecutorService executorService,
+      MetricService metricService) {
     this.networkConfig = networkConfig;
     channelInitializer = new BaseChannelInitializer();
 
-    channelHandler = new UDPChannelHandler(messageForwarder, networkConfig, executorService);
+    channelHandler =
+        new UDPChannelHandler(messageForwarder, networkConfig, executorService, metricService);
     channelHandler.setServerMode(false);
     channelInitializer.channelHanlder(channelHandler);
 

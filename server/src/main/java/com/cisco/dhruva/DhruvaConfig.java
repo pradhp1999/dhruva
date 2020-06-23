@@ -1,5 +1,8 @@
 package com.cisco.dhruva;
 
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.common.metric.InfluxClient;
+import com.cisco.dhruva.common.metric.MetricClient;
 import com.cisco.wx2.redis.RedisDataSource;
 import com.cisco.wx2.redis.RedisDataSourceManager;
 import com.cisco.wx2.server.config.ConfigProperties;
@@ -52,6 +55,16 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
         String.class,
         ObjectMappers.getObjectMapper(),
         metricRegistry);
+  }
+
+  @Bean
+  public ExecutorService getExecutorService() {
+    return new ExecutorService("DhruvaSipServer");
+  }
+
+  @Bean
+  public MetricClient getMetricClient() {
+    return new InfluxClient();
   }
 
   @Bean

@@ -12,14 +12,20 @@ import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
 import com.cisco.dhruva.sip.controller.DsREControllerFactory;
 import com.cisco.dhruva.sip.proxy.DsSipProxyManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipClientTransactionImpl;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransactionImpl;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransactionManager;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransportLayer;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.SipPacketProcessor;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.transport.DhruvaTransportLayer;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.transport.TransportLayerFactory;
+import com.cisco.dhruva.util.LMAUtil;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +48,7 @@ public class SIPService {
 
   private DsSipTransactionManager sipTransactionManager;
 
-  private ExecutorService executorService;
+  @Autowired private ExecutorService executorService;
 
   @Autowired private Environment env;
 
@@ -50,18 +56,20 @@ public class SIPService {
 
   private DhruvaTransportLayer dhruvaTransportLayer;
 
+  @Autowired public MetricService metricsService;
+
+  @Autowired LMAUtil lmaUtil;
+
   @PostConstruct
   public void init() throws Exception {
 
     List<SIPListenPoint> sipListenPoints = dhruvaSIPConfigProperties.getListeningPoints();
-    executorService = new ExecutorService("DhruvaSipServer");
     executorService.startExecutorService(ExecutorType.SIP_TRANSACTION_PROCESSOR, 10);
     DsTimer.startTimers(executorService);
     sipPacketProcessor = new SipPacketProcessor(executorService);
     initTransportLayer(sipListenPoints);
 
     DsSipServerTransactionImpl.configureExecutor(executorService);
-
     DsSipClientTransactionImpl.configureExecutor(executorService);
 
     sipTransportLayer = new DsSipTransportLayer(null, sipPacketProcessor, dhruvaTransportLayer);
@@ -78,7 +86,7 @@ public class SIPService {
     dhruvaTransportLayer =
         (DhruvaTransportLayer)
             TransportLayerFactory.getInstance()
-                .getTransportLayer(sipPacketProcessor, executorService);
+                .getTransportLayer(sipPacketProcessor, executorService, metricsService);
 
     ArrayList<CompletableFuture> listenPointFutures = new ArrayList<CompletableFuture>();
 

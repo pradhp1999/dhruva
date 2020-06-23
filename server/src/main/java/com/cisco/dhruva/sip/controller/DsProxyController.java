@@ -365,7 +365,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     int responseCode = response.getStatusCode();
     if (responseCode != 100) {
-      proxy.respond(response);
+      // proxy.respond(response);
       Log.debug("sent " + responseCode + " response ");
     }
 

@@ -2,8 +2,8 @@ package com.cisco.dhruva.util.log;
 
 import com.cisco.dhruva.util.log.event.Event.EventSubType;
 import com.cisco.dhruva.util.log.event.Event.EventType;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
 import org.slf4j.MDC;
 import org.slf4j.event.Level;
@@ -102,17 +102,19 @@ public class DhruvaLogger implements Logger {
   @Override
   public void emitEvent(
       EventType eventType,
-      Optional<EventSubType> eventSubType,
+      EventSubType eventSubType,
       String message,
-      Optional<Map<String, String>> additionalKeyValueInfo) {
+      Map<String, String> additionalKeyValueInfo) {
 
     Map<String, String> contextMapCopy = MDC.getCopyOfContextMap();
 
     MDC.put(EVENT_TYPE, eventType.name());
-    eventSubType.ifPresent(eventSubTypeValue -> MDC.put(EVENT_TYPE, eventSubTypeValue.name()));
-    additionalKeyValueInfo.ifPresent(
-        additionalKeyValueInfoMap ->
-            additionalKeyValueInfoMap.forEach((key, value) -> MDC.put(key, value)));
+    if (eventSubType != null) {
+      MDC.put(EVENT_TYPE, eventSubType.name());
+    }
+    if (additionalKeyValueInfo != null) {
+      additionalKeyValueInfo.forEach((key, value) -> MDC.put(key, value));
+    }
 
     logger.info(message);
 
@@ -139,7 +141,8 @@ public class DhruvaLogger implements Logger {
 
   @Override
   public Map<String, String> getMDCMap() {
-    return MDC.getCopyOfContextMap();
+    Map<String, String> mdcMap = MDC.getCopyOfContextMap();
+    return mdcMap == null ? new HashMap<String, String>() : mdcMap;
   }
 
   @Override

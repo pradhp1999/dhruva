@@ -6,6 +6,9 @@
 package com.cisco.dhruva.transport;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.common.metric.Metric;
+import com.cisco.dhruva.common.metric.Metrics;
+import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
@@ -13,14 +16,21 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 
 public class DhruvaTransportLayer implements TransportLayer {
 
   private final ExecutorService executorService;
+  private final MetricService metricService;
   private MessageForwarder messageForwarder;
 
   private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaTransportLayer.class);
@@ -31,9 +41,72 @@ public class DhruvaTransportLayer implements TransportLayer {
   private ConcurrentHashMap<ConnectionKey, Server> listenServers = new ConcurrentHashMap<>();
   private int maxConnections;
 
-  public DhruvaTransportLayer(MessageForwarder messageForwarder, ExecutorService executorService) {
+  public DhruvaTransportLayer(
+      MessageForwarder messageForwarder,
+      ExecutorService executorService,
+      MetricService metricService) {
     this.messageForwarder = messageForwarder;
     this.executorService = executorService;
+    this.metricService = metricService;
+    registerMetric();
+  }
+
+  private void registerMetric() {
+    metricService.registerPeriodicMetric(
+        "activeConnections", connectionCountMetricSupplier(), 1, TimeUnit.MINUTES);
+  }
+
+  @NotNull
+  private Supplier<Set<Metric>> connectionCountMetricSupplier() {
+    return () -> {
+      AtomicInteger udpConnectionCount = new AtomicInteger();
+      AtomicInteger tcpConnectionCount = new AtomicInteger();
+      AtomicInteger tlsConnectionCount = new AtomicInteger();
+      connectionCache
+          .getConnectionMap()
+          .forEach(
+              (connectionKey, connectionCompletableFuture) -> {
+                if (connectionCompletableFuture.isDone()) {
+                  try {
+                    Connection connection = connectionCompletableFuture.get();
+                    switch (connection.getConnectionType()) {
+                      case UDP:
+                        udpConnectionCount.getAndIncrement();
+                        break;
+                      case TCP:
+                        tcpConnectionCount.getAndIncrement();
+                        break;
+                      case TLS:
+                        tlsConnectionCount.getAndIncrement();
+                        break;
+                    }
+                  } catch (ExecutionException | InterruptedException e) {
+                    logger.info(
+                        "Exception "
+                            + e.getMessage()
+                            + " in getting connection metric from connection cache "
+                            + "ignore the exception , this connection Future should be cleaned up by the Future handler");
+                  }
+                }
+              });
+
+      Set<Metric> metrics = new HashSet<Metric>();
+
+      metrics.add(
+          Metrics.newMetric()
+              .tag(Transport.TRANSPORT, Transport.UDP.name())
+              .field("count", udpConnectionCount.get()));
+      metrics.add(
+          Metrics.newMetric()
+              .tag(Transport.TRANSPORT, Transport.TCP.name())
+              .field("count", tcpConnectionCount.get()));
+      metrics.add(
+          Metrics.newMetric()
+              .tag(Transport.TRANSPORT, Transport.TLS.name())
+              .field("count", tlsConnectionCount.get()));
+
+      return metrics;
+    };
   }
 
   @Override
@@ -58,7 +131,8 @@ public class DhruvaTransportLayer implements TransportLayer {
     try {
       Server server =
           ServerFactory.getInstance()
-              .getServer(transportType, messageForwarder, transportConfig, executorService);
+              .getServer(
+                  transportType, messageForwarder, transportConfig, executorService, metricService);
       server.startListening(address, port, serverStartFuture);
       serverStartFuture.whenComplete(
           (channel, throwable) -> {
@@ -117,7 +191,8 @@ public class DhruvaTransportLayer implements TransportLayer {
 
       Client client =
           ClientFactory.getInstance()
-              .getClient(transportType, networkConfig, messageForwarder, executorService);
+              .getClient(
+                  transportType, networkConfig, messageForwarder, executorService, metricService);
       connectionCompletableFuture =
           connectionCache.computeIfAbsent(
               localSocketAddress,

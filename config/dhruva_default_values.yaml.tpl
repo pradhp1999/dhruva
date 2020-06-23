@@ -20,12 +20,22 @@ Dhruva:
     clientKeystorePath: /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security/client.jks
     clusterid: '{{ .MeetPaas.clusterName }}'
     dataCenterIdentifier: '{{ .MeetPaas.meetClusterName }}'
+    directMetricsToInfluxDBEnabled: 'false'
     domain: meetapi.webex.com
     environment: '{{ .MeetPaas.clusterName }}'
+    influxDBName: metrics
+    influxDBRetentionPolicy: default
+    influxDBUrl: null
+    influxMaxConcurrentRequests: '20'
+    influxOperationTimeout: '100'
+    influxUseCircuitBreaker: 'true'
+    influxWriteOperationTimeout: '100'
     kafkaBootstrapServers: '{{ .MeetPaas.kafka.hostPortAddress }}'
     kafkaDiagHostPortAddress: '{{ .MeetPaas.kafka.hostPortAddress }}'
     kafkaHostPortAddress: '{{ .MeetPaas.kafka.hostPortAddress }}'
     kafkaMeetHostPortAddress: '{{ .MeetPaas.kafka.hostPortAddress }}'
+    kafkaMetricsEnabled: 'true'
+    kafkaTopicMetricsDeliveryInfoCurrentDC: diagnostic_events
     LOGBACK_HOSTNAME: ${HOSTNAME}
     logstash_tags: dhruva
     metricsKafkaClusterConfig: '{{ .MeetPaas.kafka.hostPortAddress }}'
