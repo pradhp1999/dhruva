@@ -2,6 +2,7 @@ package com.cisco.dhruva.util.log;
 
 import com.cisco.dhruva.util.log.event.Event.EventSubType;
 import com.cisco.dhruva.util.log.event.Event.EventType;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 import org.slf4j.MDC;
@@ -140,7 +141,8 @@ public class DhruvaLogger implements Logger {
 
   @Override
   public Map<String, String> getMDCMap() {
-    return MDC.getCopyOfContextMap();
+    Map<String, String> mdcMap = MDC.getCopyOfContextMap();
+    return mdcMap == null ? new HashMap<String, String>() : mdcMap;
   }
 
   @Override

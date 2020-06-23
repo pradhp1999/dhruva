@@ -5,6 +5,8 @@
 package com.cisco.dhruva.service;
 
 import static com.cisco.dhruva.util.log.event.Event.DIRECTION.OUT;
+import static com.cisco.dhruva.util.log.event.Event.MESSAGE_TYPE.REQUEST;
+import static com.cisco.dhruva.util.log.event.Event.MESSAGE_TYPE.RESPONSE;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.common.executor.ExecutorType;
@@ -66,7 +68,7 @@ public class MetricService {
 
     Metric metric =
         Metrics.newMetric()
-            .measurement(prefixDhruvaToMeasurementName("Connection"))
+            .measurement("connection")
             .tag("transport", transport.toString())
             .tag("direction", direction.name())
             .field("localIp", localIp)
@@ -85,18 +87,27 @@ public class MetricService {
       DIRECTION direction,
       boolean isMidCall,
       boolean isInternallyGenerated,
-      long dhruvaProcessingDelayInMillis) {
+      long dhruvaProcessingDelayInMillis,
+      String requestUri) {
 
     Metric metric =
         Metrics.newMetric()
-            .measurement(prefixDhruvaToMeasurementName("SipMessage"))
+            .measurement("sipMessage")
             .tag("method", method)
             .tag("messageType", messageType.name())
             .tag("direction", direction.name())
             .tag("isMidCall", isMidCall)
             .field("isInternallyGenerated", isInternallyGenerated)
             .field("callId", callId)
-            .field("cseq", cseq);
+            .field("cSeq", cseq);
+
+    if (messageType == RESPONSE) {
+      metric.field("responseCode", Integer.valueOf(method));
+      metric.field("responseReason", requestUri);
+    } else if (messageType == REQUEST) {
+      metric.field("requestUri", requestUri);
+    }
+
     if (direction == OUT && !isInternallyGenerated) {
       metric.field("processingDelayInMillis", dhruvaProcessingDelayInMillis);
     }
@@ -109,6 +120,7 @@ public class MetricService {
   }
 
   private void sendMetric(Metric metric) {
+    metric.measurement(prefixDhruvaToMeasurementName(metric.measurement()));
     metricClient.sendMetric(metric);
   }
 

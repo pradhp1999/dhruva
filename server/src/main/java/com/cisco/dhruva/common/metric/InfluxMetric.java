@@ -26,6 +26,11 @@ public class InfluxMetric implements Metric {
   }
 
   @Override
+  public String measurement() {
+    return influxPoint.getMeasurement();
+  }
+
+  @Override
   public Metric timestamp(Instant timestamp) {
     influxPoint.setTimestamp(timestamp);
     return this;

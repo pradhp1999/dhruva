@@ -13,6 +13,9 @@ public abstract class ScheduledTaskDelay {
 
   public ScheduledTaskDelay(long time, TimeUnit sourceTimeUnit) {
     this.time = time;
+    if (sourceTimeUnit == null) {
+      throw new NullPointerException("sourceTimeUnit cannot be null");
+    }
     this.sourceTimeUnit = sourceTimeUnit;
   }
 

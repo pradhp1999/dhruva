@@ -11,6 +11,8 @@ public interface Metric extends Supplier {
 
   public Metric measurement(String measurement);
 
+  public String measurement();
+
   public Metric timestamp(Instant timestamp);
 
   public Metric tag(String tagName, boolean value);
