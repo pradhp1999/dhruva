@@ -64,13 +64,13 @@ public class DsProxyControllerServerTest {
     try {
       DsControllerConfig.addListenInterface(
           dsNetwork,
-          InetAddress.getByName("0.0.0.0"),
+          InetAddress.getByName("127.0.0.1"),
           5060,
           Transport.UDP,
-          InetAddress.getByName("0.0.0.0"));
+          InetAddress.getByName("127.0.0.1"));
 
       DsControllerConfig.addRecordRouteInterface(
-          InetAddress.getByName("0.0.0.0"), 5060, Transport.UDP, dsNetwork);
+          InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
     } catch (DsInconsistentConfigurationException ignored) {
       // In this case it was already set, there is no means to remove the key from map
     }
@@ -519,7 +519,7 @@ public class DsProxyControllerServerTest {
         new DsSipRecordRouteHeader("<sip:rr,n=service@1.2.3.4:5080;transport=udp;lr>".getBytes());
 
     DsSipRecordRouteHeader rr2 =
-        new DsSipRecordRouteHeader("<sip:rr,n=Default@0.0.0.0:5060;transport=udp;lr>".getBytes());
+        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
     resp.addHeader(rr1);
     resp.addHeader(rr2);
 

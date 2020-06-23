@@ -55,8 +55,8 @@ public class DsProxyErrorAggregatorTest {
     adaptorInterface = mock(AppAdaptorInterface.class);
     proxyAdaptorFactoryInterface = mock(ProxyAdaptorFactoryInterface.class);
 
-    localAddress = InetAddress.getByName("0.0.0.0");
-    remoteAddress = InetAddress.getByName("0.0.0.0");
+    localAddress = InetAddress.getByName("127.0.0.1");
+    remoteAddress = InetAddress.getByName("127.0.0.1");
     localPort = 5060;
     remotePort = 5070;
     incomingMessageBindingInfo =
@@ -72,13 +72,13 @@ public class DsProxyErrorAggregatorTest {
     try {
       DsControllerConfig.addListenInterface(
           dsNetwork,
-          InetAddress.getByName("0.0.0.0"),
+          InetAddress.getByName("127.0.0.1"),
           5060,
           Transport.UDP,
-          InetAddress.getByName("0.0.0.0"));
+          InetAddress.getByName("127.0.0.1"));
 
       DsControllerConfig.addRecordRouteInterface(
-          InetAddress.getByName("0.0.0.0"), 5060, Transport.UDP, dsNetwork);
+          InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
     } catch (DsInconsistentConfigurationException ignored) {
       // In this case it was already set, there is no means to remove the key from map
     }
