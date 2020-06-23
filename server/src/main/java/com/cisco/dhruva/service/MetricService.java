@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 public class MetricService {
 
   private static final String DHRUVA = "dhruva";
+  private static final String DOT = ".";
   private final ScheduledThreadPoolExecutor scheduledExecutor;
   private ExecutorService executorService;
   MetricClient metricClient;
@@ -92,19 +93,19 @@ public class MetricService {
             .tag("method", method)
             .tag("messageType", messageType.name())
             .tag("direction", direction.name())
-            .field("callId", callId)
-            .field("isMidCall", isMidCall)
+            .tag("isMidCall", isMidCall)
             .field("isInternallyGenerated", isInternallyGenerated)
+            .field("callId", callId)
             .field("cseq", cseq);
     if (direction == OUT && !isInternallyGenerated) {
-      metric.field("dhruvaProcessingDelayInMillis", dhruvaProcessingDelayInMillis);
+      metric.field("processingDelayInMillis", dhruvaProcessingDelayInMillis);
     }
     sendMetric(metric);
   }
 
   @NotNull
   private String prefixDhruvaToMeasurementName(String measurement) {
-    return DHRUVA + measurement;
+    return DHRUVA + DOT + measurement;
   }
 
   private void sendMetric(Metric metric) {
