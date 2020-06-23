@@ -98,7 +98,7 @@ public class DsHeaderMasking {
 
     Log.debug("Via Decryption on:\n" + msg);
 
-    if (msg.isResponse() == true) {
+    if (msg.isResponse()) {
       DsSipHeaderList headerList = null;
       try {
         headerList = msg.getHeadersValidate(DsSipViaHeader.sID);
@@ -130,8 +130,8 @@ public class DsHeaderMasking {
   protected void replaceViaDecryption(DsSipMessage msg, MessageDigest md5) throws Exception {
     Log.debug("Entering replaceViaDecryption()");
 
-    if (msg.isResponse() == true) {
-      if (m_ControllerConfig.isStateful() == true && viaList != null) {
+    if (msg.isResponse()) {
+      if (m_ControllerConfig.isStateful() && viaList != null) {
         Log.debug("Calling doViaDecryption");
         msg.removeHeaders(DsSipViaHeader.sID);
         doViaDecryption(msg);

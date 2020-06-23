@@ -377,6 +377,11 @@ public class DsProxyTransaction extends DsProxyStatelessTransaction {
     return serverTransaction;
   }
 
+  /** @return the DsProxyServerTransaction */
+  public DsProxyClientTransaction getClientTransaction() {
+    return m_originalProxyClientTrans;
+  }
+
   /**
    * This method allows the controller to proxy to a specified URL using specified parameters the
    * code will not check to make sure the controller is not adding or removing critical headers like
@@ -478,7 +483,6 @@ public class DsProxyTransaction extends DsProxyStatelessTransaction {
         if (timeout > 0) {
           proxyClientTrans.setTimeout(timeout);
         }
-
         controller.onProxySuccess(this, cookie, proxyClientTrans);
 
       } catch (DsException e) {
@@ -994,13 +998,6 @@ public class DsProxyTransaction extends DsProxyStatelessTransaction {
         case 3:
         case 4:
         case 5:
-          if (proxyClientTransaction.isInvite())
-            try {
-              proxyClientTransaction.ack();
-            } catch (Exception e) {
-              Log.error("Exception sending ACK: ", e);
-            }
-          break;
         case 6:
           if (proxyClientTransaction.isInvite())
             try {

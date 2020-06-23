@@ -25,6 +25,7 @@ import com.cisco.dhruva.transport.TransportLayerFactory;
 import com.cisco.dhruva.util.LMAUtil;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +74,9 @@ public class SIPService {
 
     sipTransportLayer = new DsSipTransportLayer(null, sipPacketProcessor, dhruvaTransportLayer);
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
-    DsSipProxyManager proxyManager = new DsSipProxyManager(sipTransportLayer, controllerFactory);
+    DsSipTransactionFactory transactionFactory = new DsSipDefaultTransactionFactory();
+    DsSipProxyManager proxyManager =
+        new DsSipProxyManager(sipTransportLayer, controllerFactory, transactionFactory);
     proxyManager.setRouteFixInterface(controllerFactory);
   }
 

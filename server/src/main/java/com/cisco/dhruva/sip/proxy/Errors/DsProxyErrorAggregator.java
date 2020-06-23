@@ -8,7 +8,8 @@ import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.util.log.Trace;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,7 +31,7 @@ public class DsProxyErrorAggregator {
   private List<DsProxyError> proxyErrorList;
   private DsSipRequest request;
 
-  private static Trace Log = Trace.getTrace(DsProxyErrorAggregator.class.getName());
+  private static final Logger Log = DhruvaLoggerFactory.getLogger(DsProxyErrorAggregator.class);
 
   public DsProxyErrorAggregator() {
     this.proxyErrorList = new LinkedList<>();
@@ -99,29 +100,6 @@ public class DsProxyErrorAggregator {
     add(new DsProxyFailureResponse(response));
   }
 
-  public void onXclRoutingFailure(DsSipResponse response) {
-    DsProxyError proxyError = new DsXclRoutingFailureException(response);
-    add(proxyError);
-
-    int statusCode = response.getStatusCode();
-    int reason = response.getApplicationReason();
-
-    // log only when response is "no matching algorithm found" | "routing policy has no algorithms?"
-    /**
-     * xcl failure is called when CP can't find any routeGroup, connection refused & retry of next
-     * server group failure<br>
-     * CAEvent should be logged only when there is no routeGroup. Other failure logging is done
-     * wherever its required.<br>
-     * (ie) When connection refused & retry failure happens CA logging is done at
-     * DsProxyController#onProxyFailure()
-     *
-     * <p>Refer dsnrs_route.xcl for more details
-     */
-    if (statusCode == 404 && reason == REASON_AUTO) {
-      notifyError(proxyError, ErrorType.XCL_FAILURE);
-    }
-  }
-
   public void onServerGroupDown(String sgName, boolean sgDownAlready) {
     DsProxyError proxyError = new DsProxyServerGroupDownError(sgName);
     add(proxyError);
@@ -139,8 +117,7 @@ public class DsProxyErrorAggregator {
 
     try {
       proxyErrorList.add(proxyError);
-      if (Log.on && Log.isInfoEnabled())
-        Log.info("proxyError[added]: " + proxyError.getDescription());
+      Log.info("proxyError[added]: " + proxyError.getDescription());
     } catch (Throwable t) {
       Log.error("proxyError exception", t);
     }

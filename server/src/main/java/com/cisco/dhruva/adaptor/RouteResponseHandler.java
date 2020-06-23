@@ -77,7 +77,7 @@ public class RouteResponseHandler implements MessageListener {
         try {
           controller.respond(response);
         } catch (DsException e) {
-          throw new DhruvaException("exception sending response" + e.getMessage());
+          throw new DhruvaException("exception sending response " + e.getMessage());
         }
         break;
 

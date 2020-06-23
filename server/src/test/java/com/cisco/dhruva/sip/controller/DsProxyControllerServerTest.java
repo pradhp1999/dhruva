@@ -13,6 +13,7 @@ import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
 import com.cisco.dhruva.router.MessageListener;
+import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationException;
 import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
@@ -31,7 +32,6 @@ import org.testng.annotations.Test;
 
 public class DsProxyControllerServerTest {
 
-  private DsSipTransportLayer transportLayer;
   private DsSipProxyManager sipProxyManager;
   DsNetwork dsNetwork;
   private AppAdaptorInterface adaptorInterface;
@@ -46,8 +46,10 @@ public class DsProxyControllerServerTest {
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipProxyManager dsSipProxyManager = DsSipProxyManager.getInstance();
     if (dsSipProxyManager == null) {
-      transportLayer = mock(DsSipTransportLayer.class);
-      dsSipProxyManager = new DsSipProxyManager(transportLayer, controllerFactory);
+      DsSipTransportLayer transportLayer = mock(DsSipTransportLayer.class);
+      DsSipTransactionFactory transactionFactory = new DsSipDefaultTransactionFactory();
+      dsSipProxyManager =
+          new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
     }
     sipProxyManager = spy(dsSipProxyManager);
     DsSipProxyManager.setM_Singleton(sipProxyManager);
@@ -56,15 +58,22 @@ public class DsProxyControllerServerTest {
     DsSipServerTransactionImpl.setThreadPoolExecutor(
         (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
 
-    DsControllerConfig.addListenInterface(
-        dsNetwork,
-        InetAddress.getByName("0.0.0.0"),
-        5060,
-        Transport.UDP,
-        InetAddress.getByName("0.0.0.0"));
+    DsSipClientTransactionImpl.setThreadPoolExecutor(
+        (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
 
-    DsControllerConfig.addRecordRouteInterface(
-        InetAddress.getByName("0.0.0.0"), 5060, Transport.UDP, dsNetwork);
+    try {
+      DsControllerConfig.addListenInterface(
+          dsNetwork,
+          InetAddress.getByName("127.0.0.1"),
+          5060,
+          Transport.UDP,
+          InetAddress.getByName("127.0.0.1"));
+
+      DsControllerConfig.addRecordRouteInterface(
+          InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
+    } catch (DsInconsistentConfigurationException ignored) {
+      // In this case it was already set, there is no means to remove the key from map
+    }
   }
 
   @AfterClass
@@ -92,7 +101,9 @@ public class DsProxyControllerServerTest {
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
 
     AppInterface app = new AppSession();
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     DsProxyStatelessTransaction proxy = controller.onNewRequest(serverTransaction, sipRequest);
 
@@ -122,7 +133,10 @@ public class DsProxyControllerServerTest {
 
     AppInterface app = new AppSession();
 
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     DsProxyStatelessTransaction proxy = controller.onNewRequest(serverTransaction, sipRequest);
 
@@ -154,9 +168,10 @@ public class DsProxyControllerServerTest {
     DsControllerFactoryInterface cf = new DsREControllerFactory();
 
     AppInterface app = new AppSession();
-
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app);
+        cf.getController(
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -200,7 +215,9 @@ public class DsProxyControllerServerTest {
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
     AppInterface app = new AppSession();
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
     DsAppController c = (DsAppController) controller;
     AppAdaptorInterface adaptor = mock(AppAdaptorInterface.class);
     c.setProxyAdaptor(adaptor);
@@ -262,7 +279,9 @@ public class DsProxyControllerServerTest {
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
     AppInterface app = new AppSession();
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
     DsAppController c = (DsAppController) controller;
     AppAdaptorInterface adaptor = mock(AppAdaptorInterface.class);
     c.setProxyAdaptor(adaptor);
@@ -313,7 +332,9 @@ public class DsProxyControllerServerTest {
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
     AppInterface app = new AppSession();
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
     DsAppController c = (DsAppController) controller;
     AppAdaptorInterface adaptor = mock(AppAdaptorInterface.class);
     c.setProxyAdaptor(adaptor);
@@ -356,8 +377,9 @@ public class DsProxyControllerServerTest {
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
     AppInterface app = new AppSession();
-
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor =
         (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, new AppSession());
@@ -411,7 +433,9 @@ public class DsProxyControllerServerTest {
     AppInterface app = mock(AppSession.class);
     doNothing().when(app).handleRequest(null);
 
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
@@ -443,6 +467,82 @@ public class DsProxyControllerServerTest {
     Assert.assertEquals(resp.toString(), receivedResp.toString());
   }
 
+  @Test(
+      description =
+          "success response path for invite transaction.Set Record Route headers in response msg."
+              + "Dhruva should flip the RR (stateful)")
+  public void testResponse200OkWithRRForInvite() throws Exception {
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
+
+    dsNetwork.setRemoveOwnRouteHeader(true);
+    sipRequest.removeHeaders(DsSipConstants.ROUTE);
+
+    DsSipTransactionKey key = sipRequest.forceCreateKey();
+    sipRequest.setNetwork(dsNetwork);
+
+    ProxyAdaptorFactory f = new ProxyAdaptorFactory();
+    DsControllerFactoryInterface cf = new DsREControllerFactory();
+
+    DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
+
+    DsSipServerTransaction sTransaction =
+        m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
+
+    DsSipServerTransaction serverTransaction = spy(sTransaction);
+
+    ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
+
+    AppInterface app = mock(AppSession.class);
+    doNothing().when(app).handleRequest(null);
+
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
+
+    ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
+
+    final ExecutionContext context;
+    MessageListener handler = new RouteResponseHandler(adaptor);
+    context = new ExecutionContext();
+    context.set(CommonContext.PROXY_RESPONSE_HANDLER, handler);
+
+    DsProxyStatelessTransaction proxy = controller.onNewRequest(serverTransaction, sipRequest);
+
+    Assert.assertNotNull(proxy);
+    Assert.assertTrue(proxy instanceof DsProxyTransaction);
+
+    DsSipResponse resp =
+        DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_OK, sipRequest);
+
+    DsSipRecordRouteHeader rr1 =
+        new DsSipRecordRouteHeader("<sip:rr,n=service@1.2.3.4:5080;transport=udp;lr>".getBytes());
+
+    DsSipRecordRouteHeader rr2 =
+        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
+    resp.addHeader(rr1);
+    resp.addHeader(rr2);
+
+    IDhruvaMessage responseMsg =
+        MessageConvertor.convertSipMessageToDhruvaMessage(
+            resp, MessageBodyType.SIPRESPONSE, context);
+
+    handler.onMessage(responseMsg);
+    ArgumentCaptor<DsSipResponse> argumentCaptor = ArgumentCaptor.forClass(DsSipResponse.class);
+    verify(serverTransaction, times(1)).sendResponse(argumentCaptor.capture());
+
+    DsSipResponse receivedResp = (DsSipResponse) argumentCaptor.getValue();
+
+    DsSipHeaderList rrHeader = receivedResp.getHeaders(DsSipConstants.RECORD_ROUTE);
+
+    Assert.assertNotNull(receivedResp);
+    Assert.assertEquals(receivedResp.getMethodID(), 1);
+    Assert.assertEquals(resp.toString(), receivedResp.toString());
+
+    // TODO , since there is only one listen point, there is no flip happening
+    Assert.assertEquals(rrHeader.getLast(), rr2);
+  }
+
   @Test(description = "controller forwarding 4xx response to invite request")
   public void testResponse4XXForInvite() throws Exception {
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
@@ -468,8 +568,9 @@ public class DsProxyControllerServerTest {
 
     AppInterface app = mock(AppSession.class);
     doNothing().when(app).handleRequest(null);
-
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
@@ -529,8 +630,9 @@ public class DsProxyControllerServerTest {
 
     AppInterface app = mock(AppSession.class);
     doNothing().when(app).handleRequest(null);
-
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
@@ -590,8 +692,9 @@ public class DsProxyControllerServerTest {
 
     AppInterface app = mock(AppSession.class);
     doNothing().when(app).handleRequest(null);
-
-    DsControllerInterface controller = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface controller =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
@@ -649,8 +752,9 @@ public class DsProxyControllerServerTest {
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
     AppInterface app = new AppSession();
-
-    DsControllerInterface ctrlr = cf.getController(serverTransaction, sipRequest, pf, app);
+    DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
+    DsControllerInterface ctrlr =
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     DsControllerInterface controller = spy(ctrlr);
 

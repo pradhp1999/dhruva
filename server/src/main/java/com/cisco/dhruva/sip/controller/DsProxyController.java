@@ -11,11 +11,9 @@ import com.cisco.dhruva.loadbalancer.*;
 import com.cisco.dhruva.sip.DsUtil.DsReConstants;
 import com.cisco.dhruva.sip.cac.SIPSession;
 import com.cisco.dhruva.sip.cac.SIPSessions;
-import com.cisco.dhruva.sip.controller.util.CompressorUtil;
 import com.cisco.dhruva.sip.controller.util.ParseProxyParamUtil;
 import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.proxy.Errors.DsProxyErrorAggregator;
-import com.cisco.dhruva.sip.proxy.MappedResponse.DsMappedResponseCreator;
 import com.cisco.dhruva.sip.servergroups.AbstractServerGroup;
 import com.cisco.dhruva.sip.servergroups.DnsServerGroupUtil;
 import com.cisco.dhruva.sip.servergroups.ServerGroupInterface;
@@ -48,35 +46,10 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
           DsConfigManager.PROP_ENABLE_ERROR_AGGREGATOR,
           DsConfigManager.PROP_ENABLE_ERROR_AGGREGATOR_DEFAULT);
 
-  private static boolean errorMappedResponseEnabled =
-      DsConfigManager.getProperty(
-          DsConfigManager.PROP_ENABLE_ERROR_MAPPED_RESPONSE,
-          DsConfigManager.PROP_ENABLE_ERROR_MAPPED_RESPONSE_DEFAULT);
-
   private static boolean isCreateDnsServerGroup =
       DsConfigManager.getProperty(
           DsConfigManager.PROP_CREATE_DNS_SERVER_GROUP,
-          DsConfigManager.PROP_CREATE_DNS_SERVER_GROUP_DEFAULT);;
-
-  /**
-   * Indicates whether or not the Supported: path header value is required when adding a Path header
-   * to REGISTER requests. If <code>true</code>, and the REGISTER request does NOT contain a
-   * Supported: path header value, and the the server is configured to add a Path header, the
-   * request is rejected with a 421 response. Otherwise, the server adds the Supported: path header
-   * (if not present) in addition to the Path header.
-   */
-  public static final boolean REQUIRE_SUPPORTED_HEADER =
-      Boolean.getBoolean("com.dynamicsoft.DsLibs.REQUIRE_SUPPORTED_HEADER");
-  /**
-   * This flag determines whether the ProxyController needs to add Supported: path if not present.
-   *
-   * <p>By default, ProxyController adds the Supported: path if not present.
-   *
-   * <p>Note that if REQUIRE_SUPPORTED_HEADER flag has been set to "true", this option is
-   * meaningless as the Proxy expects to receive a Supported path header.
-   */
-  public static final boolean ADD_SUPPORTED_PATH =
-      Boolean.getBoolean("com.dynamicsoft.DsLibs.ADD_SUPPORTED_PATH");
+          DsConfigManager.PROP_CREATE_DNS_SERVER_GROUP_DEFAULT);
 
   public static final DsByteString BS_L_PATH = DsSipConstants.BS_PATH;
 
@@ -93,7 +66,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
           DsConfigManager.PROP_EMULATE_RFC2543_RESPONSES,
           DsConfigManager.PROP_EMULATE_RFC2543_RESPONSES_DEFAULT);
 
-  public HashMap ProxyParams = null;
   public HashMap parsedProxyParamsByType = null;
 
   public static final DsSipSupportedHeader supportedPath = new DsSipSupportedHeader(BS_L_PATH);
@@ -115,10 +87,13 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   /* Used for proxying and creating transactions */
   protected DsProxyParamsInterface ppIface;
 
+  /*Used for creating proxy transactions */
+  protected DsProxyFactoryInterface proxyFactoryInterface;
+
   /* The default value to be used if an overload response comes back with no retry-after header */
   protected int defaultRetryAfterMillis;
   /** our proxy...we need to save it so as to give access to other methods. */
-  protected DsProxyStatelessTransaction ourProxy;
+  protected DsProxyInterface ourProxy;
   /** Timeout max request timeout in ms */
   protected int timeToTry = UACfgStats.uaMaxRequestTimeoutDefault;
   /** remember the cancel request * */
@@ -165,18 +140,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   private DsProxyErrorAggregator proxyErrorAggregator;
 
   static {
-    if (errorMappedResponseEnabled && errorAggregatorEnabled) {
-      try {
-        DsMappedResponseCreator.initialize();
-      } catch (Exception e) {
-        Log.info("Failed to enable error mapped response. [" + e.getLocalizedMessage() + "]");
-      }
-    }
-
     Log.info("error Aggregator is " + ((errorAggregatorEnabled) ? "enabled" : "disabled"));
-    Log.info(
-        "error mapped response is "
-            + ((DsMappedResponseCreator.getInstance() != null) ? "enabled" : "disabled"));
   }
 
   public DsProxyController() {
@@ -209,7 +173,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         ppIface,
         0,
         null,
-        DsControllerConfig.NHF_ACTION_FAILOVER);
+        DsControllerConfig.NHF_ACTION_FAILOVER,
+        new DsProxyFactory());
   }
 
   /* Used to initialize the controller.  This should be called before call backs
@@ -233,7 +198,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       DsProxyParamsInterface ppIface,
       int defaultRetryAfterMillis,
       LBRepositoryHolder holder,
-      byte nextHopFailoverAction) {
+      byte nextHopFailoverAction,
+      DsProxyFactoryInterface proxyFactory) {
     Log.debug("DsProxyController: Entering init()");
 
     Log.debug("Timeout value for init is: " + timeout);
@@ -245,7 +211,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     this.defaultRetryAfterMillis = defaultRetryAfterMillis;
     repositoryHolder = holder;
     nextHopFailureAction = nextHopFailoverAction;
-
+    this.proxyFactoryInterface = proxyFactory;
     ourProxy = null;
     timeToTry = timeout;
   }
@@ -256,6 +222,14 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
   public void setProxyErrorAggregator(DsProxyErrorAggregator proxyErrorAggregator) {
     this.proxyErrorAggregator = proxyErrorAggregator;
+  }
+
+  public void setRequest(DsSipRequest request) {
+    ourRequest = request;
+  }
+
+  public DsSipRequest getRequest() {
+    return ourRequest;
   }
 
   /**
@@ -314,7 +288,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       }
     }
 
-    return ourProxy;
+    return (DsProxyStatelessTransaction) ourProxy;
   }
 
   /**
@@ -897,13 +871,15 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
    * @param request The request that will be used to create the transaction
    */
   public void createProxyTransaction(
-      boolean setStateful, DsSipRequest request, DsSipServerTransaction serverTrans) {
+      boolean setStateful,
+      DsSipRequest request,
+      DsSipServerTransaction serverTrans,
+      DsProxyFactoryInterface proxyFactory) {
     if (ourProxy == null) {
       if (setStateful
           || (request != null && request.getBindingInfo().getTransport() == Transport.TCP)) {
         try {
-          ourProxy = new DsProxyTransaction(this, ppIface, serverTrans, request);
-
+          ourProxy = proxyFactory.createProxyTransaction(this, ppIface, serverTrans, request);
           Log.debug("Created stateful proxy transaction ");
         } catch (DsInternalProxyErrorException e) {
           Log.error("createProxyTransaction() - couldn't create proxy transaction ", e);
@@ -930,11 +906,12 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
    *     controller configuration.
    */
   protected void createProxyTransaction(boolean setStateful, DsSipServerTransaction serverTrans) {
+    if (proxyFactoryInterface == null) proxyFactoryInterface = new DsProxyFactory();
 
-    createProxyTransaction(setStateful, ourRequest, serverTrans);
+    createProxyTransaction(setStateful, ourRequest, serverTrans, proxyFactoryInterface);
   }
 
-  public void setProxyTransaction(DsProxyStatelessTransaction proxy) {
+  public void setProxyTransaction(DsProxyInterface proxy) {
     ourProxy = proxy;
   }
 
@@ -1024,15 +1001,15 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         if (stateMode != DsControllerConfig.STATEFUL) {
           overwriteStatelessMode();
         }
-
-        if (DsMappedResponseCreator.getInstance() != null) {
-          response =
-              DsMappedResponseCreator.getInstance()
-                  .createresponse(
-                      incomingNetwork.toString(),
-                      proxyErrorAggregator.getProxyErrorList(),
-                      response);
-        }
+        // MEETPASS TODO
+        //        if (DsMappedResponseCreator.getInstance() != null) {
+        //          response =
+        //              DsMappedResponseCreator.getInstance()
+        //                  .createresponse(
+        //                      incomingNetwork.toString(),
+        //                      proxyErrorAggregator.getProxyErrorList(),
+        //                      response);
+        //        }
 
         DsProxyResponseGenerator.sendResponse(response, (DsProxyTransaction) ourProxy);
       } else {
@@ -1322,7 +1299,11 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
           serverGroup = getDnsServerGroup(location, request, protocol, location.getNetwork());
         } catch (Exception e) {
           onProxyFailure(
-              ourProxy, cookie, DsControllerInterface.DESTINATION_UNREACHABLE, e.getMessage(), e);
+              (DsProxyStatelessTransaction) ourProxy,
+              cookie,
+              DsControllerInterface.DESTINATION_UNREACHABLE,
+              e.getMessage(),
+              e);
           return;
         }
       }
@@ -1810,7 +1791,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     }
 
     if (proxyParams == null) {
-      Log.info("Dhruva getParsedProxyParams");
       proxyParams =
           ParseProxyParamUtil.getParsedProxyParams(ourRequest, type, decompress, delimiter);
     }
@@ -1822,44 +1802,11 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     return proxyParams;
   }
 
-  public DsByteString getSerializedProxyParams(int type, boolean compress) {
-    // TODO optimize when get a chance
-    if (ProxyParams != null) {
-      HashMap paramType = (HashMap) ProxyParams.get(type);
-      if (paramType != null) {
-        String name;
-        String value;
-        StringBuffer serialized = new StringBuffer();
-        for (Object o : paramType.keySet()) {
-          name = (String) o;
-          value = (String) paramType.get(name);
-          if (name.equals(value)) {
-            serialized.append(name);
-          } else {
-            serialized.append(name);
-            serialized.append(DsReConstants.EQUAL_CHAR);
-            if (value == null) serialized.append("null");
-            else serialized.append(value);
-          }
-          serialized.append(DsReConstants.DELIMITER_CHAR);
-        }
-        if (compress) return compress(serialized.toString());
-        else return new DsByteString(serialized.toString());
-      }
-    }
-    return null;
-  }
-
-  private static final DsByteString compress(String result) {
-    return CompressorUtil.compress(result);
-  }
-
   public DsByteString getRecordRouteParams(DsSipRequest request, boolean escape) {
     Log.debug("Entering getRecordRouteParams()");
-    DsByteString rrUser = getSerializedProxyParams(DsReConstants.RECORD_ROUTE, false);
-    if (rrUser == null) {
-      rrUser = new DsByteString("");
-    }
+
+    DsByteString rrUser = new DsByteString("");
+
     rrUser.append(DsReConstants.BS_RR_TOKEN);
     rrUser.append(DsReConstants.BS_NETWORK_TOKEN);
     rrUser.append(incomingNetwork);

@@ -19,8 +19,7 @@ import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.loadbalancer.LBRepositoryHolder;
 import com.cisco.dhruva.router.AppInterface;
-import com.cisco.dhruva.sip.proxy.DsControllerFactoryInterface;
-import com.cisco.dhruva.sip.proxy.DsControllerInterface;
+import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
@@ -51,7 +50,8 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
       DsSipServerTransaction serverTransaction,
       DsSipRequest request,
       ProxyAdaptorFactoryInterface pf,
-      AppInterface app) {
+      AppInterface app,
+      DsProxyFactoryInterface proxyFactory) {
 
     Log.debug("Entering getController in DsControllerFactory {}");
 
@@ -74,13 +74,14 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
         ourConfig,
         ourConfig.getDefaultRetryAfterMilliSeconds(),
         sgConfig,
-        ourConfig.getNextHopFailureAction());
+        ourConfig.getNextHopFailureAction(),
+        proxyFactory);
 
     if (ourConfig.isStateful()
         && (request.getMethodID() != DsSipMessage.ACK)
         && (request.getMethodID() != DsSipMessage.CANCEL)) {
       // Will automatically create the right kind of transaction
-      controller.createProxyTransaction(true, request, serverTransaction);
+      controller.createProxyTransaction(true, request, serverTransaction, proxyFactory);
     }
 
     return controller;

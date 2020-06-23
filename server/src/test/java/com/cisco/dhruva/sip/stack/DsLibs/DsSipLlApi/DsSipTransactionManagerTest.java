@@ -79,7 +79,9 @@ public class DsSipTransactionManagerTest {
         (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
 
     try {
-      sipTransactionManager = new DsSipTransactionManager(transportLayer, requestInterface);
+      DsSipTransactionFactory transactionFactory = new DsSipDefaultTransactionFactory();
+      sipTransactionManager =
+          new DsSipTransactionManager(transportLayer, requestInterface, transactionFactory);
     } catch (DsException e) {
       Assert.fail(
           "DsSipTransactionManagerTest DsSipTransactionManager " + "object creation failed " + e);
