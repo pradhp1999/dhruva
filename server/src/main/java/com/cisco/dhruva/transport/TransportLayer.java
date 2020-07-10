@@ -53,4 +53,6 @@ public interface TransportLayer {
   int getMaxConnections();
 
   Enumeration getListenKeys();
+
+  void shutdown();
 }

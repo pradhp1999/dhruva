@@ -12,6 +12,7 @@ import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import io.netty.channel.Channel;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Enumeration;
@@ -38,7 +39,7 @@ public class DhruvaTransportLayer implements TransportLayer {
   private int connectionSweepInterval = 60;
   private ConnectionCache connectionCache =
       ConnectionCache.getInstance(connectionSweepInterval, TimeUnit.MINUTES);
-  private ConcurrentHashMap<ConnectionKey, Server> listenServers = new ConcurrentHashMap<>();
+  private ConcurrentHashMap<ConnectionKey, Channel> listenServers = new ConcurrentHashMap<>();
   private int maxConnections;
 
   public DhruvaTransportLayer(
@@ -117,7 +118,7 @@ public class DhruvaTransportLayer implements TransportLayer {
       int port,
       MessageForwarder messageForwarder) {
 
-    CompletableFuture serverStartFuture = new CompletableFuture();
+    CompletableFuture<Channel> serverStartFuture = new CompletableFuture();
     if (transportType == null || address == null || messageForwarder == null) {
       serverStartFuture.completeExceptionally(
           new NullPointerException(
@@ -137,7 +138,7 @@ public class DhruvaTransportLayer implements TransportLayer {
       serverStartFuture.whenComplete(
           (channel, throwable) -> {
             if (throwable == null) {
-              listenServers.put(new CTableListenKey(address, port, transportType), server);
+              listenServers.put(new CTableListenKey(address, port, transportType), channel);
             }
           });
 
@@ -288,5 +289,13 @@ public class DhruvaTransportLayer implements TransportLayer {
   @Override
   public Enumeration getListenKeys() {
     return listenServers.keys();
+  }
+
+  @Override
+  public void shutdown() {
+    listenServers.forEach(
+        (connectionKey, channel) -> {
+          channel.close();
+        });
   }
 }

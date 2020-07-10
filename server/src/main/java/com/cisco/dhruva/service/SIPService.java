@@ -27,12 +27,12 @@ import com.cisco.dhruva.transport.TransportLayerFactory;
 import com.cisco.dhruva.util.LMAUtil;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -147,6 +147,15 @@ public class SIPService {
     }
 
     listenPointFutures.forEach(CompletableFuture::join);
+  }
+
+  @PreDestroy
+  private void releaseServiceResources() {
+    logger.info(
+        "Releasing Resources as part of App shutdown, Shutting down executors and Transport layer");
+    executorService.shutdown();
+    dhruvaTransportLayer.shutdown();
+    logger.info("Executor service and Transport layer shutdown complete as part of App shutdown");
   }
 
   public ExecutorService getExecutorService() {
