@@ -30,6 +30,6 @@ public class DnsResolversTest {
 
   @Test(expectedExceptions = {DnsException.class})
   public void shouldFailForBadHostNames() {
-    resolver.lookupSRV("spamhost");
+    resolver.lookupSRV("_sips._spamhost.tcp.com");
   }
 }
