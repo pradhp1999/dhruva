@@ -13,7 +13,7 @@ import org.xbill.DNS.SimpleResolver;
 /** Provides builders for configuring and instantiating DNS resolver */
 public final class DnsResolvers {
 
-  private static final int DEFAULT_DNS_TIMEOUT_SECONDS = 120;
+  private static final int DEFAULT_DNS_TIMEOUT_SECONDS = 10;
   private static final int DEFAULT_RETENTION_DURATION_HOURS = 2;
   private static final int DEFAULT_CACHE_SIZE = 1000;
 
@@ -55,17 +55,11 @@ public final class DnsResolvers {
       Resolver resolver;
       try {
         resolver = new SimpleResolver();
-
-        // Configure the Resolver to use our timeouts.
-        final Duration timeoutDuration = Duration.ofMillis(60000);
-        // resolver.setTimeout(timeoutDuration);
-        //              Lookup.getDefaultResolver().setTimeout(timeoutDuration);
+        final Duration timeoutDuration = Duration.ofMillis(dnsLookupTimeoutMillis);
+        resolver.setTimeout(timeoutDuration);
       } catch (UnknownHostException e) {
         throw new RuntimeException(e);
       }
-      // final Duration timeoutDuration = Duration.ofMillis(60000);
-      // resolver.setTimeout(timeoutDuration);
-      // Lookup.getDefaultResolver().setTimeout(timeoutDuration);
 
       LookupFactory lookupFactory = new SimpleLookupFactory(resolver);
 
