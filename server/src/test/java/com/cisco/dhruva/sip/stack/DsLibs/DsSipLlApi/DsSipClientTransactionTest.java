@@ -207,26 +207,26 @@ public class DsSipClientTransactionTest {
   @Test()
   public void testSipClientGetConnectionException() throws DsException, IOException {
     DsSipRequest sipRequest =
-            SIPRequestBuilder.createRequest(
-                    new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
 
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
     sipRequest.setBindingInfo(incomingMessageBindingInfo);
 
     DsSipServerTransaction serverTransaction =
-            transactionFactory.createServerTransaction(sipRequest, key, key, false);
+        transactionFactory.createServerTransaction(sipRequest, key, key, false);
 
     DsControllerFactoryInterface cf = new DsREControllerFactory();
 
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-            cf.getController(
-                    serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
+        cf.getController(
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
-            .thenReturn(adaptorInterface);
+        .thenReturn(adaptorInterface);
 
     ArgumentCaptor<DsSipMessage> argumentCaptor = ArgumentCaptor.forClass(DsSipMessage.class);
 
@@ -238,14 +238,14 @@ public class DsSipClientTransactionTest {
     when(sendConnection.getTransportType()).thenReturn(Transport.UDP);
 
     doThrow(new DsException("Unable to connect"))
-            .when(transportLayer)
-            .getConnection(
-                    any(DsNetwork.class),
-                    any(InetAddress.class),
-                    any(Integer.class),
-                    any(InetAddress.class),
-                    any(Integer.class),
-                    any(Transport.class));
+        .when(transportLayer)
+        .getConnection(
+            any(DsNetwork.class),
+            any(InetAddress.class),
+            any(Integer.class),
+            any(InetAddress.class),
+            any(Integer.class),
+            any(Transport.class));
 
     DsProxyController ctrlr = (DsProxyController) controller;
 
@@ -256,19 +256,19 @@ public class DsSipClientTransactionTest {
 
     AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
     doNothing()
-            .when(appInterfaceMock)
-            .handleResponse(any(Location.class), any(Optional.class), any(int.class));
+        .when(appInterfaceMock)
+        .handleResponse(any(Location.class), any(Optional.class), any(int.class));
 
     ctrlr.setRequest(sipRequest);
     ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
 
     // verify that sendTo is not sent
     verify(sendConnection, times(0))
-            .sendTo(
-                    argumentCaptor.capture(),
-                    eq(incomingMessageBindingInfo.getRemoteAddress()),
-                    eq(incomingMessageBindingInfo.getRemotePort()),
-                    any(DsSipClientTransactionIImpl.class));
+        .sendTo(
+            argumentCaptor.capture(),
+            eq(incomingMessageBindingInfo.getRemoteAddress()),
+            eq(incomingMessageBindingInfo.getRemotePort()),
+            any(DsSipClientTransactionIImpl.class));
 
     // errorCode 6 for unReachable
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(6));

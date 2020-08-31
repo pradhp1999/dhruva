@@ -16,7 +16,6 @@ import com.cisco.dhruva.sip.controller.DsProxyResponseGenerator;
 import com.cisco.dhruva.sip.proxy.Location;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
@@ -83,10 +82,8 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
     if (!response.isPresent()) {
       logger.info("response object is empty");
       try {
-        resp = DsProxyResponseGenerator.createResponse(
-                responseCode, this.controller.getRequest());
-      }
-      catch (DsException e) {
+        resp = DsProxyResponseGenerator.createResponse(responseCode, this.controller.getRequest());
+      } catch (DsException e) {
         logger.error("exception while handling response ", e.getMessage());
         throw new DhruvaException("exception in handling empty response", e.getMessage());
       }
@@ -101,7 +98,6 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
 
     IDhruvaMessage dhruvaResponse = buildDhruvaMessageFromSIPResponse(resp, context);
     appSession.handleResponse(dhruvaResponse);
-
   }
 
   private IDhruvaMessage buildDhruvaMessageFromSIPRequest(
