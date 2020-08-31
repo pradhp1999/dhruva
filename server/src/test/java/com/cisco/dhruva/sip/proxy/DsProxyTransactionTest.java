@@ -26,7 +26,6 @@ import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class DsProxyTransactionTest {
@@ -101,7 +100,6 @@ public class DsProxyTransactionTest {
     DsSipTransactionManager.setSmp_theSingleton(null);
     DsSipProxyManager.setM_Singleton(null);
   }
-
 
   @Test
   public void testProxyClientTransaction() throws DsException, IOException {
@@ -243,7 +241,6 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
@@ -556,7 +553,6 @@ public class DsProxyTransactionTest {
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
 
-
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(
@@ -802,7 +798,6 @@ public class DsProxyTransactionTest {
 
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
 
-
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
 
     doReturn(mockSipClientTransaction)
@@ -815,7 +810,6 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
@@ -955,7 +949,6 @@ public class DsProxyTransactionTest {
     transactionManager = spy(stackManager);
 
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
-
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
 
@@ -1280,7 +1273,6 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)

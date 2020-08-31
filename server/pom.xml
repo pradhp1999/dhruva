@@ -105,7 +105,11 @@
             <version>19.0.0</version>
             <scope>compile</scope>
         </dependency>
-
+        <dependency>
+            <groupId>dnsjava</groupId>
+            <artifactId>dnsjava</artifactId>
+            <version>3.2.2</version>
+        </dependency>
     </dependencies>
 
     <build>
