@@ -1,6 +1,5 @@
 package com.cisco.dhruva.common.dns;
 
-
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Resolver;
 import org.xbill.DNS.TextParseException;
