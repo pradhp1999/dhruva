@@ -48,10 +48,10 @@ Dhruva:
     logback_kafka_appender_enabled: 'true'
     logback_metrics_kafka_appender_enabled: 'false'
     jedisPoolHealthCheckMonitorEnabled: 'false'
-    enableLettuceRedisDataSourceForAuthCache: 'true'
-    enableLettuceRedisDataSourceForFlsCache: 'true'
-    enableLettuceRedisDataSourceForOrgCache: 'true'
-    enableLettuceRedisDataSourceForUserCache: 'true'
+    enableLettuceRedisDataSourceForAuthCache: 'false'
+    enableLettuceRedisDataSourceForFlsCache: 'false'
+    enableLettuceRedisDataSourceForOrgCache: 'false'
+    enableLettuceRedisDataSourceForUserCache: 'false'
     dhruva_configprefix: elasticache_dhruva
     flsCacheRedisDataSource_configprefix: elasticache_fls
     orgCacheRedisDataSource_configprefix: elasticache_commonidentity
