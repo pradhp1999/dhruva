@@ -1,9 +1,10 @@
 package com.cisco.dhruva.common.dns;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface DnsLookup {
-  List<DNSSRVRecord> lookupSRV(String lookup);
+  CompletableFuture<List<DNSSRVRecord>> lookupSRV(String lookup);
 
-  List<DNSARecord> lookupA(String host);
+  CompletableFuture<List<DNSARecord>> lookupA(String host);
 }

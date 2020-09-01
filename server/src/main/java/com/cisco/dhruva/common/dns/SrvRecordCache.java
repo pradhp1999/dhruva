@@ -8,8 +8,8 @@ import org.xbill.DNS.SRVRecord;
 
 public class SrvRecordCache extends AbstractDnsCache<DNSSRVRecord> {
 
-  public SrvRecordCache(long maxCacheSize) {
-    super(maxCacheSize);
+  public SrvRecordCache(long maxCacheSize, long retentionTimeMillis) {
+    super(maxCacheSize, retentionTimeMillis);
   }
 
   @Override

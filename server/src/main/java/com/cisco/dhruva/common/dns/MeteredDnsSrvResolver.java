@@ -5,6 +5,8 @@ import static java.util.Objects.requireNonNull;
 import com.cisco.dhruva.common.dns.metrics.DnsReporter;
 import com.cisco.dhruva.common.dns.metrics.DnsTimingContext;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /** Tracks metrics for DnsSrvResolver calls. */
 class MeteredDnsSrvResolver implements DnsLookup {
@@ -17,47 +19,55 @@ class MeteredDnsSrvResolver implements DnsLookup {
   }
 
   @Override
-  public List<DNSSRVRecord> lookupSRV(String fqdn) throws DnsException {
+  public CompletableFuture<List<DNSSRVRecord>> lookupSRV(String fqdn) throws DnsException {
 
     final DnsTimingContext resolveTimer = reporter.resolveTimer();
 
     final List<DNSSRVRecord> result;
+    CompletableFuture<List<DNSSRVRecord>> f1 = new CompletableFuture<>();
 
     try {
-      result = delegate.lookupSRV(fqdn);
+      CompletableFuture<List<DNSSRVRecord>> f2 = delegate.lookupSRV(fqdn);
+      result = f2.get();
+      f1.complete(result);
+      if (result.isEmpty()) {
+        reporter.reportEmpty();
+      }
     } catch (DnsException error) {
       reporter.reportFailure(error);
       throw error;
+    } catch (InterruptedException | ExecutionException e) {
+      e.printStackTrace();
     } finally {
       resolveTimer.stop();
     }
 
-    if (result.isEmpty()) {
-      reporter.reportEmpty();
-    }
-
-    return result;
+    return f1;
   }
 
   @Override
-  public List<DNSARecord> lookupA(String host) {
+  public CompletableFuture<List<DNSARecord>> lookupA(String host) {
     final DnsTimingContext resolveTimer = reporter.resolveTimer();
 
     final List<DNSARecord> result;
+    CompletableFuture<List<DNSARecord>> f1 = new CompletableFuture<>();
 
     try {
-      result = delegate.lookupA(host);
+      CompletableFuture<List<DNSARecord>> f2 = delegate.lookupA(host);
+      result = f2.get();
+      f1.complete(result);
+      if (result.isEmpty()) {
+        reporter.reportEmpty();
+      }
     } catch (DnsException error) {
       reporter.reportFailure(error);
       throw error;
+    } catch (InterruptedException | ExecutionException e) {
+      e.printStackTrace();
     } finally {
       resolveTimer.stop();
     }
 
-    if (result.isEmpty()) {
-      reporter.reportEmpty();
-    }
-
-    return result;
+    return f1;
   }
 }

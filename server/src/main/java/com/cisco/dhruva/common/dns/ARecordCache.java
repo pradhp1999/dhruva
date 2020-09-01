@@ -8,8 +8,8 @@ import org.xbill.DNS.Record;
 
 public class ARecordCache extends AbstractDnsCache<DNSARecord> {
 
-  public ARecordCache(int maxCacheSize) {
-    super(maxCacheSize);
+  public ARecordCache(int maxCacheSize, long retentionTimeMillis) {
+    super(maxCacheSize, retentionTimeMillis);
   }
 
   @Override

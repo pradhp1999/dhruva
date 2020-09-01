@@ -2,10 +2,12 @@ package com.cisco.dhruva.common.dns;
 
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Record;
 
@@ -15,13 +17,16 @@ public abstract class AbstractDnsCache<T> {
   protected final List<T> emptyList;
   private final Cache<String, List<T>> dnsCache;
 
-  protected AbstractDnsCache(long maxCacheSize) {
+  protected AbstractDnsCache(long maxCacheSize, long retentionTimeMillis) {
+    Preconditions.checkArgument(
+        retentionTimeMillis > 0L, "retention time must be positive, was %d", retentionTimeMillis);
     emptyList = Collections.emptyList();
     dnsCache =
         CacheBuilder.newBuilder()
             .maximumSize(
                 maxCacheSize) // if 0, elements are evicted immediately after being loaded into the
-            // cache
+                              // cache
+            .expireAfterWrite(retentionTimeMillis, TimeUnit.MILLISECONDS)
             .build();
     log.info("Initialized {} with max {} records", getClass().getSimpleName(), maxCacheSize);
   }

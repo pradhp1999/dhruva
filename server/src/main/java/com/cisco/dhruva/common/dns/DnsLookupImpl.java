@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.Type;
@@ -32,15 +33,19 @@ public class DnsLookupImpl implements DnsLookup {
   }
 
   @Override
-  public List<DNSSRVRecord> lookupSRV(String srvString) {
+  public CompletableFuture<List<DNSSRVRecord>> lookupSRV(String srvString) {
     DnsLookupResult dnsLookupResult = doLookup(lookupFactory.createLookup(srvString, Type.SRV));
-    return srvCache.lookup(srvString, dnsLookupResult);
+    CompletableFuture<List<DNSSRVRecord>> srvRecords = new CompletableFuture<>();
+    srvRecords.complete(srvCache.lookup(srvString, dnsLookupResult));
+    return srvRecords;
   }
 
   @Override
-  public List<DNSARecord> lookupA(String host) {
+  public CompletableFuture<List<DNSARecord>> lookupA(String host) {
     DnsLookupResult dnsLookupResult = doLookup(lookupFactory.createLookup(host, Type.A));
-    return aCache.lookup(host, dnsLookupResult);
+    CompletableFuture<List<DNSARecord>> aRecords = new CompletableFuture<>();
+    aRecords.complete(aCache.lookup(host, dnsLookupResult));
+    return aRecords;
   }
 
   private static DnsLookupResult doLookup(Lookup lookup) {
