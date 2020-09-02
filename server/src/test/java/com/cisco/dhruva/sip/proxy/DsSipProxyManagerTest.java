@@ -21,7 +21,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 public class DsSipProxyManagerTest {
   DsSipTransactionFactory transactionFactory;
