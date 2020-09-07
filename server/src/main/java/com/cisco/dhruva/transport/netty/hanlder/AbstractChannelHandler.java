@@ -23,8 +23,10 @@ import com.google.common.collect.Maps;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractChannelHandler implements ChannelInboundHandler {
 
@@ -82,7 +84,7 @@ public abstract class AbstractChannelHandler implements ChannelInboundHandler {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    logger.error("Exception in the UDPChannelHandler for Channel " + ctx.channel(), cause);
+    logger.error("Exception in the Channelhandler for Channel " + ctx.channel(), cause);
     notifyChannelEventsToListeners(cause);
   }
 
@@ -110,18 +112,24 @@ public abstract class AbstractChannelHandler implements ChannelInboundHandler {
         EventSubType.UDPCONNECTION.getEventType(),
         EventSubType.UDPCONNECTION,
         "Connection active",
-        Maps.newHashMap(
-            ImmutableMap.of(
-                Event.LOCALIP,
-                localAddress.getAddress().getHostAddress(),
-                Event.LOCALPORT,
-                String.valueOf(localAddress.getPort()),
-                Event.REMOTEIP,
-                remoteAddress.getAddress().getHostAddress(),
-                Event.REMOTEPORT,
-                String.valueOf((remoteAddress.getPort())),
-                Event.DIRECTION,
-                serverMode ? "IN" : "OUT")));
+        buildConnectionInfoMap(localAddress, remoteAddress, this.serverMode));
+  }
+
+  @NotNull
+  public static HashMap<String, String> buildConnectionInfoMap(
+      InetSocketAddress localAddress, InetSocketAddress remoteAddress, boolean serverMode) {
+    return Maps.newHashMap(
+        ImmutableMap.of(
+            Event.LOCALIP,
+            localAddress.getAddress().getHostAddress(),
+            Event.LOCALPORT,
+            String.valueOf(localAddress.getPort()),
+            Event.REMOTEIP,
+            remoteAddress.getAddress().getHostAddress(),
+            Event.REMOTEPORT,
+            String.valueOf((remoteAddress.getPort())),
+            Event.DIRECTION,
+            serverMode ? "IN" : "OUT"));
   }
 
   public void setServerMode(boolean serverMode) {

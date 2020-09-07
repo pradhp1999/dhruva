@@ -17,7 +17,6 @@ import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationExc
 import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.SIPRequestBuilder;
@@ -83,7 +82,7 @@ public class DsProxyControllerServerTest {
   }
 
   @Test(description = "DsAppController handling brand new invite request")
-  public void testOnNewRequestInvite() throws DsException {
+  public void testOnNewRequestInvite() throws Exception {
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -115,7 +114,7 @@ public class DsProxyControllerServerTest {
       description =
           "Controller throws exception when invite is received without sip server transactipn",
       expectedExceptions = {NullPointerException.class})
-  public void testOnNewRequestInviteThrowsException() throws DsException {
+  public void testOnNewRequestInviteThrowsException() throws Exception {
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -152,7 +151,7 @@ public class DsProxyControllerServerTest {
   }
 
   @Test(description = "Test controller handling ACK request")
-  public void testOnNewRequestACK() throws DsException {
+  public void testOnNewRequestACK() throws Exception {
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -198,7 +197,7 @@ public class DsProxyControllerServerTest {
   }
 
   @Test(description = "Controller handling cancel request")
-  public void testOnNewRequestCancel() throws DsException {
+  public void testOnNewRequestCancel() throws Exception {
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -254,12 +253,7 @@ public class DsProxyControllerServerTest {
     DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
     DsSipRouteHeader dsSipCurrentNodeRouteHeader =
         new DsSipRouteHeader(
-            new String(
-                    "<sip:bob@"
-                        + "1.2.3.4"
-                        + ":"
-                        + "5060"
-                        + ";transport=udp;lr;x-cisco-call-type=sip>")
+            ("<sip:bob@" + "1.2.3.4" + ":" + "5060" + ";transport=udp;lr;x-cisco-call-type=sip>")
                 .getBytes());
 
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
@@ -310,12 +304,7 @@ public class DsProxyControllerServerTest {
 
     DsSipRouteHeader dsSipCurrentNodeRouteHeader =
         new DsSipRouteHeader(
-            new String(
-                    "<sip:bob@"
-                        + "1.2.3.4"
-                        + ":"
-                        + "5060"
-                        + ";transport=udp;lr;x-cisco-call-type=sip>")
+            ("<sip:bob@" + "1.2.3.4" + ":" + "5060" + ";transport=udp;lr;x-cisco-call-type=sip>")
                 .getBytes());
 
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
@@ -400,7 +389,7 @@ public class DsProxyControllerServerTest {
     ArgumentCaptor<DsSipResponse> argumentCaptor = ArgumentCaptor.forClass(DsSipResponse.class);
     verify(serverTransaction, times(1)).sendResponse(argumentCaptor.capture());
 
-    DsSipResponse receivedResp = (DsSipResponse) argumentCaptor.getValue();
+    DsSipResponse receivedResp = argumentCaptor.getValue();
 
     Assert.assertNotNull(receivedResp);
     Assert.assertEquals(receivedResp.getMethodID(), 1);
@@ -460,7 +449,7 @@ public class DsProxyControllerServerTest {
     ArgumentCaptor<DsSipResponse> argumentCaptor = ArgumentCaptor.forClass(DsSipResponse.class);
     verify(serverTransaction, times(1)).sendResponse(argumentCaptor.capture());
 
-    DsSipResponse receivedResp = (DsSipResponse) argumentCaptor.getValue();
+    DsSipResponse receivedResp = argumentCaptor.getValue();
 
     Assert.assertNotNull(receivedResp);
     Assert.assertEquals(receivedResp.getMethodID(), 1);
@@ -531,7 +520,7 @@ public class DsProxyControllerServerTest {
     ArgumentCaptor<DsSipResponse> argumentCaptor = ArgumentCaptor.forClass(DsSipResponse.class);
     verify(serverTransaction, times(1)).sendResponse(argumentCaptor.capture());
 
-    DsSipResponse receivedResp = (DsSipResponse) argumentCaptor.getValue();
+    DsSipResponse receivedResp = argumentCaptor.getValue();
 
     DsSipHeaderList rrHeader = receivedResp.getHeaders(DsSipConstants.RECORD_ROUTE);
 

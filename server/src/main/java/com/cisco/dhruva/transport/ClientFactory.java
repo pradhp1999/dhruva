@@ -14,7 +14,7 @@ public class ClientFactory {
 
   private static ClientFactory clientFactory = new ClientFactory();
   private Client udpClient;
-  private Object lock = new Object();
+  private final Object lock = new Object();
 
   public static ClientFactory newInstance() {
     clientFactory = new ClientFactory();
@@ -32,7 +32,7 @@ public class ClientFactory {
       ExecutorService executorService,
       MetricService metricService)
       throws Exception {
-    Client client = null;
+    Client client;
     switch (transport) {
       case UDP:
         if (udpClient == null) {

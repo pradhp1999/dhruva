@@ -75,7 +75,7 @@ public class DsProxyControllerClientTest {
   void initController() {}
 
   @Test(description = "Basic client flow starting from App")
-  public void testProxyTo() throws DsException {
+  public void testProxyTo() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -133,19 +133,19 @@ public class DsProxyControllerClientTest {
   }
 
   @Test(description = "test flow from onNewRequest -> App layer -> ProxyTo ")
-  public void testAppHandleRequest() throws DsException {
+  public void testAppHandleRequest() throws Exception {
     DsSipRequest sipRequest =
-            SIPRequestBuilder.createRequest(
-                    new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    //Let the App handle
+    // Let the App handle
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
     DsSipServerTransaction serverTransaction =
-            m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
+        m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
 
     DsControllerFactoryInterface cf = new DsREControllerFactory();
 
@@ -159,44 +159,44 @@ public class DsProxyControllerClientTest {
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
-            cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     when(proxyFactory.createProxyTransaction(controller, ppIface, serverTransaction, sipRequest))
-            .thenReturn(statelessTransaction);
+        .thenReturn(statelessTransaction);
 
     doNothing().when(statelessTransaction).addProxyRecordRoute(sipRequest, ppIface);
     doNothing().when(statelessTransaction).proxyTo(sipRequest, cookie, ppIface);
 
     DsProxyController ctrlr = (DsAppController) controller;
     proxyInterface = ctrlr.onNewRequest(serverTransaction, sipRequest);
-//    Assert.assertNotNull(proxy);
+    //    Assert.assertNotNull(proxy);
 
-//    Location loc = new Location(sipRequest.getURI());
-//    // loc.setProcessRoute(true);
-//    loc.setNetwork(dsNetwork);
-//    ctrlr.usingRouteHeader = false;
-//
-//    // This is to set ourRequest global variable
-//
-//    ctrlr.setRequest(sipRequest);
-//    ctrlr.setProxyTransaction(proxyInterface);
-//
-//    ctrlr.proxyTo(loc, sipRequest, null);
+    //    Location loc = new Location(sipRequest.getURI());
+    //    // loc.setProcessRoute(true);
+    //    loc.setNetwork(dsNetwork);
+    //    ctrlr.usingRouteHeader = false;
+    //
+    //    // This is to set ourRequest global variable
+    //
+    //    ctrlr.setRequest(sipRequest);
+    //    ctrlr.setProxyTransaction(proxyInterface);
+    //
+    //    ctrlr.proxyTo(loc, sipRequest, null);
 
     ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
 
     verify(proxyInterface)
-            .proxyTo(
-                    argumentCaptor.capture(),
-                    any(DsProxyCookieInterface.class),
-                    any(DsProxyBranchParamsInterface.class));
+        .proxyTo(
+            argumentCaptor.capture(),
+            any(DsProxyCookieInterface.class),
+            any(DsProxyBranchParamsInterface.class));
 
     DsSipRequest requestReceived = argumentCaptor.getValue();
     Assert.assertNotNull(requestReceived);
   }
 
   @Test
-  public void testProxyToWithoutProcessRoute() throws DsException {
+  public void testProxyToWithoutProcessRoute() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -252,7 +252,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testonSuccessResponse() throws DsException {
+  public void testonSuccessResponse() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -302,7 +302,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testOnFailureResponse() throws DsException {
+  public void testOnFailureResponse() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -321,7 +321,6 @@ public class DsProxyControllerClientTest {
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
-
 
     DsControllerInterface controller =
         cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
@@ -361,7 +360,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testonProvisionalResponses() throws DsException {
+  public void testonProvisionalResponses() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -380,7 +379,6 @@ public class DsProxyControllerClientTest {
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
-
 
     DsControllerInterface controller =
         cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
@@ -417,7 +415,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testOnRedirectResponses() throws DsException {
+  public void testOnRedirectResponses() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -466,7 +464,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testonRequestTimeOut() throws DsException {
+  public void testonRequestTimeOut() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -518,7 +516,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testOnICMPError() throws DsException {
+  public void testOnICMPError() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -538,7 +536,6 @@ public class DsProxyControllerClientTest {
     AppInterface app = mock(AppSession.class);
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
-
 
     DsControllerInterface controller =
         cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);

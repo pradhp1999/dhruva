@@ -3,7 +3,7 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.sun.net.ssl.internal.ssl.Provider;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,6 +32,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import org.bouncycastle.crypto.fips.FipsStatus;
+import org.slf4j.event.Level;
 
 /**
  * This class defines the context for the SSL sockets and encapsulates information regarding the key
@@ -39,6 +40,7 @@ import org.bouncycastle.crypto.fips.FipsStatus;
  * define the context for the SSL sockets to provide secure communication.
  */
 public class DsSSLContext {
+
   /** Transport Layer Security protocol name constant. */
   public static final String TLS = "TLS";
 
@@ -59,6 +61,8 @@ public class DsSSLContext {
 
   /** PKCS12 Key Store Type. */
   public static final String KS_PKCS12 = "PKCS12";
+
+  private static final boolean IS_SEPARATE_TRUSTSTORE = false;
 
   // CAFFEINE 3.1 bug fix - CSCsk29536: TLS socket connection not established with CUPS/CUCM
   /** String array of the protocol versions to be enabled for use on the socket connection. */
@@ -94,16 +98,14 @@ public class DsSSLContext {
       System.out.println("initializeSslMode: " + ex.getMessage());
     }
 
-    /*  TODO: Take care of FIPS mode
-        fips = Provider.isFIPS();
-        if (fips) {
-          FIPS_PROVIDER_NAME =
-              DsConfigManager.getProperty(
-                  DsConfigManager.PROP_FIPS_PROVIDER, DsConfigManager.PROP_FIPS_PROVIDER_DEFAULT);
-        } else {
-          FIPS_PROVIDER_NAME = "UNKNOWN";
-        }
-    */
+    fips = Provider.isFIPS();
+    if (fips) {
+      FIPS_PROVIDER_NAME =
+          DsConfigManager.getProperty(
+              DsConfigManager.PROP_FIPS_PROVIDER, DsConfigManager.PROP_FIPS_PROVIDER_DEFAULT);
+    } else {
+      FIPS_PROVIDER_NAME = "UNKNOWN";
+    }
 
     System.out.println("initializeSslMode: FipsStatus.isReady: " + FipsStatus.isReady());
   }
@@ -941,7 +943,6 @@ public class DsSSLContext {
    * trust
    *
    * @param keyStoreFile the Key Store file path. This file contains key information.
-   * @param password the password for the specified key store
    * @param trustStoreFile the trust Store file path. This file contains the trust certificates.
    * @param trustStorePassword the password for the specified trust store.
    * @param keyStoreType the key store type
@@ -957,7 +958,7 @@ public class DsSSLContext {
    */
   public DsSSLContext(
       String keyStoreFile,
-      String password,
+      String keyStorepassword,
       String trustStoreFile,
       String trustStorePassword,
       String keyStoreType,
@@ -978,31 +979,46 @@ public class DsSSLContext {
             ? keyStoreFile
             : DsConfigManager.getProperty("javax.net.ssl.keyStore");
 
-    if (null == keyStoreFile) {
+    if (null == this.keyStoreFile) {
       throw new DsSSLException("The keystore can not be null");
     }
 
     // If keyStore password is null then get the value from "javax.net.ssl.keyStorePassword"
     // System property.
-    if (password == null) {
-      password = DsConfigManager.getProperty("javax.net.ssl.keyStorePassword");
+    if (keyStorepassword == null) {
+      keyStorepassword = DsConfigManager.getProperty("javax.net.ssl.keyStorePassword");
     }
-    this.password = (password != null) ? password.toCharArray() : null;
 
-    // If trustStore is null then get the value from "javax.net.ssl.trustStore"
+    if (keyStorepassword != null) {
+      this.keyStorepassword = keyStorepassword.toCharArray();
+    } else {
+      throw new DsSSLException("The keystore password can not be null");
+    }
+
+    // If trustStore is null then get the value from "com.dynamicsoft.DsLibs.DsUtil.trustStore"
     // System property.
     this.trustStoreFile =
         (trustStoreFile != null)
             ? trustStoreFile
-            : DsConfigManager.getProperty("javax.net.ssl.trustStore");
+            : DsConfigManager.getProperty("com.dynamicsoft.DsLibs.DsUtil.trustStore");
 
-    // If trustStore password is null then get the value from "javax.net.ssl.trustStorePassword"
+    if (this.IS_SEPARATE_TRUSTSTORE && null == this.trustStoreFile) {
+      throw new DsSSLException("The truststore can not be null");
+    }
+
+    // If trustStore password is null then get the value from
+    // "com.dynamicsoft.DsLibs.DsUtil.trustStorePassword"
     // System property.
     if (trustStorePassword == null) {
-      trustStorePassword = DsConfigManager.getProperty("javax.net.ssl.trustStorePassword");
+      trustStorePassword =
+          DsConfigManager.getProperty("com.dynamicsoft.DsLibs.DsUtil.trustStorePassword");
     }
     this.trustStorePassword =
         (trustStorePassword != null) ? trustStorePassword.toCharArray() : null;
+
+    if (this.IS_SEPARATE_TRUSTSTORE && null == this.trustStorePassword) {
+      throw new DsSSLException("The truststore password can not be null");
+    }
 
     // If keyStore type is null then get the value from "javax.net.ssl.keyStoreType"
     // System property.
@@ -1015,14 +1031,18 @@ public class DsSSLContext {
     if (null == this.keyStoreType) {
       this.keyStoreType = KeyStore.getDefaultType();
     }
-    // If trustStore type is null then get the value from "javax.net.ssl.trustStoreType"
+    // If trustStore type is null then get the value from
+    // "com.dynamicsoft.DsLibs.DsUtil.trustStoreType"
     // System property.
     this.trustStoreType =
         (trustStoreType != null)
             ? trustStoreType
-            : DsConfigManager.getProperty("javax.net.ssl.trustStoreType");
-    // If it still is not specified, then get the default
+            : DsConfigManager.getProperty("com.dynamicsoft.DsLibs.DsUtil.trustStoreType");
+
     if (null == this.trustStoreType) {
+      if (this.IS_SEPARATE_TRUSTSTORE) {
+        throw new DsSSLException("The truststore type can not be null");
+      }
       this.trustStoreType = KeyStore.getDefaultType();
     }
 
@@ -1037,12 +1057,13 @@ public class DsSSLContext {
   }
 
   /** Initializes the SSL context. */
-  @SuppressFBWarnings(value = {"PATH_TRAVERSAL_IN"})
   private void init(DsSSLTrustManager trustManager) throws DsSSLException {
     // CAFFEINE 3.1 bug fix - CSCsk29536: TLS socket connection not established with CUPS/CUCM
     FileInputStream ksFile = null;
+    FileInputStream tsFile = null;
     try {
       KeyManagerFactory keyManagerFactory = null;
+      // KeyStore Configurations
       KeyStore keyStore = null;
 
       keyManagerFactory = KeyManagerFactory.getInstance(keyAlgorithm);
@@ -1052,36 +1073,64 @@ public class DsSSLContext {
               ? KeyStore.getInstance(keyStoreType, FIPS_PROVIDER_NAME)
               : KeyStore.getInstance(keyStoreType);
       ksFile = new FileInputStream(keyStoreFile);
-      keyStore.load(ksFile, password);
+      keyStore.load(ksFile, keyStorepassword);
 
-      keyManagerFactory.init(keyStore, password);
+      keyManagerFactory.init(keyStore, keyStorepassword);
 
-      if (null != trustStoreFile) {
-        ksFile = new FileInputStream(trustStoreFile);
-        keyStore = KeyStore.getInstance(trustStoreType);
-        keyStore.load(ksFile, trustStorePassword);
-        ksFile.close();
+      ksFile.close();
+      // TrustStore Configurations
+      KeyStore trustStore = null;
+
+      if (this.IS_SEPARATE_TRUSTSTORE) {
+
+        tsFile = new FileInputStream(trustStoreFile);
+        trustStore =
+            isFIPS()
+                ? KeyStore.getInstance(trustStoreType, FIPS_PROVIDER_NAME)
+                : KeyStore.getInstance(trustStoreType);
+        trustStore.load(tsFile, trustStorePassword);
+        tsFile.close();
       }
 
       context = SSLContext.getInstance(protocol);
       if (isFIPS()) {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(KA_SUNX509);
-        trustManagerFactory.init(keyStore);
+
+        if (this.IS_SEPARATE_TRUSTSTORE) {
+          trustManagerFactory.init(trustStore);
+        } else {
+          trustManagerFactory.init(keyStore);
+        }
+
         context.init(
             keyManagerFactory.getKeyManagers(),
             trustManagerFactory.getTrustManagers(),
             SecureRandom.getInstance("DEFAULT", FIPS_PROVIDER_NAME));
       } else {
         DsTrustManagerImpl[] managers = new DsTrustManagerImpl[1];
-        managers[0] =
-            trustManagerImpl =
-                new DsTrustManagerImpl(
-                    keyStore,
-                    trustAlgorithm,
-                    null,
-                    trustManager,
-                    null,
-                    this.certServiceTrustManagerEnabled);
+
+        if (this.IS_SEPARATE_TRUSTSTORE) {
+          managers[0] =
+              trustManagerImpl =
+                  DsSSLContextFactory.getDsTrustManagerImpl(
+                      trustStore,
+                      trustAlgorithm,
+                      null,
+                      trustManager,
+                      null,
+                      this.certServiceTrustManagerEnabled);
+        } else {
+          managers[0] =
+              trustManagerImpl =
+                  DsSSLContextFactory.getDsTrustManagerImpl(
+                      keyStore,
+                      trustAlgorithm,
+                      null,
+                      trustManager,
+                      null,
+                      this.certServiceTrustManagerEnabled);
+        }
+
         context.init(keyManagerFactory.getKeyManagers(), managers, null);
       }
 
@@ -1156,16 +1205,19 @@ public class DsSSLContext {
               DsConfigManager.PROP_TOS_VALUE, DsConfigManager.PROP_TOS_VALUE_DEFAULT);
       if (!(tosValue < 0 || tosValue > 255)) {
         socket.setTrafficClass(tosValue);
-
-        DsLog4j.socketCat.debug("IPTypeOfService: " + socket.getTrafficClass());
+        if (DsLog4j.socketCat.isEnabled(Level.DEBUG)) {
+          DsLog4j.socketCat.log(Level.DEBUG, "IPTypeOfService: " + socket.getTrafficClass());
+        }
       }
     } catch (SocketException e) {
-
-      DsLog4j.socketCat.error(
-          "INVALID TOS Value: "
-              + DsConfigManager.getProperty(
-                  DsConfigManager.PROP_TOS_VALUE, DsConfigManager.PROP_TOS_VALUE_DEFAULT),
-          e);
+      if (DsLog4j.socketCat.isEnabled(Level.ERROR)) {
+        DsLog4j.socketCat.log(
+            Level.ERROR,
+            "INVALID TOS Value: "
+                + DsConfigManager.getProperty(
+                    DsConfigManager.PROP_TOS_VALUE, DsConfigManager.PROP_TOS_VALUE_DEFAULT),
+            e);
+      }
     }
 
     // this.printClientCiphers(socketFactory);
@@ -1195,7 +1247,32 @@ public class DsSSLContext {
 
   private String keyStoreFile;
   private String trustStoreFile;
-  private char[] password;
+
+  public String getTrustStoreFile() {
+    return trustStoreFile;
+  }
+
+  public void setTrustStoreFile(String trustStoreFile) {
+    this.trustStoreFile = trustStoreFile;
+  }
+
+  public char[] getTrustStorePassword() {
+    return trustStorePassword;
+  }
+
+  public void setTrustStorePassword(char[] trustStorePassword) {
+    this.trustStorePassword = trustStorePassword;
+  }
+
+  public String getTrustStoreType() {
+    return trustStoreType;
+  }
+
+  public void setTrustStoreType(String trustStoreType) {
+    this.trustStoreType = trustStoreType;
+  }
+
+  private char[] keyStorepassword;
   private char[] trustStorePassword;
 
   private String keyStoreType;

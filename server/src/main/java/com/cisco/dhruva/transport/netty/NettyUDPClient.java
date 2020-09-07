@@ -28,7 +28,7 @@ public class NettyUDPClient extends AbstractClient {
       ExecutorService executorService,
       MetricService metricService) {
     this.networkConfig = networkConfig;
-    channelInitializer = new BaseChannelInitializer();
+    channelInitializer = new BaseChannelInitializer(networkConfig);
 
     channelHandler =
         new UDPChannelHandler(messageForwarder, networkConfig, executorService, metricService);

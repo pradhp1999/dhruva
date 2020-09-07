@@ -26,7 +26,6 @@ import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class DsProxyTransactionTest {
@@ -102,9 +101,8 @@ public class DsProxyTransactionTest {
     DsSipProxyManager.setM_Singleton(null);
   }
 
-
   @Test
-  public void testProxyClientTransaction() throws DsException, IOException {
+  public void testProxyClientTransaction() throws Exception {
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -194,7 +192,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testProxyToAddViaClientTransaction() throws DsException, IOException {
+  public void testProxyToAddViaClientTransaction() throws Exception {
 
     reset(transactionFactory);
 
@@ -243,7 +241,6 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
@@ -303,7 +300,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testProxyToAddRRClientTransaction() throws DsException, IOException {
+  public void testProxyToAddRRClientTransaction() throws Exception {
 
     reset(transactionFactory);
 
@@ -413,7 +410,7 @@ public class DsProxyTransactionTest {
 
   // TODO, FIXME respond is called on server side
   @Test
-  public void testProxyClientResponseWithRRHeader() throws DsException, IOException {
+  public void testProxyClientResponseWithRRHeader() throws Exception {
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -507,7 +504,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testTransactionInterfacesClientTimeout() throws DsException, IOException {
+  public void testTransactionInterfacesClientTimeout() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -556,7 +553,6 @@ public class DsProxyTransactionTest {
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
 
-
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(
@@ -587,7 +583,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testTransactionInterfacesClientProvisionalResponse() throws DsException, IOException {
+  public void testTransactionInterfacesClientProvisionalResponse() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -667,7 +663,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testProxyClientTransactionFinalResponses() throws DsException, IOException {
+  public void testProxyClientTransactionFinalResponses() throws Exception {
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -768,7 +764,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testTransactionInterfacesClientICMPError() throws DsException, IOException {
+  public void testTransactionInterfacesClientICMPError() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -802,7 +798,6 @@ public class DsProxyTransactionTest {
 
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
 
-
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
 
     doReturn(mockSipClientTransaction)
@@ -815,7 +810,6 @@ public class DsProxyTransactionTest {
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
-
 
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
@@ -845,7 +839,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testTransactionInterfacesClientCloseEvent() throws DsException, IOException {
+  public void testTransactionInterfacesClientCloseEvent() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -922,7 +916,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testTransactionInterfacesServerICMPError() throws DsException, IOException {
+  public void testTransactionInterfacesServerICMPError() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -955,7 +949,6 @@ public class DsProxyTransactionTest {
     transactionManager = spy(stackManager);
 
     DsSipClientTransaction mockSipClientTransaction = mock(DsSipClientTransaction.class);
-
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
 
@@ -999,7 +992,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testTransactionInterfacesServerCloseEvent() throws DsException, IOException {
+  public void testTransactionInterfacesServerCloseEvent() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1074,7 +1067,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testTransactionInterfacesServerAckEvent() throws DsException, IOException {
+  public void testTransactionInterfacesServerAckEvent() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1157,7 +1150,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testTransactionInterfacesServerTimeout() throws DsException, IOException {
+  public void testTransactionInterfacesServerTimeout() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1230,7 +1223,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test
-  public void testProxyToStrayACKClientTransaction() throws DsException, IOException {
+  public void testProxyToStrayACKClientTransaction() throws Exception {
 
     reset(transactionFactory);
 
@@ -1281,7 +1274,6 @@ public class DsProxyTransactionTest {
         .when(transactionManager)
         .startClientTransaction(mockSipClientTransaction);
 
-
     doReturn(mockSipClientTransaction)
         .when(transactionManager)
         .startClientTransaction(
@@ -1313,7 +1305,7 @@ public class DsProxyTransactionTest {
   // Test all exceptions
 
   @Test()
-  public void testClientInvalidParamException() throws DsException, IOException {
+  public void testClientInvalidParamException() throws Exception {
     reset(transactionFactory);
 
     DsSipRequest sipRequest =
@@ -1387,7 +1379,7 @@ public class DsProxyTransactionTest {
   }
 
   @Test()
-  public void testClientDestinationUnreachableException() throws DsException, IOException {
+  public void testClientDestinationUnreachableException() throws Exception {
     reset(transactionFactory);
 
     DsSipRequest sipRequest =

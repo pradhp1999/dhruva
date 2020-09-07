@@ -44,7 +44,8 @@ public class Event {
   public enum EventSubType {
     UDPCONNECTION(EventType.CONNECTION),
     TCPCONNECTION(EventType.CONNECTION),
-    TLSCONNECTION(EventType.CONNECTION);
+    TLSCONNECTION(EventType.CONNECTION),
+    BUFFERSIZEXCEEDED(EventType.CONNECTION);
     private EventType eventType;
 
     EventSubType(EventType eventType) {

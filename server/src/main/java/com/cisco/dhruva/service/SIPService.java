@@ -101,7 +101,8 @@ public class SIPService {
       logger.info("Trying to start server socket on {} ", sipListenPoint);
 
       networkConfig = DsNetwork.getNetwork(sipListenPoint.getName());
-      networkConfig.setenv(env);
+      networkConfig.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
+      networkConfig.setTlsAuthenticationType(sipListenPoint.getTlsAuthType());
 
       CompletableFuture listenPointFuture =
           dhruvaTransportLayer.startListening(

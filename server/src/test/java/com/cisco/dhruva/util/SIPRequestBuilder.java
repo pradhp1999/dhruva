@@ -14,16 +14,24 @@ import java.util.HashMap;
 
 public class SIPRequestBuilder {
 
-  public static final String CRLF = "\r\n";
+  private SDPType sdpType;
+  private int contentLength = -1;
+  private String[] optionalRequestURIValueList;
+  private RequestMethod method = RequestMethod.INVITE;
 
-  private String toTag = null;
+  public enum LineSeparator {
+    NEWLINE("\n"),
+    CRLF("\r\n");
 
-  private String to = "To: LittleGuy <sip:UserB@there.com>";
+    public String getLineSeparator() {
+      return lineSeparator;
+    }
 
-  private String callId = "1-4955@192.168.65.141";
+    private final String lineSeparator;
 
-  public void setToTag(String toTag) {
-    this.toTag = toTag;
+    LineSeparator(String separator) {
+      this.lineSeparator = separator;
+    }
   }
 
   public enum RequestMethod {
@@ -33,7 +41,166 @@ public class SIPRequestBuilder {
     BYE,
     CANCEL,
     PRACK
-  };
+  }
+
+  public enum SDPType {
+    small,
+    large;
+
+    String getSdp(SIPRequestBuilder builder) throws Exception {
+      switch (this) {
+        case small:
+          return builder.smallSdp;
+        case large:
+          return builder.largeSdp;
+        default:
+          throw new Exception("SDPType doesn't exist");
+      }
+    }
+  }
+
+  public String lineSeparator = LineSeparator.CRLF.getLineSeparator();
+
+  private String toTag = null;
+
+  private String to = "To: LittleGuy <sip:UserB@there.com>";
+
+  private String callId = "1-4955@192.168.65.141";
+
+  private String sdp;
+
+  private String smallSdp =
+      "      v=0"
+          + lineSeparator
+          + "      o=user1 53655765 2353687637 IN IP[local_ip_type] [local_ip]"
+          + lineSeparator
+          + "      s=-"
+          + lineSeparator
+          + "      c=IN IP[media_ip_type] [media_ip]"
+          + lineSeparator
+          + "      t=0 0"
+          + lineSeparator
+          + "      m=audio [media_port] RTP/AVP 0"
+          + lineSeparator
+          + "      a=rtpmap:0 PCMU/8000"
+          + lineSeparator;
+
+  private String largeSdp =
+      "      "
+          + lineSeparator
+          + "      v=0 "
+          + lineSeparator
+          + "      o=tandberg 0 1 IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      s=- "
+          + lineSeparator
+          + "      c=IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      b=AS:384 "
+          + lineSeparator
+          + "      t=0 0 "
+          + lineSeparator
+          + "      m=audio 59114 RTP/SAVP 108 101 "
+          + lineSeparator
+          + "      a=rtpmap:108 MP4A-LATM/90000 "
+          + lineSeparator
+          + "      a=fmtp:108 profile-level-id=24;object=23;bitrate=64000 "
+          + lineSeparator
+          + "      a=rtpmap:101 telephone-event/8000 "
+          + lineSeparator
+          + "      a=fmtp:101 0-15 "
+          + lineSeparator
+          + "      a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:46gffnjfgdkjkfkfklenb3 "
+          + lineSeparator
+          + "      a=sendrecv "
+          + lineSeparator
+          + "      a=content:main "
+          + lineSeparator
+          + "      a=rtcp:59115 IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      m=video 59104 RTP/SAVP 126 "
+          + lineSeparator
+          + "      b=TIAS:320000 "
+          + lineSeparator
+          + "      a=rtpmap:126 H264/90000 "
+          + lineSeparator
+          + "      a=fmtp:126 profile-level-id=428016;max-mbps=490000;max-fs=8160;max-cpb=200;max-br=5000;max-smbps=490000;max-fps=6000;packetization-mode=1;max-rcmd-nalu-size=3133440;sar-supported=16 "
+          + lineSeparator
+          + "      a=rtcp-fb:* ccm fir "
+          + lineSeparator
+          + "      a=rtcp-fb:* ccm tmmbr "
+          + lineSeparator
+          + "      a=rtcp-fb:* nack pli "
+          + lineSeparator
+          + "      a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:749dhbb4t4993bdbcnj3i90 "
+          + lineSeparator
+          + "      a=sendrecv "
+          + lineSeparator
+          + "      a=content:main "
+          + lineSeparator
+          + "      a=label:11 "
+          + lineSeparator
+          + "      a=rtcp:59105 IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      m=video 59090 RTP/SAVP 126 "
+          + lineSeparator
+          + "      b=TIAS:320000 "
+          + lineSeparator
+          + "      a=rtpmap:126 H264/90000 "
+          + lineSeparator
+          + "      a=fmtp:126 profile-level-id=428014;max-mbps=245000;max-fs=8160;max-cpb=100;max-br=2500;max-smbps=245000;max-fps=6000;packetization-mode=1;max-rcmd-nalu-size=3133440;sar-supported=16 "
+          + lineSeparator
+          + "      a=rtcp-fb:* ccm fir "
+          + lineSeparator
+          + "      a=rtcp-fb:* ccm tmmbr "
+          + lineSeparator
+          + "      a=rtcp-fb:* nack pli "
+          + lineSeparator
+          + "      a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:gfgue68486589030047982"
+          + lineSeparator
+          + "      a=sendrecv "
+          + lineSeparator
+          + "      a=content:slides "
+          + lineSeparator
+          + "      a=label:12 "
+          + lineSeparator
+          + "      a=rtcp:59091 IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      m=application 59088 UDP/BFCP * "
+          + lineSeparator
+          + "      a=floorctrl:c-only "
+          + lineSeparator
+          + "      m=application 0 UDP/DTLS/UDT/IX * "
+          + lineSeparator;
+
+  public void setToTag(String toTag) {
+    this.toTag = toTag;
+  }
+
+  public SIPRequestBuilder withLineSeparator(LineSeparator lineSeparator) {
+    this.lineSeparator = lineSeparator.getLineSeparator();
+    return this;
+  }
+
+  public SIPRequestBuilder withSdpType(SDPType sdpType) {
+    this.sdpType = sdpType;
+    return this;
+  }
+
+  public SIPRequestBuilder withContentLength(int contentLength) {
+    this.contentLength = contentLength;
+    return this;
+  }
+
+  public SIPRequestBuilder withOptionalRequestURIValueList(String[] optionalRequestURIValueList) {
+    this.optionalRequestURIValueList = optionalRequestURIValueList;
+    return this;
+  }
+
+  public SIPRequestBuilder withMethod(RequestMethod method) {
+    this.method = method;
+    return this;
+  }
 
   /* Response code and their message */
   public static HashMap<Integer, String> ResponseCodeValue =
@@ -62,74 +229,27 @@ public class SIPRequestBuilder {
 
   public static DsSipRequest createRequest(String request)
       throws DsSipParserListenerException, DsSipParserException {
-    DsSipRequest msg = null;
+    DsSipRequest msg;
     msg = (DsSipRequest) DsSipMessage.createMessage(request.getBytes());
     return msg;
   }
 
   public static DsSipResponse createResponse(byte[] response)
       throws DsSipParserListenerException, DsSipParserException {
-    DsSipResponse msg = null;
-    msg = (DsSipResponse) DsSipMessage.createMessage(response);
-    return msg;
+    return (DsSipResponse) DsSipMessage.createMessage(response);
   }
 
-  public String getRequestAsString(RequestMethod method, String... optionalRequestURIValueList) {
-    String optionalRequestURIValue = "UserB@there.com";
-    if (optionalRequestURIValueList != null && optionalRequestURIValueList.length != 0) {
-      optionalRequestURIValue = optionalRequestURIValueList[0];
-    }
+  public String getRequestAsString(RequestMethod method, String... optionalRequestURIValueList)
+      throws Exception {
+    return withMethod(method).withOptionalRequestURIValueList(optionalRequestURIValueList).build();
+  }
+
+  public String getRequestAsString(RequestMethod method, boolean random) throws Exception {
 
     if (toTag != null) {
       to += ";" + toTag;
     }
-
-    String requestString =
-        method.name()
-            + " sip:"
-            + optionalRequestURIValue
-            + " SIP/2.0"
-            + CRLF
-            + "Via: SIP/2.0/UDP 127.0.0.1:5070;branch=2d4790.1;rport"
-            + CRLF
-            + "Via: SIP/2.0/UDP here.com:5060"
-            + CRLF
-            + "Max-Forwards: 70"
-            + CRLF
-            + "Route: <sip:UserE@xxx.yyy.com;maddr=ss1.wcom.com>"
-            + CRLF
-            + "Route: <sip:TinkyWinky@tellytubbyland.com;maddr=ss1.wcom.com>"
-            + CRLF
-            + to
-            + CRLF
-            + "From: BigGuy <sip:UserA@here.com>"
-            + CRLF
-            + "Call-ID: "
-            + callId
-            + CRLF
-            + "CSeq: 1 "
-            + method.name()
-            + CRLF
-            + "Content-Length: 0"
-            + CRLF
-            + "Contact: <sip:UserA@100.101.102.103>"
-            + CRLF
-            + "Content-Type: application/sdp"
-            + CRLF;
-
-    if (method == RequestMethod.PRACK) {
-      requestString = requestString + "RAck: 1 1 INVITE" + CRLF;
-    }
-
-    return requestString;
-  }
-
-  public String getRequestAsString(RequestMethod method, boolean random) {
-
-    if (toTag != null) {
-      to += ";" + toTag;
-    }
-    if (random == false) {
+    if (!random) {
       return getRequestAsString(method);
     }
     String randomString = randomAlphaNumeric(20);
@@ -139,36 +259,97 @@ public class SIPRequestBuilder {
     String requestString =
         method.name()
             + requestUri
-            + CRLF
+            + lineSeparator
             + "Via: SIP/2.0/UDP ss1.wcom.com:5060;branch=2d4790.1"
-            + CRLF
+            + lineSeparator
             + "Via: SIP/2.0/UDP here.com:5060"
-            + CRLF
+            + lineSeparator
             + "Max-Forwards: 70"
-            + CRLF
+            + lineSeparator
             + "Route: <sip:UserE@xxx.yyy.com;maddr=ss1.wcom.com>"
-            + CRLF
+            + lineSeparator
             + "Route: <sip:TinkyWinky@tellytubbyland.com;maddr=ss1.wcom.com>"
-            + CRLF
+            + lineSeparator
             + toUri
-            + CRLF
+            + lineSeparator
             + "From: BigGuy <sip:UserA@here.com>"
-            + CRLF
+            + lineSeparator
             + "Call-ID: "
             + callId
-            + CRLF
+            + lineSeparator
             + "CSeq: 1 "
             + method.name()
-            + CRLF
-            + "Content-Length: 0"
-            + CRLF
+            + lineSeparator
+            + "Content-Length: "
+            + contentLength
+            + lineSeparator
             + "Contact: <sip:UserA@100.101.102.103>"
-            + CRLF
+            + lineSeparator
             + "Content-Type: application/sdp"
-            + CRLF;
+            + lineSeparator;
 
     if (method == RequestMethod.PRACK) {
-      requestString = requestString + "RAck: 1 1 INVITE" + CRLF;
+      requestString = requestString + "RAck: 1 1 INVITE" + lineSeparator;
+    }
+
+    return requestString;
+  }
+
+  public String build() throws Exception {
+    String optionalRequestURIValue = "UserB@there.com";
+    if (optionalRequestURIValueList != null && optionalRequestURIValueList.length != 0) {
+      optionalRequestURIValue = optionalRequestURIValueList[0];
+    }
+
+    if (toTag != null) {
+      to += ";" + toTag;
+    }
+
+    if (sdpType != null) {
+      sdp = sdpType.getSdp(this);
+      if (contentLength == -1) {
+        this.contentLength = sdp.length();
+      }
+    }
+
+    String requestString =
+        method.name()
+            + " sip:"
+            + optionalRequestURIValue
+            + " SIP/2.0"
+            + lineSeparator
+            + "Via: SIP/2.0/UDP 127.0.0.1:5070;branch=2d4790.1;rport"
+            + lineSeparator
+            + "Via: SIP/2.0/UDP here.com:5060"
+            + lineSeparator
+            + "Max-Forwards: 70"
+            + lineSeparator
+            + "Route: <sip:UserE@xxx.yyy.com;maddr=ss1.wcom.com>"
+            + lineSeparator
+            + "Route: <sip:TinkyWinky@tellytubbyland.com;maddr=ss1.wcom.com>"
+            + lineSeparator
+            + to
+            + lineSeparator
+            + "From: BigGuy <sip:UserA@here.com>"
+            + lineSeparator
+            + "Call-ID: "
+            + callId
+            + lineSeparator
+            + "CSeq: 1 "
+            + method.name()
+            + lineSeparator
+            + "Content-Length: "
+            + contentLength
+            + lineSeparator
+            + "Contact: <sip:UserA@100.101.102.103>"
+            + lineSeparator
+            + "Content-Type: application/sdp"
+            + lineSeparator
+            + lineSeparator
+            + sdp;
+
+    if (method == RequestMethod.PRACK) {
+      requestString = requestString + "RAck: 1 1 INVITE" + lineSeparator;
     }
 
     return requestString;
@@ -183,54 +364,50 @@ public class SIPRequestBuilder {
     String callId = randomString;
     String requestUri = " sip:" + randomString + "@cisco.com SIP/2.0";
     String toUri = "To: <sip:" + randomString + "@cisco.com>";
-    String reuestString =
-        method.name()
-            + requestUri
-            + CRLF
-            + "Via: SIP/2.0/UDP ss1.wcom.com:5060;branch=2d4790.1"
-            + CRLF
-            + "Via: SIP/2.0/UDP here.com:5060"
-            + CRLF
-            + "Max-Forwards:"
-            + maxForwardValue
-            + CRLF
-            + "Route: <sip:UserE@xxx.yyy.com;maddr=ss1.wcom.com>"
-            + CRLF
-            + "Route: <sip:TinkyWinky@tellytubbyland.com;maddr=ss1.wcom.com>"
-            + CRLF
-            + toUri
-            + CRLF
-            + "From: BigGuy <sip:UserA@here.com>"
-            + CRLF
-            + "Call-ID: "
-            + callId
-            + CRLF
-            + "CSeq: 1 "
-            + method.name()
-            + CRLF
-            + "Content-Length: 0"
-            + CRLF
-            + "Contact: <sip:UserA@100.101.102.103>"
-            + CRLF
-            + "Content-Type: application/sdp"
-            + CRLF;
 
-    return reuestString;
+    return method.name()
+        + requestUri
+        + lineSeparator
+        + "Via: SIP/2.0/UDP ss1.wcom.com:5060;branch=2d4790.1"
+        + lineSeparator
+        + "Via: SIP/2.0/UDP here.com:5060"
+        + lineSeparator
+        + "Max-Forwards:"
+        + maxForwardValue
+        + lineSeparator
+        + "Route: <sip:UserE@xxx.yyy.com;maddr=ss1.wcom.com>"
+        + lineSeparator
+        + "Route: <sip:TinkyWinky@tellytubbyland.com;maddr=ss1.wcom.com>"
+        + lineSeparator
+        + toUri
+        + lineSeparator
+        + "From: BigGuy <sip:UserA@here.com>"
+        + lineSeparator
+        + "Call-ID: "
+        + callId
+        + lineSeparator
+        + "CSeq: 1 "
+        + method.name()
+        + lineSeparator
+        + "Content-Length: "
+        + contentLength
+        + lineSeparator
+        + "Contact: <sip:UserA@100.101.102.103>"
+        + lineSeparator
+        + "Content-Type: application/sdp"
+        + lineSeparator
+        + sdp;
   }
 
   public void setBindingInfo(DsSipRequest request, Transport transport)
       throws UnknownHostException {
     DsBindingInfo bindingInfo;
-    InetAddress localAddr = null;
-    InetAddress remoteAddr = null;
-    byte[] localIpAddr = new byte[] {127, 0, 0, 1};
-    byte[] remoteIpAddr = new byte[] {127, 0, 0, 1};
-    try {
-      localAddr = InetAddress.getByAddress(localIpAddr);
-      remoteAddr = InetAddress.getByAddress(remoteIpAddr);
-    } catch (UnknownHostException e) {
-      throw e;
-    }
+    InetAddress localAddr;
+    InetAddress remoteAddr;
+    byte[] localIpAddr = new byte[]{127, 0, 0, 1};
+    byte[] remoteIpAddr = new byte[]{127, 0, 0, 1};
+    localAddr = InetAddress.getByAddress(localIpAddr);
+    remoteAddr = InetAddress.getByAddress(remoteIpAddr);
     bindingInfo = new DsBindingInfo();
     bindingInfo.setRemoteAddress(remoteAddr);
     bindingInfo.setRemotePort(5060);

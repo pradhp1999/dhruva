@@ -20,15 +20,15 @@ import java.util.function.Function;
 
 public class ConnectionCache {
 
-  private static ConnectionCache connectionCache = new ConnectionCache();
-  private Logger logger = DhruvaLoggerFactory.getLogger(ConnectionCache.class);
+  private static final ConnectionCache connectionCache = new ConnectionCache();
+  private final Logger logger = DhruvaLoggerFactory.getLogger(ConnectionCache.class);
   private int connectionSweeperInterval = 60;
   private TimeUnit connectionSweeperIntervalTimeUnit = TimeUnit.MINUTES;
 
-  private ConcurrentHashMap<ConnectionKey, CompletableFuture<Connection>> connectionMap =
-      new ConcurrentHashMap();
+  private final ConcurrentHashMap<ConnectionKey, CompletableFuture<Connection>> connectionMap =
+      new ConcurrentHashMap<>();
 
-  private ScheduledExecutorService connectionSweeperSchedulerService =
+  private final ScheduledExecutorService connectionSweeperSchedulerService =
       Executors.newSingleThreadScheduledExecutor();
 
   public static ConnectionCache getInstance(
