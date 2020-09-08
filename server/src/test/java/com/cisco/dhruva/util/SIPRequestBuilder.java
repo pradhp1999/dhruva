@@ -127,7 +127,7 @@ public class SIPRequestBuilder {
 
   private String to = " LittleGuy <sip:UserB@there.com>";
 
-  private String callId = " 1-4955@192.168.65.141";
+  private String callId = "1-4955@192.168.65.141";
 
   private String sdp;
 
@@ -321,8 +321,7 @@ public class SIPRequestBuilder {
 
     if (sdp != null) {
       constructedHeaderString = constructedHeaderString + lineSeparator + sdp;
-    }
-    else {
+    } else {
       constructedHeaderString = constructedHeaderString + lineSeparator;
     }
     return constructedHeaderString;
@@ -335,7 +334,7 @@ public class SIPRequestBuilder {
         RequestHeader.Via,
         constructHeader(
             RequestHeader.Via,
-            " SIP/2.0/UDP ss1.wcom.com:5060;branch=2d4790.1",
+            " SIP/2.0/UDP 127.0.0.1:5070;branch=2d4790.1;rport",
             " SIP/2.0/UDP here.com:5060"));
     headers.put(RequestHeader.MaxForwards, constructHeader(RequestHeader.MaxForwards, " 70"));
     headers.put(
@@ -364,13 +363,14 @@ public class SIPRequestBuilder {
     if (headers.get(requestHeader) == null) {
       StringBuilder header = new StringBuilder();
       for (int i = 0; i < values.length; i++) {
-        if (i != 0 && i != (values.length - 1)) {
-          header.append(lineSeparator);
-        }
 
         String headerName =
             requestHeader.shortFormEnabled ? requestHeader.getShortForm() : requestHeader.getName();
-        header = new StringBuilder(headerName + ":" + values[i]);
+        header = header.append(headerName + ":" + values[i]);
+
+        if (i != (values.length - 1)) {
+          header.append(lineSeparator);
+        }
       }
       return header.toString();
     } else {
@@ -427,8 +427,8 @@ public class SIPRequestBuilder {
     DsBindingInfo bindingInfo;
     InetAddress localAddr;
     InetAddress remoteAddr;
-    byte[] localIpAddr = new byte[]{127, 0, 0, 1};
-    byte[] remoteIpAddr = new byte[]{127, 0, 0, 1};
+    byte[] localIpAddr = new byte[] {127, 0, 0, 1};
+    byte[] remoteIpAddr = new byte[] {127, 0, 0, 1};
     localAddr = InetAddress.getByAddress(localIpAddr);
     remoteAddr = InetAddress.getByAddress(remoteIpAddr);
     bindingInfo = new DsBindingInfo();

@@ -80,12 +80,13 @@ public class SIPContentLengthBasedFrameDecoder extends ByteToMessageDecoder {
     int readerIndex = byteBuf.readerIndex();
     byteBuf.resetReaderIndex();
 
-    //if execution reached here , then we have found the \r\n of sip message
+    // if execution reached here , then we have found the \r\n of sip message
     // if contentLength is not found, then the message is invalid
     if (contentLength == -1) {
 
-      logger.error("Content-Length header not found , dump of message " + String
-          .valueOf(byteBuf.readBytes(byteBuf.readableBytes())));
+      logger.error(
+          "Content-Length header not found , dump of message "
+              + String.valueOf(byteBuf.readBytes(byteBuf.readableBytes())));
       throw new Exception("ContentLength header not found");
     }
 

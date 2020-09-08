@@ -100,7 +100,7 @@ public abstract class AbstractChannelHandler implements ChannelInboundHandler {
         "Exception in Channel handler , closing the connection",
         connectionInfo);
     notifyChannelEventsToListeners(cause);
-    //close the connection
+    // close the connection
     ctx.close();
   }
 

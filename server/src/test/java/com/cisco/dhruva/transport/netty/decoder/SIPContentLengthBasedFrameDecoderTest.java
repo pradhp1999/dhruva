@@ -77,9 +77,10 @@ public class SIPContentLengthBasedFrameDecoderTest {
     byteBuf.release();
   }
 
-
-  @Test(description = "Test decode with a proper SIP Invite Request message with a content-length,"
-      + " with \n as line separator")
+  @Test(
+      description =
+          "Test decode with a proper SIP Invite Request message with a content-length,"
+              + " with \n as line separator")
   public void testDecodeWithNewLineAsLineSeparator() throws Exception {
 
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
@@ -112,9 +113,10 @@ public class SIPContentLengthBasedFrameDecoderTest {
     byteBuf.release();
   }
 
-
-  @Test(description = "Test decode with a proper SIP Invite Request message with a content-length,"
-      + " but without any line separator , decode should return without altering the buffer")
+  @Test(
+      description =
+          "Test decode with a proper SIP Invite Request message with a content-length,"
+              + " but without any line separator , decode should return without altering the buffer")
   public void testDecodeWithoutLineSeparators() throws Exception {
 
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
@@ -123,7 +125,9 @@ public class SIPContentLengthBasedFrameDecoderTest {
         sipRequestBuilder
             .withMethod(RequestMethod.INVITE)
             .withLineSeparator(LineSeparator.CRLF)
-            .build().replace(LineSeparator.CRLF.getLineSeparator(), "").getBytes();
+            .build()
+            .replace(LineSeparator.CRLF.getLineSeparator(), "")
+            .getBytes();
 
     ByteBuf byteBuf = UnpooledByteBufAllocator.DEFAULT.buffer().writeBytes(inviteRequest);
 
@@ -143,9 +147,10 @@ public class SIPContentLengthBasedFrameDecoderTest {
     byteBuf.release();
   }
 
-
-  @Test(description = "Test decode with a proper SIP Invite Request message with a content-length,"
-      + " but without last line separator , decode should return without altering the buffer")
+  @Test(
+      description =
+          "Test decode with a proper SIP Invite Request message with a content-length,"
+              + " but without last line separator , decode should return without altering the buffer")
   public void testDecodeWithoutLastLineSeparators() throws Exception {
 
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
@@ -154,10 +159,11 @@ public class SIPContentLengthBasedFrameDecoderTest {
         sipRequestBuilder
             .withMethod(RequestMethod.INVITE)
             .withLineSeparator(LineSeparator.CRLF)
-            .build().getBytes();
+            .build()
+            .getBytes();
 
     System.out.println(new String(inviteRequest));
-    //remove the last line separator
+    // remove the last line separator
     inviteRequest[inviteRequest.length - 1] = 0;
     inviteRequest[inviteRequest.length - 2] = 0;
 
@@ -366,10 +372,8 @@ public class SIPContentLengthBasedFrameDecoderTest {
 
     assertNotNull(caughtException);
     assertEquals(caughtException.getClass(), NumberFormatException.class);
-    assertTrue(
-        caughtException.getMessage().contains("For input string: \"\""));
+    assertTrue(caughtException.getMessage().contains("For input string: \"\""));
   }
-
 
   @Test(
       description =
@@ -404,8 +408,7 @@ public class SIPContentLengthBasedFrameDecoderTest {
 
     assertNotNull(caughtException);
     assertEquals(caughtException.getClass(), NumberFormatException.class);
-    assertTrue(
-        caughtException.getMessage().contains("For input string: \"\""));
+    assertTrue(caughtException.getMessage().contains("For input string: \"\""));
   }
 
   @Test(
@@ -442,10 +445,8 @@ public class SIPContentLengthBasedFrameDecoderTest {
 
     assertNotNull(caughtException);
     assertEquals(caughtException.getClass(), Exception.class);
-    assertTrue(
-        caughtException.getMessage().contains("ContentLength header not found"));
+    assertTrue(caughtException.getMessage().contains("ContentLength header not found"));
   }
-
 
   @Test(
       description =
@@ -480,10 +481,8 @@ public class SIPContentLengthBasedFrameDecoderTest {
 
     assertNotNull(caughtException);
     assertEquals(caughtException.getClass(), NumberFormatException.class);
-    assertTrue(
-        caughtException.getMessage().contains("For input string: \"\""));
+    assertTrue(caughtException.getMessage().contains("For input string: \"\""));
   }
-
 
   @Test(
       description =
@@ -492,9 +491,10 @@ public class SIPContentLengthBasedFrameDecoderTest {
   public void testDecodeWithShortFormOfContentLengthHeaderWithContentLengthHeaderGoingInTwoChunks()
       throws Exception {
 
-    String firstblock = "INVITE sip:UserB@there.com SIP/2.0\n"
-        + "Via: SIP/2.0/UDP here.com:5060\n"
-        + "content-length:";
+    String firstblock =
+        "INVITE sip:UserB@there.com SIP/2.0\n"
+            + "Via: SIP/2.0/UDP here.com:5060\n"
+            + "content-length:";
 
     ByteBuf byteBuf = UnpooledByteBufAllocator.DEFAULT.buffer().writeBytes(firstblock.getBytes());
 
@@ -502,7 +502,7 @@ public class SIPContentLengthBasedFrameDecoderTest {
 
     assertEquals(byteBuf.readerIndex(), 0);
     assertEquals(byteBuf.writerIndex(), firstblock.length());
-    //outList should be of 0
+    // outList should be of 0
     assertEquals(outList.size(), 0);
 
     String secondBlock = "0\n\n";
@@ -516,6 +516,5 @@ public class SIPContentLengthBasedFrameDecoderTest {
     assertEquals(((byte[]) outList.get(0)).length, firstblock.length() + secondBlock.length());
 
     byteBuf.release();
-
   }
 }
