@@ -5,7 +5,6 @@ import com.cisco.dhruva.common.metric.InfluxClient;
 import com.cisco.dhruva.common.metric.MetricClient;
 import com.ciscospark.server.Wx2ConfigAdapter;
 import java.util.concurrent.TimeUnit;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

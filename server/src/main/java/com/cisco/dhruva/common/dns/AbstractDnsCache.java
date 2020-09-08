@@ -25,7 +25,7 @@ public abstract class AbstractDnsCache<T> {
         CacheBuilder.newBuilder()
             .maximumSize(
                 maxCacheSize) // if 0, elements are evicted immediately after being loaded into the
-                              // cache
+            // cache
             .expireAfterWrite(retentionTimeMillis, TimeUnit.MILLISECONDS)
             .build();
     log.info("Initialized {} with max {} records", getClass().getSimpleName(), maxCacheSize);
