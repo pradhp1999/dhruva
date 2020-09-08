@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2020  by Cisco Systems, Inc.All Rights Reserved.
  */
@@ -140,13 +139,13 @@ public class DsSipTransactionManagerTest {
     ArgumentCaptor<DsSipMessage> argumentCaptorTryingResponse =
         ArgumentCaptor.forClass(DsSipMessage.class);
     when(transportLayer.getConnection(
-        incomingMessageBindingInfo.getNetwork(),
-        localAddress,
-        localPort,
-        remoteAddress,
-        remotePort,
-        Transport.UDP,
-        true))
+            incomingMessageBindingInfo.getNetwork(),
+            localAddress,
+            localPort,
+            remoteAddress,
+            remotePort,
+            Transport.UDP,
+            true))
         .thenReturn(responseConnection);
 
     // unit under test
@@ -217,13 +216,13 @@ public class DsSipTransactionManagerTest {
     ArgumentCaptor<DsSipResponse> argumentCaptor200Response =
         ArgumentCaptor.forClass(DsSipResponse.class);
     when(transportLayer.getConnection(
-        incomingMessageBindingInfo.getNetwork(),
-        localAddress,
-        localPort,
-        remoteAddress,
-        remotePort,
-        Transport.UDP,
-        true))
+            incomingMessageBindingInfo.getNetwork(),
+            localAddress,
+            localPort,
+            remoteAddress,
+            remotePort,
+            Transport.UDP,
+            true))
         .thenReturn(responseConnection);
 
     // unit under test
@@ -330,13 +329,13 @@ public class DsSipTransactionManagerTest {
     when(responseConnection.getBindingInfo()).thenReturn(incomingMessageBindingInfo);
     when(responseConnection.getTransportType()).thenReturn(Transport.UDP);
     when(transportLayer.getConnection(
-        incomingMessageBindingInfo.getNetwork(),
-        localAddress,
-        localPort,
-        remoteAddress,
-        remotePort,
-        Transport.UDP,
-        true))
+            incomingMessageBindingInfo.getNetwork(),
+            localAddress,
+            localPort,
+            remoteAddress,
+            remotePort,
+            Transport.UDP,
+            true))
         .thenReturn(responseConnection);
 
     // Send Invite first
@@ -418,12 +417,12 @@ public class DsSipTransactionManagerTest {
     ArgumentCaptor<DsSipResponse> argumentCaptor = ArgumentCaptor.forClass(DsSipResponse.class);
 
     when(transportLayer.getConnection(
-        incomingMessageBindingInfo.getNetwork(),
-        localAddress,
-        0,
-        remoteAddress,
-        remotePort,
-        Transport.UDP))
+            incomingMessageBindingInfo.getNetwork(),
+            localAddress,
+            0,
+            remoteAddress,
+            remotePort,
+            Transport.UDP))
         .thenReturn(responseConnection);
 
     SipMessageBytes sipMessageBytes =
@@ -469,13 +468,13 @@ public class DsSipTransactionManagerTest {
     when(responseConnection.getTransportType()).thenReturn(Transport.UDP);
     ArgumentCaptor<byte[]> argumentCaptorTryingResponse = ArgumentCaptor.forClass(byte[].class);
     when(transportLayer.getConnection(
-        incomingMessageBindingInfo.getNetwork(),
-        localAddress,
-        localPort,
-        remoteAddress,
-        remotePort,
-        Transport.UDP,
-        true))
+            incomingMessageBindingInfo.getNetwork(),
+            localAddress,
+            localPort,
+            remoteAddress,
+            remotePort,
+            Transport.UDP,
+            true))
         .thenReturn(responseConnection);
 
     ArgumentCaptor<DsSipServerTransactionIImpl> argumentCaptor =
@@ -527,13 +526,13 @@ public class DsSipTransactionManagerTest {
     ArgumentCaptor<DsSipResponse> argumentCaptor = ArgumentCaptor.forClass(DsSipResponse.class);
 
     when(transportLayer.getConnection(
-        incomingMessageBindingInfo.getNetwork(),
-        localAddress,
-        localPort,
-        remoteAddress,
-        remotePort,
-        Transport.UDP,
-        true))
+            incomingMessageBindingInfo.getNetwork(),
+            localAddress,
+            localPort,
+            remoteAddress,
+            remotePort,
+            Transport.UDP,
+            true))
         .thenReturn(responseConnection);
 
     // corrupting message

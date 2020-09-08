@@ -11,13 +11,33 @@ import com.cisco.dhruva.transport.Transport;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SIPRequestBuilder {
 
   private SDPType sdpType;
-  private int contentLength = -1;
+  private int contentLength = 0;
   private String[] optionalRequestURIValueList;
   private RequestMethod method = RequestMethod.INVITE;
+  LinkedList<RequestHeader> headerPosition = new LinkedList();
+
+  HashMap<RequestHeader, String> headers = new HashMap();
+  private String requestUriHeader = "UserB@there.com";
+
+  public SIPRequestBuilder() {
+    headerPosition.add(RequestHeader.RequestUri);
+    headerPosition.add(RequestHeader.Via);
+    headerPosition.add(RequestHeader.Route);
+    headerPosition.add(RequestHeader.MaxForwards);
+    headerPosition.add(RequestHeader.To);
+    headerPosition.add(RequestHeader.From);
+    headerPosition.add(RequestHeader.CallId);
+    headerPosition.add(RequestHeader.CSeq);
+    headerPosition.add(RequestHeader.ContentType);
+    headerPosition.add(RequestHeader.ContentLength);
+    headerPosition.add(RequestHeader.Contact);
+  }
 
   public enum LineSeparator {
     NEWLINE("\n"),
@@ -34,6 +54,12 @@ public class SIPRequestBuilder {
     }
   }
 
+  public enum Position {
+    Beginning,
+    Middle,
+    End
+  }
+
   public enum RequestMethod {
     INVITE,
     ACK,
@@ -41,6 +67,42 @@ public class SIPRequestBuilder {
     BYE,
     CANCEL,
     PRACK
+  }
+
+  public enum RequestHeader {
+    Via("Via", "v"),
+    MaxForwards("Max-Forwards", "Max-Forwards"),
+    RequestUri("", ""),
+    CallId("Call-ID", "i"),
+    From("From", "f"),
+    To("To", "t"),
+    ContentLength("Content-Length", "l"),
+    Contact("Contact", "m"),
+    ContentType("Content-Type", "c"),
+    Route("Route", "Route"),
+    CSeq("CSeq", "CSeq");
+
+    private final String name;
+    private final String shortForm;
+    private boolean shortFormEnabled;
+
+    RequestHeader(String name, String shortForm) {
+      this.name = name;
+      this.shortForm = shortForm;
+      shortFormEnabled = false;
+    }
+
+    String getName() {
+      return name;
+    }
+
+    public String getShortForm() {
+      return shortForm;
+    }
+
+    public boolean isShortFormEnabled() {
+      return shortFormEnabled;
+    }
   }
 
   public enum SDPType {
@@ -63,115 +125,11 @@ public class SIPRequestBuilder {
 
   private String toTag = null;
 
-  private String to = "To: LittleGuy <sip:UserB@there.com>";
+  private String to = " LittleGuy <sip:UserB@there.com>";
 
-  private String callId = "1-4955@192.168.65.141";
+  private String callId = " 1-4955@192.168.65.141";
 
   private String sdp;
-
-  private String smallSdp =
-      "      v=0"
-          + lineSeparator
-          + "      o=user1 53655765 2353687637 IN IP[local_ip_type] [local_ip]"
-          + lineSeparator
-          + "      s=-"
-          + lineSeparator
-          + "      c=IN IP[media_ip_type] [media_ip]"
-          + lineSeparator
-          + "      t=0 0"
-          + lineSeparator
-          + "      m=audio [media_port] RTP/AVP 0"
-          + lineSeparator
-          + "      a=rtpmap:0 PCMU/8000"
-          + lineSeparator;
-
-  private String largeSdp =
-      "      "
-          + lineSeparator
-          + "      v=0 "
-          + lineSeparator
-          + "      o=tandberg 0 1 IN IP4 128.107.82.105 "
-          + lineSeparator
-          + "      s=- "
-          + lineSeparator
-          + "      c=IN IP4 128.107.82.105 "
-          + lineSeparator
-          + "      b=AS:384 "
-          + lineSeparator
-          + "      t=0 0 "
-          + lineSeparator
-          + "      m=audio 59114 RTP/SAVP 108 101 "
-          + lineSeparator
-          + "      a=rtpmap:108 MP4A-LATM/90000 "
-          + lineSeparator
-          + "      a=fmtp:108 profile-level-id=24;object=23;bitrate=64000 "
-          + lineSeparator
-          + "      a=rtpmap:101 telephone-event/8000 "
-          + lineSeparator
-          + "      a=fmtp:101 0-15 "
-          + lineSeparator
-          + "      a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:46gffnjfgdkjkfkfklenb3 "
-          + lineSeparator
-          + "      a=sendrecv "
-          + lineSeparator
-          + "      a=content:main "
-          + lineSeparator
-          + "      a=rtcp:59115 IN IP4 128.107.82.105 "
-          + lineSeparator
-          + "      m=video 59104 RTP/SAVP 126 "
-          + lineSeparator
-          + "      b=TIAS:320000 "
-          + lineSeparator
-          + "      a=rtpmap:126 H264/90000 "
-          + lineSeparator
-          + "      a=fmtp:126 profile-level-id=428016;max-mbps=490000;max-fs=8160;max-cpb=200;max-br=5000;max-smbps=490000;max-fps=6000;packetization-mode=1;max-rcmd-nalu-size=3133440;sar-supported=16 "
-          + lineSeparator
-          + "      a=rtcp-fb:* ccm fir "
-          + lineSeparator
-          + "      a=rtcp-fb:* ccm tmmbr "
-          + lineSeparator
-          + "      a=rtcp-fb:* nack pli "
-          + lineSeparator
-          + "      a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:749dhbb4t4993bdbcnj3i90 "
-          + lineSeparator
-          + "      a=sendrecv "
-          + lineSeparator
-          + "      a=content:main "
-          + lineSeparator
-          + "      a=label:11 "
-          + lineSeparator
-          + "      a=rtcp:59105 IN IP4 128.107.82.105 "
-          + lineSeparator
-          + "      m=video 59090 RTP/SAVP 126 "
-          + lineSeparator
-          + "      b=TIAS:320000 "
-          + lineSeparator
-          + "      a=rtpmap:126 H264/90000 "
-          + lineSeparator
-          + "      a=fmtp:126 profile-level-id=428014;max-mbps=245000;max-fs=8160;max-cpb=100;max-br=2500;max-smbps=245000;max-fps=6000;packetization-mode=1;max-rcmd-nalu-size=3133440;sar-supported=16 "
-          + lineSeparator
-          + "      a=rtcp-fb:* ccm fir "
-          + lineSeparator
-          + "      a=rtcp-fb:* ccm tmmbr "
-          + lineSeparator
-          + "      a=rtcp-fb:* nack pli "
-          + lineSeparator
-          + "      a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:gfgue68486589030047982"
-          + lineSeparator
-          + "      a=sendrecv "
-          + lineSeparator
-          + "      a=content:slides "
-          + lineSeparator
-          + "      a=label:12 "
-          + lineSeparator
-          + "      a=rtcp:59091 IN IP4 128.107.82.105 "
-          + lineSeparator
-          + "      m=application 59088 UDP/BFCP * "
-          + lineSeparator
-          + "      a=floorctrl:c-only "
-          + lineSeparator
-          + "      m=application 0 UDP/DTLS/UDT/IX * "
-          + lineSeparator;
 
   public void setToTag(String toTag) {
     this.toTag = toTag;
@@ -199,6 +157,38 @@ public class SIPRequestBuilder {
 
   public SIPRequestBuilder withMethod(RequestMethod method) {
     this.method = method;
+    return this;
+  }
+
+  public SIPRequestBuilder withHeaderPosition(RequestHeader header, Position position)
+      throws Exception {
+
+    switch (position) {
+      case Beginning:
+        return withHeaderPosition(header, 1);
+      case Middle:
+        return withHeaderPosition(header, headerPosition.size() / 2);
+      case End:
+        return withHeaderPosition(header, headerPosition.size() - 1);
+
+      default:
+        throw new Exception("Position " + position + " is not supported");
+    }
+  }
+
+  public SIPRequestBuilder withShortForm(RequestHeader requestHeader) {
+    requestHeader.shortFormEnabled = true;
+    return this;
+  }
+
+  public SIPRequestBuilder withHeaderPosition(RequestHeader header, int position) {
+    headerPosition.remove(header);
+    headerPosition.add(position, header);
+    return this;
+  }
+
+  public SIPRequestBuilder withHeader(RequestHeader header, String value) {
+    headers.put(header, value);
     return this;
   }
 
@@ -296,9 +286,8 @@ public class SIPRequestBuilder {
   }
 
   public String build() throws Exception {
-    String optionalRequestURIValue = "UserB@there.com";
     if (optionalRequestURIValueList != null && optionalRequestURIValueList.length != 0) {
-      optionalRequestURIValue = optionalRequestURIValueList[0];
+      requestUriHeader = optionalRequestURIValueList[0];
     }
 
     if (toTag != null) {
@@ -307,52 +296,86 @@ public class SIPRequestBuilder {
 
     if (sdpType != null) {
       sdp = sdpType.getSdp(this);
-      if (contentLength == -1) {
+      if (contentLength == 0) {
         this.contentLength = sdp.length();
       }
     }
 
-    String requestString =
-        method.name()
-            + " sip:"
-            + optionalRequestURIValue
-            + " SIP/2.0"
-            + lineSeparator
-            + "Via: SIP/2.0/UDP 127.0.0.1:5070;branch=2d4790.1;rport"
-            + lineSeparator
-            + "Via: SIP/2.0/UDP here.com:5060"
-            + lineSeparator
-            + "Max-Forwards: 70"
-            + lineSeparator
-            + "Route: <sip:UserE@xxx.yyy.com;maddr=ss1.wcom.com>"
-            + lineSeparator
-            + "Route: <sip:TinkyWinky@tellytubbyland.com;maddr=ss1.wcom.com>"
-            + lineSeparator
-            + to
-            + lineSeparator
-            + "From: BigGuy <sip:UserA@here.com>"
-            + lineSeparator
-            + "Call-ID: "
-            + callId
-            + lineSeparator
-            + "CSeq: 1 "
-            + method.name()
-            + lineSeparator
-            + "Content-Length: "
-            + contentLength
-            + lineSeparator
-            + "Contact: <sip:UserA@100.101.102.103>"
-            + lineSeparator
-            + "Content-Type: application/sdp"
-            + lineSeparator
-            + lineSeparator
-            + sdp;
+    populateHeaders();
 
+    return buildHeaders();
+  }
+
+  private String buildHeaders() {
+
+    AtomicReference<String> constructedHeader = new AtomicReference<>("");
+    headerPosition.forEach(
+        requestHeader ->
+            constructedHeader.set(
+                constructedHeader.get() + headers.get(requestHeader) + lineSeparator));
+
+    String constructedHeaderString = constructedHeader.get();
     if (method == RequestMethod.PRACK) {
-      requestString = requestString + "RAck: 1 1 INVITE" + lineSeparator;
+      constructedHeaderString = constructedHeaderString + "RAck: 1 1 INVITE" + lineSeparator;
     }
 
-    return requestString;
+    if (sdp != null) {
+      constructedHeaderString = constructedHeaderString + lineSeparator + sdp;
+    }
+    else {
+      constructedHeaderString = constructedHeaderString + lineSeparator;
+    }
+    return constructedHeaderString;
+  }
+
+  private void populateHeaders() {
+
+    headers.put(RequestHeader.RequestUri, method + " sip:" + requestUriHeader + " SIP/2.0");
+    headers.put(
+        RequestHeader.Via,
+        constructHeader(
+            RequestHeader.Via,
+            " SIP/2.0/UDP ss1.wcom.com:5060;branch=2d4790.1",
+            " SIP/2.0/UDP here.com:5060"));
+    headers.put(RequestHeader.MaxForwards, constructHeader(RequestHeader.MaxForwards, " 70"));
+    headers.put(
+        RequestHeader.Route,
+        constructHeader(
+            RequestHeader.Route,
+            " <sip:UserE@xxx.yyy.com;maddr=ss1.wcom.com>",
+            " <sip:TinkyWinky@tellytubbyland.com;maddr=ss1.wcom.com>"));
+    headers.put(RequestHeader.To, constructHeader(RequestHeader.To, to));
+    headers.put(
+        RequestHeader.From, constructHeader(RequestHeader.From, " BigGuy <sip:UserA@here.com>"));
+    headers.put(RequestHeader.CallId, constructHeader(RequestHeader.CallId, callId));
+    headers.put(RequestHeader.CSeq, constructHeader(RequestHeader.CSeq, " 1 " + method.name()));
+    headers.put(
+        RequestHeader.ContentLength,
+        constructHeader(RequestHeader.ContentLength, String.valueOf(contentLength)));
+    headers.put(
+        RequestHeader.Contact,
+        constructHeader(RequestHeader.Contact, " <sip:UserA@100.101.102.103>"));
+    headers.put(
+        RequestHeader.ContentType, constructHeader(RequestHeader.ContentType, " application/sdp"));
+  }
+
+  private String constructHeader(RequestHeader requestHeader, String... values) {
+
+    if (headers.get(requestHeader) == null) {
+      StringBuilder header = new StringBuilder();
+      for (int i = 0; i < values.length; i++) {
+        if (i != 0 && i != (values.length - 1)) {
+          header.append(lineSeparator);
+        }
+
+        String headerName =
+            requestHeader.shortFormEnabled ? requestHeader.getShortForm() : requestHeader.getName();
+        header = new StringBuilder(headerName + ":" + values[i]);
+      }
+      return header.toString();
+    } else {
+      return headers.get(requestHeader);
+    }
   }
 
   public String getRequestAsString(RequestMethod method, int maxForwardValue) {
@@ -532,4 +555,108 @@ public class SIPRequestBuilder {
   public String getCallId() {
     return callId;
   }
+
+  private String smallSdp =
+      "      v=0"
+          + lineSeparator
+          + "      o=user1 53655765 2353687637 IN IP[local_ip_type] [local_ip]"
+          + lineSeparator
+          + "      s=-"
+          + lineSeparator
+          + "      c=IN IP[media_ip_type] [media_ip]"
+          + lineSeparator
+          + "      t=0 0"
+          + lineSeparator
+          + "      m=audio [media_port] RTP/AVP 0"
+          + lineSeparator
+          + "      a=rtpmap:0 PCMU/8000"
+          + lineSeparator;
+
+  private String largeSdp =
+      "      "
+          + lineSeparator
+          + "      v=0 "
+          + lineSeparator
+          + "      o=tandberg 0 1 IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      s=- "
+          + lineSeparator
+          + "      c=IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      b=AS:384 "
+          + lineSeparator
+          + "      t=0 0 "
+          + lineSeparator
+          + "      m=audio 59114 RTP/SAVP 108 101 "
+          + lineSeparator
+          + "      a=rtpmap:108 MP4A-LATM/90000 "
+          + lineSeparator
+          + "      a=fmtp:108 profile-level-id=24;object=23;bitrate=64000 "
+          + lineSeparator
+          + "      a=rtpmap:101 telephone-event/8000 "
+          + lineSeparator
+          + "      a=fmtp:101 0-15 "
+          + lineSeparator
+          + "      a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:46gffnjfgdkjkfkfklenb3 "
+          + lineSeparator
+          + "      a=sendrecv "
+          + lineSeparator
+          + "      a=content:main "
+          + lineSeparator
+          + "      a=rtcp:59115 IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      m=video 59104 RTP/SAVP 126 "
+          + lineSeparator
+          + "      b=TIAS:320000 "
+          + lineSeparator
+          + "      a=rtpmap:126 H264/90000 "
+          + lineSeparator
+          + "      a=fmtp:126 profile-level-id=428016;max-mbps=490000;max-fs=8160;max-cpb=200;max-br=5000;max-smbps=490000;max-fps=6000;packetization-mode=1;max-rcmd-nalu-size=3133440;sar-supported=16 "
+          + lineSeparator
+          + "      a=rtcp-fb:* ccm fir "
+          + lineSeparator
+          + "      a=rtcp-fb:* ccm tmmbr "
+          + lineSeparator
+          + "      a=rtcp-fb:* nack pli "
+          + lineSeparator
+          + "      a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:749dhbb4t4993bdbcnj3i90 "
+          + lineSeparator
+          + "      a=sendrecv "
+          + lineSeparator
+          + "      a=content:main "
+          + lineSeparator
+          + "      a=label:11 "
+          + lineSeparator
+          + "      a=rtcp:59105 IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      m=video 59090 RTP/SAVP 126 "
+          + lineSeparator
+          + "      b=TIAS:320000 "
+          + lineSeparator
+          + "      a=rtpmap:126 H264/90000 "
+          + lineSeparator
+          + "      a=fmtp:126 profile-level-id=428014;max-mbps=245000;max-fs=8160;max-cpb=100;max-br=2500;max-smbps=245000;max-fps=6000;packetization-mode=1;max-rcmd-nalu-size=3133440;sar-supported=16 "
+          + lineSeparator
+          + "      a=rtcp-fb:* ccm fir "
+          + lineSeparator
+          + "      a=rtcp-fb:* ccm tmmbr "
+          + lineSeparator
+          + "      a=rtcp-fb:* nack pli "
+          + lineSeparator
+          + "      a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:gfgue68486589030047982"
+          + lineSeparator
+          + "      a=sendrecv "
+          + lineSeparator
+          + "      a=content:slides "
+          + lineSeparator
+          + "      a=label:12 "
+          + lineSeparator
+          + "      a=rtcp:59091 IN IP4 128.107.82.105 "
+          + lineSeparator
+          + "      m=application 59088 UDP/BFCP * "
+          + lineSeparator
+          + "      a=floorctrl:c-only "
+          + lineSeparator
+          + "      m=application 0 UDP/DTLS/UDT/IX * "
+          + lineSeparator;
 }

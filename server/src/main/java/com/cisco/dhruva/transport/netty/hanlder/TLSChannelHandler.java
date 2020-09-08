@@ -42,9 +42,6 @@ public class TLSChannelHandler extends AbstractChannelHandler {
   public void channelUnregistered(ChannelHandlerContext channelHandlerContext) throws Exception {}
 
   @Override
-  public void channelInactive(ChannelHandlerContext channelHandlerContext) throws Exception {}
-
-  @Override
   public void channelRead(ChannelHandlerContext channelHandlerContext, Object receivedObject)
       throws Exception {
 

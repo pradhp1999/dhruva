@@ -44,8 +44,7 @@ public class Event {
   public enum EventSubType {
     UDPCONNECTION(EventType.CONNECTION),
     TCPCONNECTION(EventType.CONNECTION),
-    TLSCONNECTION(EventType.CONNECTION),
-    BUFFERSIZEXCEEDED(EventType.CONNECTION);
+    TLSCONNECTION(EventType.CONNECTION);
     private EventType eventType;
 
     EventSubType(EventType eventType) {
@@ -55,6 +54,12 @@ public class Event {
     public EventType getEventType() {
       return this.eventType;
     }
+  }
+
+  public enum ErrorType {
+    ConnectionError,
+    BufferSizeExceeded,
+    ConnectionInActive
   }
 
   public static void emitMessageEvent(
@@ -89,6 +94,6 @@ public class Event {
           Event.DHRUVA_PROCESSING_DELAY_IN_MILLIS, String.valueOf(dhruvaProcessingDelayInMillis));
     }
 
-    logger.emitEvent(EventType.SIPMESSAGE, null, message.toString(), messageInfoMap);
+    logger.emitEvent(EventType.SIPMESSAGE, null, null, message.toString(), messageInfoMap);
   }
 }

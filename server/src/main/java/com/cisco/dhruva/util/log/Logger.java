@@ -5,6 +5,7 @@
 
 package com.cisco.dhruva.util.log;
 
+import com.cisco.dhruva.util.log.event.Event.ErrorType;
 import com.cisco.dhruva.util.log.event.Event.EventSubType;
 import com.cisco.dhruva.util.log.event.Event.EventType;
 import java.util.Map;
@@ -48,6 +49,7 @@ public interface Logger {
   void emitEvent(
       EventType eventType,
       EventSubType eventSubType,
+      ErrorType errorType,
       String message,
       Map<String, String> additionalKeyValueInfo);
 

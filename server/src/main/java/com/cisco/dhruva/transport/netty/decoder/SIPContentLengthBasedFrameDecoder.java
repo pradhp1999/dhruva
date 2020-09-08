@@ -4,13 +4,13 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.netty.hanlder.AbstractChannelHandler;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import com.cisco.dhruva.util.log.event.Event.ErrorType;
 import com.cisco.dhruva.util.log.event.Event.EventSubType;
 import com.cisco.dhruva.util.log.event.Event.EventType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,7 +31,6 @@ public class SIPContentLengthBasedFrameDecoder extends ByteToMessageDecoder {
     if (byteBuf.readableBytes() > DsNetwork.getMaximumTcpFrameSize()
         || byteBuf.readerIndex() > DsNetwork.getMaximumTcpFrameSize()) {
       handleBufferSizeExceeded(channelHandlerContext, byteBuf);
-      return;
     }
 
     trimLeadingWhiteSpace(byteBuf);
@@ -80,6 +79,16 @@ public class SIPContentLengthBasedFrameDecoder extends ByteToMessageDecoder {
 
     int readerIndex = byteBuf.readerIndex();
     byteBuf.resetReaderIndex();
+
+    //if execution reached here , then we have found the \r\n of sip message
+    // if contentLength is not found, then the message is invalid
+    if (contentLength == -1) {
+
+      logger.error("Content-Length header not found , dump of message " + String
+          .valueOf(byteBuf.readBytes(byteBuf.readableBytes())));
+      throw new Exception("ContentLength header not found");
+    }
+
     if (readerIndex + contentLength <= byteBuf.writerIndex()) {
       byte[] copiedBytes = new byte[readerIndex + contentLength];
       byteBuf.readBytes(copiedBytes);
@@ -149,14 +158,11 @@ public class SIPContentLengthBasedFrameDecoder extends ByteToMessageDecoder {
   }
 
   private boolean skipToNextHeader(ByteBuf byteBuf) {
-    int newLineIndex = byteBuf.forEachByte(ch -> ch != '\n');
-
-    if (newLineIndex != -1) {
-      byteBuf.readerIndex(newLineIndex + 1);
-      return true;
-    } else {
-      return false;
+    byte ch = byteBuf.readByte();
+    while (ch != '\n') {
+      ch = byteBuf.readByte();
     }
+    return true;
   }
 
   private void trimLeadingWhiteSpace(ByteBuf byteBuf) {
@@ -181,21 +187,21 @@ public class SIPContentLengthBasedFrameDecoder extends ByteToMessageDecoder {
   private void emitBufferSizeExceededEvent(
       ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) {
     HashMap<String, String> sizeExceededInfoMap =
-        AbstractChannelHandler.buildConnectionInfoMap(
-            (InetSocketAddress) channelHandlerContext.channel().localAddress(),
-            (InetSocketAddress) channelHandlerContext.channel().remoteAddress(),
-            true);
+        AbstractChannelHandler.buildConnectionInfoMap(channelHandlerContext, true);
     sizeExceededInfoMap.put("unReadBytesInBuffer", String.valueOf(byteBuf.readableBytes()));
     sizeExceededInfoMap.put("bytesAlreadyReadByParser", String.valueOf(byteBuf.readerIndex()));
     sizeExceededInfoMap.put("maxSizeAllowed", String.valueOf(DsNetwork.getMaximumTcpFrameSize()));
 
     byte[] messageByteSnapShot = new byte[100];
+    byteBuf.markReaderIndex();
     byteBuf.readBytes(messageByteSnapShot);
+    byteBuf.resetReaderIndex();
     sizeExceededInfoMap.put("100BytesSnapShotOfMessage", new String(messageByteSnapShot));
 
     logger.emitEvent(
         EventType.CONNECTION,
-        EventSubType.BUFFERSIZEXCEEDED,
+        EventSubType.TLSCONNECTION,
+        ErrorType.BufferSizeExceeded,
         "TCP buffer size exceeded Maximum allowed size , message will be dropped",
         sizeExceededInfoMap);
   }
