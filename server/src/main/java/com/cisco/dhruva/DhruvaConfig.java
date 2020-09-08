@@ -3,15 +3,9 @@ package com.cisco.dhruva;
 import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.common.metric.InfluxClient;
 import com.cisco.dhruva.common.metric.MetricClient;
-import com.cisco.wx2.redis.RedisDataSource;
-import com.cisco.wx2.redis.RedisDataSourceManager;
-import com.cisco.wx2.util.ObjectMappers;
-import com.ciscospark.server.CiscoSparkServerProperties;
 import com.ciscospark.server.Wx2ConfigAdapter;
-import com.codahale.metrics.MetricRegistry;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,23 +29,6 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
   @Override
   public String getUserAgent() {
     return "Dhruva/1.0";
-  }
-
-  @Bean
-  @Qualifier("store")
-  public Map<String, String> greetingStore(
-      RedisDataSourceManager redisDataSourceManager,
-      MetricRegistry metricRegistry,
-      CiscoSparkServerProperties props) {
-    RedisDataSource redisDataSource =
-        redisDataSourceManager.getRedisDataSource("dhruva", "elasticache_dhruva");
-    return new RedisHashMap(
-        redisDataSource,
-        props.getName() + "-store",
-        defaultCacheTimeout(),
-        String.class,
-        ObjectMappers.getObjectMapper(),
-        metricRegistry);
   }
 
   @Bean

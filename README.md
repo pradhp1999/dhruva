@@ -8,8 +8,6 @@ It is deployed in Meetings Platform (meet-PaaS).
 
 ### Prerequisites
 - Ensure you have access to clone this repo.
-- Redis is needed to run Integration tests.
-  - If you have docker, try this: `docker run -d -p 6379:6379 redis:6`
 - Clone the repo in your IDE (IntelliJ Ultimate recommended (see below)) and make sure you have JDK8.
 - Setup [secure access to Cisco's artifactory](https://sqbu-github.cisco.com/pages/WebexSquared/docs/DeveloperTools/maven.html).
 
@@ -31,7 +29,7 @@ It is deployed in Meetings Platform (meet-PaaS).
 - Add path to your local tomcat installation (make sure the version is `> 7.x`)
 - Optionally uncheck "After launch" under the "Open browser" section.
 - Set the URL as `http://localhost:8080/dhruva_server_war_exploded/`
-- In VM options field enter: `-Xmx2048m -Xms1024m`, and `-DexternalUrlProtocol=http`.
+- In VM options field enter: `-Xmx2048m -Xms1024m`, and `-DexternalUrlProtocol=http`, and `-DjedisPoolHealthCheckMonitorEnabled=false`.
 - Now go to the deployment tab
 - Use + button to add the artifact `dhruva-server-exploded.war` (pick one with 'exploded' word in name, it will speedup your tomcat run)
 - Now run the application. You should be able to curl `http://localhost:8080/dhruva_server_war_exploded/api/v1/greetings/testuser`
