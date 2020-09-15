@@ -2,12 +2,14 @@ package com.cisco.dhruva.config.sip;
 
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
 import com.cisco.dhruva.sip.bean.SIPProxy;
+import com.cisco.dhruva.transport.TLSAuthenticationType;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.JsonUtilFactory;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -32,7 +34,28 @@ public class DhruvaSIPConfigProperties {
 
   public static final boolean DEFAULT_PROXY_PROCESS_ROUTE_HEADER_ENABLED = false;
 
-  private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaSIPConfigProperties.class);
+  public static final TLSAuthenticationType DEFAULT_TRANSPORT_AUTH = TLSAuthenticationType.MTLS;
+
+  private static final String SIP_CERTIFICATE = "sipCertificate";
+
+  private static final String SIP_PRIVATE_KEY = "sipPrivateKey";
+
+  private static final String UDP_EVENTLOOP_THREAD_COUNT = "dhruva.network.udpEventloopThreadCount";
+
+  private static final Integer DEFAULT_UDP_EVENTLOOP_THREAD_COUNT = 1;
+
+  private static final String TLS_EVENTLOOP_THREAD_COUNT = "dhruva.network.tlsEventloopThreadCount";
+
+  private static final Integer DEFAULT_TLS_EVENTLOOP_THREAD_COUNT = 20;
+
+  private static final String CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_SECONDS =
+      "dhruva.network.connectionCache.connectionIdleTimeout";
+
+  private static final Integer DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES = 14400;
+
+  private static final String TLS_CIPHERS = "dhruva.sipTlsCipherSuites";
+
+  private final Logger logger = DhruvaLoggerFactory.getLogger(DhruvaSIPConfigProperties.class);
 
   public static int DEFAULT_PORT_UDP = 5060;
 
@@ -69,7 +92,7 @@ public class DhruvaSIPConfigProperties {
 
   private List<SIPListenPoint> getDefaultListenPoints() {
 
-    List<SIPListenPoint> listenPoints = new ArrayList<SIPListenPoint>();
+    List<SIPListenPoint> listenPoints = new ArrayList<>();
 
     SIPListenPoint udpListenPoint = new SIPListenPoint.SIPListenPointBuilder().build();
 
@@ -107,5 +130,41 @@ public class DhruvaSIPConfigProperties {
 
   private SIPProxy getDefaultSIPProxy() {
     return new SIPProxy.SIPProxyBuilder().build();
+  }
+
+  public String getSipCertificate() {
+    return env.getProperty(SIP_CERTIFICATE);
+  }
+
+  public String getSipPrivateKey() {
+    return env.getProperty(SIP_PRIVATE_KEY);
+  }
+
+  public int getUdpEventPoolThreadCount() {
+    return env.getProperty(
+        UDP_EVENTLOOP_THREAD_COUNT, Integer.class, DEFAULT_UDP_EVENTLOOP_THREAD_COUNT);
+  }
+
+  public int getTlsEventPoolThreadCount() {
+    return env.getProperty(
+        TLS_EVENTLOOP_THREAD_COUNT, Integer.class, DEFAULT_TLS_EVENTLOOP_THREAD_COUNT);
+  }
+
+  public int getConnectionCacheConnectionIdleTimeout() {
+    return env.getProperty(
+        CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_SECONDS,
+        Integer.class,
+        DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES);
+  }
+
+  public List<String> getCiphers() {
+
+    String ciphers = env.getProperty(TLS_CIPHERS, String.class);
+    if (ciphers == null || ciphers.isEmpty()) {
+      return CipherSuites.allowedCiphers;
+    } else {
+      return Collections.unmodifiableList(
+          CipherSuites.getAllowedCiphers(Arrays.asList(ciphers.split(","))));
+    }
   }
 }

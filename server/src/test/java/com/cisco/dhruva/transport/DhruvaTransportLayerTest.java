@@ -9,6 +9,7 @@ import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
@@ -50,6 +51,8 @@ public class DhruvaTransportLayerTest {
 
   @Mock Environment env = new MockEnvironment();
 
+  DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
+
   DsNetwork networkConfig;
 
   Bootstrap bootstrap;
@@ -64,13 +67,13 @@ public class DhruvaTransportLayerTest {
 
   @BeforeClass
   public void init() throws DsException {
-
+    dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
     networkConfig = DsNetwork.getNetwork("Test");
-    DsNetwork.setenv(env);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
     handler = mock(MessageForwarder.class);
     ChannelHandler channelHandler =
         new UDPChannelHandler(handler, networkConfig, executorService, metricService);
-    channelInitializer = new BaseChannelInitializer();
+    channelInitializer = new BaseChannelInitializer(networkConfig);
     channelInitializer.channelHanlder(channelHandler);
     bootstrap = (Bootstrap) Mockito.spy(Bootstrap.class);
     BootStrapFactory.getInstance().setUdpBootstrap(bootstrap);
@@ -135,7 +138,7 @@ public class DhruvaTransportLayerTest {
 
     try {
       DsNetwork networkConfig = DsNetwork.getNetwork("Test");
-      DsNetwork.setenv(env);
+      DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       String exceptionError = "Bind failed";
       int port = 5060;
@@ -187,7 +190,7 @@ public class DhruvaTransportLayerTest {
     try {
 
       DsNetwork networkConfig = DsNetwork.getNetwork("Test");
-      DsNetwork.setenv(env);
+      DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port = 5060;
       transportLayer =
@@ -225,7 +228,7 @@ public class DhruvaTransportLayerTest {
     try {
 
       DsNetwork networkConfig = DsNetwork.getNetwork("Test");
-      DsNetwork.setenv(env);
+      DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
       InetAddress localAddress = InetAddress.getByName("0.0.0.0");
       int port1 = 5060;
       int port2 = 5070;
@@ -545,7 +548,7 @@ public class DhruvaTransportLayerTest {
   public void testGetConnectionSummary() {
     try {
       DsNetwork networkConfig = DsNetwork.getNetwork("Test");
-      DsNetwork.setenv(env);
+      DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
       CompletableFuture<Connection> connectionFuture1 =
           transportLayer.getConnection(
               networkConfig,
@@ -582,7 +585,7 @@ public class DhruvaTransportLayerTest {
   public void testGetConnectionSummaryDisconnect() {
     try {
       DsNetwork networkConfig = DsNetwork.getNetwork("Test");
-      DsNetwork.setenv(env);
+      DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
       CompletableFuture<Connection> connectionFuture1 =
           transportLayer.getConnection(
               networkConfig,

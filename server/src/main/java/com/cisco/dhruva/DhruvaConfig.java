@@ -3,10 +3,8 @@ package com.cisco.dhruva;
 import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.common.metric.InfluxClient;
 import com.cisco.dhruva.common.metric.MetricClient;
-import com.cisco.wx2.server.config.ConfigProperties;
 import com.ciscospark.server.Wx2ConfigAdapter;
 import java.util.concurrent.TimeUnit;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,9 +12,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnWebApplication
 public class DhruvaConfig extends Wx2ConfigAdapter {
-  private static final long DEFAULT_CACHE_TIMEOUT = 10;
 
-  @Autowired private ConfigProperties configProperties;
+  private static final long DEFAULT_CACHE_TIMEOUT = 10;
 
   @Override
   public String getServiceName() {

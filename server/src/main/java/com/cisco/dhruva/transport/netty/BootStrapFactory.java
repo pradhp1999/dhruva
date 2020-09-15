@@ -7,15 +7,21 @@ package com.cisco.dhruva.transport.netty;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
+import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class BootStrapFactory {
 
-  private static BootStrapFactory bootStrapFactory = new BootStrapFactory();
+  private static final BootStrapFactory bootStrapFactory = new BootStrapFactory();
   private Bootstrap udpClientBootstrap;
-  private Bootstrap udpServerBootstrap;
-  private Object lock = new Object();
+  private AbstractBootstrap udpServerBootstrap;
+  private AbstractBootstrap tlsServerBootstrap;
+
+  private final Object lock = new Object();
 
   public static BootStrapFactory getInstance() {
     return bootStrapFactory;
@@ -41,8 +47,8 @@ public class BootStrapFactory {
     return null;
   }
 
-  public Bootstrap getServerBootStrap(
-      Transport transport, DsNetwork networkConfig, BaseChannelInitializer baseChannelInitializer) {
+  public AbstractBootstrap getServerBootStrap(
+      Transport transport, DsNetwork networkConfig, ChannelInitializer baseChannelInitializer) {
 
     switch (transport) {
       case UDP:
@@ -55,8 +61,20 @@ public class BootStrapFactory {
                     .group(EventLoopGroupFactory.getInstance(Transport.UDP, networkConfig));
           }
         }
-
         return udpServerBootstrap;
+
+      case TLS:
+        synchronized (lock) {
+          if (tlsServerBootstrap == null) {
+            tlsServerBootstrap =
+                new ServerBootstrap()
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(baseChannelInitializer)
+                    .group(EventLoopGroupFactory.getInstance(Transport.TLS, networkConfig));
+          }
+        }
+
+        return tlsServerBootstrap;
     }
 
     return null;

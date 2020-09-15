@@ -134,7 +134,6 @@ public abstract class DsTransportLayer
     if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {
       DsLog4j.connectionCat.warn(
           "default network properties are being reset with values corresponding to : "
-              + defaultNetwork.dump()
               + "\n. This change will not be propagated to existing listeners/connections.");
     }
     DsNetwork.getDefault().updateProperties(defaultNetwork.getProperties());

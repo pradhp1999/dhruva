@@ -75,7 +75,7 @@ public class DsProxyControllerClientTest {
   void initController() {}
 
   @Test(description = "Basic client flow starting from App")
-  public void testProxyTo() throws DsException {
+  public void testProxyTo() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -133,7 +133,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test(description = "test flow from onNewRequest -> App layer -> ProxyTo ")
-  public void testAppHandleRequest() throws DsException {
+  public void testAppHandleRequest() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -196,7 +196,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testProxyToWithoutProcessRoute() throws DsException {
+  public void testProxyToWithoutProcessRoute() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -252,7 +252,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testonSuccessResponse() throws DsException {
+  public void testonSuccessResponse() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -302,7 +302,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testOnFailureResponse() throws DsException {
+  public void testOnFailureResponse() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -360,7 +360,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testonProvisionalResponses() throws DsException {
+  public void testonProvisionalResponses() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -415,7 +415,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testOnRedirectResponses() throws DsException {
+  public void testOnRedirectResponses() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -464,7 +464,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testonRequestTimeOut() throws DsException {
+  public void testonRequestTimeOut() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -516,7 +516,7 @@ public class DsProxyControllerClientTest {
   }
 
   @Test
-  public void testOnICMPError() throws DsException {
+  public void testOnICMPError() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));

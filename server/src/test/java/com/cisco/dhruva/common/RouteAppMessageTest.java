@@ -6,8 +6,6 @@ import com.cisco.dhruva.common.messaging.models.MessageBody;
 import com.cisco.dhruva.common.messaging.models.MessageBodyType;
 import com.cisco.dhruva.common.messaging.models.RouteAppMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.util.SIPRequestBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -17,8 +15,7 @@ public class RouteAppMessageTest {
   private IDhruvaMessage message;
 
   @Test
-  public void testRouteAppMessageBuilder()
-      throws DsSipParserListenerException, DsSipParserException {
+  public void testRouteAppMessageBuilder() throws Exception {
     ExecutionContext context = new ExecutionContext();
     DsSipRequest request =
         SIPRequestBuilder.createRequest(
@@ -36,8 +33,7 @@ public class RouteAppMessageTest {
   }
 
   @Test
-  public void testRouteAppMessageBuilderWithAdditionalFields()
-      throws DsSipParserListenerException, DsSipParserException {
+  public void testRouteAppMessageBuilderWithAdditionalFields() throws Exception {
     ExecutionContext context = new ExecutionContext();
     DsSipRequest request =
         SIPRequestBuilder.createRequest(

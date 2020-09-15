@@ -9,11 +9,13 @@ import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.netty.NettyUDPServer;
+import com.cisco.dhruva.transport.netty.ssl.NettyTLSServer;
 
 public class ServerFactory {
 
   private Server udpServer;
-  private Object lock = new Object();
+  private Server tlsServer;
+  private final Object lock = new Object();
   private static ServerFactory serverFactory = new ServerFactory();
 
   public static ServerFactory newInstance() {
@@ -32,7 +34,7 @@ public class ServerFactory {
       ExecutorService executorService,
       MetricService metricService)
       throws Exception {
-    Server server = null;
+    Server server;
     switch (transport) {
       case UDP:
         if (udpServer == null) {
@@ -45,6 +47,19 @@ public class ServerFactory {
           }
         }
         server = udpServer;
+        break;
+
+      case TLS:
+        if (tlsServer == null) {
+          synchronized (lock) {
+            if (tlsServer == null) {
+              tlsServer =
+                  new NettyTLSServer(
+                      messageForwarder, networkConfig, executorService, metricService);
+            }
+          }
+        }
+        server = tlsServer;
         break;
       default:
         throw new Exception("Transport " + transport.name() + " not supported");
