@@ -37,3 +37,36 @@ It is deployed in Meetings Platform (meet-PaaS).
 
 - [Dhruva Wiki Home](https://confluence-eng-gpk2.cisco.com/conf/display/DHRUVA/Dhruva+-+Next+Gen+SIP+Edge)
 - [Meetings Platform documentation](https://sqbu-github.cisco.com/pages/WebexPlatform/docs/)
+
+# Docker build (WIP)
+
+Login to artifactory using `docker login dockerhub.cisco.com`
+
+## Building the war files
+
+This step is optional: your IDE should already be able to build the war file with a `mvn verify`.
+
+`docker run --rm -v `pwd`:/opt/code -w /opt/code -e JAVA_VERSION=8 containers.cisco.com/ayogalin/maven-builder:one sh -c "/setenv.sh; java -version; /usr/share/maven/bin/mvn -Dspotbugs.enabled -U --batch-mode -T2C -Dmaven.test.failure.ignore -Dmaven.test.skip=true -DauthNG.statisticsOutput package"`
+
+Change `JAVA_VERSION` to `8` or `11` based on what you need.
+
+This outputs `dhruva-server.war` in the `server/target` folder.
+
+## Building the docker image
+
+`docker build -t dhruva:invalidServiceTag -f docker/dhruva.Dockerfile .`
+
+## Running the docker image
+
+`./docker/local/run-dhruva-in-local.sh`
+
+This will create an image called `dhruva`
+You can test the http ping API using a command like this:
+
+`curl localhost:18980/api/v1/ping`.
+
+## TODO
+
+- Add/expose SIP ports.
+- IDE instructions.
+- Integrate with Jenkins.
