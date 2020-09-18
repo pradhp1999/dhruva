@@ -5,9 +5,11 @@
 package com.cisco.dhruva.sip.controller;
 
 import com.cisco.dhruva.adaptor.AppAdaptorInterface;
+import com.cisco.dhruva.common.dns.DnsException;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.config.sip.controller.UACfgStats;
 import com.cisco.dhruva.loadbalancer.*;
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.DsUtil.DsReConstants;
 import com.cisco.dhruva.sip.cac.SIPSession;
 import com.cisco.dhruva.sip.cac.SIPSessions;
@@ -26,6 +28,7 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.util.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,6 +63,9 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
   // Forking types
   public static final byte SEARCH_PARALLEL = 0;
+
+  // TODO DNS
+  @Autowired SipServerLocatorService resolver;
 
   static final boolean mEmulate2543 =
       DsConfigManager.getProperty(
@@ -1166,19 +1172,24 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     if (uri != null && uri.isSipURL()) {
       DsSipURL sipUrl = (DsSipURL) uri;
       DsByteString host = sipUrl.getMAddrParam();
+      int port = sipUrl.hasPort() ? sipUrl.getPort() : -1;
       int routeTransport = sipUrl.getTransportParam().getValue();
       if (routeTransport == 0)
         routeTransport = ParseProxyParamUtil.getNetworkTransport(location.getNetwork()).getValue();
       if (host == null) host = sipUrl.getHost();
       // create Server Group from DNS lookup
-      DnsServerGroupUtil dnsServerGroupUtil = new DnsServerGroupUtil();
+      DnsServerGroupUtil dnsServerGroupUtil = new DnsServerGroupUtil(resolver);
       if (!IPValidator.hostIsIPAddr(host.toString()))
         dnsServerGroup =
             dnsServerGroupUtil.createDNSServerGroup(
-                host, network, Transport.valueOf(routeTransport).get(), request);
+                host, port, network, Transport.valueOf(routeTransport).get(), request);
 
-      if (dnsServerGroup == null && dnsServerGroupUtil.getFailureException() != null) {
-        throw dnsServerGroupUtil.getFailureException();
+      //      if (dnsServerGroup == null && dnsServerGroupUtil.getFailureException() != null) {
+      //        throw dnsServerGroupUtil.getFailureException();
+      //      }
+      // TODO DNS
+      if (dnsServerGroup == null) {
+        throw new DnsException("exception while forming server group");
       }
     }
     return (AbstractServerGroup) dnsServerGroup;

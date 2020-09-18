@@ -2,6 +2,8 @@ package com.cisco.dhruva.common.dns;
 
 import static java.util.Objects.requireNonNull;
 
+import com.cisco.dhruva.common.dns.dto.DNSARecord;
+import com.cisco.dhruva.common.dns.dto.DNSSRVRecord;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.util.List;

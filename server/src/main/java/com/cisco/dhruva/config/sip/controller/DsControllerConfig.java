@@ -5,17 +5,16 @@
 package com.cisco.dhruva.config.sip.controller;
 
 import com.cisco.dhruva.config.sip.RE;
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.DsUtil.DsReConstants;
 import com.cisco.dhruva.sip.DsUtil.ListenIf;
 import com.cisco.dhruva.sip.DsUtil.ViaListenIf;
 import com.cisco.dhruva.sip.controller.DsProxyController;
 import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationException;
 import com.cisco.dhruva.sip.controller.exceptions.DsSipHostNotValidException;
+import com.cisco.dhruva.sip.enums.LocateSIPServerTransportType;
 import com.cisco.dhruva.sip.proxy.*;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipResolverUtils;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerLocator;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerLocatorFactory;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerNotFoundException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
@@ -27,11 +26,12 @@ import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public final class DsControllerConfig
     implements DsProxyParamsInterface, DsSipRouteFixInterface, Cloneable {
 
@@ -109,6 +109,8 @@ public final class DsControllerConfig
 
   protected int defaultRetryAfterMilliSeconds = 0;
 
+  @Autowired private SipServerLocatorService sipLocator;
+
   /** default constructor is protected. It's only used from clone() method. */
   static {
     currentConfig = new DsControllerConfig();
@@ -116,8 +118,6 @@ public final class DsControllerConfig
 
   private Transport defaultProtocol = Transport.UDP;
 
-  private DsSipServerLocatorFactory dsSIPServerLocatorFactory =
-      DsSipServerLocatorFactory.getInstance();
   /** Our Constructor */
   private DsControllerConfig() {}
 
@@ -441,29 +441,38 @@ public final class DsControllerConfig
     if (recognize(user, host, port, transport)) return true;
 
     if (!IPValidator.hostIsIPAddr(host.toString())) {
-      DsSipServerLocator dnsResolver = dsSIPServerLocatorFactory.createNewSIPServerLocator();
-      DsSipServerLocator.setAQuery(fallBackToAQuery);
       try {
-        dnsResolver.initialize(
-            network, null, DsSipResolverUtils.LPU, host.toString(), port, transport, false);
+        LocateSIPServerTransportType transportType = LocateSIPServerTransportType.TLS;
+        if (transport == Transport.TLS) transportType = LocateSIPServerTransportType.TLS;
+        if (transport == Transport.TCP) transportType = LocateSIPServerTransportType.TCP;
+
+        DnsDestination destination = new DnsDestination(host.toString(), port, transportType);
+        LocateSIPServersResponse locateSIPServersResponse =
+            sipLocator.locateDestination(null, destination, null);
+
+        List<DsBindingInfo> bInfos =
+            sipLocator.getBindingInfoMapFromHops(
+                null, null, 0, host.toString(), port, transport, locateSIPServersResponse);
+
         boolean isDNSResolverEmpty = true;
-        while (dnsResolver.hasNextBindingInfo()) {
-          isDNSResolverEmpty = false;
-          DsBindingInfo bindingInfo = dnsResolver.getNextBindingInfo();
-          if (recognize(
-              user,
-              new DsByteString(bindingInfo.getRemoteAddressStr()),
-              bindingInfo.getRemotePort(),
-              bindingInfo.getTransport())) {
-            return true;
-          }
-        }
-        if (isDNSResolverEmpty) {
-          throw new DsSipHostNotValidException(dnsResolver.getFailureException());
-        }
-      } catch (UnknownHostException | DsSipHostNotValidException | DsSipServerNotFoundException e) {
+        DsBindingInfo bInfo =
+            bInfos.stream()
+                .filter(
+                    b ->
+                        recognize(
+                            user,
+                            new DsByteString(b.getRemoteAddressStr()),
+                            b.getRemotePort(),
+                            b.getTransport()))
+                .findFirst()
+                .orElse(null);
+        if (bInfo == null) throw new DsSipHostNotValidException(new Exception("failed"));
+
+      } catch (DsSipHostNotValidException e) {
         Log.error("Exception in resolving " + host, e);
         throw e;
+      } catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
       }
     }
     return false;

@@ -63,6 +63,7 @@ public final class DnsResolvers {
           resolver = new SimpleResolver();
           final Duration timeoutDuration = Duration.ofMillis(dnsLookupTimeoutMillis);
           resolver.setTimeout(timeoutDuration);
+
           lookupFactory = new SimpleLookupFactory(resolver);
         } catch (UnknownHostException e) {
           throw new RuntimeException(e);

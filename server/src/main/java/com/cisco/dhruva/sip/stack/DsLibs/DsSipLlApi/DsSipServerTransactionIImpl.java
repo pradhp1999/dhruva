@@ -6,6 +6,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import org.slf4j.event.Level;
 
@@ -297,7 +298,8 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
    * @throws DsException if error occurs in the state machine
    * @throws IOException if error occurs while sending data through the network
    */
-  protected void waitPrack(int transition) throws DsException, IOException {
+  protected void waitPrack(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     switch (transition) {
       case DS_WAIT_PRACK | DS_ST_IN_PROVISIONAL:
         // We are in reliable state, should not send any 100, or non-reliable 1xx
@@ -396,7 +398,8 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
    * @throws DsException if error occurs in the state machine
    * @throws IOException if error occurs while sending data through the network
    */
-  protected void reliableProceeding(int transition) throws DsException, IOException {
+  protected void reliableProceeding(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     switch (transition) {
       case DS_WAIT_PRACK | DS_ST_IN_PRACK:
         if (m_prackTransaction != null) {
@@ -477,7 +480,8 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
   /*
    * javadoc inherited
    */
-  protected void completed(int transition) throws DsException, IOException {
+  protected void completed(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     // maivu - 11.01.06 - CSCsg22401 Transition to Completed state so cancel the request expiration
     // timer
     // which was set in the DsSipServerTransactionImpl constructor
@@ -620,7 +624,8 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
    * @throws DsException if error occurs in the state machine
    * @throws IOException if error occurs while sending data through the network
    */
-  protected void terminated(int transition) throws DsException, IOException {
+  protected void terminated(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     // maivu - 11.01.06 - CSCsg22401 Transition to Terminated state so cancel the request expiration
     // timer
     // which was set in the DsSipServerTransactionImpl constructor
@@ -683,7 +688,8 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
     }
   }
 
-  private void send2XXResponse(int transition) throws DsException, IOException {
+  private void send2XXResponse(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     // terminated state is equivalent to final in old bis for invite 2XX
 
     // switch statement style is being ruined here
@@ -757,7 +763,8 @@ public class DsSipServerTransactionIImpl extends DsSipServerTransactionImpl {
    * @throws DsException if error occurs in the state machine
    * @throws IOException if error occurs while sending data through the network
    */
-  protected void xcompleted(int transition) throws DsException, IOException {
+  protected void xcompleted(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     if (m_isProxyServerMode) {
       switch (transition) {
         case DS_XCOMPLETED | DS_ST_IN_2XX:

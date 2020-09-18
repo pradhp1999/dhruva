@@ -884,6 +884,7 @@ public class DsSipClientTransactionIImpl extends DsSipClientTransactionImpl {
     // If the connection was not initialized before.
     if (!haveConnection) {
       m_connection.getRequestConnection(m_ackMessage);
+      // TODO DNS
       m_connection.check(m_ackMessage);
     }
 

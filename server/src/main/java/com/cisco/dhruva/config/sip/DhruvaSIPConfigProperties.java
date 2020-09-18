@@ -32,6 +32,8 @@ public class DhruvaSIPConfigProperties {
 
   public static final boolean DEFAULT_PROXY_PROCESS_ROUTE_HEADER_ENABLED = false;
 
+  private static final String USE_REDIS_AS_CACHE = "useRedis";
+
   private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaSIPConfigProperties.class);
 
   public static int DEFAULT_PORT_UDP = 5060;
@@ -107,5 +109,21 @@ public class DhruvaSIPConfigProperties {
 
   private SIPProxy getDefaultSIPProxy() {
     return new SIPProxy.SIPProxyBuilder().build();
+  }
+
+  public boolean useRedisAsCache() {
+    return env.getProperty(USE_REDIS_AS_CACHE, Boolean.class, true);
+  }
+
+  public int getDhruvaDnsCacheMaxSize() {
+    int defaultCacheSize = 1_000;
+    int cacheSize = env.getProperty("DhruvaDnsCacheMaxSize", Integer.class, defaultCacheSize);
+    return cacheSize > 0 ? cacheSize : defaultCacheSize;
+  }
+
+  public long dnsCacheRetentionTimeMillis() {
+    long defaultTime = 500L;
+    long retTime = env.getProperty("DhruvaDnsRetentionTimeMillis", Long.class, defaultTime);
+    return retTime > 0L ? retTime : defaultTime;
   }
 }

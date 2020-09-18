@@ -5,6 +5,7 @@ import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.DsUtil.DsReConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
@@ -24,6 +25,7 @@ public class DsSipProxyManager
   private DsSipTransactionManager transManager = null;
   private DsSipTransportLayer sipTransportLayer;
   private DsControllerFactoryInterface controllerFactory = null;
+  private SipServerLocatorService resolver;
 
   // local reference to viaHandler. Saved here so that I don't
   // have to call DsViaHadler.getInstance() every time I need a ViaHandler
@@ -80,7 +82,8 @@ public class DsSipProxyManager
   public DsSipProxyManager(
       DsSipTransportLayer transportLayer,
       DsControllerFactoryInterface cf,
-      DsSipTransactionFactory tf)
+      DsSipTransactionFactory tf,
+      SipServerLocatorService resolver)
       throws DsSingletonException, DsException, DsCryptoInitException {
 
     if (m_Singleton != null) {
@@ -95,6 +98,8 @@ public class DsSipProxyManager
     initProxyLib(transportLayer);
     viaHandler = DsViaHandler.getInstance();
 
+    this.resolver = resolver;
+
     // construct a low level transaction manager. The proxy manager
     // implements the DsSipRequestInterface, so pass this to the
     // constructor
@@ -102,6 +107,7 @@ public class DsSipProxyManager
     DsSipTransactionManager.setProxyServerMode(true);
     transManager.setStrayMessageInterface(this);
     transManager.setTransactionEventInterface(this);
+    transManager.setSipResolver(this.resolver);
   }
 
   /**
@@ -150,6 +156,10 @@ public class DsSipProxyManager
   /** @return the transport layer passed as a parameter to constructor */
   protected DsSipTransportLayer getTransportLayer() {
     return m_Singleton.sipTransportLayer;
+  }
+
+  public SipServerLocatorService getResolver() {
+    return m_Singleton.resolver;
   }
 
   /** @return an instance of ProxyManager */

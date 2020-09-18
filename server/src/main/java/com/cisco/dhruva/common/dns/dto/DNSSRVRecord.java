@@ -1,4 +1,4 @@
-package com.cisco.dhruva.common.dns;
+package com.cisco.dhruva.common.dns.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

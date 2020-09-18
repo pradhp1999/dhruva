@@ -12,13 +12,7 @@ import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
 import com.cisco.dhruva.sip.controller.DsREControllerFactory;
 import com.cisco.dhruva.sip.proxy.DsSipProxyManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipClientTransactionImpl;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipDefaultTransactionFactory;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransactionImpl;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransactionFactory;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransactionManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransportLayer;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.SipPacketProcessor;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.transport.DhruvaTransportLayer;
@@ -62,6 +56,8 @@ public class SIPService {
 
   @Autowired LMAUtil lmaUtil;
 
+  @Autowired SipServerLocatorService resolver;
+
   @PostConstruct
   public void init() throws Exception {
 
@@ -77,8 +73,9 @@ public class SIPService {
     sipTransportLayer = new DsSipTransportLayer(null, sipPacketProcessor, dhruvaTransportLayer);
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipTransactionFactory transactionFactory = new DsSipDefaultTransactionFactory();
+    // TODO DNS pass resolver here
     DsSipProxyManager proxyManager =
-        new DsSipProxyManager(sipTransportLayer, controllerFactory, transactionFactory);
+        new DsSipProxyManager(sipTransportLayer, controllerFactory, transactionFactory, resolver);
     proxyManager.setRouteFixInterface(controllerFactory);
   }
 
