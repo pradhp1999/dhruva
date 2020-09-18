@@ -46,9 +46,9 @@ Login to artifactory using `docker login dockerhub.cisco.com`
 
 This step is optional: your IDE should already be able to build the war file with a `mvn verify`.
 
-`docker run --rm -v `pwd`:/opt/code -w /opt/code -e JAVA_VERSION=8 containers.cisco.com/ayogalin/maven-builder:one sh -c "/setenv.sh; java -version; /usr/share/maven/bin/mvn -Dspotbugs.enabled -U --batch-mode -T2C -Dmaven.test.failure.ignore -Dmaven.test.skip=true -DauthNG.statisticsOutput package"`
+`docker run --rm -v `pwd`:/opt/code -w /opt/code containers.cisco.com/ayogalin/maven-builder:one sh -c "/setenv.sh; java -version; /usr/share/maven/bin/mvn -Dspotbugs.enabled -U --batch-mode -T2C -Dmaven.test.failure.ignore -Dmaven.test.skip=true -DauthNG.statisticsOutput package"`
 
-Change `JAVA_VERSION` to `8` or `11` based on what you need.
+In `docker/env.sh`, change `JAVA_VERSION` to `8` or `11` based on what you need.
 
 This outputs `dhruva-server.war` in the `server/target` folder.
 

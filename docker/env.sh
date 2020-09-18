@@ -1,6 +1,8 @@
 #!/bin/bash
 
 echo "BEGIN env.sh"
+export JAVA_VERSION=8
+export TOMCAT_VERSION=9
 #if [ -f "/test/server.pem" ]; then
 #    echo "IMPORTing public cert to cacerts"
 #    export JHOME="/usr/lib/jvm/openjdk-8u222-b10-jre"

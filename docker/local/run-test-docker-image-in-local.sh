@@ -1,6 +1,5 @@
 docker run -d  --privileged \
     -v `pwd`/run-test-group-1.sh:/usr/local/run-test.sh \
-    -e JAVA_VERSION=8 \
     -e APP_DYNAMICS_ENABLED=FALSE \
     -e fedRampEnabled=true \
     -e CassandraHostAddress=host.docker.internal \
