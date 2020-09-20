@@ -28,6 +28,8 @@ public class DnsLookupImpl implements DnsLookup {
   private final ARecordCache aCache;
   private final LookupFactory lookupFactory;
 
+  private static final int maxDNSRetries = 2;
+
   public DnsLookupImpl(SrvRecordCache srvCache, ARecordCache aCache, LookupFactory lookupFactory) {
     this.srvCache = requireNonNull(srvCache, "srvCache");
     this.aCache = requireNonNull(aCache, "aCache");
@@ -36,26 +38,43 @@ public class DnsLookupImpl implements DnsLookup {
 
   @Override
   public CompletableFuture<List<DNSSRVRecord>> lookupSRV(String srvString) {
-    DnsLookupResult dnsLookupResult = doLookup(lookupFactory.createLookup(srvString, Type.SRV));
+    DnsLookupResult dnsLookupResult = doLookup(srvString, Type.SRV);
     CompletableFuture<List<DNSSRVRecord>> srvRecords = new CompletableFuture<>();
-    srvRecords.complete(srvCache.lookup(srvString, dnsLookupResult));
+    try {
+      List<DNSSRVRecord> dnssrvRecords = srvCache.lookup(srvString, dnsLookupResult);
+      srvRecords.complete(dnssrvRecords);
+    } catch (DnsException ex) {
+      srvRecords.completeExceptionally(ex);
+    }
     return srvRecords;
   }
 
   @Override
   public CompletableFuture<List<DNSARecord>> lookupA(String host) {
-    DnsLookupResult dnsLookupResult = doLookup(lookupFactory.createLookup(host, Type.A));
+    DnsLookupResult dnsLookupResult = doLookup(host, Type.A);
     CompletableFuture<List<DNSARecord>> aRecords = new CompletableFuture<>();
-    aRecords.complete(aCache.lookup(host, dnsLookupResult));
+    try {
+      List<DNSARecord> dnsARecords = aCache.lookup(host, dnsLookupResult);
+      aRecords.complete(dnsARecords);
+    } catch (DnsException ex) {
+      aRecords.completeExceptionally(ex);
+    }
     return aRecords;
   }
 
-  private static DnsLookupResult doLookup(Lookup lookup) {
-    if (lookup != null) {
-      Record[] records = lookup.run();
-      return new DnsLookupResult(records, lookup.getResult(), lookup.getErrorString());
-    }
+  public DnsLookupResult doLookup(String query, int queryType) {
 
-    return new DnsLookupResult(null, null, null);
+    Lookup lookup = lookupFactory.createLookup(query, queryType);
+
+    if (lookup != null) {
+      int countRetry = maxDNSRetries;
+      Record[] records;
+      do {
+        records = lookup.run();
+        --countRetry;
+      } while (lookup.getResult() == Lookup.TRY_AGAIN && countRetry >= 0);
+      return new DnsLookupResult(records, lookup.getResult(), lookup.getErrorString(), queryType);
+    }
+    return new DnsLookupResult(null, null, null, queryType);
   }
 }

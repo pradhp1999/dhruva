@@ -419,7 +419,7 @@ public final class DsSipServerLocator implements DsSipResolver {
     // Return any "real" or injected SRV records matching name.
 
     final String srvName =
-        transport.equals("tls")
+        transport.equalsIgnoreCase("tls")
             ? String.format("_sips._tcp.%s", name)
             : String.format("_sip._%s.%s", transport, name);
 

@@ -14,13 +14,11 @@ import org.xbill.DNS.Record;
 public abstract class AbstractDnsCache<T> {
   protected final Logger log = DhruvaLoggerFactory.getLogger(getClass());
 
-  protected final List<T> emptyList;
   private final Cache<String, List<T>> dnsCache;
 
   protected AbstractDnsCache(long maxCacheSize, long retentionTimeMillis) {
     Preconditions.checkArgument(
         retentionTimeMillis > 0L, "retention time must be positive, was %d", retentionTimeMillis);
-    emptyList = Collections.emptyList();
     dnsCache =
         CacheBuilder.newBuilder()
             .maximumSize(
@@ -67,7 +65,7 @@ public abstract class AbstractDnsCache<T> {
     if (lookupResult.hasRecords()) {
       List<T> results = getRecords(lookupResult.getRecords());
       dnsCache.put(searchString, results);
-      return results;
+      return Collections.unmodifiableList(results);
     }
     return getCachedRecords(searchString, lookupResult);
   }
@@ -77,13 +75,29 @@ public abstract class AbstractDnsCache<T> {
       List<T> results = dnsCache.getIfPresent(searchString);
       if (results != null && results.size() > 0) {
         logLookupError(searchString, lookupResult);
-        return results;
+        return Collections.unmodifiableList(results);
       }
     }
-    log.error("dns lookup failed", lookupResult.getErrorString());
-    throw new DnsException(
-        String.format(
-            "Lookup of '%s' failed with code: %d - %s ",
-            searchString, lookupResult.getResult(), lookupResult.getErrorString()));
+
+    DnsErrorCode errorCode;
+
+    switch (lookupResult.getResult()) {
+      case Lookup.SUCCESSFUL:
+        errorCode = DnsErrorCode.ERROR_UNKNOWN;
+        break;
+      case Lookup.HOST_NOT_FOUND:
+        errorCode = DnsErrorCode.ERROR_DNS_HOST_NOT_FOUND;
+        break;
+      case Lookup.TYPE_NOT_FOUND:
+        errorCode = DnsErrorCode.ERROR_DNS_INVALID_TYPE;
+        break;
+      case Lookup.TRY_AGAIN:
+        errorCode = DnsErrorCode.ERROR_DNS_QUERY_TIMEDOUT;
+        break;
+      default:
+        errorCode = DnsErrorCode.ERROR_DNS_OTHER;
+        break;
+    }
+    throw new DnsException(lookupResult.getQueryType(), searchString, errorCode);
   }
 }

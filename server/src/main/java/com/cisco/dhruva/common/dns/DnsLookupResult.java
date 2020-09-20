@@ -11,11 +11,13 @@ public class DnsLookupResult {
   private final Record[] records;
   private final Integer result;
   private final String errorString;
+  private final int queryType;
 
-  DnsLookupResult(Record[] records, Integer result, String errorString) {
+  DnsLookupResult(Record[] records, Integer result, String errorString, int queryType) {
     this.records = records;
     this.result = result;
     this.errorString = errorString;
+    this.queryType = queryType;
   }
 
   /**
@@ -35,6 +37,10 @@ public class DnsLookupResult {
 
   boolean hasRecords() {
     return records != null && records.length > 0;
+  }
+
+  int getQueryType() {
+    return queryType;
   }
 
   String getErrorString() {

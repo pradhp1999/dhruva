@@ -11,11 +11,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /** Tracks metrics for DnsSrvResolver calls. */
-class MeteredDnsSrvResolver implements DnsLookup {
+class MeteredDnsResolver implements DnsLookup {
   private final DnsLookup delegate;
   private final DnsReporter reporter;
 
-  MeteredDnsSrvResolver(DnsLookup delegate, DnsReporter reporter) {
+  MeteredDnsResolver(DnsLookup delegate, DnsReporter reporter) {
     this.delegate = requireNonNull(delegate, "delegate");
     this.reporter = requireNonNull(reporter, "reporter");
   }
