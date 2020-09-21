@@ -33,37 +33,6 @@ public class DnsInjectionService {
     return new DnsInjectionService(srvRecordOverrides, aRecordOverrides);
   }
 
-  @SuppressWarnings("unchecked")
-  public static DnsInjectionService redisBackedCache(
-      RedisDataSource dataSource, String prefix, MetricRegistry metricRegistry) {
-    // Expire injected DNS records just in case they aren't cleaned up
-    Integer expiration = (int) TimeUnit.HOURS.toSeconds(24);
-
-    Cache<String, List<InjectedDNSSRVRecord>> srvRecordOverrides =
-        new RedisCache<>(
-            dataSource,
-            prefix + "-srv",
-            expiration,
-            new TypeReference<List<InjectedDNSSRVRecord>>() {},
-            null,
-            null,
-            metricRegistry,
-            null);
-
-    Cache<String, List<InjectedDNSARecord>> aRecordOverrides =
-        new RedisCache<>(
-            dataSource,
-            prefix + "-a",
-            expiration,
-            new TypeReference<List<InjectedDNSARecord>>() {},
-            null,
-            null,
-            metricRegistry,
-            null);
-
-    return new DnsInjectionService(srvRecordOverrides, aRecordOverrides);
-  }
-
   public DnsInjectionService(
       Cache<String, List<InjectedDNSSRVRecord>> srvRecordOverrides,
       Cache<String, List<InjectedDNSARecord>> aRecordOverrides) {

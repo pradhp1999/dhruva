@@ -72,9 +72,7 @@ public final class DnsResolvers {
         } catch (UnknownHostException e) {
           throw new RuntimeException(e);
         }
-      }
-      else
-        simpleLookupFactory = lookupFactory;
+      } else simpleLookupFactory = lookupFactory;
 
       SrvRecordCache srvRecordCache =
           new SrvRecordCache(DEFAULT_CACHE_SIZE, retentionDurationMillis);
@@ -91,27 +89,52 @@ public final class DnsResolvers {
     // This is used for stats and metrics
     public DnsResolverBuilder metered(DnsReporter reporter) {
       return new DnsResolverBuilder(
-          reporter, lookupFactory, cacheSize, dnsLookupTimeoutMillis, retentionDurationMillis, servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
 
     public DnsResolverBuilder dnsLookupTimeoutMillis(long dnsLookupTimeoutMillis) {
       return new DnsResolverBuilder(
-          reporter, lookupFactory, cacheSize, dnsLookupTimeoutMillis, retentionDurationMillis, servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
 
     public DnsResolverBuilder retentionDurationMillis(long retentionDurationMillis) {
       return new DnsResolverBuilder(
-          reporter, lookupFactory, cacheSize, dnsLookupTimeoutMillis, retentionDurationMillis, servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
 
     public DnsResolverBuilder lookupFactory(LookupFactory lookupFactory) {
-      return  new DnsResolverBuilder(
-              reporter, lookupFactory, cacheSize, dnsLookupTimeoutMillis, retentionDurationMillis, servers);
+      return new DnsResolverBuilder(
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
 
     public DnsResolverBuilder servers(List<String> servers) {
       return new DnsResolverBuilder(
-          reporter, lookupFactory, cacheSize, dnsLookupTimeoutMillis, retentionDurationMillis, servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
   }
 

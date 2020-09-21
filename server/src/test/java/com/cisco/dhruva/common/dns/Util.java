@@ -31,7 +31,6 @@ public class Util {
         .collect(Collectors.toList());
   }
 
-
   private static class TestDNSServer {
     private Thread thread = null;
     private volatile boolean running = false;
@@ -45,14 +44,16 @@ public class Util {
 
     public void start() {
       running = true;
-      thread = new Thread(() -> {
-        try {
-          serve();
-        } catch (IOException ex) {
-          stop();
-          throw new RuntimeException(ex);
-        }
-      });
+      thread =
+          new Thread(
+              () -> {
+                try {
+                  serve();
+                } catch (IOException ex) {
+                  stop();
+                  throw new RuntimeException(ex);
+                }
+              });
       thread.start();
     }
 
@@ -80,25 +81,28 @@ public class Util {
       DatagramPacket indp = new DatagramPacket(in, UDP_SIZE);
       socket.receive(indp);
       ++requestCount;
-      //logger.info(String.format("processing... %d", requestCount));
+      // logger.info(String.format("processing... %d", requestCount));
 
       // Build the response
       Message request = new Message(in);
       Message response = new Message(request.getHeader().getID());
       response.addRecord(request.getQuestion(), Section.QUESTION);
       // Add answers as needed
-      response.addRecord(Record.fromString(Name.root, Type.A, DClass.IN, 86400, "1.2.3.4", Name.root), Section.ANSWER);
+      response.addRecord(
+          Record.fromString(Name.root, Type.A, DClass.IN, 86400, "1.2.3.4", Name.root),
+          Section.ANSWER);
 
       // Make it timeout, comment this section if a success response is needed
       try {
         Thread.sleep(5000);
       } catch (InterruptedException ex) {
-        //logger.error("Interrupted");
+        // logger.error("Interrupted");
         return;
       }
 
       byte[] resp = response.toWire();
-      DatagramPacket outdp = new DatagramPacket(resp, resp.length, indp.getAddress(), indp.getPort());
+      DatagramPacket outdp =
+          new DatagramPacket(resp, resp.length, indp.getAddress(), indp.getPort());
       socket.send(outdp);
     }
   }
