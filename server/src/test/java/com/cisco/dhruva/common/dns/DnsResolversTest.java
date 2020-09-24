@@ -32,9 +32,6 @@ public class DnsResolversTest {
   public void setUp() {
     lookupFactory = mock(LookupFactory.class);
 
-    //    SrvRecordCache srvCache = new SrvRecordCache(1000, 50000);
-    //    ARecordCache aCache = new ARecordCache(1000, 50000);
-
     xbillResolver = mock(Resolver.class);
 
     resolver = DnsResolvers.newBuilder().lookupFactory(lookupFactory).build();

@@ -123,10 +123,13 @@ public final class DsSipServerLocator implements DsSipResolver {
     List<InjectedDNSSRVRecord> injectSRV = dnsInjectionService.getInjectedSRV(userIdInject);
     List<InjectedDNSARecord> injectA = dnsInjectionService.getInjectedA(userIdInject);
 
-    if (transportLookupType == LocateSIPServerTransportType.TCP) {
-      resolveRFC3263(response, responseLog, name, port, Transport.TCP, injectSRV, injectA);
-    } else if (transportLookupType == LocateSIPServerTransportType.TLS) {
-      resolveRFC3263(response, responseLog, name, port, Transport.TLS, injectSRV, injectA);
+    Optional<Transport> t = transportLookupType.toSipTransport();
+    Transport sipTransport = t.orElse(Transport.TLS);
+
+    if (transportLookupType == LocateSIPServerTransportType.TCP
+        || transportLookupType == LocateSIPServerTransportType.UDP
+        || transportLookupType == LocateSIPServerTransportType.TLS) {
+      resolveRFC3263(response, responseLog, name, port, sipTransport, injectSRV, injectA);
     } else if (transportLookupType == LocateSIPServerTransportType.TLS_AND_TCP) {
       resolveTLSAndTCP(response, responseLog, name, port, injectSRV, injectA);
     } else if (transportLookupType == LocateSIPServerTransportType.TCP_AND_TLS) {

@@ -3706,6 +3706,7 @@ public class DsSipTransactionManager {
   }
 
   public static Optional<SipServerLocatorService> getSipResolver() {
-    return Optional.of(sipLocator);
+    if (sipLocator != null) return Optional.of(sipLocator);
+    return Optional.empty();
   }
 } // End class DsSipTransactionManager

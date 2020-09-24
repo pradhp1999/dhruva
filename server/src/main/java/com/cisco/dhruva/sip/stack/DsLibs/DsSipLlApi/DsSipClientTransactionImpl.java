@@ -433,7 +433,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         }
         Optional<SipServerLocatorService> optSipResolver = DsSipTransactionManager.getSipResolver();
         if (optSipResolver.isPresent()) resolver = optSipResolver.get().getLocator();
-        else throw new IOException("unable to find resolver");
+        // else throw new IOException("unable to find resolver");
 
         m_connection = new ConnectionWrapper(m_sipRequest, resolver);
       } else {
@@ -2089,7 +2089,8 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     ConnectionWrapper(DsSipRequest request, DsSipResolver resolver)
         throws IOException, DsException {
       m_resolver = resolver;
-      m_resolver.setSizeExceedsMTU(request.sizeExceedsMTU());
+      // TODO DNS
+      // m_resolver.setSizeExceedsMTU(request.sizeExceedsMTU());
       // establish the initial set of endpoints to search
       replace(DsSipTransactionManager.getRequestConnection(request, m_resolver));
     }

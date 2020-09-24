@@ -12,7 +12,6 @@ import com.cisco.dhruva.common.dns.metrics.DnsTimingContext;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -58,20 +57,14 @@ public class MeteredDnsResolverTest {
     when(reporter.resolveTimer()).thenReturn(timingReporter);
   }
 
-  @AfterMethod
-  public void after() {
-    verify(reporter).resolveTimer();
-    verify(timingReporter).stop();
-  }
-
   @Test
   public void shouldCountSuccessfulForSrv() throws Exception {
     when(delegate.lookupSRV(FQDN)).thenReturn(CompletableFuture.completedFuture(NOT_EMPTY_SRV));
 
     resolver.lookupSRV(FQDN);
 
-    verify(reporter, never()).reportEmpty();
-    verify(reporter, never()).reportFailure(EXCEPTION);
+    verify(reporter, never()).reportEmpty(FQDN, "SRV");
+    verify(reporter, never()).reportFailure(FQDN, "SRV", EXCEPTION.getCause());
   }
 
   @Test
@@ -80,8 +73,8 @@ public class MeteredDnsResolverTest {
 
     resolver.lookupA(FQDN);
 
-    verify(reporter, never()).reportEmpty();
-    verify(reporter, never()).reportFailure(EXCEPTION);
+    verify(reporter, never()).reportEmpty(FQDN, "A");
+    verify(reporter, never()).reportFailure(FQDN, "A", EXCEPTION.getCause());
   }
 
   @Test
@@ -90,8 +83,8 @@ public class MeteredDnsResolverTest {
 
     resolver.lookupSRV(FQDN);
 
-    verify(reporter).reportEmpty();
-    verify(reporter, never()).reportFailure(EXCEPTION);
+    verify(reporter).reportEmpty(FQDN, "SRV");
+    verify(reporter, never()).reportFailure(FQDN, "SRV", EXCEPTION.getCause());
   }
 
   @Test
@@ -107,8 +100,8 @@ public class MeteredDnsResolverTest {
 
     }
 
-    verify(reporter, never()).reportEmpty();
-    verify(reporter).reportFailure(EXCEPTION);
+    verify(reporter, never()).reportEmpty(FQDN, "SRV");
+    verify(reporter).reportFailure(FQDN, "SRV", EXCEPTION);
   }
 
   @Test
@@ -124,8 +117,8 @@ public class MeteredDnsResolverTest {
 
     }
 
-    verify(reporter, never()).reportEmpty();
-    verify(reporter).reportFailure(EXCEPTION);
+    verify(reporter, never()).reportEmpty(FQDN, "A");
+    verify(reporter).reportFailure(FQDN, "A", EXCEPTION);
   }
 
   @Test
@@ -133,7 +126,7 @@ public class MeteredDnsResolverTest {
     when(delegate.lookupSRV(FQDN)).thenThrow(ERROR);
 
     try {
-      CompletableFuture<List<DNSSRVRecord>> f = new CompletableFuture<>();
+      CompletableFuture<List<DNSSRVRecord>> f;
       f = resolver.lookupSRV(FQDN);
       List<DNSSRVRecord> dnssrvRecords = f.get();
       Assert.fail();
@@ -141,7 +134,7 @@ public class MeteredDnsResolverTest {
       Assert.assertEquals(ERROR, e);
     }
 
-    verify(reporter, never()).reportEmpty();
-    verify(reporter, never()).reportFailure(EXCEPTION);
+    verify(reporter, never()).reportEmpty(FQDN, "SRV");
+    verify(reporter, never()).reportFailure(FQDN, "SRV", EXCEPTION);
   }
 }

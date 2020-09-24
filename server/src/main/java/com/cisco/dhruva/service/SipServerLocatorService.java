@@ -34,6 +34,11 @@ public class SipServerLocatorService {
 
   @Autowired protected DsSipServerLocator locator;
 
+  @Autowired
+  public SipServerLocatorService(DhruvaSIPConfigProperties props) {
+    this.props = props;
+  }
+
   public LocateSIPServersResponse locateDestination(
       User user, SipDestination sipDestination, String callId)
       throws ExecutionException, InterruptedException {

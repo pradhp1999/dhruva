@@ -14,7 +14,7 @@ import org.xbill.DNS.Resolver;
 public final class DnsResolvers {
 
   private static final int DEFAULT_DNS_TIMEOUT_SECONDS = 5;
-  private static final int DEFAULT_RETENTION_DURATION_HOURS = 24;
+  private static final int DEFAULT_RETENTION_DURATION_HOURS = 1;
   private static final int DEFAULT_CACHE_SIZE = 1_000;
 
   public static DnsResolverBuilder newBuilder() {
@@ -74,9 +74,8 @@ public final class DnsResolvers {
         }
       } else simpleLookupFactory = lookupFactory;
 
-      SrvRecordCache srvRecordCache =
-          new SrvRecordCache(DEFAULT_CACHE_SIZE, retentionDurationMillis);
-      ARecordCache aRecordCache = new ARecordCache(DEFAULT_CACHE_SIZE, retentionDurationMillis);
+      SrvRecordCache srvRecordCache = new SrvRecordCache(cacheSize, retentionDurationMillis);
+      ARecordCache aRecordCache = new ARecordCache(cacheSize, retentionDurationMillis);
 
       DnsLookup result = new DnsLookupImpl(srvRecordCache, aRecordCache, simpleLookupFactory);
 
@@ -108,6 +107,16 @@ public final class DnsResolvers {
     }
 
     public DnsResolverBuilder retentionDurationMillis(long retentionDurationMillis) {
+      return new DnsResolverBuilder(
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
+    }
+
+    public DnsResolverBuilder cacheSize(long cacheSize) {
       return new DnsResolverBuilder(
           reporter,
           lookupFactory,

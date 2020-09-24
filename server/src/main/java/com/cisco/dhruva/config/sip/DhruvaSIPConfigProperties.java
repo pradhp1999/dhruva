@@ -122,7 +122,7 @@ public class DhruvaSIPConfigProperties {
   }
 
   public long dnsCacheRetentionTimeMillis() {
-    long defaultTime = 500L;
+    long defaultTime = 0L;
     long retTime = env.getProperty("DhruvaDnsRetentionTimeMillis", Long.class, defaultTime);
     return retTime > 0L ? retTime : defaultTime;
   }

@@ -31,15 +31,15 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.InjectMocks;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-@SpringBootTest
+// @RunWith(SpringRunner.class)
+// @SpringBootTest
 public class DsSipClientTransactionTest {
 
   private DsSipTransactionManager sipTransactionManager;
@@ -57,7 +57,7 @@ public class DsSipClientTransactionTest {
   private InetAddress remoteAddress;
   private int localPort, remotePort;
   private DsNetwork dsNetwork;
-  @Autowired SipServerLocatorService locatorService;
+  @InjectMocks SipServerLocatorService locatorService;
 
   @BeforeClass
   public void init() throws UnknownHostException, DsException {
@@ -140,6 +140,7 @@ public class DsSipClientTransactionTest {
   }
 
   @Test(enabled = false)
+  // @Test
   public void testSipClientTransaction() throws DsException, IOException {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -193,6 +194,9 @@ public class DsSipClientTransactionTest {
     doNothing()
         .when(appInterfaceMock)
         .handleResponse(any(Location.class), any(Optional.class), any(int.class));
+
+    when(locatorService.shouldSearch(any(DnsDestination.class))).thenReturn(false);
+    when(locatorService.isSupported(any(Transport.class))).thenReturn(true);
 
     ctrlr.setRequest(sipRequest);
     ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);

@@ -6,16 +6,11 @@ import com.cisco.dhruva.sip.dto.InjectedDNSARecord;
 import com.cisco.dhruva.sip.dto.InjectedDNSSRVRecord;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
-import com.cisco.wx2.redis.RedisDataSource;
-import com.cisco.wx2.server.util.RedisCache;
-import com.codahale.metrics.MetricRegistry;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class DnsInjectionService {

@@ -1,10 +1,12 @@
 package com.cisco.dhruva;
 
 import com.cisco.dhruva.common.dns.*;
+import com.cisco.dhruva.common.dns.metrics.DnsReporter;
 import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.common.metric.InfluxClient;
 import com.cisco.dhruva.common.metric.MetricClient;
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.wx2.server.config.ConfigProperties;
 import com.ciscospark.server.Wx2ConfigAdapter;
 import java.util.concurrent.TimeUnit;
@@ -62,16 +64,22 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
   }
 
   @Bean
-  public DnsLookup dnsLookup() {
-    SrvRecordCache srvRecordCache =
-        new SrvRecordCache(
-            dhruvaSIPConfigProperties.getDhruvaDnsCacheMaxSize(),
-            dhruvaSIPConfigProperties.dnsCacheRetentionTimeMillis());
-    ARecordCache aRecordCache =
-        new ARecordCache(
-            dhruvaSIPConfigProperties.getDhruvaDnsCacheMaxSize(),
-            dhruvaSIPConfigProperties.dnsCacheRetentionTimeMillis());
+  public DnsReporter dnsReporter() {
+    return new DnsMetricsReporter();
+  }
 
-    return DnsResolvers.newBuilder().build();
+  @Bean
+  public SipServerLocatorService sipServerLocatorService() {
+    return new SipServerLocatorService(dhruvaSIPConfigProperties);
+  }
+
+  @Bean
+  public DnsLookup dnsLookup() {
+    return DnsResolvers.newBuilder()
+        .cacheSize(dhruvaSIPConfigProperties.getDhruvaDnsCacheMaxSize())
+        .dnsLookupTimeoutMillis(dhruvaSIPConfigProperties.dnsCacheRetentionTimeMillis())
+        .retentionDurationMillis(dhruvaSIPConfigProperties.dnsCacheRetentionTimeMillis())
+        .metered(new DnsMetricsReporter())
+        .build();
   }
 }

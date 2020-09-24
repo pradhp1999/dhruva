@@ -13,7 +13,8 @@ public enum LocateSIPServerTransportType {
   TLS,
   TCP,
   TLS_AND_TCP,
-  TCP_AND_TLS;
+  TCP_AND_TLS,
+  UDP;
 
   public static Optional<LocateSIPServerTransportType> fromString(String s) {
     try {
@@ -29,6 +30,8 @@ public enum LocateSIPServerTransportType {
       return Optional.of(Transport.TLS);
     } else if (this == TCP) {
       return Optional.of(Transport.TCP);
+    } else if (this == UDP) {
+      return Optional.of(Transport.UDP);
     } else {
       return Optional.empty();
     }

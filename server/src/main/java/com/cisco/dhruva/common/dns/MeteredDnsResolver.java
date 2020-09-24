@@ -21,7 +21,8 @@ class MeteredDnsResolver implements DnsLookup {
   }
 
   @Override
-  public CompletableFuture<List<DNSSRVRecord>> lookupSRV(String fqdn) throws DnsException {
+  public CompletableFuture<List<DNSSRVRecord>> lookupSRV(String fqdn)
+      throws ExecutionException, InterruptedException {
 
     final DnsTimingContext resolveTimer = reporter.resolveTimer();
 
@@ -33,22 +34,21 @@ class MeteredDnsResolver implements DnsLookup {
       result = f2.get();
       f1.complete(result);
       if (result.isEmpty()) {
-        reporter.reportEmpty();
+        reporter.reportEmpty(fqdn, "SRV");
       }
-    } catch (DnsException error) {
-      reporter.reportFailure(error);
+    } catch (DnsException | InterruptedException | ExecutionException error) {
+      reporter.reportFailure(fqdn, "SRV", error);
       throw error;
-    } catch (InterruptedException | ExecutionException e) {
-      e.printStackTrace();
     } finally {
-      resolveTimer.stop();
+      resolveTimer.stop(fqdn, "SRV");
     }
 
     return f1;
   }
 
   @Override
-  public CompletableFuture<List<DNSARecord>> lookupA(String host) {
+  public CompletableFuture<List<DNSARecord>> lookupA(String host)
+      throws ExecutionException, InterruptedException {
     final DnsTimingContext resolveTimer = reporter.resolveTimer();
 
     final List<DNSARecord> result;
@@ -59,15 +59,13 @@ class MeteredDnsResolver implements DnsLookup {
       result = f2.get();
       f1.complete(result);
       if (result.isEmpty()) {
-        reporter.reportEmpty();
+        reporter.reportEmpty(host, "A");
       }
-    } catch (DnsException error) {
-      reporter.reportFailure(error);
+    } catch (DnsException | InterruptedException | ExecutionException error) {
+      reporter.reportFailure(host, "A", error);
       throw error;
-    } catch (InterruptedException | ExecutionException e) {
-      e.printStackTrace();
     } finally {
-      resolveTimer.stop();
+      resolveTimer.stop(host, "A");
     }
 
     return f1;
