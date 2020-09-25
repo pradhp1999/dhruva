@@ -4,8 +4,6 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.sun.net.ssl.internal.ssl.Provider;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,23 +12,17 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
 import org.bouncycastle.crypto.fips.FipsStatus;
 import org.slf4j.event.Level;
 
@@ -1057,10 +1049,7 @@ public class DsSSLContext {
   }
 
   /** Initializes the SSL context. */
-  private void init(DsSSLTrustManager trustManager) throws DsSSLException {
-
-
-  }
+  private void init(DsSSLTrustManager trustManager) throws DsSSLException {}
 
   private void init(SSLSocket socket) {
     socket.setEnabledCipherSuites(enabledCiphers);

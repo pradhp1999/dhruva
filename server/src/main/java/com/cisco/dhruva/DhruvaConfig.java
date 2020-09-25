@@ -7,10 +7,8 @@ import com.cisco.dhruva.common.metric.InfluxClient;
 import com.cisco.dhruva.common.metric.MetricClient;
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.service.SipServerLocatorService;
-
 import com.ciscospark.server.Wx2ConfigAdapter;
 import java.util.concurrent.TimeUnit;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
@@ -21,8 +19,7 @@ import org.springframework.context.annotation.Lazy;
 @ConditionalOnWebApplication
 public class DhruvaConfig extends Wx2ConfigAdapter {
 
-  @Autowired
-  DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
+  @Autowired DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
 
   private static final long DEFAULT_CACHE_TIMEOUT = 10;
 

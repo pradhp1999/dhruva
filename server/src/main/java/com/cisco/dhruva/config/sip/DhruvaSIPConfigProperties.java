@@ -59,7 +59,6 @@ public class DhruvaSIPConfigProperties {
 
   private static final String TLS_CIPHERS = "dhruva.sipTlsCipherSuites";
 
-
   public static int DEFAULT_PORT_UDP = 5060;
 
   @Autowired private Environment env;
@@ -185,6 +184,5 @@ public class DhruvaSIPConfigProperties {
       return Collections.unmodifiableList(
           CipherSuites.getAllowedCiphers(Arrays.asList(ciphers.split(","))));
     }
-
   }
 }
