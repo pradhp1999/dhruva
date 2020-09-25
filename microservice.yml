@@ -111,13 +111,15 @@ publish:
     modules:
     - client
 
+# Reference: https://confluence-eng-gpk2.cisco.com/conf/display/WBXT/Automation
+# Dhruva in Corona: https://corona.cisco.com/products/4699
+# Catch-all Infosec Jira: https://infosec-jira.cisco.com/jira/browse/CTSM-46481
 security-automation:
   credentials-id: "hw-security.gen"
-  ipcentral-id: 192709214
-  corona-pid: 2568
-  enabled_scans: ['corona', 'ipcentral']
-  ctsm_jira_id: CTSM-43477
-  threat-model-id: 25358
+  corona-pid: 4699
+  enabled_scans: ['corona', 'spotbugs']
+  ctsm_jira_id: CTSM-46481
+  threat-model-id: 29366
   
 # Settings pertaining to FedRAMP.
 # See https://sqbu-github.cisco.com/pages/WebExSquared/docs/deployment/pipeline-concepts.html#fedramp

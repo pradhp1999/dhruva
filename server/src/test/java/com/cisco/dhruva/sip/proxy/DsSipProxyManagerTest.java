@@ -110,7 +110,8 @@ public class DsSipProxyManagerTest {
   }
 
   @Test
-  public void testRequestInterface() throws DsException {
+  public void testRequestInterface() throws Exception {
+
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -141,7 +142,7 @@ public class DsSipProxyManagerTest {
   }
 
   @Test
-  public void testStrayAck() throws DsException {
+  public void testStrayAck() throws Exception {
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(

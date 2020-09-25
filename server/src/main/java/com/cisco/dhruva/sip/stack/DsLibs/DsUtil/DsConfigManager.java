@@ -16,7 +16,6 @@ import java.lang.reflect.Field;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
 import org.slf4j.event.Level;
 
@@ -540,14 +539,6 @@ public final class DsConfigManager implements DsSipConstants {
   public static final String PROP_CLIENT_AUTH = "com.dynamicsoft.DsLibs.DsUtil.clientAuth";
   /** none. */
   public static final boolean PROP_CLIENT_AUTH_DEFAULT = true;
-
-  /**
-   * com.dynamicsoft.DsLibs.DsUtil.TimerTimeout: &nbsp; &nbsp; The time in milliseconds to wait
-   * before timer thread should die. (see {@link DsDiscreteTimerMgr DsDiscreteTimerMgr}).
-   */
-  public static final String PROP_TIMER_TIMEOUT = "com.dynamicsoft.DsLibs.DsUtil.TimerTimeout";
-  /** 900000 (15mins). */
-  public static final int PROP_TIMER_TIMEOUT_DEFAULT = 900000;
 
   /**
    * com.dynamicsoft.DsLibs.DsSipLlApi.DsConnectionTable.SweepTimerTimeout: &nbsp; &nbsp; The time
@@ -1691,62 +1682,6 @@ public final class DsConfigManager implements DsSipConstants {
   }
 
   /**
-   * Registers and adds the specified <code>throttlingListener</code> as a listener which will be
-   * notified when token flow exceeds a specified number for a specified time period(refer to the
-   * <code>DsBuckets</code>). It will also be notified when token flow comes in below limit after
-   * exceeding that limit for some time.
-   *
-   * @param throttlingListener the listener which wants to be notified of throttling events.
-   */
-  public static void registerThrottlingListener(DsThrottlingListener throttlingListener) {
-    if (throttlingListeners == null) {
-      throttlingListeners = new Vector();
-    }
-    throttlingListeners.add(throttlingListener);
-  }
-
-  /**
-   * Unregisters and removes the specified <code>throttlingListener</code> as a listener. It will
-   * not be notified of throttling events.
-   *
-   * @param throttlingListener the listener to be unregistered as a throttling event listener.
-   */
-  public static void unregisterThrottlingListener(DsThrottlingListener throttlingListener) {
-    if (throttlingListeners != null) {
-      throttlingListeners.remove(throttlingListener);
-    }
-  }
-
-  /**
-   * Notify the listeners that a throttle is now in effect for a token flow because the flow has
-   * exceeded the limits set by a <code>DsBuckets</code> object.
-   *
-   * @param throttleName the name of the throttle which is starting to take effect.
-   */
-  public static void raiseFlowExceedsThreshold(String throttleName) {
-    if (throttlingListeners != null) {
-      for (int i = 0; i < throttlingListeners.size(); i++) {
-        ((DsThrottlingListener) throttlingListeners.elementAt(i))
-            .flowExceedsThreshold(throttleName);
-      }
-    }
-  }
-
-  /**
-   * Notify the listeners that a throttle ceases to take effect because the token flow is below the
-   * limits specified by the <code>DsBuckets</code> object.
-   *
-   * @param throttleName the name of the throttle which ceases to take effect.
-   */
-  public static void raiseFlowOKAgain(String throttleName) {
-    if (throttlingListeners != null) {
-      for (int i = 0; i < throttlingListeners.size(); i++) {
-        ((DsThrottlingListener) throttlingListeners.elementAt(i)).flowOKAgain(throttleName);
-      }
-    }
-  }
-
-  /**
    * Raises the alarm to notify all the registered listeners that some intruder is trying to get
    * authenticated by trying different user-password combinations repeatedly. Thereby providing the
    * registered listeners the opportunity to take precautionary measures to avoid authentication
@@ -2054,39 +1989,6 @@ public final class DsConfigManager implements DsSipConstants {
     DsQueueInterface queue = getQueue(qName);
     if (null != queue) {
       result = queue.getAverageSize();
-    }
-    return result;
-  }
-
-  /**
-   * Its the average number of elements that are present in the implementing Queue with in the time
-   * interval specified by the average window time. Returns -1 if there is no queue registered with
-   * this name.
-   *
-   * @param qName the name of the queue whose average size is queried.
-   * @return the average number of elements that are present in the specified Queue with in the time
-   *     interval specified by the average window time.
-   */
-  public static int getDropped(String qName) {
-    int result = -1;
-    DsQueueInterface queue = getQueue(qName);
-    if (null != queue) {
-      result = ((DsWorkQueue) queue).getDropped();
-    }
-    return result;
-  }
-
-  /**
-   * Returns the number of elements dropped since the last overflow.
-   *
-   * @param qName the name of the queue.
-   * @return number of elements dropped since the last overflow
-   */
-  public static int getDroppedSinceLastOverflow(String qName) {
-    int result = -1;
-    DsQueueInterface queue = getQueue(qName);
-    if (null != queue) {
-      result = ((DsWorkQueue) queue).getDroppedSinceLastOverflow();
     }
     return result;
   }
@@ -2444,30 +2346,6 @@ public final class DsConfigManager implements DsSipConstants {
 
   private static FileWriter m_writer;
 
-  static {
-    try {
-      long interval = getProperty("com.dynamicsoft.DsLibs.DsSipLlApi.status", 0) * 1000L;
-      if (interval > 0) {
-        m_writer = new FileWriter("queue-memory-profile.status");
-        header();
-        // GOGONG 07.31.06 CSCsd90062 - Creates a new timer whose associated thread will be
-        // specified to run as a daemon.
-        timer = new Timer(true);
-        timer.scheduleAtFixedRate(new StatusTimer(), 60 * 2000L, interval);
-      }
-    } catch (Exception e) {
-      if (cat.isEnabled(Level.INFO)) {
-        cat.info("Exception while starting the memory-queue status timer", e);
-      }
-    }
-  }
-
-  private static class StatusTimer extends TimerTask {
-    public void run() {
-      status();
-    }
-  }
-
   private static void header() {
     StringBuffer buf = new StringBuffer();
     for (int i = 0; i < 105; i++) buf.append("=");
@@ -2495,75 +2373,6 @@ public final class DsConfigManager implements DsSipConstants {
     } catch (Exception exc) {
       if (cat.isEnabled(Level.INFO))
         cat.info("Exception while writing header of the memory-queue status", exc);
-    }
-  }
-
-  private static void status() {
-    // Total Memory
-    String str = EMPTY + Runtime.getRuntime().totalMemory();
-    StringBuffer buf = new StringBuffer(str);
-
-    int diff = 15 - str.length();
-    while (diff-- > 0) buf.append(SPACE);
-
-    // Free Memory
-    str = EMPTY + Runtime.getRuntime().freeMemory();
-    buf.append(str);
-    diff = 15 - str.length();
-    while (diff-- > 0) buf.append(SPACE);
-    // padding
-    diff = 45;
-    while (diff-- > 0) buf.append(SPACE);
-    // Timeout errors
-    // --        buf.append(Integer.toString(DsSipClientTransaction._timeout));
-    // --        buf.append(" ");
-    // --        buf.append(Integer.toString(DsSipServerTransaction._timeout));
-
-    buf.append("\r\n");
-
-    // Queue Status
-    Enumeration queues = queues();
-    String q = null;
-    while (queues != null && queues.hasMoreElements()) {
-      // padding
-      diff = 50;
-      while (diff-- > 0) buf.append(SPACE);
-
-      // Q name
-      q = (String) queues.nextElement();
-      buf.append(q);
-      diff = 15 - q.length();
-      while (diff-- > 0) buf.append(SPACE);
-
-      // Q size
-      str = EMPTY + getSize(q);
-      buf.append(str);
-      diff = 12 - str.length();
-      while (diff-- > 0) buf.append(SPACE);
-
-      // Q workers
-      str = EMPTY + getMaxNoOfWorkers(q);
-      buf.append(str);
-      diff = 8 - str.length();
-      while (diff-- > 0) buf.append(SPACE);
-
-      // Q Max size
-      str = EMPTY + getMaxSize(q);
-      buf.append(str);
-      diff = 8 - str.length();
-      while (diff-- > 0) buf.append(SPACE);
-
-      // Q dropped count
-      str = EMPTY + getDropped(q);
-      buf.append(str);
-      buf.append("\r\n");
-    }
-    try {
-      m_writer.write(buf.toString());
-      m_writer.flush();
-    } catch (Exception exc) {
-      if (cat.isEnabled(Level.INFO))
-        cat.info("Exception while writing status of the memory-queue status", exc);
     }
   }
 

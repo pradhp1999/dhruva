@@ -7,8 +7,6 @@ import com.cisco.dhruva.common.messaging.models.MessageBodyType;
 import com.cisco.dhruva.common.messaging.models.RouteAppMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.util.SIPRequestBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -16,8 +14,7 @@ import org.testng.annotations.Test;
 public class MessageConvertorTest {
 
   @Test
-  public void validateSIPToDhruvaMessageConversion()
-      throws DsSipParserListenerException, DsSipParserException {
+  public void validateSIPToDhruvaMessageConversion() throws Exception {
     DsSipRequest request =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -29,8 +26,7 @@ public class MessageConvertorTest {
   }
 
   @Test(expectedExceptions = {NullPointerException.class})
-  public void shouldFailSIPToDhruvaMessageWithNullContext()
-      throws DsSipParserListenerException, DsSipParserException {
+  public void shouldFailSIPToDhruvaMessageWithNullContext() throws Exception {
     DsSipRequest request =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -48,8 +44,7 @@ public class MessageConvertorTest {
   }
 
   @Test
-  public void validateDhruvaToSIPRequestConversion()
-      throws DsSipParserListenerException, DsSipParserException {
+  public void validateDhruvaToSIPRequestConversion() throws Exception {
     ExecutionContext context = new ExecutionContext();
     DsSipRequest request =
         SIPRequestBuilder.createRequest(

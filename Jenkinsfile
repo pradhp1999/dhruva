@@ -34,6 +34,9 @@ sparkPipeline {
     integration.deployMode = "deploy"
     production.deployMode = "skip"
 
+    /* Push artifacts to corona and run scans */
+    integration.runSecurityScans = true
+
     /*
     * This next bit is temporary. Once we have the pipeline up in meet PaaS, revert to
     * default. Without these changes, the 'default' postDeployTests are called, and since

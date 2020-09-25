@@ -3,15 +3,20 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
+import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTimers;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
+import com.cisco.dhruva.transport.DhruvaTrustManager;
+import com.cisco.dhruva.transport.TLSAuthenticationType;
 import com.cisco.dhruva.util.log.Logger;
+import io.netty.handler.ssl.SslProvider;
 import java.util.HashMap;
+import java.util.List;
+import javax.net.ssl.TrustManager;
 import org.slf4j.event.Level;
-import org.springframework.core.env.Environment;
 
 /**
  * This class holds network specific configuration data. It is used to allow the application to
@@ -249,6 +254,8 @@ public class DsNetwork implements Cloneable {
   /** {@link DsConfigManager#PROP_TCP_CONN_TIMEOUT}. */
   public static int DEFAULT_TCP_CONN_TIMEOUT;
 
+  public static final int PROP_QUEUE_IN_TCP_FRAME_MESSAGE_DEFAULT = 1048576;
+
   /** The name of the default network. */
   public static final String STR_DEFAULT = "DEFAULT";
 
@@ -395,27 +402,24 @@ public class DsNetwork implements Cloneable {
 
   private boolean certServiceTrustManagerEnabled = false;
 
-  private static final String UDP_EVENTLOOP_THREAD_COUNT = "dhruva.network.udpEventloopThreadCount";
+  private static DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
 
-  private static final Integer DEFAULT_UDP_EVENTLOOP_THREAD_COUNT = 1;
+  private TLSAuthenticationType tlsAuthType;
 
-  private static final String CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_SECONDS =
-      "dhruva.network.connectionCache.connectionIdleTimeout";
-
-  private static final Integer DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES = 14400;
-
-  private static Environment env;
+  public static int getMaximumTcpFrameSize() {
+    return PROP_QUEUE_IN_TCP_FRAME_MESSAGE_DEFAULT;
+  }
 
   public int udpEventPoolThreadCount() {
-    return env.getProperty(
-        UDP_EVENTLOOP_THREAD_COUNT, Integer.class, DEFAULT_UDP_EVENTLOOP_THREAD_COUNT);
+    return dhruvaSIPConfigProperties.getUdpEventPoolThreadCount();
+  }
+
+  public int tlsEventPoolThreadCount() {
+    return dhruvaSIPConfigProperties.getUdpEventPoolThreadCount();
   }
 
   public int connectionCacheConnectionIdleTimeout() {
-    return env.getProperty(
-        CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_SECONDS,
-        Integer.class,
-        DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES);
+    return dhruvaSIPConfigProperties.getConnectionCacheConnectionIdleTimeout();
   }
 
   ///////// Static Method /////////////////////////////
@@ -712,6 +716,7 @@ public class DsNetwork implements Cloneable {
   }
 
   ////// protected network constructor //////////////////////////////
+
   /**
    * Create a new DsNetwork by String.
    *
@@ -923,8 +928,9 @@ public class DsNetwork implements Cloneable {
 
     DsNetwork clone = null;
     synchronized (m_counterLock) {
-      if (m_next == MAX_NETWORKS)
+      if (m_next == MAX_NETWORKS) {
         throw new CloneNotSupportedException("MAX_NETWORKS(" + MAX_NETWORKS + ") exceeded");
+      }
 
       try {
         clone = (DsNetwork) super.clone();
@@ -1167,6 +1173,7 @@ public class DsNetwork implements Cloneable {
 
   //  maivu - 11.01.06 - CSCsg22401 Getter and Setter for default expiration of INVITE and
   // non-INVITE requests
+
   /**
    * Retrieve the DEFAULT INVITE request expiration.
    *
@@ -1342,6 +1349,7 @@ public class DsNetwork implements Cloneable {
   }
 
   // CAFFEINE 2.0 DEVELOPMENT - PRACK required
+
   /**
    * Set the 100rel support level to one of "Require" (REQUIRE), "Supported" (SUPPORTED), or
    * "Unsupported" (UNSUPPORTED).
@@ -1355,8 +1363,9 @@ public class DsNetwork implements Cloneable {
         || attribute == DsSipConstants.UNSUPPORTED) {
       m_100relSupport = attribute;
     } else {
-      if (cat.isEnabled(Level.WARN))
+      if (cat.isEnabled(Level.WARN)) {
         cat.log(Level.WARN, "set100relSupport() Failed with invalid attribute: " + attribute);
+      }
     }
   }
 
@@ -1427,176 +1436,6 @@ public class DsNetwork implements Cloneable {
    */
   public boolean isTSIPEnabled() {
     return getCompressionType() == NET_COMP_TOKEN_SIP;
-  }
-
-  /**
-   * Returns a debug String.
-   *
-   * @return a debug String.
-   */
-  public String dump() {
-    // Dump the network's default values.
-
-    return new StringBuffer(512)
-        .append("Logical Network ")
-        .append(m_name)
-        .append(" (")
-        .append(m_dispname)
-        .append(") settings\n-----------\n")
-        .append(DESC_NODELAY)
-        .append(" (def: ")
-        .append(DEFAULT_NODELAY)
-        .append(") == ")
-        .append(m_tcpNoDelay)
-        .append("\n")
-        .append(DESC_TCP_SENDBUFSIZE)
-        .append(" (def: ")
-        .append(DEFAULT_TCP_SENDBUFSIZE)
-        .append(") == ")
-        .append(m_sendBufferSizes[DsSipTransportType.TCP])
-        .append("\n")
-        .append(DESC_TCP_RECBUFSIZE)
-        .append(" (def: ")
-        .append(DEFAULT_TCP_RECBUFSIZE)
-        .append(") == ")
-        .append(m_receiveBufferSizes[DsSipTransportType.TCP])
-        .append("\n")
-        .append(DESC_TLS_SENDBUFSIZE)
-        .append(" (def: ")
-        .append(DEFAULT_TLS_SENDBUFSIZE)
-        .append(") == ")
-        .append(m_sendBufferSizes[DsSipTransportType.TLS])
-        .append("\n")
-        .append(DESC_TLS_RECBUFSIZE)
-        .append(" (def: ")
-        .append(DEFAULT_TLS_RECBUFSIZE)
-        .append(") == ")
-        .append(m_receiveBufferSizes[DsSipTransportType.TLS])
-        .append("\n")
-        .append(DESC_UDP_SENDBUFSIZE)
-        .append(" (def: ")
-        .append(DEFAULT_UDP_SENDBUFSIZE)
-        .append(") == ")
-        .append(m_sendBufferSizes[DsSipTransportType.UDP])
-        .append("\n")
-        .append(DESC_UDP_RECBUFSIZE)
-        .append(" (def: ")
-        .append(DEFAULT_UDP_RECBUFSIZE)
-        .append(") == ")
-        .append(m_receiveBufferSizes[DsSipTransportType.UDP])
-        .append("\n")
-        .append(DESC_MTU)
-        .append(" (def: ")
-        .append(DEFAULT_MTU)
-        .append(") == ")
-        .append(m_MTU)
-        .append("\n")
-        .append(DESC_DGRAM_CONNECTION_STRATEGY)
-        .append(" (def: ")
-        .append(DEFAULT_DGRAM_CONNECTION_STRATEGY)
-        .append(") == ")
-        .append(getDatagramConnectionStrategy())
-        .append(", ")
-        .append(m_datagramConnectionStrategyDefs[getDatagramConnectionStrategy()])
-        .append("\n")
-        .append(DESC_DGRAM_TYPE)
-        .append(" (def: ")
-        .append(DEFAULT_DGRAM_TYPE)
-        .append(") == ")
-        .append(getDatagramType())
-        .append(", ")
-        .append(m_datagramTypeDefs[getDatagramType()])
-        .append("\n")
-        .append(DESC_NETWORK_COMP_TYPE)
-        .append(" (def: ")
-        .append(DEFAULT_NETWORK_COMP_TYPE)
-        .append(") == ")
-        .append(getCompressionType())
-        .append(", ")
-        .append(m_networkCompressionTypeDefs[getCompressionType()])
-        .append("\n")
-        .append(DESC_MAX_TCP_MSG_SIZE)
-        .append(" (def: ")
-        .append(DEFAULT_MAX_TCP_MSG_SIZE)
-        .append(") == ")
-        .append(m_maxTcpMessageSize)
-        .append("\n")
-        .append(DESC_MAX_UDP_PACKET_SIZE)
-        .append(" (def: ")
-        .append(DEFAULT_MAX_UDP_PACKET_SIZE)
-        .append(") == ")
-        .append(m_maxUdpPacketSize)
-        .append("\n")
-        .append(DESC_OUT_CONNECTION)
-        .append(" (def: ")
-        .append(DEFAULT_OUT_CONNECTION)
-        .append(") == ")
-        .append(m_outConnection)
-        .append("\n")
-        .append(DESC_MAX_QUEUE_LENGTH)
-        .append(" (def: ")
-        .append(DEFAULT_MAX_QUEUE_LENGTH)
-        .append(") == ")
-        .append(m_maxQueueSize)
-        .append("\n")
-        .append(DESC_DEFAULT_INVITE_EXPIRATION)
-        .append(" (def: ")
-        .append(DEFAULT_INVITE_EXPIRATION)
-        .append(") == ")
-        .append(m_defaultInviteExpiration)
-        .append("\n")
-        .append(DESC_100REL_SUPPORT)
-        .append(" (def: ")
-        .append(DEFAULT_100REL_SUPPORT)
-        .append(") == ")
-        .append(m_100relSupport)
-        .append("\n")
-        .append(DESC_SIMPLE_RESOLVER)
-        .append(" (def: ")
-        .append(DsNetworkProperties.DEFAULT_SIMPLE_RESOLVER)
-        .append(") == ")
-        .append(m_simpleResolver)
-        .append("\n")
-        .append(DESC_NAPTR_ENABLED)
-        .append(" (def: ")
-        .append(DsNetworkProperties.DEFAULT_NAPTR_ENABLED)
-        .append(") == ")
-        .append(m_NAPTREnabled)
-        .append("\n")
-        .append(DESC_SSL_CONTEXT)
-        .append(" (def: null) == ")
-        .append((m_SSLContext == null) ? "null" : "set")
-        .append("\n")
-        .append(DESC_SO_TIMEOUT)
-        .append(" (def: ")
-        .append(DsNetworkProperties.DEFAULT_SO_TIMEOUT)
-        .append(") == ")
-        .append(m_soTimeout)
-        .append("\n")
-        .append(DESC_TCP_CONN_TIMEOUT)
-        .append(" (def: ")
-        .append(DsNetworkProperties.DEFAULT_TCP_CONN_TIMEOUT)
-        .append(") == ")
-        .append(m_tcpConnectionTimeout)
-        .append("\n")
-        .append(" (def: ")
-        .append(DsNetworkProperties.DEFAULT_TLS_HANDSHAKE_TIMEOUT)
-        .append(") == ")
-        .append(m_tlsHandshakeTimeout)
-        .append("\n")
-        .append(DESC_DNS_LOOKUP_TLS_LYNC_FEDERATION_ENABLED)
-        .append(" (def: ")
-        .append(DsNetworkProperties.DEFAULT_DNS_LOOKUP_TLS_LYNC_FEDERATION_ENABLED)
-        .append(") == ")
-        .append(m_dnsLookupTLSLyncFederationEnabled)
-        .append("\n")
-        .append(DESC_PEER_CERT_INFO_HEADER_ENABLED)
-        .append(" (def: ")
-        .append(DsNetworkProperties.DEFAULT_PEER_CERT_INFO_HEADER_ENABLED)
-        .append(") == ")
-        .append(peerCertInfoHeader)
-        .append("\n")
-        .toString();
   }
 
   /**
@@ -1680,7 +1519,40 @@ public class DsNetwork implements Cloneable {
     this.removeOwnRouteHeader = removeOwnRouteHeader;
   }
 
-  public static void setenv(Environment environment) {
-    env = environment;
+  public static void setDhruvaConfigProperties(
+      DhruvaSIPConfigProperties dhruvaSIPConfigProperties) {
+    DsNetwork.dhruvaSIPConfigProperties = dhruvaSIPConfigProperties;
+  }
+
+  public String getSipCertificate() {
+    return dhruvaSIPConfigProperties.getSipCertificate();
+  }
+
+  public String getSipPrivateKey() {
+    return dhruvaSIPConfigProperties.getSipPrivateKey();
+  }
+
+  public SslProvider getSSlProvider() {
+    return SslProvider.JDK;
+  }
+
+  public boolean getClientAuthRequired() {
+    return tlsAuthType == TLSAuthenticationType.MTLS || tlsAuthType == TLSAuthenticationType.CLIENT;
+  }
+
+  public List<String> getCiphers() {
+    return dhruvaSIPConfigProperties.getCiphers();
+  }
+
+  public void setTlsAuthenticationType(TLSAuthenticationType tlsAuthType) {
+    this.tlsAuthType = tlsAuthType;
+  }
+
+  public TLSAuthenticationType getTlsAuthType() {
+    return tlsAuthType;
+  }
+
+  public TrustManager getTrustManager() throws Exception {
+    return DhruvaTrustManager.getSystemTrustManager();
   }
 }

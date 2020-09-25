@@ -194,7 +194,7 @@ public class DsSipTransactionManagerTest {
               + "checks if Message is parsed ,Session is created ,SessionId header"
               + " is added,And 200 OK is sent to the Options messsage, Also"
               + "Checks Options is not forwarded")
-  public void testOptionProcessingInTransactionManager() throws DsException, IOException {
+  public void testOptionProcessingInTransactionManager() throws Exception {
 
     String callId;
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
@@ -280,7 +280,7 @@ public class DsSipTransactionManagerTest {
       description =
           "Testing the ACK Processing by the Transaction Manager, "
               + "ACK should be sent to the strayInterface")
-  public void testACKProcessingInTransactionManager() {
+  public void testACKProcessingInTransactionManager() throws Exception {
 
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
     byte[] messagebytes = sipRequestBuilder.getRequestAsString(RequestMethod.ACK, true).getBytes();
@@ -315,7 +315,7 @@ public class DsSipTransactionManagerTest {
               + "Cancel is sent for an non existing transaction , so Transaction "
               + "Manager should process it as stray cancel")
   public void testCancelProcessingInTransactionManagerWithInviteTransactionWhichIsNotStarted()
-      throws DsException, IOException {
+      throws Exception {
     // Send Invite first
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
     byte[] messagebytes = sipRequestBuilder.getRequestAsString(RequestMethod.INVITE).getBytes();
@@ -364,7 +364,7 @@ public class DsSipTransactionManagerTest {
           "Testing the Cancel Processing by the Transaction Manager, "
               + "Cancel is sent for an non existing transaction , so Transaction "
               + "Manager should process it as stray cancel")
-  public void testCancelProcessingInTransactionManagerWithNoInviteTransaction() {
+  public void testCancelProcessingInTransactionManagerWithNoInviteTransaction() throws Exception {
 
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
     byte[] messagebytes = sipRequestBuilder.getRequestAsString(RequestMethod.CANCEL).getBytes();
@@ -399,7 +399,7 @@ public class DsSipTransactionManagerTest {
           "Testing the Invite Processing by the Transaction Manager, "
               + "Invite doesnot have From header , so Transaction Manager should respond with 4xx")
   public void testInviteProcessingInTransactionManagerWithInviteMessageHavingNoFromHeader()
-      throws DsException, IOException {
+      throws Exception {
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(

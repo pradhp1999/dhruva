@@ -56,6 +56,12 @@ public class Event {
     }
   }
 
+  public enum ErrorType {
+    ConnectionError,
+    BufferSizeExceeded,
+    ConnectionInActive
+  }
+
   public static void emitMessageEvent(
       DsBindingInfo messageBindingInfo,
       DsSipMessage message,
@@ -88,6 +94,6 @@ public class Event {
           Event.DHRUVA_PROCESSING_DELAY_IN_MILLIS, String.valueOf(dhruvaProcessingDelayInMillis));
     }
 
-    logger.emitEvent(EventType.SIPMESSAGE, null, message.toString(), messageInfoMap);
+    logger.emitEvent(EventType.SIPMESSAGE, null, null, message.toString(), messageInfoMap);
   }
 }

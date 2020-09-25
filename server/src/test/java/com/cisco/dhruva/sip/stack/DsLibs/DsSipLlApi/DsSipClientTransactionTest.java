@@ -144,7 +144,7 @@ public class DsSipClientTransactionTest {
 
   @Test(enabled = false)
   // @Test
-  public void testSipClientTransaction() throws DsException, IOException {
+  public void testSipClientTransaction() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -218,7 +218,7 @@ public class DsSipClientTransactionTest {
   }
 
   @Test()
-  public void testSipClientGetConnectionException() throws DsException, IOException {
+  public void testSipClientGetConnectionException() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));

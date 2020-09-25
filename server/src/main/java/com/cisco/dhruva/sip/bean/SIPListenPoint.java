@@ -1,6 +1,7 @@
 package com.cisco.dhruva.sip.bean;
 
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
+import com.cisco.dhruva.transport.TLSAuthenticationType;
 import com.cisco.dhruva.transport.Transport;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -20,12 +21,15 @@ public class SIPListenPoint {
 
   private boolean recordRoute;
 
+  private TLSAuthenticationType tlsAuthType;
+
   private SIPListenPoint(SIPListenPointBuilder listenPointBuilder) {
     this.name = listenPointBuilder.name;
     this.hostIPAddress = listenPointBuilder.hostIPAddress;
     this.transport = listenPointBuilder.transport;
     this.port = listenPointBuilder.port;
     this.recordRoute = listenPointBuilder.recordRoute;
+    this.tlsAuthType = listenPointBuilder.tlsAuthType;
   }
 
   public String getHostIPAddress() {
@@ -46,6 +50,10 @@ public class SIPListenPoint {
 
   public boolean isRecordRoute() {
     return recordRoute;
+  }
+
+  public TLSAuthenticationType getTlsAuthType() {
+    return tlsAuthType;
   }
 
   public String toString() {
@@ -90,6 +98,7 @@ public class SIPListenPoint {
   }
 
   public static class SIPListenPointBuilder {
+
     @JsonProperty private String name;
 
     @JsonProperty private String hostIPAddress;
@@ -100,12 +109,15 @@ public class SIPListenPoint {
 
     @JsonProperty private boolean recordRoute;
 
+    @JsonProperty private TLSAuthenticationType tlsAuthType;
+
     public SIPListenPointBuilder() {
       this.name = "UDPNetwork";
       this.hostIPAddress = "0.0.0.0";
       this.transport = DhruvaSIPConfigProperties.DEFAULT_TRANSPORT;
       this.port = DhruvaSIPConfigProperties.DEFAULT_PORT_UDP;
       this.recordRoute = DhruvaSIPConfigProperties.DEFAULT_RECORD_ROUTE_ENABLED;
+      this.tlsAuthType = DhruvaSIPConfigProperties.DEFAULT_TRANSPORT_AUTH;
     }
 
     public SIPListenPointBuilder setHostIPAddress(String hostIPAddress) {
@@ -130,6 +142,11 @@ public class SIPListenPoint {
 
     public SIPListenPointBuilder setRecordRoute(boolean recordRoute) {
       this.recordRoute = recordRoute;
+      return this;
+    }
+
+    public SIPListenPointBuilder setTlsAuthType(TLSAuthenticationType tlsAuthType) {
+      this.tlsAuthType = tlsAuthType;
       return this;
     }
 

@@ -5,6 +5,7 @@
 
 package com.cisco.dhruva.transport.netty;
 
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
@@ -13,6 +14,11 @@ import io.netty.channel.ChannelPipeline;
 public class BaseChannelInitializer extends ChannelInitializer {
 
   ChannelHandler channelHandler;
+  private final DsNetwork networkconfig;
+
+  public BaseChannelInitializer(DsNetwork networkConfig) {
+    this.networkconfig = networkConfig;
+  }
 
   public BaseChannelInitializer channelHanlder(ChannelHandler channelHandler) {
     this.channelHandler = channelHandler;

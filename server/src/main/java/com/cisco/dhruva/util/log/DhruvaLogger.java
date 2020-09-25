@@ -1,5 +1,6 @@
 package com.cisco.dhruva.util.log;
 
+import com.cisco.dhruva.util.log.event.Event.ErrorType;
 import com.cisco.dhruva.util.log.event.Event.EventSubType;
 import com.cisco.dhruva.util.log.event.Event.EventType;
 import java.util.HashMap;
@@ -111,6 +112,7 @@ public class DhruvaLogger implements Logger {
   public void emitEvent(
       EventType eventType,
       EventSubType eventSubType,
+      ErrorType errorType,
       String message,
       Map<String, String> additionalKeyValueInfo) {
 
@@ -119,6 +121,9 @@ public class DhruvaLogger implements Logger {
     MDC.put(EVENT_TYPE, eventType.name());
     if (eventSubType != null) {
       MDC.put(EVENT_TYPE, eventSubType.name());
+    }
+    if (errorType != null) {
+      MDC.put("ErrorType", errorType.name());
     }
     if (additionalKeyValueInfo != null) {
       additionalKeyValueInfo.forEach((key, value) -> MDC.put(key, value));
