@@ -6,7 +6,8 @@ public enum DnsErrorCode {
   ERROR_DNS_OTHER(902, "DNS-A-Querry Failed, Due To Any Other Reason"),
   ERROR_DNS_INVALID_QUERY(903, "DNS , Invalid qury string"),
   ERROR_DNS_INVALID_TYPE(904, "invalid dns type"),
-  ERROR_UNKNOWN(905, "unknown error");
+  ERROR_DNS_INTERNAL_ERROR(905, "internal execution error"),
+  ERROR_UNKNOWN(906, "unknown error");
 
   private final int value;
   private final String description;

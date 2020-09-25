@@ -9,6 +9,7 @@ import com.cisco.dhruva.common.dns.metrics.DnsTimingContext;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import org.xbill.DNS.Type;
 
 /** Tracks metrics for DnsSrvResolver calls. */
 class MeteredDnsResolver implements DnsLookup {
@@ -21,8 +22,7 @@ class MeteredDnsResolver implements DnsLookup {
   }
 
   @Override
-  public CompletableFuture<List<DNSSRVRecord>> lookupSRV(String fqdn)
-      throws ExecutionException, InterruptedException {
+  public CompletableFuture<List<DNSSRVRecord>> lookupSRV(String fqdn) {
 
     final DnsTimingContext resolveTimer = reporter.resolveTimer();
 
@@ -36,9 +36,12 @@ class MeteredDnsResolver implements DnsLookup {
       if (result.isEmpty()) {
         reporter.reportEmpty(fqdn, "SRV");
       }
-    } catch (DnsException | InterruptedException | ExecutionException error) {
+    } catch (DnsException error) {
       reporter.reportFailure(fqdn, "SRV", error);
       throw error;
+    } catch (InterruptedException | ExecutionException error) {
+      reporter.reportFailure(fqdn, "SRV", error);
+      throw new DnsException(Type.SRV, fqdn, DnsErrorCode.ERROR_DNS_INTERNAL_ERROR);
     } finally {
       resolveTimer.stop(fqdn, "SRV");
     }
@@ -47,8 +50,8 @@ class MeteredDnsResolver implements DnsLookup {
   }
 
   @Override
-  public CompletableFuture<List<DNSARecord>> lookupA(String host)
-      throws ExecutionException, InterruptedException {
+  public CompletableFuture<List<DNSARecord>> lookupA(String host) {
+
     final DnsTimingContext resolveTimer = reporter.resolveTimer();
 
     final List<DNSARecord> result;
@@ -61,9 +64,12 @@ class MeteredDnsResolver implements DnsLookup {
       if (result.isEmpty()) {
         reporter.reportEmpty(host, "A");
       }
-    } catch (DnsException | InterruptedException | ExecutionException error) {
+    } catch (DnsException error) {
       reporter.reportFailure(host, "A", error);
       throw error;
+    } catch (InterruptedException | ExecutionException error) {
+      reporter.reportFailure(host, "A", error);
+      throw new DnsException(Type.A, host, DnsErrorCode.ERROR_DNS_INTERNAL_ERROR);
     } finally {
       resolveTimer.stop(host, "A");
     }

@@ -30,16 +30,19 @@ import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-// @RunWith(SpringRunner.class)
-// @SpringBootTest
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class DsSipClientTransactionTest {
 
   private DsSipTransactionManager sipTransactionManager;
@@ -57,7 +60,7 @@ public class DsSipClientTransactionTest {
   private InetAddress remoteAddress;
   private int localPort, remotePort;
   private DsNetwork dsNetwork;
-  @InjectMocks SipServerLocatorService locatorService;
+  @Autowired SipServerLocatorService locatorService;
 
   @BeforeClass
   public void init() throws UnknownHostException, DsException {
@@ -170,8 +173,8 @@ public class DsSipClientTransactionTest {
 
     // Configure Transport Layer for sending INVITE request from Transaction manager
     DsSipConnection sendConnection = mock(DsSipConnection.class);
-    when(sendConnection.getBindingInfo()).thenReturn(incomingMessageBindingInfo);
-    when(sendConnection.getTransportType()).thenReturn(Transport.UDP);
+    //    when(sendConnection.getBindingInfo()).thenReturn(incomingMessageBindingInfo);
+    //    when(sendConnection.getTransportType()).thenReturn(Transport.UDP);
 
     doReturn(sendConnection)
         .when(transportLayer)
