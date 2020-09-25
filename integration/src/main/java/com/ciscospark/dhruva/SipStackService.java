@@ -11,12 +11,10 @@ public class SipStackService {
   private static SipStack sipStack;
 
   public SipStackService() {
-    System.out.println("Hello SipStackService constructor created!! ");
   }
 
   @PostConstruct
   public void init() {
-    System.out.println("Automatically into Construct ");
     Properties properties = new Properties();
     properties.setProperty("javax.sip.STACK_NAME", "TestDhruva");
     properties.setProperty("javax.sip.IP_ADDRESS", "127.0.0.1");
