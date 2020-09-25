@@ -1,18 +1,24 @@
 package com.ciscospark.dhruva;
 
 import com.ciscospark.dhruva.client.DhruvaClientFactory;
+import com.ciscospark.dhruva.util.DhruvaConfig;
 import com.ciscospark.integration.Tag;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = TestConfiguration.class)
-public class DhruvaIT extends AbstractJUnit4SpringContextTests {
+@ComponentScan(basePackages = "com.ciscospark.dhruva")
+@ContextConfiguration(classes = {TestConfiguration.class, DhruvaConfig.class})
+public class DhruvaIT extends AbstractTestNGSpringContextTests {
   @Autowired private DhruvaClientFactory helloWorldClientFactory;
+
+  public SipStackService getSipStackService() {
+    return sipStackService;
+  }
+
+  @Autowired protected SipStackService sipStackService;
 
   @Test
   @Tag("TAP")

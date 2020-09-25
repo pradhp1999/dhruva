@@ -45,6 +45,26 @@
             <groupId>com.cisco.wx2</groupId>
             <artifactId>core-test</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.cafesip.sipunit</groupId>
+            <artifactId>sipunit</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jnr</groupId>
+            <artifactId>jnr-ffi</artifactId>
+            <version>2.1.7</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.sip</groupId>
+            <artifactId>jain-sip-ri</artifactId>
+            <version>1.2.344</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -59,7 +79,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.ciscospark.integration.JUnitTestRunner</mainClass>
+                    <mainClass>com.ciscospark.integration.TestNGRunner</mainClass>
                     <finalName>dhruva-integration-tests</finalName>
                 </configuration>
                 <executions>
