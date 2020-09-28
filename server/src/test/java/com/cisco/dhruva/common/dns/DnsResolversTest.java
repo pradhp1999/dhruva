@@ -4,18 +4,20 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.isA;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.cisco.dhruva.common.dns.dto.DNSARecord;
 import com.cisco.dhruva.common.dns.dto.DNSSRVRecord;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -33,6 +35,8 @@ public class DnsResolversTest {
     lookupFactory = mock(LookupFactory.class);
 
     xbillResolver = mock(Resolver.class);
+
+    MockitoAnnotations.initMocks(this);
 
     resolver = DnsResolvers.newBuilder().lookupFactory(lookupFactory).build();
   }
@@ -141,7 +145,7 @@ public class DnsResolversTest {
       throws IOException {
     when(lookupFactory.createLookup(queryFqdn, Type.A)).thenReturn(testLookupA(queryFqdn));
     when(xbillResolver.send(any(Message.class)))
-        .thenReturn(messageWithNodes(responseFqdn, results));
+        .thenReturn(messageWithANodes(responseFqdn, results));
   }
 
   private Message messageWithRCode(String query, int rcode) throws TextParseException {
@@ -185,6 +189,22 @@ public class DnsResolversTest {
       result.addRecord(
           new SRVRecord(queryName, DClass.IN, 1, 1, 1, 8080, Name.fromString(name1)),
           Section.ANSWER);
+    }
+
+    return result;
+  }
+
+  private Message messageWithANodes(String query, String[] names)
+      throws TextParseException, UnknownHostException {
+    Name queryName = Name.fromString(query);
+    Record question = Record.newRecord(queryName, Type.A, DClass.IN);
+    Message queryMessage = Message.newQuery(question);
+    Message result = new Message();
+    result.setHeader(queryMessage.getHeader());
+    result.addRecord(question, Section.QUESTION);
+    InetAddress addr = InetAddress.getByName("127.0.0.1");
+    for (String name1 : names) {
+      result.addRecord(new ARecord(queryName, DClass.IN, 1, addr), Section.ANSWER);
     }
 
     return result;

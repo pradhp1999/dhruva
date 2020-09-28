@@ -71,6 +71,11 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
   }
 
   @Bean
+  public DnsReporter dnsMetricsReporter() {
+    return new DnsMetricsReporter();
+  }
+
+  @Bean
   public DnsLookup dnsLookup() {
     return DnsResolvers.newBuilder()
         .cacheSize(dhruvaSIPConfigProperties.getDhruvaDnsCacheMaxSize())
