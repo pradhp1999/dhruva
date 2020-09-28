@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -55,7 +54,8 @@ public class DsSipClientTransactionTest {
   private InetAddress remoteAddress;
   private int localPort, remotePort;
   private DsNetwork dsNetwork;
-  @InjectMocks SipServerLocatorService locatorService;
+  private SipServerLocatorService locatorService;
+  private DsSipServerLocator sipServerLocator;
 
   @BeforeClass
   public void init() throws UnknownHostException, DsException {
@@ -75,6 +75,8 @@ public class DsSipClientTransactionTest {
         new DsBindingInfo(localAddress, localPort, localAddress, remotePort, Transport.UDP);
     dsNetwork = DsNetwork.getNetwork("Default");
     incomingMessageBindingInfo.setNetwork(dsNetwork);
+    locatorService = mock(SipServerLocatorService.class);
+    sipServerLocator = mock(DsSipServerLocator.class);
 
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipProxyManager dsSipProxyManager = DsSipProxyManager.getInstance();
@@ -137,8 +139,7 @@ public class DsSipClientTransactionTest {
     sipTransactionManager.setM_transactionTable(new DsSipTransactionTable());
   }
 
-  @Test(enabled = false)
-  // @Test
+  @Test
   public void testSipClientTransaction() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -168,8 +169,12 @@ public class DsSipClientTransactionTest {
 
     // Configure Transport Layer for sending INVITE request from Transaction manager
     DsSipConnection sendConnection = mock(DsSipConnection.class);
-    //    when(sendConnection.getBindingInfo()).thenReturn(incomingMessageBindingInfo);
-    //    when(sendConnection.getTransportType()).thenReturn(Transport.UDP);
+    when(sendConnection.getBindingInfo()).thenReturn(incomingMessageBindingInfo);
+    when(sendConnection.getTransportType()).thenReturn(Transport.UDP);
+    when(locatorService.isSupported(any(Transport.class))).thenReturn(true);
+    when(locatorService.shouldSearch(any(DsSipURL.class))).thenReturn(false);
+    when(locatorService.getLocator()).thenReturn(sipServerLocator);
+    doNothing().when(sipServerLocator).setSupportedTransports(any(byte.class));
 
     doReturn(sendConnection)
         .when(transportLayer)
@@ -180,6 +185,7 @@ public class DsSipClientTransactionTest {
             any(InetAddress.class),
             any(Integer.class),
             any(Transport.class));
+    doReturn(sendConnection).when(transportLayer).getConnection(any(DsBindingInfo.class));
 
     DsProxyController ctrlr = spy((DsProxyController) controller);
 
@@ -192,9 +198,6 @@ public class DsSipClientTransactionTest {
     doNothing()
         .when(appInterfaceMock)
         .handleResponse(any(Location.class), any(Optional.class), any(int.class));
-
-    when(locatorService.shouldSearch(any(DnsDestination.class))).thenReturn(false);
-    when(locatorService.isSupported(any(Transport.class))).thenReturn(true);
 
     ctrlr.setRequest(sipRequest);
     ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);

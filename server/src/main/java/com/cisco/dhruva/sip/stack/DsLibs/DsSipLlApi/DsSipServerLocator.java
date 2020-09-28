@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public final class DsSipServerLocator implements DsSipResolver {
+public class DsSipServerLocator implements DsSipResolver {
   private static final Logger logger = DhruvaLoggerFactory.getLogger(DsSipServerLocator.class);
   private final DnsLookup dnsLookup;
   public static boolean m_useDsUnreachableTable = false;
@@ -149,7 +149,7 @@ public final class DsSipServerLocator implements DsSipResolver {
   // This implements the lookup logic described in RFC 3263, at least the parts of it that we
   // support.
   // Some pieces not in place yet are:
-  // AAAA lookup - IPv6 support for Spark and l2sip is not high on priority list at the moment
+  // AAAA lookup - IPv6 support for Spark and dhruva is not high on priority list at the moment
   // (2015-08)
   // NAPTR lookup - Very few customers (if any) use this. It could be useful for cloud calling
   //                for a customer to tell us whether to use TLS or TCP SIP.

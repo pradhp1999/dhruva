@@ -8,7 +8,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
-import com.cisco.dhruva.util.log.Trace;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
@@ -17,11 +18,10 @@ import java.util.stream.Collectors;
 public class DnsServerGroupUtil {
   private float maxDnsPriority = 65535f;
   private int maxDnsQValue = 65536;
-  private Exception failureException;
 
   private SipServerLocatorService locatorService;
 
-  protected static Trace log = Trace.getTrace(DnsServerGroupUtil.class.getName());
+  private static final Logger log = DhruvaLoggerFactory.getLogger(DnsServerGroupUtil.class);
 
   public DnsServerGroupUtil(SipServerLocatorService locatorService) {
     this.locatorService = locatorService;
@@ -31,9 +31,9 @@ public class DnsServerGroupUtil {
       DsByteString host, int port, DsNetwork network, Transport protocol, DsSipRequest request)
       throws ExecutionException, InterruptedException {
     // create DNS ServerGroup from from SRV, if SRV lookup fails then do A records lookup
-    if (Trace.on && log.isDebugEnabled()) {
-      log.debug("new Server Group will be created by doing DNS SRV/A lookup for host : " + host);
-    }
+
+    log.debug("new Server Group will be created by doing DNS SRV/A lookup for host : " + host);
+
     DnsDestination dnsDestination =
         new DnsDestination(host.toString(), port, LocateSIPServerTransportType.TLS_AND_TCP);
 

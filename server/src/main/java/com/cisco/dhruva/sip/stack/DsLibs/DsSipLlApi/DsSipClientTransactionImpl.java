@@ -47,6 +47,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import javax.annotation.Nullable;
 import org.slf4j.event.Level;
 
 /**
@@ -433,6 +434,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         }
         Optional<SipServerLocatorService> optSipResolver = DsSipTransactionManager.getSipResolver();
         if (optSipResolver.isPresent()) resolver = optSipResolver.get().getLocator();
+        genCat.warn("resolver set is null");
         // else throw new IOException("unable to find resolver");
 
         m_connection = new ConnectionWrapper(m_sipRequest, resolver);
@@ -2086,18 +2088,18 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       m_strConnectionId = other.m_strConnectionId;
     }
 
-    ConnectionWrapper(DsSipRequest request, DsSipResolver resolver)
+    ConnectionWrapper(DsSipRequest request, @Nullable DsSipResolver resolver)
         throws IOException, DsException {
       m_resolver = resolver;
       // TODO DNS
       // m_resolver.setSizeExceedsMTU(request.sizeExceedsMTU());
       // establish the initial set of endpoints to search
-      replace(DsSipTransactionManager.getRequestConnection(request, m_resolver));
+      replace(DsSipTransactionManager.getRequestConnection(request, null));
     }
 
     ConnectionWrapper(DsSipRequest request, DsByteString connectionId) throws DsException {
-      m_resolver = null;
-      m_resolver.setSizeExceedsMTU(request.sizeExceedsMTU());
+      //      m_resolver = null;
+      //      m_resolver.setSizeExceedsMTU(request.sizeExceedsMTU());
       m_strConnectionId = connectionId;
       // establish the initial set of endpoints to search
       replace(DsSipConnectionAssociations.getConnection(m_strConnectionId));
@@ -2131,7 +2133,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       //      }
 
       if (request.getURI().isSipURL()) {
-        m_resolver.setSizeExceedsMTU(request.sizeExceedsMTU());
+        // m_resolver.setSizeExceedsMTU(request.sizeExceedsMTU());
         replace(DsSipTransactionManager.getRequestConnection(request, m_resolver));
       }
     }
@@ -2344,130 +2346,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     // ////////////////////////////////////////////////////////////////
 
     /**
-     * Return a connection to the next endpoint.
-     *
-     * @return a connection to the next endpoint
-     * @throws DsException if there is an exception in the User Agent code
-     * @throws IOException if thrown by the underlying socket
-     */
-    public DsSipConnection tryConnect() throws DsException, IOException {
-      // todo: use DsConnectionBarrier to prevent multiple threads from creating the
-      //    same entry in the connection table
-
-      if (m_end) return null;
-      if (m_resolverInfo == null) return null;
-
-      m_end = true;
-      DsSipTransportLayer tl = DsSipTransactionManager.getTransportLayer();
-
-      if ((m_resolverInfo != null) && (m_resolverInfo.getRemoteAddress() == null)) {
-        throw new IOException("can't resolve address: " + m_resolverInfo.getRemoteAddressStr());
-      }
-
-      DsSipConnection con = null;
-      try {
-        /**
-         * edited by radmohan
-         *
-         * <p>CSCtz70393 Thread pool exhausted when all elements in srv group is down
-         */
-        if (!DsSipClientTransactionImpl.m_useDsUnreachableTable) {
-
-          genCat.info(
-              "DsSipClientTransactionImpl.m_useDsUnreachableTable: is set to :"
-                  + DsSipClientTransactionImpl.m_useDsUnreachableTable);
-
-          con =
-              (DsSipConnection)
-                  tl.getConnection(
-                      m_resolverInfo.getNetwork(),
-                      m_resolverInfo.getLocalAddress(),
-                      m_resolverInfo.getLocalPort(),
-                      m_resolverInfo.getRemoteAddress(),
-                      m_resolverInfo.getRemotePort(),
-                      m_resolverInfo.getTransport());
-        } else {
-          genCat.info(
-              "DsSipClientTransactionImpl.m_useDsUnreachableTable: is set to :"
-                  + DsSipClientTransactionImpl.m_useDsUnreachableTable);
-
-          if (!DsUnreachableDestinationTable.getInstance()
-              .contains(
-                  m_resolverInfo.getRemoteAddress(),
-                  m_resolverInfo.getRemotePort(),
-                  m_resolverInfo.getTransport())) {
-            genCat.info(
-                "DsSipClientTransactionImpl.tryConnect: not present DsUnreachableDestinationTable:"
-                    + m_resolverInfo.getRemoteAddress());
-            con =
-                (DsSipConnection)
-                    tl.getConnection(
-                        m_resolverInfo.getNetwork(),
-                        m_resolverInfo.getLocalAddress(),
-                        m_resolverInfo.getLocalPort(),
-                        m_resolverInfo.getRemoteAddress(),
-                        m_resolverInfo.getRemotePort(),
-                        m_resolverInfo.getTransport());
-          } else {
-
-            genCat.info(
-                "DsSipClientTransactionImpl.tryConnect:  present DsUnreachableDestinationTable:"
-                    + m_resolverInfo.getRemoteAddress());
-          }
-        }
-      } catch (Exception e) {
-        if (genCat.isEnabled(Level.INFO)) {
-
-          // qfang - 11.27.06 - CSCsg64718 - manage unreachable destination
-          DsUnreachableDestinationTable.getInstance()
-              .add(
-                  m_resolverInfo.getRemoteAddress(),
-                  m_resolverInfo.getRemotePort(),
-                  m_resolverInfo.getTransport());
-
-          genCat.info("Getting Connection from transport layer failed ", e);
-        }
-
-        // Try again with the UDP itself.
-        if (m_sizeExceedsMTU) {
-          DsNetwork network = m_resolverInfo.getNetwork();
-          /* TODO
-          if (network != null && network.isBehindNAT()) {
-            // we un-set the local binding info earlier, now we need to put it back
-            // since the TCP connection failed for some reason.
-            DsUdpListener listener = network.getUdpListener();
-            if (listener != null) {
-              m_resolverInfo.setLocalAddress(listener.m_address);
-              m_resolverInfo.setLocalPort(listener.m_port);
-              if (genCat.isEnabled(Level.INFO)) {
-                genCat.info(
-                    "tryConnect() - resetting local binding info - host = "
-                        + ((DsPacketListener) listener).m_address
-                        + " / port = "
-                        + ((DsPacketListener) listener).m_port
-                        + " and trying UDP");
-              }
-            }
-          }*/
-
-          genCat.warn("tryConnect() m_sizeExceedsMTU trying UDP " + m_resolverInfo);
-          m_resolverInfo.setTransport(Transport.UDP);
-          con =
-              (DsSipConnection)
-                  tl.getConnection(
-                      network,
-                      m_resolverInfo.getLocalAddress(),
-                      m_resolverInfo.getLocalPort(),
-                      m_resolverInfo.getRemoteAddress(),
-                      m_resolverInfo.getRemotePort(),
-                      m_resolverInfo.getTransport());
-        }
-      }
-
-      return con;
-    }
-
-    /**
      * Return the DsBindingInfo for the connection last returned by tryConnect.
      *
      * @return the DsBindingInfo for the connection last returned by tryConnect.
@@ -2475,65 +2353,6 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     public DsBindingInfo getCurrentBindingInfo() {
       return m_resolverInfo;
     }
-
-    /**
-     * Return true if the resolver would initialize to it's current set of endpoints given this URL.
-     *
-     * @param url the URL to resolve against
-     * @param sizeExceedsMTU <code>true</code> if this message was too large for UDP so it failed
-     *     over to TCP
-     * @return true if the resolver would initialize to it's current set of endpoints given this
-     *     URL.
-     */
-    public boolean queryMatches(DsSipURL url, boolean sizeExceedsMTU) {
-      if (m_resolverInfo == null) return false;
-
-      return DsSipResolverUtils.queryMatches(
-              url,
-              m_resolverInfo.getRemoteAddressStr(),
-              m_resolverInfo.getRemotePort(),
-              m_resolverInfo.getTransport())
-          && (m_sizeExceedsMTU == sizeExceedsMTU);
-    }
-
-    // TODO DNS
-    //    /**
-    //     * Called to initialize the the resolver. The resolver will typically create a list of
-    // potential
-    //     * endpoints to contact. Two versions of signatures - with/without local binding
-    // specified.
-    //     */
-    //    public void initialize(DsNetwork network, DsSipURL url)
-    //        throws DsSipParserException, UnknownHostException, DsSipServerNotFoundException {
-    //      // delegate to helper
-    //      DsSipResolverUtils.initialize(network, this, url);
-    //    }
-    //
-    //    public void initialize(DsNetwork network, InetAddress localAddress, int localPort,
-    // DsSipURL url)
-    //        throws DsSipParserException, UnknownHostException, DsSipServerNotFoundException {
-    //      // delegate to helper
-    //      DsSipResolverUtils.initialize(network, this, localAddress, localPort, url);
-    //    }
-    //
-    //    public void initialize(DsNetwork network, String host, int port, Transport transport)
-    //        throws UnknownHostException, DsSipServerNotFoundException {
-    //      // delegate to helper
-    //      DsSipResolverUtils.initialize(network, this, host, port, transport);
-    //    }
-    //
-    //    public void initialize(
-    //        DsNetwork network,
-    //        InetAddress localAddress,
-    //        int localPort,
-    //        String host,
-    //        int port,
-    //        Transport transport)
-    //        throws UnknownHostException, DsSipServerNotFoundException {
-    //      // delegate to helper
-    //      DsSipResolverUtils.initialize(network, this, localAddress, localPort, host, port,
-    // transport);
-    //    }
 
     public void initialize(
         DsNetwork network,
@@ -2576,7 +2395,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         localAddr = null;
         localPort = DsBindingInfo.LOCAL_PORT_UNSPECIFIED;
         /*
-        TODO
+        MEETPASS CHECK IMP UDP to TCP TODO
                 try {
 
                   DsStreamListener listener =
