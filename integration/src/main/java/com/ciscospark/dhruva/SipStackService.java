@@ -3,15 +3,16 @@ package com.ciscospark.dhruva;
 import java.util.Properties;
 import javax.annotation.PostConstruct;
 import org.cafesip.sipunit.SipStack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SipStackService {
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationTestListener.class);
   private static SipStack sipStack;
 
-  public SipStackService() {
-  }
+  public SipStackService() {}
 
   @PostConstruct
   public void init() {
@@ -21,6 +22,7 @@ public class SipStackService {
     try {
       sipStack = createSipStack("UDP", 5070, properties);
     } catch (Exception e) {
+      LOGGER.error("Exception while creating  sip stack ");
       e.printStackTrace();
     }
   }

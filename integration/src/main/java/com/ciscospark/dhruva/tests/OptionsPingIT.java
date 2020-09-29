@@ -16,19 +16,19 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class OptionsPingIT extends DhruvaIT {
-
   DhruvaTestProperties testPro = new DhruvaTestProperties();
-  public String testHost = testPro.getTestAddress();
-  public int testUdpPort = testPro.getTestUdpPort();
+  private String testHost = testPro.getTestAddress();
+  private int testUdpPort = testPro.getTestUdpPort();
 
-  public String dhruvaHost = testPro.getDhruvaHost();
-  public int dhruvaUdpPort = testPro.getDhruvaUdpPort();
+  private String dhruvaHost = testPro.getDhruvaHost();
+  private int dhruvaUdpPort = testPro.getDhruvaUdpPort();
 
-  public String optionPingApi = dhruvaHost + Token.Colon + dhruvaUdpPort;
+  private String optionsPingUrl = dhruvaHost + Token.COLON + dhruvaUdpPort;
+
+  private int timeOutValue = 10000;
 
   @Test(groups = TestGroups.DhruvaIT)
   void testOptions() throws Exception {
-
     DhruvaSipPhone phone;
 
     phone =
@@ -39,7 +39,8 @@ public class OptionsPingIT extends DhruvaIT {
             testUdpPort,
             "sip:sipptest@" + testHost);
 
-    String optionsReqUri = "OPTIONS " + Token.SipColon + optionPingApi + ("") + " SIP/2.0\r\n\r\n";
+    String optionsReqUri =
+        Request.OPTIONS + " " + Token.SIP_COLON + optionsPingUrl + " SIP/2.0\r\n\r\n";
 
     Request option = phone.getParent().getMessageFactory().createRequest(optionsReqUri);
 
@@ -53,7 +54,7 @@ public class OptionsPingIT extends DhruvaIT {
 
     Address toAddress =
         addressFactory.createAddress(
-            addressFactory.createURI(Token.SipColon + "service@" + optionPingApi));
+            addressFactory.createURI(Token.SIP_COLON + "service@" + optionsPingUrl));
     option.addHeader(headerFactory.createToHeader(toAddress, null));
 
     option.addHeader(headerFactory.createContactHeader(phone.getAddress()));
@@ -61,8 +62,7 @@ public class OptionsPingIT extends DhruvaIT {
     option.addHeader(headerFactory.createMaxForwardsHeader(1));
 
     SipTransaction transaction = phone.sendRequestWithTransaction(option, false, null);
-
-     ResponseEvent responseEvent = (ResponseEvent) phone.waitResponse(transaction, 10000);
+    ResponseEvent responseEvent = (ResponseEvent) phone.waitResponse(transaction, timeOutValue);
 
     Assert.assertEquals(responseEvent.getResponse().getStatusCode(), 200);
   }
