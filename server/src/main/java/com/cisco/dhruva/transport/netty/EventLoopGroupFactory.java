@@ -37,6 +37,8 @@ public class EventLoopGroupFactory {
             }
           }
         }
+        eventLoopGroup = (NioEventLoopGroup) udpEventLoopGroup;
+
         break;
 
       case TLS:
@@ -51,6 +53,8 @@ public class EventLoopGroupFactory {
             }
           }
         }
+        eventLoopGroup = (NioEventLoopGroup) udpEventLoopGroup;
+
         break;
     }
 

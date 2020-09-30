@@ -1,22 +1,27 @@
 package com.ciscospark.dhruva;
 
 import com.ciscospark.dhruva.client.DhruvaClientFactory;
-import com.ciscospark.integration.Tag;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.ciscospark.dhruva.util.DhruvaConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Listeners;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = TestConfiguration.class)
-public class DhruvaIT extends AbstractJUnit4SpringContextTests {
-  @Autowired private DhruvaClientFactory helloWorldClientFactory;
+@Listeners({IntegrationTestListener.class})
+@ComponentScan(basePackages = "com.ciscospark.dhruva")
+@ContextConfiguration(classes = {TestConfiguration.class, DhruvaConfig.class})
+public class DhruvaIT extends AbstractTestNGSpringContextTests {
 
-  @Test
-  @Tag("TAP")
-  public void testPing() {
-    helloWorldClientFactory.newDhruvaClient().ping();
+  @Autowired protected DhruvaClientFactory helloWorldClientFactory;
+
+  @Autowired protected SipStackService sipStackService;
+
+  public DhruvaClientFactory getHelloWorldClientFactory() {
+    return helloWorldClientFactory;
+  }
+
+  public SipStackService getSipStackService() {
+    return sipStackService;
   }
 }
