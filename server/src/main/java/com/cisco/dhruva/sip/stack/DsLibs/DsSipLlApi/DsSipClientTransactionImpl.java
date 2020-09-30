@@ -626,7 +626,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
    * </code>.
    *
    * @return <code>true</code> if this is an INVITE transaction, otherwise returns <code>false
-   *     </code>
+   * </code>
    */
   public boolean isInvite() {
     return false;
@@ -733,12 +733,15 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
   }
 
   public synchronized void onIOException(IOException exc) {
-    if (genCat.isEnabled(Level.WARN)) genCat.warn("onIOException async exception: ", exc);
+    if (genCat.isEnabled(Level.WARN)) {
+      genCat.warn("onIOException async exception: ", exc);
+    }
     try {
       execute(DS_CT_IN_IO_EXCEPTION);
     } catch (DsStateMachineException sme) {
-      if (genCat.isEnabled(Level.WARN))
+      if (genCat.isEnabled(Level.WARN)) {
         genCat.warn("onIOException(): state machine exception processing async excption", sme);
+      }
     }
   }
 
@@ -1404,7 +1407,9 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
 
   /** Remove the transaction and release resources. */
   void cleanup() {
-    if (m_isCleanedup) return;
+    if (m_isCleanedup) {
+      return;
+    }
     nullRefs();
     m_connection.release();
     try {
@@ -1508,6 +1513,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
   }
 
   // CAFFEINE 2.0 DEVELOPMENT - required by handling PRACK.
+
   /** Create the client transaction for the PRACK. */
   void createPrackTransaction(int transition, DsSipPRACKMessage prackMessage)
       throws IOException, DsException {
@@ -1705,8 +1711,9 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
    */
   protected void replaceKey(DsSipRequest request) throws DsException {
     if (request.getMethodID() == DsSipConstants.ACK) {
-      if (genCat.isEnabled(Level.WARN))
+      if (genCat.isEnabled(Level.WARN)) {
         genCat.warn("Trying to replace the transaction key using the ACK, should NOT get here");
+      }
       return;
     }
 
@@ -1828,6 +1835,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
 
   // CSCts72798: Only Blacklist Dialog Creating Failures, not Mid-dialog Failures
   // Only add to the black list when the failure does not come from mid-dialog requests
+
   /**
    * Determine if this is a mid-dialog request by looking for a To Tag. A <code>null</code> request
    * returns false.
@@ -1850,6 +1858,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
   // //////////////////////////////////////////////////////////////
 
   class ClientTransactionCallback implements DsUnitOfWork {
+
     DsSipClientTransactionInterface cb;
     DsSipResponse response;
     DsSipClientTransaction originalTransaction;
@@ -1889,8 +1898,9 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     }
 
     public void process() {
-      if (!DsLog4j.logSessionId(DsSipClientTransactionImpl.this.m_sipResponse))
+      if (!DsLog4j.logSessionId(DsSipClientTransactionImpl.this.m_sipResponse)) {
         DsLog4j.logSessionId(DsSipClientTransactionImpl.this.m_sipRequest);
+      }
 
       if (type == CB_MULTIPLE_FINAL_RESPONSE) {
         if (cb instanceof DsSipMFRClientTransactionInterface) {
@@ -2013,7 +2023,9 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
   // short (usually 1 or 2 elements).  Also, it is just comparing ints, rather than objects.
   // Saves modulus and call to equals(). - jsm
   protected boolean findAndUpdateRetransmission() {
-    if (m_sipResponse == null) return false;
+    if (m_sipResponse == null) {
+      return false;
+    }
 
     int statusCode = m_sipResponse.getStatusCode();
 
@@ -2031,6 +2043,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
   // //////////////////////////////////////////////////////////////
   // /////////// inner  class ConnectionWrapper ///////////////////
   // //////////////////////////////////////////////////////////////
+
   /** Manage the underlying DsConnection reference count. */
   // qfang - 10.12.06 - CSCsg10882 need to act on connection closed/error
   // in order to support destination rollover
@@ -2120,7 +2133,9 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     void getRequestConnection(DsSipRequest request)
         throws DsException, UnknownHostException, IOException {
       // Use the same connection.
-      if (m_strConnectionId != null) return;
+      if (m_strConnectionId != null) {
+        return;
+      }
 
       //      boolean sizeExceedsMTU = request.sizeExceedsMTU();
       //      boolean use_current_srv =
@@ -2149,7 +2164,9 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     void getSRVConnection(DsSipRequest request, DsSipURL url)
         throws SocketException, DsException, UnknownHostException, IOException {
       // Use the same connection.
-      if (m_strConnectionId != null) return;
+      if (m_strConnectionId != null) {
+        return;
+      }
 
       boolean sizeExceedsMTU = request.sizeExceedsMTU();
       // TODO DNS
@@ -2278,7 +2295,9 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
               + m_connection_
               + " new Connection "
               + new_connection);
-      if (m_connection_ == new_connection) return;
+      if (m_connection_ == new_connection) {
+        return;
+      }
       if (m_connection_ != null) {
         m_connection_.removeReference();
         // qfang - 10.12.06 - CSCsg10882 need to act on connection closed/error
@@ -2294,9 +2313,13 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
         // in order to support destination rollover
         m_connection_.addDsConnectionEventListener(this);
         if (genCat.isEnabled(Level.INFO)) {
-          genCat.info("connection: " + m_connection_);
-          genCat.info("connection addr: " + addr);
-          genCat.info("connection port: " + port);
+          genCat.info(
+              "New connection to be used "
+                  + m_connection_
+                  + " , addr = "
+                  + addr
+                  + ", port = "
+                  + port);
         }
       }
     }
@@ -2322,10 +2345,12 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
      * @throws IOException if error occurs while sending data through the network
      */
     protected byte[] send(DsSipRequest request) throws IOException, DsException {
-      if (checkVia(request)) replaceKey(request);
+      if (checkVia(request)) {
+        replaceKey(request);
+      }
 
       request.setFinalised(true);
-      byte[] bytes = m_connection_.sendTo(request, addr, port, DsSipClientTransactionImpl.this);
+      byte[] bytes = m_connection_.send(request);
       // Update the binding info
       request.updateBinding(m_connection_.getBindingInfo());
       return bytes;
@@ -2338,12 +2363,140 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
      * @throws IOException if error occurs while sending data through the network
      */
     protected void send(byte buffer[]) throws IOException {
-      m_connection_.sendTo(buffer, addr, port, DsSipClientTransactionImpl.this);
+      m_connection_.send(buffer);
     }
 
     // ////////////////////////////////////////////////////////////////
     // ////// DsSipResolver methods        ////////////////////////////
     // ////////////////////////////////////////////////////////////////
+
+    /**
+     * <<<<<<< HEAD Return a connection to the next endpoint.
+     *
+     * @return a connection to the next endpoint
+     * @throws DsException if there is an exception in the User Agent code
+     * @throws IOException if thrown by the underlying socket
+     */
+    public DsSipConnection tryConnect() throws DsException, IOException {
+      // todo: use DsConnectionBarrier to prevent multiple threads from creating the
+      //    same entry in the connection table
+
+      if (m_end) {
+        return null;
+      }
+      if (m_resolverInfo == null) {
+        return null;
+      }
+
+      m_end = true;
+      DsSipTransportLayer tl = DsSipTransactionManager.getTransportLayer();
+
+      if ((m_resolverInfo != null) && (m_resolverInfo.getRemoteAddress() == null)) {
+        throw new IOException("can't resolve address: " + m_resolverInfo.getRemoteAddressStr());
+      }
+
+      DsSipConnection con = null;
+      try {
+        /**
+         * edited by radmohan
+         *
+         * <p>CSCtz70393 Thread pool exhausted when all elements in srv group is down
+         */
+        if (!DsSipClientTransactionImpl.m_useDsUnreachableTable) {
+
+          genCat.info(
+              "DsSipClientTransactionImpl.m_useDsUnreachableTable: is set to :"
+                  + DsSipClientTransactionImpl.m_useDsUnreachableTable);
+
+          con =
+              (DsSipConnection)
+                  tl.getConnection(
+                      m_resolverInfo.getNetwork(),
+                      m_resolverInfo.getLocalAddress(),
+                      m_resolverInfo.getLocalPort(),
+                      m_resolverInfo.getRemoteAddress(),
+                      m_resolverInfo.getRemotePort(),
+                      m_resolverInfo.getTransport());
+        } else {
+          genCat.info(
+              "DsSipClientTransactionImpl.m_useDsUnreachableTable: is set to :"
+                  + DsSipClientTransactionImpl.m_useDsUnreachableTable);
+
+          if (!DsUnreachableDestinationTable.getInstance()
+              .contains(
+                  m_resolverInfo.getRemoteAddress(),
+                  m_resolverInfo.getRemotePort(),
+                  m_resolverInfo.getTransport())) {
+            genCat.info(
+                "DsSipClientTransactionImpl.tryConnect: not present DsUnreachableDestinationTable:"
+                    + m_resolverInfo.getRemoteAddress());
+            con =
+                (DsSipConnection)
+                    tl.getConnection(
+                        m_resolverInfo.getNetwork(),
+                        m_resolverInfo.getLocalAddress(),
+                        m_resolverInfo.getLocalPort(),
+                        m_resolverInfo.getRemoteAddress(),
+                        m_resolverInfo.getRemotePort(),
+                        m_resolverInfo.getTransport());
+          } else {
+
+            genCat.info(
+                "DsSipClientTransactionImpl.tryConnect:  present DsUnreachableDestinationTable:"
+                    + m_resolverInfo.getRemoteAddress());
+          }
+        }
+      } catch (Exception e) {
+        if (genCat.isEnabled(Level.INFO)) {
+
+          // qfang - 11.27.06 - CSCsg64718 - manage unreachable destination
+          DsUnreachableDestinationTable.getInstance()
+              .add(
+                  m_resolverInfo.getRemoteAddress(),
+                  m_resolverInfo.getRemotePort(),
+                  m_resolverInfo.getTransport());
+
+          genCat.info("Getting Connection from transport layer failed ", e);
+        }
+
+        // Try again with the UDP itself.
+        if (m_sizeExceedsMTU) {
+          DsNetwork network = m_resolverInfo.getNetwork();
+          /* TODO
+          if (network != null && network.isBehindNAT()) {
+            // we un-set the local binding info earlier, now we need to put it back
+            // since the TCP connection failed for some reason.
+            DsUdpListener listener = network.getUdpListener();
+            if (listener != null) {
+              m_resolverInfo.setLocalAddress(listener.m_address);
+              m_resolverInfo.setLocalPort(listener.m_port);
+              if (genCat.isEnabled(Level.INFO)) {
+                genCat.info(
+                    "tryConnect() - resetting local binding info - host = "
+                        + ((DsPacketListener) listener).m_address
+                        + " / port = "
+                        + ((DsPacketListener) listener).m_port
+                        + " and trying UDP");
+              }
+            }
+          }*/
+
+          genCat.warn("tryConnect() m_sizeExceedsMTU trying UDP " + m_resolverInfo);
+          m_resolverInfo.setTransport(Transport.UDP);
+          con =
+              (DsSipConnection)
+                  tl.getConnection(
+                      network,
+                      m_resolverInfo.getLocalAddress(),
+                      m_resolverInfo.getLocalPort(),
+                      m_resolverInfo.getRemoteAddress(),
+                      m_resolverInfo.getRemotePort(),
+                      m_resolverInfo.getTransport());
+        }
+      }
+
+      return con;
+    }
 
     /**
      * Return the DsBindingInfo for the connection last returned by tryConnect.
@@ -2463,6 +2616,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
     // in order to support destination rollover
     //////////////////////////////////////////////////
     /// Implement DsConnectionEventListener interface
+
     /**
      * Callback for connection closed event.
      *
@@ -2557,6 +2711,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
 
   /** A class to absorb 503 retransmissions. */
   private static class ServiceUnavailableHandler extends DsSipClientTransaction implements DsEvent {
+
     private DsSipTransactionKey m_key;
     private int m_timeout;
 
@@ -2580,8 +2735,9 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
       try {
         DsSipTransactionManager.removeTransaction(this);
       } catch (DsException dse) {
-        if (m_cat.isEnabled(Level.WARN))
+        if (m_cat.isEnabled(Level.WARN)) {
           m_cat.warn("terminated(): Failed to remove transaction ", dse);
+        }
       }
     }
 
@@ -2601,6 +2757,7 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
 
     public void cancel(DsSipClientTransactionInterface cancelInterface, DsSipCancelMessage request)
         throws DsException, IOException {}
+
     // CAFFEINE 2.0 DEVELOPMENT - required by handling PRACK
     public DsSipClientTransaction prack(
         DsSipClientTransactionInterface clientInterface, DsSipPRACKMessage request)
@@ -2681,11 +2838,13 @@ public class DsSipClientTransactionImpl extends DsSipClientTransaction
   }
 
   // maivu - 11.01.06 - CSCsg22401
+
   /**
    * A Timer class for the request expiration. This timer is set in
    * DsSipClientTransactionImpl.start()
    */
   private class ExpirationTimer implements DsEvent {
+
     public void run(Object argument) {
       if (genCat.isEnabled(Level.DEBUG)) {
         genCat.debug("Client Transaction Expiration Timer FIRED");

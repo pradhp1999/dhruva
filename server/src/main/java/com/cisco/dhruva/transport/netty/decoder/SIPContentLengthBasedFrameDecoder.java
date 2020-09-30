@@ -83,11 +83,10 @@ public class SIPContentLengthBasedFrameDecoder extends ByteToMessageDecoder {
     // if execution reached here , then we have found the \r\n of sip message
     // if contentLength is not found, then the message is invalid
     if (contentLength == -1) {
-
-      logger.error(
-          "Content-Length header not found , dump of message "
-              + String.valueOf(byteBuf.readBytes(byteBuf.readableBytes())));
-      throw new Exception("ContentLength header not found");
+      throw new Exception(
+          "ContentLength header not found "
+              + "dump of message ="
+              + readFromBufferWithoutAltering(byteBuf));
     }
 
     if (readerIndex + contentLength <= byteBuf.writerIndex()) {
@@ -150,12 +149,29 @@ public class SIPContentLengthBasedFrameDecoder extends ByteToMessageDecoder {
       ch = byteBuf.readByte();
     }
 
-    contentLength = Integer.parseInt(sb.toString());
+    try {
+      contentLength = Integer.parseInt(sb.toString());
+    } catch (NumberFormatException e) {
+      throw new NumberFormatException(
+          " Cannot convert Contact-Length header in the Incoming sipMessage to number, "
+              + "message will be dropped ,dump of message = "
+              + readFromBufferWithoutAltering(byteBuf));
+    }
 
     // Un read last read char (It could be end of line)
     byteBuf.readerIndex(byteBuf.readerIndex() - 1);
 
     return contentLength;
+  }
+
+  private String readFromBufferWithoutAltering(ByteBuf byteBuf) {
+    int readerIndex = byteBuf.readerIndex();
+    byteBuf.resetReaderIndex();
+    byte[] messageBytes = new byte[byteBuf.readableBytes()];
+    byteBuf.readBytes(messageBytes);
+    String dumpOfMessage = new String(messageBytes);
+    byteBuf.readerIndex(readerIndex);
+    return dumpOfMessage;
   }
 
   private boolean skipToNextHeader(ByteBuf byteBuf) {
@@ -204,6 +220,7 @@ public class SIPContentLengthBasedFrameDecoder extends ByteToMessageDecoder {
         EventSubType.TLSCONNECTION,
         ErrorType.BufferSizeExceeded,
         "TCP buffer size exceeded Maximum allowed size , message will be dropped",
-        sizeExceededInfoMap);
+        sizeExceededInfoMap,
+        null);
   }
 }

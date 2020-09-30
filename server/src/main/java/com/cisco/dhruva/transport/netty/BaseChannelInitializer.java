@@ -16,13 +16,9 @@ public class BaseChannelInitializer extends ChannelInitializer {
   ChannelHandler channelHandler;
   private final DsNetwork networkconfig;
 
-  public BaseChannelInitializer(DsNetwork networkConfig) {
+  public BaseChannelInitializer(DsNetwork networkConfig, ChannelHandler channelHandler) {
     this.networkconfig = networkConfig;
-  }
-
-  public BaseChannelInitializer channelHanlder(ChannelHandler channelHandler) {
     this.channelHandler = channelHandler;
-    return this;
   }
 
   public ChannelHandler getChannelHandler() {

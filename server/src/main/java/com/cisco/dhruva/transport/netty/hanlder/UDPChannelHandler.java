@@ -16,11 +16,9 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.ReferenceCountUtil;
-import java.net.InetSocketAddress;
 
 public class UDPChannelHandler extends AbstractChannelHandler {
 
@@ -35,60 +33,32 @@ public class UDPChannelHandler extends AbstractChannelHandler {
   }
 
   @Override
-  public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Channel Registered {} ", ctx.channel());
-  }
-
-  @Override
-  public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Channel Unregistered {}", ctx.channel());
-  }
-
-  @Override
-  public void channelActive(ChannelHandlerContext ctx) throws Exception {
-    super.channelActive(ctx);
-    logger.info("Channel Active {}", ctx.channel());
-  }
-
-  @Override
   protected Transport getTransport() {
     return Transport.UDP;
   }
 
   @Override
-  public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Channel InActive {}", ctx.channel());
-  }
-
-  @Override
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+  public void channelRead(ChannelHandlerContext ctx, Object msg) {
     if (msg instanceof DatagramPacket) {
       DatagramPacket receivedPacket = (DatagramPacket) msg;
       ByteBuf receivedMessage = receivedPacket.content();
       byte[] messageBytes = new byte[receivedMessage.readableBytes()];
-      ((ByteBuf) receivedMessage).readBytes(messageBytes);
+      receivedMessage.readBytes(messageBytes);
 
-      Channel channel = ctx.channel();
-      InetSocketAddress localAddress = (InetSocketAddress) channel.localAddress();
-      InetSocketAddress remoteAddress = receivedPacket.sender();
-      DsBindingInfo bindingInfo =
-          new DsBindingInfo(
-              localAddress.getAddress(),
-              localAddress.getPort(),
-              remoteAddress.getAddress(),
-              remoteAddress.getPort(),
-              Transport.UDP);
-      bindingInfo.setNetwork(network);
+      DsBindingInfo bindingInfo = getDsBindingInfo(getLocalAddress(ctx), receivedPacket.sender());
+
       String logString;
       if (messageBytes.length > 0 && messageBytes[0] == 0) {
         logString = DsByteString.toStunDebugString(messageBytes);
       } else {
         logString = new String(messageBytes);
       }
-      logger.info(
-          "UDP packet received from {} , Message is {} ",
-          () -> bindingInfo,
-          () -> DsSipMessage.maskAndWrapSIPMessageToSingleLineOutput(logString));
+      logger.logWithContext(
+          "UDP packet received from "
+              + bindingInfo
+              + ", Message is "
+              + DsSipMessage.maskAndWrapSIPMessageToSingleLineOutput(logString),
+          buildConnectionInfoMap(serverMode, getLocalAddress(ctx), receivedPacket.sender()));
       messageForwarder.processMessage(messageBytes, bindingInfo);
     } else {
       String errorMessage =
@@ -97,34 +67,7 @@ public class UDPChannelHandler extends AbstractChannelHandler {
       logger.error(errorMessage, new Exception(errorMessage));
     }
 
+    channelReadCleanup();
     ReferenceCountUtil.release(msg);
-  }
-
-  @Override
-  public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Channel Read Complete {}", ctx.channel());
-  }
-
-  @Override
-  public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-    logger.info("User event triggerred for channel {}", ctx.channel());
-  }
-
-  @Override
-  public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-    logger.error(
-        "Channel Writability changed for channel {} writablity is {} ",
-        ctx.channel(),
-        ctx.channel().isWritable());
-  }
-
-  @Override
-  public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Handler added to channel {}", ctx.channel());
-  }
-
-  @Override
-  public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-    logger.info("Handler removed from channel {}", ctx.channel());
   }
 }

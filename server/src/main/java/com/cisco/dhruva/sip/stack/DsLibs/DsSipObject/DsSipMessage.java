@@ -2104,17 +2104,11 @@ public abstract class DsSipMessage extends DsSipMessageBase {
                       sessionIdValue);
               if (sessionIDHeader == null) {
                 addHeader(sessionID);
-                Log.info(
-                    "Added Session-Id header {} to {} ",
-                    sessionID,
-                    DsSipMsgParser.getMethod(getMethodID()));
+                Log.info("Added Session-Id header {} to {} ", sessionID, getMessageMethod());
               } else {
                 removeHeader(new DsByteString("Session-ID"));
                 addHeader(sessionID);
-                Log.info(
-                    "Updated Session-Id header to {} to {}",
-                    sessionID,
-                    DsSipMsgParser.getMethod(getMethodID()));
+                Log.info("Updated Session-Id header to {} to {}", sessionID, getMessageMethod());
               }
             }
           } else // check if this is options ping
@@ -2147,6 +2141,12 @@ public abstract class DsSipMessage extends DsSipMessageBase {
               + " This wont affect message processing, processing will continue without SessionId Header",
           e);
     }
+  }
+
+  private String getMessageMethod() {
+    return isRequest()
+        ? DsSipMsgParser.getMethod(getMethodID()).toString()
+        : ((DsSipResponse) this).getStatusCode() + " " + ((DsSipResponse) this).getReasonPhrase();
   }
 
   /**

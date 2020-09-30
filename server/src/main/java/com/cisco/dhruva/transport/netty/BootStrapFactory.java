@@ -13,6 +13,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class BootStrapFactory {
 
@@ -22,13 +23,15 @@ public class BootStrapFactory {
   private AbstractBootstrap tlsServerBootstrap;
 
   private final Object lock = new Object();
+  private Bootstrap tlsClientBootstrap;
 
   public static BootStrapFactory getInstance() {
     return bootStrapFactory;
   }
 
   public Bootstrap getClientBootStrap(
-      Transport transport, DsNetwork networkConfig, BaseChannelInitializer baseChannelInitializer) {
+      Transport transport, DsNetwork networkConfig, ChannelInitializer channelInitializer)
+      throws Exception {
     switch (transport) {
       case UDP:
         synchronized (lock) {
@@ -36,19 +39,32 @@ public class BootStrapFactory {
             udpClientBootstrap =
                 new Bootstrap()
                     .channel(NioDatagramChannel.class)
-                    .handler(baseChannelInitializer)
+                    .handler(channelInitializer)
                     .group(EventLoopGroupFactory.getInstance(Transport.UDP, networkConfig));
           }
         }
 
         return udpClientBootstrap;
-    }
 
-    return null;
+      case TLS:
+        synchronized (lock) {
+          if (tlsClientBootstrap == null) {
+            tlsClientBootstrap =
+                new Bootstrap()
+                    .channel(NioSocketChannel.class)
+                    .handler(channelInitializer)
+                    .group(EventLoopGroupFactory.getInstance(Transport.TLS, networkConfig));
+          }
+        }
+
+        return tlsClientBootstrap;
+      default:
+        throw new Exception("Transport " + transport + " not supported in getClientBootStrap");
+    }
   }
 
   public AbstractBootstrap getServerBootStrap(
-      Transport transport, DsNetwork networkConfig, ChannelInitializer baseChannelInitializer) {
+      Transport transport, DsNetwork networkConfig, ChannelInitializer channelInitializer) {
 
     switch (transport) {
       case UDP:
@@ -57,7 +73,7 @@ public class BootStrapFactory {
             udpServerBootstrap =
                 new Bootstrap()
                     .channel(NioDatagramChannel.class)
-                    .handler(baseChannelInitializer)
+                    .handler(channelInitializer)
                     .group(EventLoopGroupFactory.getInstance(Transport.UDP, networkConfig));
           }
         }
@@ -69,7 +85,7 @@ public class BootStrapFactory {
             tlsServerBootstrap =
                 new ServerBootstrap()
                     .channel(NioServerSocketChannel.class)
-                    .childHandler(baseChannelInitializer)
+                    .childHandler(channelInitializer)
                     .group(EventLoopGroupFactory.getInstance(Transport.TLS, networkConfig));
           }
         }

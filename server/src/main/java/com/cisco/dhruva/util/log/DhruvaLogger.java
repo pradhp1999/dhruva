@@ -13,6 +13,7 @@ public class DhruvaLogger implements Logger {
 
   private static final String EVENT_TYPE = "eventType";
   private static final String EVENT_SUBTYPE = "eventSubType";
+  private static final String ERROR_TYPE = "errorType";
   private org.slf4j.Logger logger;
 
   public DhruvaLogger(org.slf4j.Logger logger) {
@@ -55,7 +56,7 @@ public class DhruvaLogger implements Logger {
 
   @Override
   public void info(String format, Supplier<?>... suppliers) {
-    logger.info(format, getAllLamda(suppliers));
+    logger.info(format, getAllLambda(suppliers));
   }
 
   @Override
@@ -90,7 +91,7 @@ public class DhruvaLogger implements Logger {
 
   @Override
   public void error(String format, Supplier<?>... suppliers) {
-    logger.error(format, getAllLamda(suppliers));
+    logger.error(format, getAllLambda(suppliers));
   }
 
   @Override
@@ -105,7 +106,16 @@ public class DhruvaLogger implements Logger {
 
   @Override
   public void debug(String format, Supplier<?>... suppliers) {
-    logger.debug(format, getAllLamda(suppliers));
+    logger.debug(format, getAllLambda(suppliers));
+  }
+
+  @Override
+  public void emitEvent(
+      EventType eventType,
+      EventSubType eventSubType,
+      String message,
+      Map<String, String> additionalKeyValueInfo) {
+    emitEvent(eventType, eventSubType, null, message, additionalKeyValueInfo, null);
   }
 
   @Override
@@ -114,22 +124,49 @@ public class DhruvaLogger implements Logger {
       EventSubType eventSubType,
       ErrorType errorType,
       String message,
-      Map<String, String> additionalKeyValueInfo) {
+      Map<String, String> additionalKeyValueInfo,
+      Throwable throwable) {
 
     Map<String, String> contextMapCopy = MDC.getCopyOfContextMap();
 
     MDC.put(EVENT_TYPE, eventType.name());
     if (eventSubType != null) {
-      MDC.put(EVENT_TYPE, eventSubType.name());
+      MDC.put(EVENT_SUBTYPE, eventSubType.name());
     }
     if (errorType != null) {
-      MDC.put("ErrorType", errorType.name());
+      MDC.put(ERROR_TYPE, errorType.name());
     }
-    if (additionalKeyValueInfo != null) {
-      additionalKeyValueInfo.forEach((key, value) -> MDC.put(key, value));
-    }
+    logAndResetMDCContext(message, additionalKeyValueInfo, contextMapCopy, throwable);
+  }
 
-    logger.info(message);
+  @Override
+  public void logWithContext(String message, Map<String, String> additionalKeyValueInfo) {
+    logWithContext(message, additionalKeyValueInfo, null);
+  }
+
+  @Override
+  public void logWithContext(
+      String message, Map<String, String> additionalKeyValueInfo, Throwable throwable) {
+
+    Map<String, String> contextMapCopy = MDC.getCopyOfContextMap();
+
+    logAndResetMDCContext(message, additionalKeyValueInfo, contextMapCopy, throwable);
+  }
+
+  private void logAndResetMDCContext(
+      String message,
+      Map<String, String> additionalKeyValueInfo,
+      Map<String, String> contextMapCopy,
+      Throwable throwable) {
+
+    if (additionalKeyValueInfo != null) {
+      additionalKeyValueInfo.forEach(MDC::put);
+    }
+    if (throwable != null) {
+      logger.error(message, throwable);
+    } else {
+      logger.info(message);
+    }
 
     MDC.clear();
     if (contextMapCopy != null && !contextMapCopy.isEmpty()) {
@@ -144,7 +181,7 @@ public class DhruvaLogger implements Logger {
 
   @Override
   public void setMDC(Map<String, String> map) {
-    map.forEach((key, value) -> MDC.put(key, value));
+    map.forEach(MDC::put);
   }
 
   @Override
@@ -155,7 +192,7 @@ public class DhruvaLogger implements Logger {
   @Override
   public Map<String, String> getMDCMap() {
     Map<String, String> mdcMap = MDC.getCopyOfContextMap();
-    return mdcMap == null ? new HashMap<String, String>() : mdcMap;
+    return mdcMap == null ? new HashMap<>() : mdcMap;
   }
 
   @Override
@@ -240,18 +277,18 @@ public class DhruvaLogger implements Logger {
     return logger.isInfoEnabled();
   }
 
-  // Should be removed once we have lamda support in Slf4j
-  private Object[] getAllLamda(Supplier<?>[] suppliers) {
+  // Should be removed once we have lambda support in Slf4j
+  private Object[] getAllLambda(Supplier<?>[] suppliers) {
     if (suppliers == null) {
       return null;
     } else {
-      Object[] arguements = new Object[suppliers.length];
+      Object[] arguments = new Object[suppliers.length];
 
-      for (int i = 0; i < arguements.length; ++i) {
-        arguements[i] = suppliers[i].get();
+      for (int i = 0; i < arguments.length; ++i) {
+        arguments[i] = suppliers[i].get();
       }
 
-      return arguements;
+      return arguments;
     }
   }
 }

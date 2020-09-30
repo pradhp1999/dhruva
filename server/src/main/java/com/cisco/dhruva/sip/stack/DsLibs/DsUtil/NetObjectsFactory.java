@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
 import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Hashtable;
 import javax.naming.NamingException;
@@ -67,36 +66,6 @@ public final class NetObjectsFactory {
     }
   }
 
-  // DsSSLSocket
-  public static DsSSLSocket getSocket(
-      Socket socket, String host, int port, boolean autoClose, DsSSLContext context)
-      throws DsSSLException, IOException {
-    if (netObjectProvider != null) {
-      return netObjectProvider.getSocket(socket, host, port, autoClose, context);
-    } else {
-      return new DsSSLSocket(socket, host, port, autoClose, context);
-    }
-  }
-
-  public static DsSSLSocket getSocket(
-      InetAddress host,
-      int port,
-      InetAddress clientHost,
-      int clientPort,
-      DsSSLContext context,
-      DsNetwork network)
-      throws DsSSLException, IOException {
-    if (netObjectProvider != null) {
-      Socket socket = NetObjectsFactory.getSocket();
-      socket.bind(NetObjectsFactory.getInetSocketAddress(clientHost, clientPort));
-      InetSocketAddress address = NetObjectsFactory.getInetSocketAddress(host.toString(), port);
-      socket.connect(address, 100);
-      return netObjectProvider.getSocket(socket, host.getHostName(), port, true, context);
-    } else {
-      return new DsSSLSocket(host, port, clientHost, clientPort, context, network);
-    }
-  }
-
   public static DatagramSocket getDatagramSocket(int port, InetAddress laddr)
       throws SocketException {
     if (netObjectProvider != null) {
@@ -121,14 +90,6 @@ public final class NetObjectsFactory {
       return netObjectProvider.getJndiDnsInitialDirContext(env);
     } else {
       return new InitialDirContext(env);
-    }
-  }
-
-  public static SocketChannel getSocketChannel() throws IOException {
-    if (netObjectProvider != null) {
-      return netObjectProvider.getSocketChannel();
-    } else {
-      return DsSocketChannelFactory.getSocketChannel();
     }
   }
 

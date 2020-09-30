@@ -12,4 +12,8 @@ public interface Client {
 
   CompletableFuture<Connection> getConnection(
       SocketAddress localSocketAddress, SocketAddress remoteSocketAddress);
+
+  Transport getTransport();
+
+  public void addConnectionEventHandler(ChannelEventsListener connectionEventHandler);
 }

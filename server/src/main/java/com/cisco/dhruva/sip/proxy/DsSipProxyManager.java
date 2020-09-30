@@ -140,19 +140,6 @@ public class DsSipProxyManager
     getViaHandler().setLoopDetector(loopDetector);
   }
 
-  /**
-   * Sets a trust manager that can be used for authorizing SSL connections
-   *
-   * @param trustManager implementation of DsSSLTrustManager that will be invoked every time a new
-   *     SSL connection is established
-   *     <p>The parameters to the callbacks is the chain of credentials proving the identity of the
-   *     peer. The first element is the chain is the identity of the peer; that's what Proxy needs
-   *     to look at
-   */
-  public void setSSlTrustManagerInterface(DsSSLTrustManager trustManager) {
-    this.trustManager = trustManager;
-  }
-
   /** @return the transport layer passed as a parameter to constructor */
   protected DsSipTransportLayer getTransportLayer() {
     return m_Singleton.sipTransportLayer;
@@ -180,11 +167,6 @@ public class DsSipProxyManager
     sipTransportLayer.setIncomingConnectionTimeout(seconds);
     sipTransportLayer.setOutgoingConnectionTimeout(seconds);
     Log.info("TCP cleanup interval is set to " + seconds);
-  }
-
-  /** @return SSL Context */
-  public DsSSLContext getSSLContext() {
-    return sipTransportLayer.getSSLContext();
   }
 
   /** @return TCP connection timeout */

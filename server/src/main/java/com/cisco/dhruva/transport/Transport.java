@@ -6,6 +6,11 @@
 package com.cisco.dhruva.transport;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.transport.netty.TLSConnection;
+import com.cisco.dhruva.transport.netty.UDPConnection;
+import com.cisco.dhruva.transport.netty.hanlder.AbstractChannelHandler;
+import io.netty.channel.Channel;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -20,6 +25,12 @@ public enum Transport {
     @Override
     public boolean isReliable() {
       return false;
+    }
+
+    @Override
+    public Connection getConnection(
+        Channel channel, DsNetwork networkConfig, AbstractChannelHandler channelHandler) {
+      return new UDPConnection(channel, networkConfig, channelHandler);
     }
   },
   TCP(2) {
@@ -39,6 +50,12 @@ public enum Transport {
     public boolean isReliable() {
       return true;
     }
+
+    @Override
+    public Connection getConnection(
+        Channel channel, DsNetwork networkConfig, AbstractChannelHandler channelHandler) {
+      return new TLSConnection(channel, networkConfig, channelHandler);
+    }
   },
   SCTP(5) {
     @Override
@@ -46,6 +63,26 @@ public enum Transport {
       return true;
     }
   };
+
+  private int value;
+
+  Transport(int transport) {
+    this.value = transport;
+  }
+
+  public static Optional<Transport> valueOf(int value) {
+    return Arrays.stream(values()).filter(transport -> transport.value == value).findFirst();
+  }
+
+  public int getValue() {
+    return value;
+  }
+
+  public Connection getConnection(
+      Channel channel, DsNetwork networkConfig, AbstractChannelHandler channelHandler)
+      throws Exception {
+    throw new Exception("Transport not supported");
+  }
 
   /** Byte mask constant for the transport type. */
   public static final byte UDP_MASK = 1;
@@ -83,20 +120,6 @@ public enum Transport {
   public static final DsByteString BS_TCP = new DsByteString(STR_TCP);
   public static final DsByteString BS_TLS = new DsByteString(STR_TLS);
   public static final String TRANSPORT = "transport";
-
-  private int value;
-
-  Transport(int transport) {
-    this.value = transport;
-  }
-
-  public static Optional<Transport> valueOf(int value) {
-    return Arrays.stream(values()).filter(transport -> transport.value == value).findFirst();
-  }
-
-  public int getValue() {
-    return value;
-  }
 
   public abstract boolean isReliable();
 

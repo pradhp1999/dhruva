@@ -5,7 +5,6 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -152,12 +151,7 @@ public class DsSipTransactionManagerTest {
     sipTransactionManager.processMessageBytes(sipMessageBytes);
 
     // Check the 100 Trying
-    verify(responseConnection)
-        .sendTo(
-            argumentCaptorTryingResponse.capture(),
-            eq(incomingMessageBindingInfo.getRemoteAddress()),
-            eq(incomingMessageBindingInfo.getRemotePort()),
-            any(DsSipServerTransactionIImpl.class));
+    verify(responseConnection).send(argumentCaptorTryingResponse.capture());
 
     DsSipResponse responseReceivedAtConnection =
         (DsSipResponse) argumentCaptorTryingResponse.getValue();
@@ -229,12 +223,7 @@ public class DsSipTransactionManagerTest {
     sipTransactionManager.processMessageBytes(sipMessageBytes);
 
     // Check the 100 Trying
-    verify(responseConnection)
-        .sendTo(
-            argumentCaptor200Response.capture(),
-            eq(incomingMessageBindingInfo.getRemoteAddress()),
-            eq(incomingMessageBindingInfo.getRemotePort()),
-            any(DsSipServerTransactionIImpl.class));
+    verify(responseConnection).send(argumentCaptor200Response.capture());
 
     DsSipResponse responseReceivedAtConnection = argumentCaptor200Response.getValue();
     Assert.assertNotNull(responseReceivedAtConnection);
@@ -431,12 +420,7 @@ public class DsSipTransactionManagerTest {
 
     sipTransactionManager.processMessageBytes(sipMessageBytes);
 
-    verify(responseConnection)
-        .sendTo(
-            argumentCaptor.capture(),
-            eq(incomingMessageBindingInfo.getRemoteAddress()),
-            eq(incomingMessageBindingInfo.getRemotePort()),
-            any(DsSipServerTransactionIImpl.class));
+    verify(responseConnection).send(argumentCaptor.capture());
     DsSipResponse responseReceivedAtConnection = argumentCaptor.getValue();
     Assert.assertNotNull(responseReceivedAtConnection);
     Assert.assertEquals(responseReceivedAtConnection.getMethodID(), 1);
@@ -544,12 +528,7 @@ public class DsSipTransactionManagerTest {
 
     sipTransactionManager.processMessageBytes(sipMessageBytes);
 
-    verify(responseConnection)
-        .sendTo(
-            argumentCaptor.capture(),
-            eq(incomingMessageBindingInfo.getRemoteAddress()),
-            eq(incomingMessageBindingInfo.getRemotePort()),
-            any(DsSipServerTransactionIImpl.class));
+    verify(responseConnection).send(argumentCaptor.capture());
     DsSipResponse responseReceivedAtConnection = argumentCaptor.getValue();
     Assert.assertNotNull(responseReceivedAtConnection);
     Assert.assertEquals(responseReceivedAtConnection.getMethodID(), 1);

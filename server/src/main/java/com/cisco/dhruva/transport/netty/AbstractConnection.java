@@ -5,6 +5,7 @@
 
 package com.cisco.dhruva.transport.netty;
 
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.ChannelEventsListener;
@@ -13,9 +14,13 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.transport.netty.hanlder.AbstractChannelHandler;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import com.cisco.dhruva.util.log.event.Event;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,6 +37,7 @@ public abstract class AbstractConnection implements Connection {
   protected AbstractChannelHandler channelHandler;
   Transport transport;
   private Logger logger = DhruvaLoggerFactory.getLogger(AbstractConnection.class);
+  public final String ConnectionSignature = "connectionSignature";
 
   public AbstractConnection(
       Channel channel,
@@ -65,18 +71,8 @@ public abstract class AbstractConnection implements Connection {
   @Override
   public CompletableFuture<Boolean> send(byte[] buffer) {
     ChannelFuture channelFuture = channel.writeAndFlush(buffer);
-    CompletableFuture writeFuture = new CompletableFuture();
 
-    channelFuture.addListener(
-        future -> {
-          if (channelFuture.isSuccess()) {
-            writeFuture.complete(true);
-          } else {
-            writeFuture.completeExceptionally(future.cause());
-          }
-        });
-
-    return writeFuture;
+    return getCompletableFutureFromNettyFuture(channelFuture);
   }
 
   public void subscribeForChannelEvents(ChannelEventsListener listener) {
@@ -166,6 +162,60 @@ public abstract class AbstractConnection implements Connection {
   @Override
   public ChannelFuture closeConnection() {
     return channel.close();
+  }
+
+  void logMessage(byte[] buffer) {
+    logger.setMDC(
+        ConnectionSignature, getConnectionSignature.apply(localSocketAddress, remoteSocketAddress));
+    logger.info(
+        "Sending Message on channel {} , message is {} ",
+        channel,
+        DsSipMessage.maskAndWrapSIPMessageToSingleLineOutput(new String(buffer)));
+  }
+
+  CompletableFuture getCompletableFutureFromNettyFuture(ChannelFuture channelFuture) {
+    CompletableFuture writeFuture = new CompletableFuture();
+
+    channelFuture.addListener(
+        future -> {
+          if (channelFuture.isSuccess()) {
+            writeFuture.complete(true);
+          } else {
+            writeFuture.completeExceptionally(future.cause());
+          }
+        });
+    return writeFuture;
+  }
+
+  @Override
+  public HashMap<String, String> connectionInfoMap() {
+    return Maps.newHashMap(
+        ImmutableMap.of(
+            Event.LOCALIP,
+            localSocketAddress.getAddress().getHostAddress(),
+            Event.LOCALPORT,
+            String.valueOf(localSocketAddress.getPort()),
+            Event.REMOTEIP,
+            remoteSocketAddress.getAddress().getHostAddress(),
+            Event.REMOTEPORT,
+            String.valueOf((remoteSocketAddress.getPort())),
+            ConnectionSignature,
+            getConnectionSignature.apply(localSocketAddress, remoteSocketAddress)));
+  }
+
+  @Override
+  public InetSocketAddress getLocalSocketAddress() {
+    return localSocketAddress;
+  }
+
+  @Override
+  public InetSocketAddress getRemoteSocketAddress() {
+    return remoteSocketAddress;
+  }
+
+  @Override
+  public boolean equals(Object connection) {
+    return this.channel.equals(((AbstractConnection) connection).channel);
   }
 
   @Override

@@ -9,7 +9,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Hashtable;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
-import javax.net.ssl.SSLEngine;
 
 public interface NetObjectProviderInterface {
 
@@ -25,11 +24,6 @@ public interface NetObjectProviderInterface {
 
   // Socket
   public Socket getSocket();
-
-  // DsSSLSocket
-  public DsSSLSocket getSocket(
-      Socket socket, String host, int port, boolean autoClose, DsSSLContext context)
-      throws DsSSLException, IOException;
 
   // DatagramSocket
   public DatagramSocket getDatagramSocket(int port, InetAddress laddr) throws SocketException;
@@ -48,6 +42,4 @@ public interface NetObjectProviderInterface {
   public InputStream getInputStream() throws IOException;
 
   public ByteBuffer getAppSendBuffer();
-
-  public SSLEngine getSSLEngine(DsSSLContext context);
 }

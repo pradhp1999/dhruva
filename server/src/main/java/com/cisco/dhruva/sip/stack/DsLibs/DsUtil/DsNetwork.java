@@ -373,9 +373,6 @@ public class DsNetwork implements Cloneable {
   /** NAPTR enabled flag. */
   private boolean m_NAPTREnabled;
 
-  /** SSL Context. */
-  private DsSSLContext m_SSLContext;
-
   /** SO_TIMEOUT. */
   private int m_soTimeout;
 
@@ -408,6 +405,34 @@ public class DsNetwork implements Cloneable {
 
   public static int getMaximumTcpFrameSize() {
     return PROP_QUEUE_IN_TCP_FRAME_MESSAGE_DEFAULT;
+  }
+
+  public static long getConnectionWriteTimeoutInMilliSeconds() {
+    return dhruvaSIPConfigProperties.getConnectionWriteTimeoutInMilliSeconds();
+  }
+
+  public static int getOcspResponseTimeoutSeconds() {
+    return dhruvaSIPConfigProperties.getOcspResponseTimeoutSeconds();
+  }
+
+  public static String getTrustStoreFilePath() {
+    return dhruvaSIPConfigProperties.getTrustStoreFilePath();
+  }
+
+  public static String getTrustStoreType() {
+    return dhruvaSIPConfigProperties.getTrustStoreType();
+  }
+
+  public static String getTrustStorePassword() {
+    return dhruvaSIPConfigProperties.getTrustStorePassword();
+  }
+
+  public static boolean isTlsCertRevocationSoftFailEnabled() {
+    return dhruvaSIPConfigProperties.isTlsCertRevocationSoftFailEnabled();
+  }
+
+  public static boolean isTlsOcspEnabled() {
+    return dhruvaSIPConfigProperties.isTlsOcspEnabled();
   }
 
   public int udpEventPoolThreadCount() {
@@ -790,7 +815,6 @@ public class DsNetwork implements Cloneable {
     prop.m_simpleResolver = m_simpleResolver;
     prop.m_NAPTREnabled = m_NAPTREnabled;
     prop.m_100relSupport = m_100relSupport;
-    prop.m_SSLContext = m_SSLContext;
     prop.m_soTimeout = m_soTimeout;
     prop.m_tcpConnectionTimeout = m_tcpConnectionTimeout;
     prop.m_tlsHandshakeTimeout = m_tlsHandshakeTimeout;
@@ -832,7 +856,6 @@ public class DsNetwork implements Cloneable {
     setSimpleResolver(prop.m_simpleResolver);
     setNAPTREnabled(prop.m_NAPTREnabled);
     set100relSupport(prop.m_100relSupport);
-    setSSLContext(prop.m_SSLContext);
     setSoTimeout(prop.m_soTimeout);
     setTcpConnectionTimeout(prop.m_tcpConnectionTimeout);
     setTlsHandshakeTimeout(prop.m_tlsHandshakeTimeout);
@@ -848,6 +871,8 @@ public class DsNetwork implements Cloneable {
 
     setAddClientSideRPort(prop.m_addClientSideRPort);
   }
+
+  private void setTlsHandshakeTimeout(int m_tlsHandshakeTimeout) {}
 
   /**
    * Returns if rport will be added to via headers for NAT'd networks.
@@ -1233,24 +1258,6 @@ public class DsNetwork implements Cloneable {
   }
 
   /**
-   * Retrieve the TCP connection setup timeout, specified in milliseconds.
-   *
-   * @return the TCP Connection timeout, in milliseconds
-   */
-  public int getTlsHandshakeTimeout() {
-    return m_tlsHandshakeTimeout;
-  }
-
-  /**
-   * Set the TCP connection setup timeout
-   *
-   * @param timeout TCP connection timeout in milliseconds
-   */
-  public void setTlsHandshakeTimeout(int timeout) {
-    m_tlsHandshakeTimeout = timeout;
-  }
-
-  /**
    * Retrieve the Dns lookup Lync Federation flag.
    *
    * @return the Dns lookup Lync Federation flag
@@ -1328,24 +1335,6 @@ public class DsNetwork implements Cloneable {
    */
   public void setNAPTREnabled(boolean NAPTREnabled) {
     m_NAPTREnabled = NAPTREnabled;
-  }
-
-  /**
-   * Retrieve the DsSSLContext.
-   *
-   * @return the DsSSLContext
-   */
-  public DsSSLContext getSSLContext() {
-    return m_SSLContext;
-  }
-
-  /**
-   * Set the DsSSLContext.
-   *
-   * @param context the DsSSLContext
-   */
-  public void setSSLContext(DsSSLContext context) {
-    m_SSLContext = context;
   }
 
   // CAFFEINE 2.0 DEVELOPMENT - PRACK required
@@ -1554,5 +1543,17 @@ public class DsNetwork implements Cloneable {
 
   public TrustManager getTrustManager() throws Exception {
     return DhruvaTrustManager.getSystemTrustManager();
+  }
+
+  public String[] getProtocols() {
+    return dhruvaSIPConfigProperties.getTlsProtocols();
+  }
+
+  public int getTlsHandshakeTimeoutMilliSeconds() {
+    return dhruvaSIPConfigProperties.getTlsHandshakeTimeoutMilliSeconds();
+  }
+
+  public static boolean getIsAcceptedIssuersEnabled() {
+    return dhruvaSIPConfigProperties.getIsAcceptedIssuersEnabled();
   }
 }

@@ -1569,7 +1569,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
 
       // serialize and set the finalized flag
       message.setFinalised(true);
-      byte[] ret_bytes = m_connection_.sendTo(message, addr, port, DsSipServerTransactionImpl.this);
+      byte[] ret_bytes = m_connection_.send(message);
       // Update the binding info
       message.updateBinding(m_connection_.getBindingInfo());
       return ret_bytes;
@@ -1586,7 +1586,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
         throw new IOException("Can't connect to client.");
       }
 
-      m_connection_.sendTo(buffer, addr, port, DsSipServerTransactionImpl.this);
+      m_connection_.send(buffer);
     }
 
     void release() {

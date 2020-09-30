@@ -1000,7 +1000,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   public void respond(DsSipResponse response) throws DsException {
     Optional<DsSipRequest> request = Optional.ofNullable(this.ourRequest);
     if (request.isPresent()) {
-      Log.info("sending response ");
       if ((ourRequest.getMethodID() != DsSipMessage.ACK)
           && (ourRequest.getMethodID() != DsSipMessage.CANCEL)) {
         // Change to statefull if we are stateless

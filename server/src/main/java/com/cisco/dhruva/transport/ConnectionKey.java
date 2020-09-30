@@ -6,7 +6,10 @@
 package com.cisco.dhruva.transport;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class ConnectionKey {
 
@@ -15,6 +18,21 @@ public class ConnectionKey {
   public InetAddress remoteAddress;
   public int remotePort;
   public Transport transport;
+  public static InetAddress ZeroZeroLocalAddress;
+  private static Logger logger = DhruvaLoggerFactory.getLogger(ConnectionKey.class);
+
+  static {
+    try {
+      ZeroZeroLocalAddress = InetAddress.getByAddress(new byte[] {0, 0, 0, 0});
+    } catch (UnknownHostException e) {
+      logger.error(
+          "Error resolving \"0, 0, 0, 0\" , in ConnectionKey , this is used to identify"
+              + " LocalAddress, If this fails and hostIpAddress is not specified in sipListenPoint"
+              + " config then the Connection table will have duplicate entries and connection"
+              + " removal could fail",
+          e);
+    }
+  }
 
   public ConnectionKey(
       InetAddress localAddress,
@@ -65,6 +83,8 @@ public class ConnectionKey {
     // if one local address is not specified, we treat it as equal
     if ((aKey.localAddress != null)
         && (localAddress != null)
+        && (!localAddress.equals(ZeroZeroLocalAddress))
+        && (!aKey.localAddress.equals(ZeroZeroLocalAddress))
         && !(aKey.localAddress.equals(localAddress))) {
       return false;
     }

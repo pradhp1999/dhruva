@@ -12,8 +12,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamEvent;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamEventListener;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetworkProperties;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
 import com.cisco.dhruva.transport.Connection;
 import com.cisco.dhruva.transport.ConnectionKey;
 import com.cisco.dhruva.transport.MessageForwarder;
@@ -34,11 +32,7 @@ import org.slf4j.event.Level;
  * Handles all of the reading and writing of messages to and from sockets. You can specify the port
  * number, protocol, and host address to create the socket or the default values of 5060, UDP, and
  * the local host IP address will be used. An instance of this class is passed to the constructors
- * of the transaction manager.
- *
- * @see DsSipTransactionManager#DsSipTransactionManager(DsSipTransportLayer, DsSipRequestInterface)
- * @see DsSipTransactionManager#DsSipTransactionManager(DsSipTransportLayer, DsSipRequestInterface,
- *     int)
+ * of the transaction manager. )
  */
 public abstract class DsTransportLayer
     implements DsInputStreamEventListener, DsConnectionEventListener {
@@ -57,9 +51,6 @@ public abstract class DsTransportLayer
   protected int m_IncomingSocketTimeout = DEFAULT_INCOMING_SOCK_TIMEOUT;
   protected int m_OutgoingSocketTimeout = DEFAULT_OUTGOING_SOCK_TIMEOUT;
 
-  /** The SSL context. */
-  private DsSSLContext m_context = null;
-
   private TransportLayer dhruvaTransportLayer;
 
   private Logger logger = DhruvaLoggerFactory.getLogger(DsTransportLayer.class);
@@ -77,7 +68,7 @@ public abstract class DsTransportLayer
   public DsTransportLayer(
       DsNetwork network, MessageForwarder messageForwarder, TransportLayer transportLayer) {
     try {
-      init(network, null, messageForwarder, transportLayer);
+      init(network, messageForwarder, transportLayer);
     } catch (DsException dse) {
       // this arises from the CloneNotSupportedException in init.. a horrible way
       //   to handle this but otherwise, we would have to change the API -dg
@@ -86,16 +77,9 @@ public abstract class DsTransportLayer
   }
 
   private void init(
-      DsNetwork defaultNetwork,
-      DsSSLContext context,
-      MessageForwarder messageForwarder,
-      TransportLayer transportLayer)
+      DsNetwork defaultNetwork, MessageForwarder messageForwarder, TransportLayer transportLayer)
       throws DsException {
-    m_context = context;
-
     dhruvaTransportLayer = transportLayer;
-    // use this context as the default for all networks, maintains backward compatability
-    DsNetworkProperties.setDefaultSSLContext(context);
   }
 
   //  end Constructors
@@ -377,6 +361,12 @@ public abstract class DsTransportLayer
     try {
       // TODO
       connection = connectionFuture.get(network.getTcpConnectionTimeout(), TimeUnit.MILLISECONDS);
+
+      logger.setMDC(
+          Connection.ConnectionSignature,
+          Connection.getConnectionSignature.apply(
+              connection.getLocalSocketAddress(), connection.getRemoteSocketAddress()));
+
     } catch (Exception exception) {
       logger.error(
           "Exception on getting Connection in DsTransportLayer getConnection for localAddress "
@@ -390,7 +380,9 @@ public abstract class DsTransportLayer
           " Transport " + transport,
           exception);
     }
-    return createSIPConnectionFromDhruvaTransportLayerConnection(connection);
+    return connection == null
+        ? null
+        : createSIPConnectionFromDhruvaTransportLayerConnection(connection);
   }
 
   protected DsConnection createSIPConnectionFromDhruvaTransportLayerConnection(
@@ -404,7 +396,7 @@ public abstract class DsTransportLayer
         dsConnection = new DsSipTcpConnection(connection);
         break;
       case TLS:
-        dsConnection = new DsSipTlsConnection(connection, null);
+        dsConnection = new DsSipTlsConnection(connection);
     }
     return dsConnection;
   }
@@ -480,44 +472,6 @@ public abstract class DsTransportLayer
    */
   public void setOutgoingConnectionTimeout(int time_seconds) {
     m_OutgoingSocketTimeout = time_seconds;
-  }
-
-  /**
-   * Returns the SSL context from the network or for this transport layer. Prefers network. May
-   * return <code>null</code>.
-   *
-   * @return the SSL context for this transport layer
-   */
-  private DsSSLContext getSSLContext(DsNetwork network) {
-    DsSSLContext context = null;
-
-    if (network != null) {
-      context = network.getSSLContext();
-    }
-
-    if (context == null) {
-      context = m_context;
-    }
-
-    return context;
-  }
-
-  /**
-   * Returns the SSL context for this transport layer.
-   *
-   * @return the SSL context for this transport layer
-   */
-  public DsSSLContext getSSLContext() {
-    return m_context;
-  }
-
-  /**
-   * Sets the SSL context for this transport layer.
-   *
-   * @param context the SSL context for this transport layer
-   */
-  public void setSSLContext(DsSSLContext context) {
-    m_context = context;
   }
 
   /**

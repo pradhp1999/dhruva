@@ -33,6 +33,7 @@ public class DhruvaTransportLayer implements TransportLayer {
   private final ExecutorService executorService;
   private final MetricService metricService;
   private MessageForwarder messageForwarder;
+  private ChannelEventsListener connectionCacheEventHandler = new ConnectionCacheEventHandler();
 
   private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaTransportLayer.class);
 
@@ -91,7 +92,7 @@ public class DhruvaTransportLayer implements TransportLayer {
                 }
               });
 
-      Set<Metric> metrics = new HashSet<Metric>();
+      Set<Metric> metrics = new HashSet<>();
 
       metrics.add(
           Metrics.newMetric()
@@ -126,14 +127,16 @@ public class DhruvaTransportLayer implements TransportLayer {
       return serverStartFuture;
     }
 
-    if (messageForwarder == null) {
-      messageForwarder = this.messageForwarder;
-    }
     try {
       Server server =
           ServerFactory.getInstance()
               .getServer(
-                  transportType, messageForwarder, transportConfig, executorService, metricService);
+                  transportType,
+                  messageForwarder,
+                  transportConfig,
+                  executorService,
+                  metricService,
+                  connectionCacheEventHandler);
       server.startListening(address, port, serverStartFuture);
       serverStartFuture.whenComplete(
           (channel, throwable) -> {
@@ -198,18 +201,23 @@ public class DhruvaTransportLayer implements TransportLayer {
           connectionCache.computeIfAbsent(
               localSocketAddress,
               remoteSocketAddress,
-              Transport.UDP,
-              o -> {
-                CompletableFuture<Connection> connectionFuture =
-                    client.getConnection(localSocketAddress, remoteSocketAddress);
-                return connectionFuture;
-              });
+              transportType,
+              o -> client.getConnection(localSocketAddress, remoteSocketAddress));
+
+      client.addConnectionEventHandler(connectionCacheEventHandler);
 
       // If establishing the connection fails remove the connection from connection cache
       CompletableFuture<Connection> finalConnectionCompletableFuture = connectionCompletableFuture;
       connectionCompletableFuture.whenComplete(
           (connection, throwable) -> {
             if (throwable != null) {
+              logger.info(
+                  "Removing the Connection which completed Exceptionally from Connection cache, localAddress"
+                      + localSocketAddress
+                      + " remoteAddress= "
+                      + remoteSocketAddress
+                      + " transport "
+                      + transportType);
               connectionCache.remove(
                   localSocketAddress,
                   remoteSocketAddress,
@@ -239,6 +247,16 @@ public class DhruvaTransportLayer implements TransportLayer {
     InetSocketAddress remoteSocketAddress = new InetSocketAddress(remoteAddress, remotePort);
     InetSocketAddress localSocketAddress = new InetSocketAddress(localAddress, localPort);
     return connectionCache.get(localSocketAddress, remoteSocketAddress, transportType);
+  }
+
+  public void addConnectionToCache(
+      InetSocketAddress localAddress,
+      InetSocketAddress remoteAddress,
+      Transport transport,
+      Connection connection) {
+    CompletableFuture<Connection> connectionFuture = new CompletableFuture<>();
+    connectionFuture.complete(connection);
+    connectionCache.add(localAddress, remoteAddress, transport, connectionFuture);
   }
 
   private CompletableFuture exceptionallyCompletedFuture(Throwable e) {
@@ -293,9 +311,119 @@ public class DhruvaTransportLayer implements TransportLayer {
 
   @Override
   public void shutdown() {
-    listenServers.forEach(
-        (connectionKey, channel) -> {
-          channel.close();
-        });
+    listenServers.forEach((connectionKey, channel) -> channel.close());
+  }
+
+  private class ConnectionCacheEventHandler implements ChannelEventsListener {
+
+    @Override
+    public void connectionActive(
+        InetSocketAddress localAddress,
+        InetSocketAddress remoteAddress,
+        Transport transport,
+        Connection connection) {
+
+      if (connection != null) {
+        CompletableFuture<Connection> existingConnectionFuture =
+            connectionCache.get(localAddress, remoteAddress, transport);
+
+        if (existingConnectionFuture != null) {
+
+          if (existingConnectionFuture.isDone()) {
+            if (!existingConnectionFuture.isCompletedExceptionally()) {
+
+              try {
+                Connection existingConnection = existingConnectionFuture.get();
+
+                if (connection.equals(existingConnection)) {
+                  logger.info("Connection already in the cache , skipping connection Add to cache");
+                } else {
+                  logger.error(
+                      "Different Connection exists while trying to add new Connection , "
+                          + "existing connection = "
+                          + existingConnection
+                          + ", new Connection = "
+                          + connection
+                          + " , New connection will replace existing connection");
+                  addConnectionToConnectionCache(
+                      localAddress, remoteAddress, transport, connection);
+                }
+              } catch (InterruptedException | ExecutionException e) {
+                logger.error(
+                    "This should never happen: Exception while getting the connection from"
+                        + " existing Connection Cache, we are trying to add a new connection to"
+                        + " Cache but connection already exists in Cache, replacing the Connection"
+                        + " in the Cache with new Connection = "
+                        + connection);
+
+                addConnectionToConnectionCache(localAddress, remoteAddress, transport, connection);
+              }
+            } else {
+              logger.error(
+                  "Trying to add Connection "
+                      + connection
+                      + " to connection cache,"
+                      + " but connection cache already has a connection which is completed exceptionally"
+                      + " going to replace the connection with new connection ");
+              addConnectionToConnectionCache(localAddress, remoteAddress, transport, connection);
+            }
+          } else {
+            logger.warn(
+                "Trying to add Connection "
+                    + connection
+                    + " to connection cache,"
+                    + " but connection cache already has a connection which has not connected yet"
+                    + " going to replace the connection with new connection ");
+            addConnectionToConnectionCache(localAddress, remoteAddress, transport, connection);
+          }
+        } else {
+          logger.logWithContext(
+              "Connection is not in the Cache , Adding connection " + connection + " to Cache",
+              connection.connectionInfoMap());
+          addConnectionToConnectionCache(localAddress, remoteAddress, transport, connection);
+        }
+      }
+    }
+
+    @Override
+    public void connectionInActive(
+        InetSocketAddress localAddress, InetSocketAddress remoteAddress, Transport transport) {
+      CompletableFuture<Connection> removedConnectionFuture =
+          connectionCache.remove(localAddress, remoteAddress, transport);
+
+      Object removedObject;
+      try {
+        removedObject =
+            removedConnectionFuture.isDone()
+                ? removedConnectionFuture.isCompletedExceptionally()
+                    ? removedConnectionFuture
+                    : removedConnectionFuture.get()
+                : removedConnectionFuture;
+      } catch (InterruptedException | ExecutionException e) {
+        removedObject = removedConnectionFuture;
+      }
+
+      logger.info(
+          "Removed Connection localAddress="
+              + localAddress
+              + ","
+              + " remoteAddress="
+              + remoteAddress
+              + " from cache, removedConnection = "
+              + removedObject);
+    }
+
+    @Override
+    public void onException(Throwable throwable) {}
+
+    private void addConnectionToConnectionCache(
+        InetSocketAddress localAddress,
+        InetSocketAddress remoteAddress,
+        Transport transport,
+        Connection connection) {
+      CompletableFuture<Connection> connectionFuture = new CompletableFuture<>();
+      connectionFuture.complete(connection);
+      connectionCache.add(localAddress, remoteAddress, transport, connectionFuture);
+    }
   }
 }

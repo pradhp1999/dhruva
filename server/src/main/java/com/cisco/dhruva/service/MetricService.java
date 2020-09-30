@@ -71,6 +71,7 @@ public class MetricService {
             .measurement("connection")
             .tag("transport", transport.toString())
             .tag("direction", direction.name())
+            .tag("connectionState", connectionState.name())
             .field("localIp", localIp)
             .field("localPort", localPort)
             .field("remoteIp", remoteIp)

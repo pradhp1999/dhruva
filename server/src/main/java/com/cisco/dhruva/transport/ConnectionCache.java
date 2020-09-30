@@ -138,6 +138,18 @@ public class ConnectionCache {
     connectionMap.remove(connectionKey, connectionCompletableFuture);
   }
 
+  public CompletableFuture<Connection> remove(
+      InetSocketAddress localAddress, InetSocketAddress remoteAddress, Transport transport) {
+    ConnectionKey connectionKey =
+        new ConnectionKey(
+            localAddress.getAddress(),
+            localAddress.getPort(),
+            remoteAddress.getAddress(),
+            remoteAddress.getPort(),
+            transport);
+    return connectionMap.remove(connectionKey);
+  }
+
   protected ConcurrentHashMap<ConnectionKey, CompletableFuture<Connection>> getConnectionMap() {
     return connectionMap;
   }

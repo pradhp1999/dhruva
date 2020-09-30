@@ -59,6 +59,7 @@ public class Event {
   public enum ErrorType {
     ConnectionError,
     BufferSizeExceeded,
+    SslHandShakeFailed,
     ConnectionInActive
   }
 
@@ -94,6 +95,6 @@ public class Event {
           Event.DHRUVA_PROCESSING_DELAY_IN_MILLIS, String.valueOf(dhruvaProcessingDelayInMillis));
     }
 
-    logger.emitEvent(EventType.SIPMESSAGE, null, null, message.toString(), messageInfoMap);
+    logger.emitEvent(EventType.SIPMESSAGE, null, message.toString(), messageInfoMap);
   }
 }

@@ -32,7 +32,8 @@ public class ServerFactory {
       MessageForwarder messageForwarder,
       DsNetwork networkConfig,
       ExecutorService executorService,
-      MetricService metricService)
+      MetricService metricService,
+      ChannelEventsListener connectionCacheEventHandler)
       throws Exception {
     Server server;
     switch (transport) {
@@ -43,6 +44,7 @@ public class ServerFactory {
               udpServer =
                   new NettyUDPServer(
                       messageForwarder, networkConfig, executorService, metricService);
+              udpServer.addConnectionEventHandler(connectionCacheEventHandler);
             }
           }
         }
@@ -56,6 +58,7 @@ public class ServerFactory {
               tlsServer =
                   new NettyTLSServer(
                       messageForwarder, networkConfig, executorService, metricService);
+              tlsServer.addConnectionEventHandler(connectionCacheEventHandler);
             }
           }
         }

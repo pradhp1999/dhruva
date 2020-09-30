@@ -1,8 +1,6 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSecurity.DsCert.SubjectAltName;
-import java.security.PublicKey;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +26,10 @@ public class DsTlsUtil {
   public static void setPeerVerificationStatus(
       SSLSession sslSession, DsSSLBindingInfo bindingInfo, boolean isPeerClient) {
 
+    /*
+    TODO: take care of peerVerification status
+     */
+    /*
     DsSSLContext context = bindingInfo.getNetwork().getSSLContext();
 
     // if cert chain is already verified during handshake
@@ -76,7 +78,7 @@ public class DsTlsUtil {
               + "]: setting clientTrusted to false as exception during client verification. "
               + e);
       sslSession.putValue(TLS_SESSION_KEY_PEER_TRUSTED, false);
-    }
+    }*/
   }
 
   /*

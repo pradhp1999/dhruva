@@ -51,7 +51,8 @@ public class DnsMetricsReporterTest {
     ArgumentCaptor<String> argumentCaptor2 = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Long> argumentCaptor3 = ArgumentCaptor.forClass(Long.class);
     verify(metricService)
-        .sendDNSMetric(argumentCaptor1.capture(), argumentCaptor2.capture(), argumentCaptor3.capture());
+        .sendDNSMetric(
+            argumentCaptor1.capture(), argumentCaptor2.capture(), argumentCaptor3.capture());
 
     String actualQuery = argumentCaptor1.getValue();
     Assert.assertEquals(query, actualQuery);

@@ -7,12 +7,14 @@ package com.cisco.dhruva.transport.netty.ssl;
 import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.transport.ChannelEventsListener;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Server;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.transport.netty.BootStrapFactory;
-import com.cisco.dhruva.transport.netty.hanlder.TLSChannelHandler;
-import com.cisco.dhruva.transport.netty.ssl.NettySSLContextFactory.SSLContextType;
+import com.cisco.dhruva.transport.netty.hanlder.ServerChannelHandler;
+import com.cisco.dhruva.transport.netty.hanlder.StreamChannelHandler;
+import com.cisco.dhruva.transport.netty.ssl.TLSChannelInitializer.ChannelType;
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -26,7 +28,7 @@ public class NettyTLSServer implements Server {
   private AbstractBootstrap tlsBootstrap;
   private MessageForwarder messageForwarder;
   private DsNetwork networkConfig;
-  private TLSChannelHandler tlsChannelHander;
+  private StreamChannelHandler tlsChannelHander;
 
   public NettyTLSServer(
       MessageForwarder messageForwarder,
@@ -36,14 +38,16 @@ public class NettyTLSServer implements Server {
       throws Exception {
     this.networkConfig = networkConfig;
     tlsChannelHander =
-        new TLSChannelHandler(messageForwarder, networkConfig, executorService, metricService);
+        new StreamChannelHandler(
+            messageForwarder, networkConfig, Transport.TLS, executorService, metricService);
     tlsChannelHander.setServerMode(true);
     tlsChannelHander.messageForwarder(messageForwarder);
     channelInitializer =
-        new TLSChannelInitializer(networkConfig, tlsChannelHander, SSLContextType.SERVER);
+        new TLSChannelInitializer(networkConfig, tlsChannelHander, ChannelType.SERVER);
     this.tlsBootstrap =
         BootStrapFactory.getInstance()
             .getServerBootStrap(Transport.TLS, networkConfig, channelInitializer);
+    tlsBootstrap.handler(new ServerChannelHandler());
   }
 
   @Override
@@ -58,5 +62,10 @@ public class NettyTLSServer implements Server {
             serverStartFuture.completeExceptionally(bindFuture.cause());
           }
         });
+  }
+
+  @Override
+  public void addConnectionEventHandler(ChannelEventsListener connectionEventHandler) {
+    tlsChannelHander.subscribeForChannelEvents(connectionEventHandler);
   }
 }

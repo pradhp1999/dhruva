@@ -8,6 +8,7 @@ package com.cisco.dhruva.transport.netty;
 import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.transport.ChannelEventsListener;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Server;
 import com.cisco.dhruva.transport.Transport;
@@ -24,7 +25,7 @@ public class NettyUDPServer implements Server {
   private AbstractBootstrap udpBootstrap;
   private MessageForwarder messageForwarder;
   private DsNetwork networkConfig;
-  private UDPChannelHandler udpChannelHander;
+  private UDPChannelHandler udpChannelHandler;
 
   public NettyUDPServer(
       MessageForwarder messageForwarder,
@@ -32,12 +33,11 @@ public class NettyUDPServer implements Server {
       ExecutorService executorService,
       MetricService metricService) {
     this.networkConfig = networkConfig;
-    channelInitializer = new BaseChannelInitializer(networkConfig);
-    udpChannelHander =
+    udpChannelHandler =
         new UDPChannelHandler(messageForwarder, networkConfig, executorService, metricService);
-    udpChannelHander.setServerMode(true);
-    udpChannelHander.messageForwarder(messageForwarder);
-    channelInitializer.channelHanlder(udpChannelHander);
+    udpChannelHandler.setServerMode(true);
+    udpChannelHandler.messageForwarder(messageForwarder);
+    channelInitializer = new BaseChannelInitializer(networkConfig, udpChannelHandler);
     this.udpBootstrap =
         BootStrapFactory.getInstance()
             .getServerBootStrap(Transport.UDP, networkConfig, channelInitializer);
@@ -55,5 +55,10 @@ public class NettyUDPServer implements Server {
             serverStartFuture.completeExceptionally(bindFuture.cause());
           }
         });
+  }
+
+  @Override
+  public void addConnectionEventHandler(ChannelEventsListener connectionEventHandler) {
+    udpChannelHandler.subscribeForChannelEvents(connectionEventHandler);
   }
 }

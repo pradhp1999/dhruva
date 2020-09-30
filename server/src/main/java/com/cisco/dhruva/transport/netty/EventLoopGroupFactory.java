@@ -19,7 +19,7 @@ public class EventLoopGroupFactory {
 
   private static NioEventLoopGroup tlsEventLoopGroup;
 
-  private static Object lock = new Object();
+  private static final Object lock = new Object();
 
   public static EventLoopGroup getInstance(Transport transport, DsNetwork networkConfig) {
 
@@ -31,14 +31,12 @@ public class EventLoopGroupFactory {
             if (udpEventLoopGroup == null) {
               ThreadFactory threadFactory =
                   new DefaultThreadFactory(DhruvaThreadNames.getUdpEventloopThreadName());
-              eventLoopGroup =
+              udpEventLoopGroup =
                   new NioEventLoopGroup(networkConfig.udpEventPoolThreadCount(), threadFactory);
-              udpEventLoopGroup = (NioEventLoopGroup) eventLoopGroup;
             }
           }
         }
-        eventLoopGroup = (NioEventLoopGroup) udpEventLoopGroup;
-
+        eventLoopGroup = udpEventLoopGroup;
         break;
 
       case TLS:
@@ -47,14 +45,12 @@ public class EventLoopGroupFactory {
             if (tlsEventLoopGroup == null) {
               ThreadFactory threadFactory =
                   new DefaultThreadFactory(DhruvaThreadNames.getTlsEventloopThreadName());
-              eventLoopGroup =
+              tlsEventLoopGroup =
                   new NioEventLoopGroup(networkConfig.tlsEventPoolThreadCount(), threadFactory);
-              tlsEventLoopGroup = (NioEventLoopGroup) eventLoopGroup;
             }
           }
         }
-        eventLoopGroup = (NioEventLoopGroup) udpEventLoopGroup;
-
+        eventLoopGroup = tlsEventLoopGroup;
         break;
     }
 

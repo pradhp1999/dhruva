@@ -6,9 +6,25 @@ package com.cisco.dhruva.transport;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import io.netty.channel.ChannelFuture;
+import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 
 public interface Connection {
+
+  String ConnectionSignature = "connectionSignature";
+  String COLON = ":";
+
+  BiFunction<InetSocketAddress, InetSocketAddress, String> getConnectionSignature =
+      (localSocketAddress, remoteSocketAddress) ->
+          localSocketAddress.getAddress().getHostAddress()
+              + COLON
+              + +localSocketAddress.getPort()
+              + COLON
+              + remoteSocketAddress.getAddress().getHostAddress()
+              + COLON
+              + remoteSocketAddress.getPort();
 
   DsBindingInfo getConnectionInfo();
 
@@ -46,6 +62,12 @@ public interface Connection {
   boolean shouldClose();
 
   int referenceCount();
+
+  Map<String, String> connectionInfoMap();
+
+  InetSocketAddress getLocalSocketAddress();
+
+  InetSocketAddress getRemoteSocketAddress();
 
   enum STATE {
     CONNECTED,

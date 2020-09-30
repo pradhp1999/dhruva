@@ -7,6 +7,7 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.JsonUtilFactory;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,10 +59,37 @@ public class DhruvaSIPConfigProperties {
   private static final Integer DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES = 14400;
 
   private static final String TLS_CIPHERS = "dhruva.sipTlsCipherSuites";
+  private static final String TLS_HANDSHAKE_TIMEOUT_MILLISECONDS =
+      "dhruva.tlsHandShakeTimeOutMilliSeconds";
+  private static final Integer DEFAULT_TLS_HANDSHAKE_TIMEOUT_MILLISECONDS = 5000;
+  private static final String TLS_CA_LIST_IN_SERVER_HELLO_ENABLED =
+      "dhruva.tlsCaListInServerHelloEnabled";
+  private static final Boolean DEFAULT_TLS_CA_LIST_IN_SERVER_HELLO_ENABLED = false;
+  private static final String CONNECTION_WRITE_TIMEOUT_IN_MILLIS =
+      "dhruva.connectionWriteTimeoutInMllis";
+  private static final long DEFAULT_CONNECTION_WRITE_TIMEOUT_IN_MILLIS = 60000;
+  private static final String TLS_OCSP_RESPONSE_TIMEOUT_SECONDS =
+      "dhruva.tlsOcspResponseTimeoutIn" + "Seconds";
+  private static final int DEFAULT_TLS_OCSP_RESPONSE_TIMEOUT_SECONDS = 5;
+  private static final String TLS_TRUST_STORE_FILE_PATH = "dhruva.tlsTrustStoreFilePath";
+  private static final String DEFAULT_TRUST_STORE_FILE_PATH =
+      System.getProperty("javax.net.ssl.trustStore");
+  private static final String TLS_TRUST_STORE_TYPE = "dhruva.tlsTrustStoreType";
+  private static final String DEFAULT_TLS_TRUST_STORE_TYPE = KeyStore.getDefaultType();
+  private static final String TLS_TRUST_STORE_PASSWORD = "dhruva.tlsTrustStorePassword";
+  private static final String DEFAULT_TLS_TRUST_STORE_PASSWORD =
+      System.getProperty("javax.net.ssl.trustStorePassword", "");
+  private static final String TLS_CERT_REVOCATION_SOFTFAIL_ENABLED =
+      "dhruva.tlsCertRevocationEnable" + "SoftFail";
+  private static final Boolean DEFAULT_TLS_CERT_REVOCATION_SOFTFAIL_ENABLED = Boolean.TRUE;
+  private static final String TLS_CERT_OCSP_ENABLED = "dhruva.tlsCertEnableOcsp";
+  private static final Boolean DEFAULT_TLS_CERT_OCSP_ENABLED = true;
 
   public static int DEFAULT_PORT_UDP = 5060;
 
   @Autowired private Environment env;
+
+  private String[] tlsProtocols = new String[] {"TLSv1.2"};
 
   public List<SIPListenPoint> getListeningPoints() {
 
@@ -184,5 +212,59 @@ public class DhruvaSIPConfigProperties {
       return Collections.unmodifiableList(
           CipherSuites.getAllowedCiphers(Arrays.asList(ciphers.split(","))));
     }
+  }
+
+  public String[] getTlsProtocols() {
+    return tlsProtocols;
+  }
+
+  public int getTlsHandshakeTimeoutMilliSeconds() {
+    return env.getProperty(
+        TLS_HANDSHAKE_TIMEOUT_MILLISECONDS,
+        Integer.class,
+        DEFAULT_TLS_HANDSHAKE_TIMEOUT_MILLISECONDS);
+  }
+
+  public boolean getIsAcceptedIssuersEnabled() {
+    return env.getProperty(
+        TLS_CA_LIST_IN_SERVER_HELLO_ENABLED,
+        Boolean.class,
+        DEFAULT_TLS_CA_LIST_IN_SERVER_HELLO_ENABLED);
+  }
+
+  public long getConnectionWriteTimeoutInMilliSeconds() {
+    return env.getProperty(
+        CONNECTION_WRITE_TIMEOUT_IN_MILLIS, Long.class, DEFAULT_CONNECTION_WRITE_TIMEOUT_IN_MILLIS);
+  }
+
+  public int getOcspResponseTimeoutSeconds() {
+    return env.getProperty(
+        TLS_OCSP_RESPONSE_TIMEOUT_SECONDS,
+        Integer.class,
+        DEFAULT_TLS_OCSP_RESPONSE_TIMEOUT_SECONDS);
+  }
+
+  public String getTrustStoreFilePath() {
+    return env.getProperty(TLS_TRUST_STORE_FILE_PATH, String.class, DEFAULT_TRUST_STORE_FILE_PATH);
+  }
+
+  public String getTrustStoreType() {
+    return env.getProperty(TLS_TRUST_STORE_TYPE, String.class, DEFAULT_TLS_TRUST_STORE_TYPE);
+  }
+
+  public String getTrustStorePassword() {
+    return env.getProperty(
+        TLS_TRUST_STORE_PASSWORD, String.class, DEFAULT_TLS_TRUST_STORE_PASSWORD);
+  }
+
+  public Boolean isTlsCertRevocationSoftFailEnabled() {
+    return env.getProperty(
+        TLS_CERT_REVOCATION_SOFTFAIL_ENABLED,
+        Boolean.class,
+        DEFAULT_TLS_CERT_REVOCATION_SOFTFAIL_ENABLED);
+  }
+
+  public boolean isTlsOcspEnabled() {
+    return env.getProperty(TLS_CERT_OCSP_ENABLED, Boolean.class, DEFAULT_TLS_CERT_OCSP_ENABLED);
   }
 }

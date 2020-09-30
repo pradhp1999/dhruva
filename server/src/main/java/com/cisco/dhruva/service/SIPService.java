@@ -38,8 +38,6 @@ public class SIPService {
 
   @Autowired DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
 
-  private DsNetwork networkConfig;
-
   private SipPacketProcessor sipPacketProcessor;
 
   private DsSipTransactionManager sipTransactionManager;
@@ -97,7 +95,7 @@ public class SIPService {
 
       logger.info("Trying to start server socket on {} ", sipListenPoint);
 
-      networkConfig = DsNetwork.getNetwork(sipListenPoint.getName());
+      DsNetwork networkConfig = DsNetwork.getNetwork(sipListenPoint.getName());
       networkConfig.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
       networkConfig.setTlsAuthenticationType(sipListenPoint.getTlsAuthType());
 

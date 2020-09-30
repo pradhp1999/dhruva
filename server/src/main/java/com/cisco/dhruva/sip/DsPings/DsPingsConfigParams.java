@@ -2,7 +2,6 @@ package com.cisco.dhruva.sip.DsPings;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransportLayer;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
 import java.net.DatagramSocket;
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +23,6 @@ public class DsPingsConfigParams {
   protected static final int PROTOCOL_CUS = 5;
 
   // protected List UDPQueue = Collections.synchronizedList(new LinkedList());
-
-  /** SSL context for TLS based pinging */
-  protected DsSSLContext tlsContext = null;
 
   /** Sip transport layer used to get the SSL context */
   protected DsSipTransportLayer transportLayer = null;

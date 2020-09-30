@@ -73,8 +73,7 @@ public class DhruvaTransportLayerTest {
     handler = mock(MessageForwarder.class);
     ChannelHandler channelHandler =
         new UDPChannelHandler(handler, networkConfig, executorService, metricService);
-    channelInitializer = new BaseChannelInitializer(networkConfig);
-    channelInitializer.channelHanlder(channelHandler);
+    channelInitializer = new BaseChannelInitializer(networkConfig, channelHandler);
     bootstrap = (Bootstrap) Mockito.spy(Bootstrap.class);
     BootStrapFactory.getInstance().setUdpBootstrap(bootstrap);
   }

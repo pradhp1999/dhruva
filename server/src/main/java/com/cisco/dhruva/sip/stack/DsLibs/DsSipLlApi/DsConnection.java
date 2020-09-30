@@ -8,17 +8,16 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsInputStreamEventListener;
 import com.cisco.dhruva.transport.Transport;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This interface defines a connection that is used to send data across the network through the
- * underlying socket. A concrete connection can be constructed through the {@link
- * DsConnectionFactory DsConnectionFactory} by passing appropriate parameter like transport type and
- * address.
+ * underlying socket.
  */
 public interface DsConnection extends DsInputStreamEventListener {
 
   /** Buffer time to wait for acquiring lock on a DsConnection object */
-  public static final long LOCK_TRYING_DURATION_BUFFER = 1000;
+  long LOCK_TRYING_DURATION_BUFFER = 1000;
 
   /**
    * Sends the specified data buffer across the network through the underlying socket to the desired
@@ -27,7 +26,7 @@ public interface DsConnection extends DsInputStreamEventListener {
    * @param buffer the message bytes to send across
    * @throws IOException if there is an I/O error while sending the message
    */
-  public void send(byte buffer[]) throws IOException;
+  CompletableFuture<Boolean> sendAsync(byte[] buffer) throws IOException;
 
   /**
    * Closes the underlying socket.
@@ -35,14 +34,14 @@ public interface DsConnection extends DsInputStreamEventListener {
    * @throws IOException if there is an error while closing the socket or if the socket is already
    *     closed
    */
-  public void closeSocket() throws IOException;
+  void closeSocket() throws IOException;
 
   /**
    * Returns the binding information associated with this connection.
    *
    * @return the binding information associated with this connection
    */
-  public DsBindingInfo getBindingInfo();
+  DsBindingInfo getBindingInfo();
 
   /**
    * Returns InetAddress associated with this connection. This address specifies the remote or
@@ -50,21 +49,21 @@ public interface DsConnection extends DsInputStreamEventListener {
    *
    * @return the remote InetAddress associated with this connection
    */
-  public InetAddress getInetAddress();
+  InetAddress getInetAddress();
 
   /**
    * Return the remote or destination port associated with this connection.
    *
    * @return the remote port associated with this connection
    */
-  public int getPortNo();
+  int getPortNo();
 
   /**
    * Returns the transport type of this connection.
    *
    * @return the transport type of this connection
    */
-  public Transport getTransportType();
+  Transport getTransportType();
 
   /**
    * Adds the specified listener to this connection's listener list, that will be notified for the
@@ -73,7 +72,7 @@ public interface DsConnection extends DsInputStreamEventListener {
    * @param listener The listener to be added that in turn will receive DsConnectionEvent(s)
    *     notifications, if any
    */
-  public void addDsConnectionEventListener(DsConnectionEventListener listener);
+  void addDsConnectionEventListener(DsConnectionEventListener listener);
 
   /**
    * Removes the specified listener from this connection's listener list, that will no longer be
@@ -82,7 +81,7 @@ public interface DsConnection extends DsInputStreamEventListener {
    * @param listener The listener to be removed and will no longer receive DsConnectionEvent(s)
    *     notifications, if any
    */
-  public void removeDsConnectionEventListener(DsConnectionEventListener listener);
+  void removeDsConnectionEventListener(DsConnectionEventListener listener);
 
   /** Increments the reference count for this connection. */
   void addReference();

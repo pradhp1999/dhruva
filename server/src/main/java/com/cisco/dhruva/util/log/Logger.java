@@ -49,9 +49,21 @@ public interface Logger {
   void emitEvent(
       EventType eventType,
       EventSubType eventSubType,
-      ErrorType errorType,
       String message,
       Map<String, String> additionalKeyValueInfo);
+
+  void emitEvent(
+      EventType eventType,
+      EventSubType eventSubType,
+      ErrorType errorType,
+      String message,
+      Map<String, String> additionalKeyValueInfo,
+      Throwable throwable);
+
+  void logWithContext(String message, Map<String, String> additionalKeyValueInfo);
+
+  void logWithContext(
+      String message, Map<String, String> additionalKeyValueInfo, Throwable throwable);
 
   void setMDC(String key, String value);
 

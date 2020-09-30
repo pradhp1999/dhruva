@@ -372,7 +372,10 @@ public class SIPContentLengthBasedFrameDecoderTest {
 
     assertNotNull(caughtException);
     assertEquals(caughtException.getClass(), NumberFormatException.class);
-    assertTrue(caughtException.getMessage().contains("For input string: \"\""));
+    assertTrue(
+        caughtException
+            .getMessage()
+            .contains("Cannot convert Contact-Length header in the Incoming sipMessage to number"));
   }
 
   @Test(
@@ -408,7 +411,10 @@ public class SIPContentLengthBasedFrameDecoderTest {
 
     assertNotNull(caughtException);
     assertEquals(caughtException.getClass(), NumberFormatException.class);
-    assertTrue(caughtException.getMessage().contains("For input string: \"\""));
+    assertTrue(
+        caughtException
+            .getMessage()
+            .contains("Cannot convert Contact-Length header in the Incoming sipMessage to number"));
   }
 
   @Test(
@@ -481,7 +487,10 @@ public class SIPContentLengthBasedFrameDecoderTest {
 
     assertNotNull(caughtException);
     assertEquals(caughtException.getClass(), NumberFormatException.class);
-    assertTrue(caughtException.getMessage().contains("For input string: \"\""));
+    assertTrue(
+        caughtException
+            .getMessage()
+            .contains("Cannot convert Contact-Length header in the Incoming sipMessage to number"));
   }
 
   @Test(

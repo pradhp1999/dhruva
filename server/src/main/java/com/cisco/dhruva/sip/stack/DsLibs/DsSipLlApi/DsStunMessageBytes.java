@@ -5,6 +5,8 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.net.InetAddress;
 import org.slf4j.event.Level;
 
@@ -50,6 +52,7 @@ public class DsStunMessageBytes extends DsMessageBytes {
   private static final byte CHANGED_ADDRESS = (byte) 0x05;
 
   private static final int TLV_HEADER_LENGTH = 4;
+  private Logger logger = DhruvaLoggerFactory.getLogger(DsStunMessageBytes.class);
 
   /**
    * Constructor that takes the message and its binding information.
@@ -156,7 +159,8 @@ public class DsStunMessageBytes extends DsMessageBytes {
       }
 
       ((DsAbstractConnection) conn).updateTimeStamp();
-      conn.send(data);
+      ((DsAbstractConnection) conn).sendSync(data);
+      logger.info("Sent Stun messages {} ", new String(data));
     } catch (Exception e) {
       if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {
         DsLog4j.connectionCat.warn("Exception sending STUN response: ", e);

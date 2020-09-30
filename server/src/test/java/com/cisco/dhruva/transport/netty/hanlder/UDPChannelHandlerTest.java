@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2020  by Cisco Systems, Inc.All Rights Reserved.
- * @author graivitt
- */
-
 package com.cisco.dhruva.transport.netty.hanlder;
 
 import static org.mockito.Mockito.doReturn;
@@ -33,7 +28,7 @@ public class UDPChannelHandlerTest {
   @Test(
       enabled = true,
       description =
-          "Testing the UDPChannelHanlder readMethod using EmbeddedChannel,"
+          "Testing the UDPChannelHandler readMethod using EmbeddedChannel,"
               + " Data is pushed to the channel using EmbeddedChannel and then "
               + "Message Handler action is verified using MessageForwarder")
   public void testChannelRead() {

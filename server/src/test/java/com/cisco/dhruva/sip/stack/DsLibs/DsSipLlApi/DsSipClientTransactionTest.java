@@ -203,12 +203,7 @@ public class DsSipClientTransactionTest {
     ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
 
     // Check the INVITE request
-    verify(sendConnection)
-        .sendTo(
-            argumentCaptor.capture(),
-            eq(incomingMessageBindingInfo.getRemoteAddress()),
-            eq(incomingMessageBindingInfo.getRemotePort()),
-            any(DsSipClientTransactionIImpl.class));
+    verify(sendConnection).send(argumentCaptor.capture());
 
     DsSipRequest requestReceivedAtConnection = (DsSipRequest) argumentCaptor.getValue();
     Assert.assertNotNull(requestReceivedAtConnection);
@@ -274,12 +269,7 @@ public class DsSipClientTransactionTest {
     ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
 
     // verify that sendTo is not sent
-    verify(sendConnection, times(0))
-        .sendTo(
-            argumentCaptor.capture(),
-            eq(incomingMessageBindingInfo.getRemoteAddress()),
-            eq(incomingMessageBindingInfo.getRemotePort()),
-            any(DsSipClientTransactionIImpl.class));
+    verify(sendConnection, times(0)).send(argumentCaptor.capture());
 
     // errorCode 6 for unReachable
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(6));

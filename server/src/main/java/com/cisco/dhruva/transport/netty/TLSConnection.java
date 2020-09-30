@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2020  by Cisco Systems, Inc.All Rights Reserved.
- * @author graivitt
- */
-
 package com.cisco.dhruva.transport.netty;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
@@ -13,17 +8,15 @@ import com.cisco.dhruva.util.log.Logger;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.socket.DatagramPacket;
-import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 
-public class UDPConnection extends AbstractConnection {
+public class TLSConnection extends AbstractConnection {
 
-  Logger logger = DhruvaLoggerFactory.getLogger(UDPConnection.class);
+  Logger logger = DhruvaLoggerFactory.getLogger(TLSConnection.class);
 
-  public UDPConnection(
+  public TLSConnection(
       Channel channel, DsNetwork networkConfig, AbstractChannelHandler channelHandler) {
-    super(channel, networkConfig, Transport.UDP, channelHandler);
+    super(channel, networkConfig, Transport.TLS, channelHandler);
   }
 
   /** @return transport type of this connection */
@@ -37,17 +30,8 @@ public class UDPConnection extends AbstractConnection {
 
     ByteBuf byteBuf = channel.alloc().buffer(buffer.length);
     byteBuf.writeBytes(buffer);
-
-    DatagramPacket packet =
-        new DatagramPacket(
-            byteBuf,
-            (InetSocketAddress) channel.remoteAddress(),
-            (InetSocketAddress) channel.localAddress());
-
-    ChannelFuture channelFuture = channel.writeAndFlush(packet);
-
+    ChannelFuture channelFuture = channel.writeAndFlush(byteBuf);
     logMessage(buffer);
-
     return getCompletableFutureFromNettyFuture(channelFuture);
   }
 }

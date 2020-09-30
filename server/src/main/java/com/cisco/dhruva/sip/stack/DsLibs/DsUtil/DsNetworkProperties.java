@@ -30,15 +30,6 @@ public class DsNetworkProperties {
    */
   public static final int DEF_NETWORK = 0;
 
-  /** Default Network ID: default TLS network properties. Used in getDefault() */
-  public static final int DEF_TLS_NETWORK = 1;
-
-  /** Default Network ID: default TCP network properties. Used in getDefault() */
-  public static final int DEF_TCP_NETWORK = 2;
-
-  /** Default Network ID: default UDP network properties. Used in getDefault() */
-  public static final int DEF_UDP_NETWORK = 3;
-
   /** Default Network ID: default ICMP network properties. Used in getDefault() */
   public static final int DEF_ICMP_NETWORK = 4;
 
@@ -104,7 +95,7 @@ public class DsNetworkProperties {
   /** {@link DsConfigManager#PROP_ADD_CLIENT_SIDE_RPORT}. */
   static final boolean DEFAULT_ADD_CLIENT_SIDE_RPORT;
 
-  /** {@link DsConfigManager#DEFAULT_INVITE_EXPIRATION}. */
+  /** {@link DsConfigManager#}. */
   static final int DEFAULT_INVITE_EXPIRATION;
 
   /** {@link DsConfigManager#PROP_100REL_SUPPORT_DEFAULT}. */
@@ -117,10 +108,6 @@ public class DsNetworkProperties {
   /** {@link DsConfigManager#PROP_NAPTR_DEFAULT}. */
   // Not final, this can be changed by the app.
   static boolean DEFAULT_NAPTR_ENABLED;
-
-  /** Default SSL Context. */
-  // Not final, this can be changed by the app.
-  static DsSSLContext DEFAULT_SSL_CONTEXT;
 
   /** {@link DsConfigManager#PROP_SO_TIMEOUT}. */
   static final int DEFAULT_SO_TIMEOUT;
@@ -141,9 +128,6 @@ public class DsNetworkProperties {
 
   /** {@link DsConfigManager#PROP_PEER_CERT_INFO_HEADER_ENABLED}. */
   static final boolean DEFAULT_PEER_CERT_INFO_HEADER_ENABLED;
-
-  /** {@link DsConfigManager#PROP_PROP_CERT_SERVICE_ENABLED}. */
-  static final boolean DEFAULT_CERT_SERVICE_TRUSTMANAGER_ENABLED;
 
   /**
    * Enabling this flag Adds a Peer Cert info header to the Initial Invite message in case of TLS *
@@ -219,8 +203,6 @@ public class DsNetworkProperties {
     DEFAULT_NAPTR_ENABLED =
         DsConfigManager.getProperty(DsConfigManager.PROP_NAPTR, DsConfigManager.PROP_NAPTR_DEFAULT);
 
-    DEFAULT_SSL_CONTEXT = null;
-
     DEFAULT_SO_TIMEOUT =
         DsConfigManager.getProperty(
             DsConfigManager.PROP_SO_TIMEOUT, DsConfigManager.PROP_SO_TIMEOUT_DEFAULT);
@@ -253,12 +235,6 @@ public class DsNetworkProperties {
         DsConfigManager.getProperty(
             DsConfigManager.PROP_PEER_CERT_INFO_HEADER_ENABLED,
             DsConfigManager.PROP_PEER_CERT_INFO_HEADER_ENABLED_DEFAULT);
-
-    DEFAULT_CERT_SERVICE_TRUSTMANAGER_ENABLED =
-        DsConfigManager.getProperty(
-            DsConfigManager.PROP_CERT_SERVICE_ENABLED,
-            DsConfigManager.PROP_CERT_SERVICE_ENABLED_DEFAULT);
-
     int tmp100RelSupport;
     try {
       DsSipTransactionManager tm = DsSipTransactionManager.getTransactionManager();
@@ -350,10 +326,7 @@ public class DsNetworkProperties {
    */
   public int m_datagramConnectionStrategy;
 
-  /**
-   * The compression type. If this is set to {@link DsNetwork.NET_COMP_SIGCOMP} then the
-   * m_datagramType must be set to {@link DsNetwork.DGRAM_DEFAULT}.
-   */
+  /** * The compression type. If this is set to then the * m_datagramType must be set to */
   public int m_compressionType;
 
   /** Maximum TCP message size. */
@@ -370,9 +343,6 @@ public class DsNetworkProperties {
 
   /** Value of the 100 reliable support. */
   public byte m_100relSupport;
-
-  /** The DsSSLContext for TLS. */
-  public DsSSLContext m_SSLContext;
 
   /** Maximum UDP message size. */
   public int m_maxUdpPacketSize;
@@ -437,7 +407,6 @@ public class DsNetworkProperties {
     m_simpleResolver = DEFAULT_SIMPLE_RESOLVER;
     m_NAPTREnabled = DEFAULT_NAPTR_ENABLED;
     m_100relSupport = (byte) DEFAULT_100REL_SUPPORT;
-    m_SSLContext = DEFAULT_SSL_CONTEXT;
     m_soTimeout = DEFAULT_SO_TIMEOUT;
     m_tcpConnectionTimeout = DEFAULT_TCP_CONN_TIMEOUT;
     m_tlsHandshakeTimeout = DEFAULT_TLS_HANDSHAKE_TIMEOUT;
@@ -445,7 +414,6 @@ public class DsNetworkProperties {
     convertDestinationRouteToIP = DEFAULT_CONVERT_DESTINATION_ROUTE_TO_IP_ENABLED;
     removeOwnRouteHeader = DEFAULT_REMOVE_OWN_ROUTE_HEADER;
     peerCertInfoHeader = DEFAULT_PEER_CERT_INFO_HEADER_ENABLED;
-    certServiceTrustManagerEnabled = DEFAULT_CERT_SERVICE_TRUSTMANAGER_ENABLED;
   }
 
   /** Copy constructor. */
@@ -470,7 +438,6 @@ public class DsNetworkProperties {
     m_simpleResolver = prop.m_simpleResolver;
     m_NAPTREnabled = prop.m_NAPTREnabled;
     m_100relSupport = prop.m_100relSupport;
-    m_SSLContext = prop.m_SSLContext;
     m_soTimeout = prop.m_soTimeout;
     m_tcpConnectionTimeout = prop.m_tcpConnectionTimeout;
     m_tlsHandshakeTimeout = prop.m_tlsHandshakeTimeout;
@@ -524,19 +491,21 @@ public class DsNetworkProperties {
 
     if (m_compressionType < DsNetwork.NET_COMP_NONE
         || m_compressionType > DsNetwork.NET_COMP_TOKEN_SIP) {
-      retError.append("Invalid Network Compression value: " + m_compressionType);
+      retError.append("Invalid Network Compression value: ").append(m_compressionType);
+      retError.append("Invalid Network Compression value: ").append(m_compressionType);
       return false;
     }
 
     if (m_datagramConnectionStrategy < DsNetwork.DGRAM_PER_ENDPOINT
         || m_datagramConnectionStrategy > DsNetwork.DGRAM_USING_LISTEN_PORTS) {
-      retError.append(
-          "Invalid Datagram Connection Stragegy value: " + m_datagramConnectionStrategy);
+      retError
+          .append("Invalid Datagram Connection Stragegy value: ")
+          .append(m_datagramConnectionStrategy);
       return false;
     }
 
     if (m_datagramType < DsNetwork.DGRAM_DEFAULT || m_datagramType > DsNetwork.DGRAM_ICMP) {
-      retError.append("Invalid Datagram Socket Type value: " + m_datagramType);
+      retError.append("Invalid Datagram Socket Type value: ").append(m_datagramType);
       return false;
     }
 
@@ -606,24 +575,5 @@ public class DsNetworkProperties {
    */
   public static void setSimpleResolverDefault(boolean enabled) {
     DEFAULT_SIMPLE_RESOLVER = enabled;
-  }
-
-  /**
-   * Gets the default DsSSLContext.
-   *
-   * @return the default DsSSLContext
-   */
-  public static DsSSLContext getSSLContext() {
-    return DEFAULT_SSL_CONTEXT;
-  }
-
-  /**
-   * Sets the default DsSSLContext. This becomes the new default but does not change the value in
-   * the existing networks, only future networks.
-   *
-   * @param context the default DsSSLContext
-   */
-  public static void setDefaultSSLContext(DsSSLContext context) {
-    DEFAULT_SSL_CONTEXT = context;
   }
 }

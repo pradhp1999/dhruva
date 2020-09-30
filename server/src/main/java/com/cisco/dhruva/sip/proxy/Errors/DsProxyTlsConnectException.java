@@ -2,28 +2,19 @@ package com.cisco.dhruva.sip.proxy.Errors;
 
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLContext;
 import com.cisco.dhruva.transport.Transport;
 import java.net.ConnectException;
 import java.net.InetAddress;
 
 public class DsProxyTlsConnectException extends DsProxyError {
-
-  private DsSSLContext context;
   private Exception exception;
   private DsBindingInfo bindingInfo;
 
   public DsProxyTlsConnectException(
-      Exception e,
-      DsSSLContext context,
-      InetAddress localAddr,
-      int localPort,
-      InetAddress remortAddr,
-      int remortPort) {
-    this.context = context;
+      Exception e, InetAddress localAddr, int localPort, InetAddress remortAddr, int remotePort) {
     this.exception = e;
     this.bindingInfo =
-        new DsBindingInfo(localAddr, localPort, remortAddr, remortPort, Transport.TLS);
+        new DsBindingInfo(localAddr, localPort, remortAddr, remotePort, Transport.TLS);
     interpretPlatformException();
   }
 

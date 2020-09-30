@@ -7,12 +7,17 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import org.slf4j.event.Level;
 
 /** */
 public class DsEmptyMessageBytes extends DsMessageBytes {
+
   /** The CRLF message to send back to the sender. */
   private static byte[] m_emptyResponse = {(byte) '\r', (byte) '\n'};
+
+  private Logger logger = DhruvaLoggerFactory.getLogger(DsEmptyMessageBytes.class);
 
   private static boolean m_sendResponse =
       DsConfigManager.getProperty(
@@ -69,7 +74,8 @@ public class DsEmptyMessageBytes extends DsMessageBytes {
 
       ((DsAbstractConnection) conn).updateTimeStamp();
       if (m_sendResponse) {
-        conn.send(m_emptyResponse);
+        ((DsAbstractConnection) conn).sendSync(m_emptyResponse);
+        logger.info("Sent Empty message bytes {} ", new String(m_emptyResponse));
       }
     } catch (Exception e) {
       if (DsLog4j.connectionCat.isEnabled(Level.WARN)) {

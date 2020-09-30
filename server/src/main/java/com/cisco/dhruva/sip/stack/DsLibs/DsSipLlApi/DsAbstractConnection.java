@@ -11,6 +11,8 @@ import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.event.Level;
 
 /**
@@ -41,14 +43,20 @@ abstract class DsAbstractConnection implements DsConnection {
    * @param buffer the message bytes to send across
    * @throws IOException if there is an I/O error while sending the message
    */
+  public CompletableFuture<Boolean> sendAsync(byte buffer[]) throws IOException {
+    CompletableFuture<Boolean> sendFuture = connection.send(buffer);
+    updateTimeStamp();
+    return sendFuture;
+  }
+
   /*
   TODO: Change future block to callback
    */
-  public void send(byte buffer[]) throws IOException {
-    CompletableFuture sendFuture = connection.send(buffer);
+  public void sendSync(byte buffer[]) throws IOException {
+    CompletableFuture<Boolean> sendFuture = sendAsync(buffer);
     try {
-      sendFuture.get();
-    } catch (InterruptedException | ExecutionException e) {
+      sendFuture.get(DsNetwork.getConnectionWriteTimeoutInMilliSeconds(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
       throw new IOException(e);
     }
   }
@@ -112,6 +120,7 @@ abstract class DsAbstractConnection implements DsConnection {
   public void setTimeout(int timeout) {
     this.timeout = timeout;
   }
+
   /** Increments the reference count for this connection. */
   public void addReference() {
     connection.addReference();
