@@ -49,14 +49,18 @@ public class DnsMetricsReporterTest {
     resolver.lookupSRV(query);
     ArgumentCaptor<String> argumentCaptor1 = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> argumentCaptor2 = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Long> argumentCaptor3 = ArgumentCaptor.forClass(Long.class);
     verify(metricService)
-        .sendDNSMetric(argumentCaptor1.capture(), argumentCaptor2.capture(), anyLong());
+        .sendDNSMetric(argumentCaptor1.capture(), argumentCaptor2.capture(), argumentCaptor3.capture());
 
     String actualQuery = argumentCaptor1.getValue();
     Assert.assertEquals(query, actualQuery);
 
     String actualQueryType = argumentCaptor2.getValue();
     Assert.assertEquals("SRV", actualQueryType);
+
+    Long processingDelay = argumentCaptor3.getValue();
+    Assert.assertTrue(processingDelay > 0L);
   }
 
   private void setupResponseForSrvQuery(String queryFqdn, String responseFqdn, String... results)
