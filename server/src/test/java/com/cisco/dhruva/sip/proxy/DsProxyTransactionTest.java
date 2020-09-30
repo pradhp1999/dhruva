@@ -8,6 +8,7 @@ import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.controller.DsAppController;
 import com.cisco.dhruva.sip.controller.DsProxyController;
 import com.cisco.dhruva.sip.controller.DsProxyResponseGenerator;
@@ -26,11 +27,14 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+@SpringBootTest
 public class DsProxyTransactionTest {
   DsSipTransactionFactory transactionFactory;
   DsSipTransactionManager transactionManager;
@@ -43,6 +47,8 @@ public class DsProxyTransactionTest {
   private InetAddress localAddress;
   private InetAddress remoteAddress;
   private int localPort, remotePort;
+
+  @Autowired SipServerLocatorService locatorService;
 
   @BeforeClass
   void init() throws Exception {
@@ -57,7 +63,8 @@ public class DsProxyTransactionTest {
     if (dsSipProxyManager == null) {
       DsSipTransportLayer transportLayer = mock(DsSipTransportLayer.class);
       dsSipProxyManager =
-          new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
+          new DsSipProxyManager(
+              transportLayer, controllerFactory, transactionFactory, locatorService);
     }
 
     DsSipProxyManager.setM_Singleton(dsSipProxyManager);

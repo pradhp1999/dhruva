@@ -10,12 +10,12 @@ public interface DnsReporter {
   DnsTimingContext resolveTimer();
 
   /** Report that an empty response has been received from a resolve. */
-  void reportEmpty();
+  void reportEmpty(String query, String queryType);
 
   /**
    * Report that a resolve resulting in a failure.
    *
    * @param error The exception causing the failure.
    */
-  void reportFailure(Throwable error);
+  void reportFailure(String query, String queryType, Throwable error);
 }

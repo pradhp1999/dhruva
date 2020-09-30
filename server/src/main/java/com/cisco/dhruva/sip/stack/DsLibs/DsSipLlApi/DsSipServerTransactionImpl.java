@@ -5,6 +5,7 @@ package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.common.executor.ExecutorType;
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
@@ -41,6 +42,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.event.Level;
@@ -1129,7 +1132,8 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
    * @throws DsException if error occurs in the state machine
    * @throws IOException if error occurs while sending data through the network
    */
-  protected void calling(int transition) throws DsException, IOException {
+  protected void calling(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     switch (transition) {
       case DS_INITIAL | DS_ST_IN_START:
         break;
@@ -1188,7 +1192,8 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
    * @throws DsException if error occurs in the state machine
    * @throws IOException if error occurs while sending data through the network
    */
-  protected void proceeding(int transition) throws DsException, IOException {
+  protected void proceeding(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     // maivu - 11.01.06 - CSCsg22401 Transition to Proceeding state so cancel the server tx timer
     // which was set in the DsSipServerTransactionImpl constructor
     cancelExpirationTimer();
@@ -1259,7 +1264,8 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
    * @throws DsException if error occurs in the state machine
    * @throws IOException if error occurs while sending data through the network
    */
-  protected void completed(int transition) throws DsException, IOException {
+  protected void completed(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     // maivu - 11.01.06 - CSCsg22401 Transition to Completed state so cancel the request expiration
     // timer
     // which was set in the DsSipServerTransactionImpl constructor
@@ -1351,7 +1357,8 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
    * @throws DsException if error occurs in the state machine
    * @throws IOException if error occurs while sending data through the network
    */
-  protected void terminated(int transition) throws DsException, IOException {
+  protected void terminated(int transition)
+      throws DsException, IOException, ExecutionException, InterruptedException {
     // maivu - 11.01.06 - CSCsg22401 Transition to Terminated state so cancel the request expiration
     // timer
     // which was set in the DsSipServerTransactionImpl constructor
@@ -1606,23 +1613,26 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
     // try the next client using the existing client locator
     private boolean tryNextClient(DsSipResponse response) {
       boolean ret_value = true;
-      try {
-        replace(client_locator.tryConnect());
-        if (response != null) {
-          DsBindingInfo current = client_locator.getCurrentBindingInfo();
-          if (current != null) {
-            response.setBindingInfo(current);
-          }
-        }
-
-        if (m_connection_ == null) {
-          ret_value = false;
-        }
-      } catch (DsException dse) {
-        ret_value = false;
-      } catch (IOException ioe) {
-        ret_value = false;
-      }
+      // TODO DNS
+      // WE are using SimpleResolver, this will not be invoked.
+      // Called if we used serverLocator and it failed, trying for next one
+      //      try {
+      //        replace(client_locator.tryConnect());
+      //        if (response != null) {
+      //          DsBindingInfo current = client_locator.getCurrentBindingInfo();
+      //          if (current != null) {
+      //            response.setBindingInfo(current);
+      //          }
+      //        }
+      //
+      //        if (m_connection_ == null) {
+      //          ret_value = false;
+      //        }
+      //      } catch (DsException dse) {
+      //        ret_value = false;
+      //      } catch (IOException ioe) {
+      //        ret_value = false;
+      //      }
 
       return ret_value;
     }
@@ -1636,7 +1646,8 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
      *         </code> otherwise.
      */
     boolean getNextConnection()
-        throws DsException, SocketException, UnknownHostException, IOException {
+        throws DsException, SocketException, UnknownHostException, IOException, ExecutionException,
+            InterruptedException {
       DsSipTransportLayer transport_layer = DsSipTransactionManager.getTransportLayer();
 
       InetAddress laddr = null;
@@ -1684,22 +1695,22 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           } else {
             m_resolverStage = USING_SRV_SENT_BY;
             // pass m_sipRequest in only to use its callid for hashing
-            if (useDeterministicLocator()) {
-              client_locator = new DsSipDetServerLocator(m_sipRequest);
-            } else {
-              client_locator = new DsSipServerLocator();
-            }
+            //            if (useDeterministicLocator()) {
+            //              client_locator = new DsSipDetServerLocator(m_sipRequest);
+            //            } else {
+            //              client_locator = new DsSipServerLocator();
+            //            }
+
+            Optional<SipServerLocatorService> optSipResolver =
+                DsSipTransactionManager.getSipResolver();
+            if (optSipResolver.isPresent()) client_locator = optSipResolver.get().getLocator();
+            else throw new IOException("unable to find resolver");
+
             // first try to get existing connection, if fails, initialize server locator
             DsSipConnection ret_connection =
                 DsSipTransactionManager.getSRVConnection(
-                    m_sipRequest.getNetwork(),
-                    laddr,
-                    lport,
-                    m_addr_str,
-                    m_port,
-                    m_transport,
-                    client_locator);
-            if (ret_connection == null) ret_connection = client_locator.tryConnect();
+                    m_sipRequest.getNetwork(), laddr, lport, m_addr_str, m_port, m_transport);
+            if (ret_connection == null) throw new IOException("unable to determine next hop");
             return !(replace(ret_connection) == null);
           }
 
@@ -1735,7 +1746,8 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
      * @throws IOException if the underlying socket throws this exception
      */
     protected void getViaConnection()
-        throws SocketException, DsException, UnknownHostException, IOException {
+        throws SocketException, DsException, UnknownHostException, IOException, ExecutionException,
+            InterruptedException {
       InetAddress laddr = null;
       int lport = DsBindingInfo.LOCAL_PORT_UNSPECIFIED;
 
@@ -1854,18 +1866,18 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           if (m_resolverStage == USING_SRV_SENT_BY) {
             // pass m_sipRequest in only to use its callid
             // for hashing
-            if (useDeterministicLocator()) {
-              client_locator = new DsSipDetServerLocator(m_sipRequest);
-            } else {
-              client_locator = new DsSipServerLocator();
-            }
+            //            if (useDeterministicLocator()) {
+            //              client_locator = new DsSipDetServerLocator(m_sipRequest);
+            //            } else {
+            //              client_locator = new DsSipServerLocator();
+            //            }
             // first try to get existing connection, if fails,
             // initialize server locator
             ret_connection =
                 DsSipTransactionManager.getSRVConnection(
-                    m_sipRequest.getNetwork(), m_addr_str, m_port, m_transport, client_locator);
+                    m_sipRequest.getNetwork(), m_addr_str, m_port, m_transport);
             if (ret_connection == null) {
-              ret_connection = client_locator.tryConnect();
+              throw new IOException("unable to resolve next hop");
             }
           } else {
             ret_connection =
@@ -1887,7 +1899,8 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
      * @throws IOException if there is an I/O exception
      */
     protected void getResponseConnection()
-        throws DsException, SocketException, UnknownHostException, IOException {
+        throws DsException, SocketException, UnknownHostException, IOException, ExecutionException,
+            InterruptedException {
       if (m_connection_ == null) {
         getViaConnection();
       }

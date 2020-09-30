@@ -34,6 +34,10 @@ public class DhruvaSIPConfigProperties {
 
   public static final boolean DEFAULT_PROXY_PROCESS_ROUTE_HEADER_ENABLED = false;
 
+  private static final String USE_REDIS_AS_CACHE = "useRedis";
+
+  private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaSIPConfigProperties.class);
+
   public static final TLSAuthenticationType DEFAULT_TRANSPORT_AUTH = TLSAuthenticationType.MTLS;
 
   private static final String SIP_CERTIFICATE = "sipCertificate";
@@ -54,8 +58,6 @@ public class DhruvaSIPConfigProperties {
   private static final Integer DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES = 14400;
 
   private static final String TLS_CIPHERS = "dhruva.sipTlsCipherSuites";
-
-  private final Logger logger = DhruvaLoggerFactory.getLogger(DhruvaSIPConfigProperties.class);
 
   public static int DEFAULT_PORT_UDP = 5060;
 
@@ -130,6 +132,22 @@ public class DhruvaSIPConfigProperties {
 
   private SIPProxy getDefaultSIPProxy() {
     return new SIPProxy.SIPProxyBuilder().build();
+  }
+
+  public boolean useRedisAsCache() {
+    return env.getProperty(USE_REDIS_AS_CACHE, Boolean.class, true);
+  }
+
+  public int getDhruvaDnsCacheMaxSize() {
+    int defaultCacheSize = 1_000;
+    int cacheSize = env.getProperty("DhruvaDnsCacheMaxSize", Integer.class, defaultCacheSize);
+    return cacheSize > 0 ? cacheSize : defaultCacheSize;
+  }
+
+  public long dnsCacheRetentionTimeMillis() {
+    long defaultTime = 3200L;
+    long retTime = env.getProperty("DhruvaDnsRetentionTimeMillis", Long.class, defaultTime);
+    return retTime > 0L ? retTime : defaultTime;
   }
 
   public String getSipCertificate() {

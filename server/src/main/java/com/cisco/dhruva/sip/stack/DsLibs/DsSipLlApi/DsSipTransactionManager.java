@@ -3,9 +3,12 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.cac.SIPSession;
 import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.cac.SessionStateType;
+import com.cisco.dhruva.sip.dto.Hop;
+import com.cisco.dhruva.sip.enums.LocateSIPServerTransportType;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAllowHeader;
@@ -32,17 +35,8 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsURI;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipMsgParser;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsConfigManager;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsLog4j;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface;
+import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsMessageLoggingInterface.SipMsgNormalizationState;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsSSLBindingInfo;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
-import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTlsUtil;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.LMAUtil;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
@@ -56,11 +50,9 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import javax.annotation.Nullable;
 
 /**
  * A single instance of this class manages all the transactions for a given lower layer. This class
@@ -80,6 +72,8 @@ public class DsSipTransactionManager {
 
   /** How to create transactions and server transaction interfaces. */
   private static DsSipTransactionFactory m_transactionFactory;
+
+  private static SipServerLocatorService sipLocator;
 
   /** Request logging category. */
   private static Logger reqCat = DsLog4j.transMReqCat;
@@ -375,7 +369,8 @@ public class DsSipTransactionManager {
    *     supported for this element
    * @see DsSipResolver
    */
-  public static DsSipConnection getRequestConnection(DsSipMessage message, DsSipResolver resolver)
+  public static DsSipConnection getRequestConnection(
+      DsSipMessage message, @Nullable DsSipResolver resolver)
       throws SocketException, DsException, UnknownHostException, IOException {
 
     Logger cat = generalCat;
@@ -507,8 +502,14 @@ public class DsSipTransactionManager {
                   + resolver);
         }
     */
-    ret_connection =
-        getSRVConnection(network, localAddr, localPort, host_str, port, transport, resolver);
+
+    // TODO DNS
+    // resolve
+    // Form BindingInfo from hop object [0]
+    // getConnection, re_connection here
+    // Do Not do tryConnect in calling function
+
+    ret_connection = getSRVConnection(network, localAddr, localPort, host_str, port, transport);
 
     return ret_connection;
   }
@@ -533,12 +534,12 @@ public class DsSipTransactionManager {
    * @see DsSipResolver
    */
   protected static DsSipConnection getSRVConnection(
-      DsNetwork network, InetAddress lAddr, int lPort, DsSipURL url, DsSipResolver resolver)
+      DsNetwork network, InetAddress lAddr, int lPort, DsSipURL url)
       throws SocketException, DsException, UnknownHostException, IOException {
 
     DsSipConnection ret_connection = null;
 
-    if (!resolver.shouldSearch(url)) {
+    if (!sipLocator.shouldSearch(url)) {
       // GOGONG - 07.13.05 - Return default outgoing transport if the transport is not specified
       Transport transportParam = url.getTransportParam();
       Transport transport =
@@ -547,7 +548,7 @@ public class DsSipTransactionManager {
               : ((transportParam == Transport.NONE)
                   ? DsConfigManager.getDefaultOutgoingTransport()
                   : transportParam);
-      if (!resolver.isSupported(transport)) {
+      if (!sipLocator.isSupported(transport)) {
         throw new DsException(
             transport
                 + " transport protocol not supported for this element. "
@@ -559,12 +560,62 @@ public class DsSipTransactionManager {
       info.setNetwork(network);
       ret_connection = (DsSipConnection) m_transportLayer.getConnection(info);
     } else {
-      resolver.initialize(network, lAddr, lPort, url);
+
+      String host = DsByteString.toString(url.getMAddrParam());
+
+      if (null == host) {
+        host = DsByteString.toString(url.getHost());
+      }
+      // GOGONG - 07.13.05 - Return default outgoing transport if the transport is not specified
+      Transport transportParam = url.getTransportParam();
+      Transport transport =
+          url.isSecure()
+              ? Transport.TLS
+              : ((transportParam == Transport.NONE) ? BTU : transportParam);
+
+      try {
+
+        LocateSIPServerTransportType transportType = getDnsLocatorTransportType(transport);
+
+        DnsDestination dnsDestination =
+            new DnsDestination(host, url.hasPort() ? url.getPort() : -1, transportType);
+        LocateSIPServersResponse locateSIPServersResponse =
+            sipLocator.locateDestination(null, dnsDestination, null);
+
+        Optional<DsBindingInfo> info =
+            getNextHopBindingInfo(
+                network,
+                lAddr,
+                lPort,
+                host,
+                url.hasPort() ? url.getPort() : -1,
+                transport,
+                locateSIPServersResponse);
+
+        if (info.isPresent()) {
+          DsBindingInfo bInfo = info.get();
+          Optional<DsSipConnection> conn = getConnectionFromBindingInfo(bInfo);
+          if (conn.isPresent()) ret_connection = conn.get();
+        }
+
+      } catch (Exception e) {
+        logger.error("exception {}", e);
+      }
     }
 
     return ret_connection;
   }
 
+  public static LocateSIPServerTransportType getDnsLocatorTransportType(Transport transport) {
+    switch (transport) {
+      case TCP:
+        return LocateSIPServerTransportType.TCP;
+      case TLS:
+        return LocateSIPServerTransportType.TLS;
+      default:
+        return LocateSIPServerTransportType.TLS_AND_TCP;
+    }
+  }
   /**
    * Obtain a connection based on the rules for locating a server specified in the SIP RFC.
    *
@@ -586,18 +637,13 @@ public class DsSipTransactionManager {
    * @throws DsException if transport protocol not supported for this element
    */
   protected static DsSipConnection getSRVConnection(
-      DsNetwork network,
-      InetAddress lAddr,
-      int lPort,
-      String host,
-      int port,
-      Transport transport,
-      DsSipResolver resolver)
+      DsNetwork network, InetAddress lAddr, int lPort, String host, int port, Transport transport)
       throws SocketException, DsException, UnknownHostException, IOException {
     DsSipConnection ret_connection = null;
-
-    if (!resolver.shouldSearch(host, port, transport)) {
-      if (!resolver.isSupported(transport)) {
+    LocateSIPServerTransportType transportType = getDnsLocatorTransportType(transport);
+    DnsDestination dnsDestination = new DnsDestination(host, port, transportType);
+    if (!sipLocator.shouldSearch(dnsDestination)) {
+      if (!sipLocator.isSupported(transport)) {
         throw new DsException(
             transport
                 + " transport protocol not supported for this element. "
@@ -644,12 +690,90 @@ public class DsSipTransactionManager {
         ret_connection = (DsSipConnection) m_transportLayer.getConnection(info);
       }
     } else {
-      resolver.initialize(network, lAddr, lPort, host, port, transport);
+      try {
+
+        LocateSIPServersResponse locateSIPServersResponse =
+            sipLocator.locateDestination(null, dnsDestination, null);
+        Optional<DsBindingInfo> info =
+            getNextHopBindingInfo(
+                network, lAddr, lPort, host, port, transport, locateSIPServersResponse);
+
+        if (info.isPresent()) {
+          DsBindingInfo bInfo = info.get();
+          Optional<DsSipConnection> conn = getConnectionFromBindingInfo(bInfo);
+          if (conn.isPresent()) ret_connection = conn.get();
+        }
+
+      } catch (Exception e) {
+        logger.error("exception {}", e);
+      }
     }
 
     return ret_connection;
   }
 
+  public static Optional<DsBindingInfo> getNextHopBindingInfo(
+      DsNetwork network,
+      @Nullable InetAddress lAddr,
+      int lPort,
+      String host,
+      int port,
+      Transport transport,
+      LocateSIPServersResponse sipServersResponse) {
+    try {
+      //      LocateSIPServersResponse sipServersResponse =
+      //              resolver.resolve(host, LocateSIPServerTransportType.TLS, port, null );
+      List<Hop> networkHops = sipServersResponse.getHops();
+      if (!networkHops.isEmpty()) {
+        Hop nextElement = networkHops.get(0);
+
+        if (lAddr == null && lPort <= 0) {
+          DsBindingInfo bInfo =
+              new DsBindingInfo(nextElement.getHost(), nextElement.getPort(), transport);
+          return Optional.of(bInfo);
+
+        } else {
+          DsBindingInfo bInfo =
+              new DsBindingInfo(
+                  lAddr, lPort, nextElement.getHost(), nextElement.getPort(), transport);
+          return Optional.of(bInfo);
+        }
+      }
+    } catch (Exception e) {
+      logger.error("response ", e);
+      return Optional.empty();
+    }
+    return Optional.empty();
+  }
+
+  public static Optional<DsSipConnection> getConnectionFromBindingInfo(
+      @Nullable DsBindingInfo bInfo) throws IOException {
+    if (bInfo == null) {
+      return Optional.empty();
+    }
+    if (bInfo.getRemoteAddress() == null) {
+      throw new IOException("can't resolve address: " + bInfo.getRemoteAddressStr());
+    }
+    DsSipConnection ret_connection = null;
+    try {
+      ret_connection =
+          (DsSipConnection)
+              DsSipTransactionManager.getTransportLayer()
+                  .getConnection(
+                      bInfo.getNetworkReliably(),
+                      bInfo.getLocalAddress(),
+                      bInfo.getLocalPort(),
+                      bInfo.getRemoteAddress(),
+                      bInfo.getRemotePort(),
+                      bInfo.getTransport(),
+                      false);
+
+      return Optional.of(ret_connection);
+    } catch (Exception e) {
+      logger.error("Exception {}", e);
+      return Optional.empty();
+    }
+  }
   /**
    * Obtain a connection based on the rules for locating a server specified in the SIP RFC.
    *
@@ -658,8 +782,6 @@ public class DsSipTransactionManager {
    * @param port the port to connection to
    * @param transport the transport to use for the connection or
    *     DsSipBindingInfo.BINDING_TRANSPORT_UNSPECIFIED
-   * @param resolver a DsSipResolver to initialize if SRV searching should be performed according to
-   *     the SIP spec
    * @return a DsSipConnection for this host, port and transport or null if the server should be
    *     searched for according to the SIP specification
    * @throws SocketException if there is an error while creating the socket for the specified
@@ -669,13 +791,14 @@ public class DsSipTransactionManager {
    * @throws DsException if transport protocol not supported for this element
    */
   protected static DsSipConnection getSRVConnection(
-      DsNetwork network, String host, int port, Transport transport, DsSipResolver resolver)
-      throws SocketException, DsException, UnknownHostException, IOException {
+      DsNetwork network, String host, int port, Transport transport)
+      throws SocketException, DsException, UnknownHostException, IOException, ExecutionException,
+          InterruptedException {
 
     DsSipConnection ret_connection = null;
 
-    if (!resolver.shouldSearch(host, port, transport)) {
-      if (!resolver.isSupported(transport)) {
+    if (!sipLocator.shouldSearch(host, port, transport)) {
+      if (!sipLocator.isSupported(transport)) {
         throw new DsException(
             transport
                 + " transport protocol not supported for this element."
@@ -685,7 +808,20 @@ public class DsSipTransactionManager {
       info.setNetwork(network);
       ret_connection = (DsSipConnection) m_transportLayer.getConnection(info);
     } else {
-      resolver.initialize(network, host, port, transport);
+
+      LocateSIPServerTransportType transportType = getDnsLocatorTransportType(transport);
+      DnsDestination dnsDestination = new DnsDestination(host, port, transportType);
+      LocateSIPServersResponse locateSIPServersResponse =
+          sipLocator.locateDestination(null, dnsDestination, null);
+
+      Optional<DsBindingInfo> info =
+          getNextHopBindingInfo(network, null, -1, host, port, transport, locateSIPServersResponse);
+
+      if (info.isPresent()) {
+        DsBindingInfo bInfo = info.get();
+        Optional<DsSipConnection> conn = getConnectionFromBindingInfo(bInfo);
+        if (conn.isPresent()) ret_connection = conn.get();
+      }
     }
 
     return ret_connection;
@@ -707,55 +843,6 @@ public class DsSipTransactionManager {
    */
   public DsTransactionRemovalInterface getTransactionRemovalCb() {
     return m_transactionRemovalCb;
-  }
-
-  /**
-   * Obtain a connection to a server for a given url. If server should be searched for, initialize
-   * the provided DsSipResolver and return null.
-   *
-   * @param network the network associated with this connection
-   * @param url the URL to connect to
-   * @param resolver a DsSipResolver to fill in in case we should search for a server
-   * @return null if there is more than a single possible <port, IP address, protocol> tuple to try
-   *     to connect to per the SIP RFC paragraph on server location. In this case, the resolver
-   *     parameter will be initialized with a list of services to try
-   * @throws SocketException if there is an error while creating the socket for the specified
-   *     transport type
-   * @throws UnknownHostException if the host address is not known
-   * @throws IOException if error occurs while creating a message reader for stream protocol
-   * @throws DsException if transport protocol not supported for this element
-   * @see DsSipResolver
-   */
-  protected static DsSipConnection getSRVConnection(
-      DsNetwork network, DsSipURL url, DsSipResolver resolver)
-      throws SocketException, DsException, UnknownHostException, IOException {
-
-    DsSipConnection ret_connection = null;
-
-    if (!resolver.shouldSearch(url)) {
-      // GOGONG - 07.13.05 - Return default outgoing transport if the transport type is not
-      // specified
-      Transport transportParam = url.getTransportParam();
-      Transport transport =
-          url.isSecure()
-              ? Transport.TLS
-              : ((transportParam == Transport.NONE)
-                  ? DsConfigManager.getDefaultOutgoingTransport()
-                  : transportParam);
-
-      if (!resolver.isSupported(transport)) {
-        throw new DsException(
-            transport
-                + " transport protocol not supported for this element. "
-                + " An element can only send messages via a transport protocol it listens on");
-      }
-      DsBindingInfo info = url.getBindingInfo();
-      ret_connection = (DsSipConnection) m_transportLayer.getConnection(info);
-    } else {
-      resolver.initialize(network, url);
-    }
-
-    return ret_connection;
   }
 
   /**
@@ -3612,5 +3699,14 @@ public class DsSipTransactionManager {
 
   public static void setSmp_theSingleton(DsSipTransactionManager smp_theSingleton) {
     DsSipTransactionManager.smp_theSingleton = smp_theSingleton;
+  }
+
+  public static void setSipResolver(SipServerLocatorService sipResolver) {
+    sipLocator = sipResolver;
+  }
+
+  public static Optional<SipServerLocatorService> getSipResolver() {
+    if (sipLocator != null) return Optional.of(sipLocator);
+    return Optional.empty();
   }
 } // End class DsSipTransactionManager

@@ -2,24 +2,27 @@ package com.cisco.dhruva.common.dns;
 
 import static java.util.Objects.requireNonNull;
 
+import com.cisco.dhruva.common.dns.dto.DNSARecord;
+import com.cisco.dhruva.common.dns.dto.DNSSRVRecord;
 import com.cisco.dhruva.common.dns.metrics.DnsReporter;
 import com.cisco.dhruva.common.dns.metrics.DnsTimingContext;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import org.xbill.DNS.Type;
 
 /** Tracks metrics for DnsSrvResolver calls. */
-class MeteredDnsSrvResolver implements DnsLookup {
+class MeteredDnsResolver implements DnsLookup {
   private final DnsLookup delegate;
   private final DnsReporter reporter;
 
-  MeteredDnsSrvResolver(DnsLookup delegate, DnsReporter reporter) {
+  MeteredDnsResolver(DnsLookup delegate, DnsReporter reporter) {
     this.delegate = requireNonNull(delegate, "delegate");
     this.reporter = requireNonNull(reporter, "reporter");
   }
 
   @Override
-  public CompletableFuture<List<DNSSRVRecord>> lookupSRV(String fqdn) throws DnsException {
+  public CompletableFuture<List<DNSSRVRecord>> lookupSRV(String fqdn) {
 
     final DnsTimingContext resolveTimer = reporter.resolveTimer();
 
@@ -31,15 +34,16 @@ class MeteredDnsSrvResolver implements DnsLookup {
       result = f2.get();
       f1.complete(result);
       if (result.isEmpty()) {
-        reporter.reportEmpty();
+        reporter.reportEmpty(fqdn, "SRV");
       }
     } catch (DnsException error) {
-      reporter.reportFailure(error);
+      reporter.reportFailure(fqdn, "SRV", error);
       throw error;
-    } catch (InterruptedException | ExecutionException e) {
-      e.printStackTrace();
+    } catch (InterruptedException | ExecutionException error) {
+      reporter.reportFailure(fqdn, "SRV", error);
+      throw new DnsException(Type.SRV, fqdn, DnsErrorCode.ERROR_DNS_INTERNAL_ERROR);
     } finally {
-      resolveTimer.stop();
+      resolveTimer.stop(fqdn, "SRV");
     }
 
     return f1;
@@ -47,6 +51,7 @@ class MeteredDnsSrvResolver implements DnsLookup {
 
   @Override
   public CompletableFuture<List<DNSARecord>> lookupA(String host) {
+
     final DnsTimingContext resolveTimer = reporter.resolveTimer();
 
     final List<DNSARecord> result;
@@ -57,15 +62,16 @@ class MeteredDnsSrvResolver implements DnsLookup {
       result = f2.get();
       f1.complete(result);
       if (result.isEmpty()) {
-        reporter.reportEmpty();
+        reporter.reportEmpty(host, "A");
       }
     } catch (DnsException error) {
-      reporter.reportFailure(error);
+      reporter.reportFailure(host, "A", error);
       throw error;
-    } catch (InterruptedException | ExecutionException e) {
-      e.printStackTrace();
+    } catch (InterruptedException | ExecutionException error) {
+      reporter.reportFailure(host, "A", error);
+      throw new DnsException(Type.A, host, DnsErrorCode.ERROR_DNS_INTERNAL_ERROR);
     } finally {
-      resolveTimer.stop();
+      resolveTimer.stop(host, "A");
     }
 
     return f1;

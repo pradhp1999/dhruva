@@ -221,24 +221,33 @@ public class DsProxyStatelessTransaction implements DsProxyInterface {
       if (conid != null) {
         ret_connection = DsSipConnectionAssociations.getConnection(conid);
       }
+      //      if (ret_connection == null) {
+      //        if (DsConfigManager.getSimpleResolverDefault()) {
+      //          DsSipSimpleResolver simpleResolver = new DsSipSimpleResolver(request);
+      //          ret_connection = DsSipTransactionManager.getRequestConnection(request,
+      // simpleResolver);
+      //          if (ret_connection == null) {
+      //            ret_connection = simpleResolver.tryConnect();
+      //          }
+      //        } else {
+      //          //  Create a "deterministic" server locator. For stateless transactions,
+      //          //  for a given a URI, we want to consistently return to the same server.
+      //          // !!!!!!!!!!!!!!!!!!
+      //          // this is a cut&paste from Low Level and must be changed
+      //          // in the next release
+      //          DsSipServerLocator server_locator = new DsSipDetServerLocator(request);
+      //          ret_connection = DsSipTransactionManager.getRequestConnection(request,
+      // server_locator);
+      //          if (ret_connection == null) {
+      //            ret_connection = server_locator.tryConnect();
+      //          }
+      //        }
+      //      }
       if (ret_connection == null) {
-        if (DsConfigManager.getSimpleResolverDefault()) {
-          DsSipSimpleResolver simpleResolver = new DsSipSimpleResolver(request);
-          ret_connection = DsSipTransactionManager.getRequestConnection(request, simpleResolver);
-          if (ret_connection == null) {
-            ret_connection = simpleResolver.tryConnect();
-          }
-        } else {
-          //  Create a "deterministic" server locator. For stateless transactions,
-          //  for a given a URI, we want to consistently return to the same server.
-          // !!!!!!!!!!!!!!!!!!
-          // this is a cut&paste from Low Level and must be changed
-          // in the next release
-          DsSipServerLocator server_locator = new DsSipDetServerLocator(request);
-          ret_connection = DsSipTransactionManager.getRequestConnection(request, server_locator);
-          if (ret_connection == null) {
-            ret_connection = server_locator.tryConnect();
-          }
+        try {
+          ret_connection = DsSipTransactionManager.getRequestConnection(request, null);
+        } catch (Exception e) {
+          throw new IOException("failed to find connection");
         }
       }
 

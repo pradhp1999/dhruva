@@ -1,5 +1,6 @@
 package com.cisco.dhruva.common.dns;
 
+import com.cisco.dhruva.common.dns.dto.DNSSRVRecord;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;

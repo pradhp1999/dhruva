@@ -11,6 +11,7 @@ import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.cac.SIPSessions;
 import com.cisco.dhruva.sip.controller.DsAppController;
 import com.cisco.dhruva.sip.controller.DsProxyController;
@@ -53,6 +54,8 @@ public class DsSipClientTransactionTest {
   private InetAddress remoteAddress;
   private int localPort, remotePort;
   private DsNetwork dsNetwork;
+  private SipServerLocatorService locatorService;
+  private DsSipServerLocator sipServerLocator;
 
   @BeforeClass
   public void init() throws UnknownHostException, DsException {
@@ -72,13 +75,16 @@ public class DsSipClientTransactionTest {
         new DsBindingInfo(localAddress, localPort, localAddress, remotePort, Transport.UDP);
     dsNetwork = DsNetwork.getNetwork("Default");
     incomingMessageBindingInfo.setNetwork(dsNetwork);
+    locatorService = mock(SipServerLocatorService.class);
+    sipServerLocator = mock(DsSipServerLocator.class);
 
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
     DsSipProxyManager dsSipProxyManager = DsSipProxyManager.getInstance();
     if (dsSipProxyManager == null) {
       transactionFactory = new DsSipDefaultTransactionFactory();
       dsSipProxyManager =
-          new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
+          new DsSipProxyManager(
+              transportLayer, controllerFactory, transactionFactory, locatorService);
     }
     sipProxyManager = spy(dsSipProxyManager);
     DsSipProxyManager.setM_Singleton(sipProxyManager);
@@ -133,7 +139,7 @@ public class DsSipClientTransactionTest {
     sipTransactionManager.setM_transactionTable(new DsSipTransactionTable());
   }
 
-  @Test()
+  @Test
   public void testSipClientTransaction() throws Exception {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -165,6 +171,10 @@ public class DsSipClientTransactionTest {
     DsSipConnection sendConnection = mock(DsSipConnection.class);
     when(sendConnection.getBindingInfo()).thenReturn(incomingMessageBindingInfo);
     when(sendConnection.getTransportType()).thenReturn(Transport.UDP);
+    when(locatorService.isSupported(any(Transport.class))).thenReturn(true);
+    when(locatorService.shouldSearch(any(DsSipURL.class))).thenReturn(false);
+    when(locatorService.getLocator()).thenReturn(sipServerLocator);
+    doNothing().when(sipServerLocator).setSupportedTransports(any(byte.class));
 
     doReturn(sendConnection)
         .when(transportLayer)
@@ -175,6 +185,7 @@ public class DsSipClientTransactionTest {
             any(InetAddress.class),
             any(Integer.class),
             any(Transport.class));
+    doReturn(sendConnection).when(transportLayer).getConnection(any(DsBindingInfo.class));
 
     DsProxyController ctrlr = spy((DsProxyController) controller);
 

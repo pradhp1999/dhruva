@@ -1,5 +1,6 @@
 package com.cisco.dhruva.common.dns;
 
+import com.cisco.dhruva.common.dns.dto.DNSARecord;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,7 +9,7 @@ import org.xbill.DNS.Record;
 
 public class ARecordCache extends AbstractDnsCache<DNSARecord> {
 
-  public ARecordCache(int maxCacheSize, long retentionTimeMillis) {
+  public ARecordCache(long maxCacheSize, long retentionTimeMillis) {
     super(maxCacheSize, retentionTimeMillis);
   }
 

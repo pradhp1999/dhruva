@@ -10,6 +10,7 @@ import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
@@ -22,12 +23,15 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+@SpringBootTest
 public class DsProxyControllerClientTest {
   DsNetwork dsNetwork;
   DsControllerConfig ourConfig;
@@ -36,6 +40,7 @@ public class DsProxyControllerClientTest {
   private InetAddress localAddress;
   private InetAddress remoteAddress;
   private int localPort, remotePort;
+  @Autowired SipServerLocatorService locatorService;
 
   @BeforeClass
   void init() throws DsException, UnknownHostException {
@@ -49,7 +54,8 @@ public class DsProxyControllerClientTest {
       DsSipTransportLayer transportLayer = mock(DsSipTransportLayer.class);
       DsSipTransactionFactory transactionFactory = new DsSipDefaultTransactionFactory();
       dsSipProxyManager =
-          new DsSipProxyManager(transportLayer, controllerFactory, transactionFactory);
+          new DsSipProxyManager(
+              transportLayer, controllerFactory, transactionFactory, locatorService);
     }
     DsSipProxyManager sipProxyManager = spy(dsSipProxyManager);
     DsSipProxyManager.setM_Singleton(sipProxyManager);
