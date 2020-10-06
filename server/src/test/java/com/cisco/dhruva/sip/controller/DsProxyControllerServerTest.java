@@ -9,6 +9,7 @@ import com.cisco.dhruva.common.context.ExecutionContext;
 import com.cisco.dhruva.common.messaging.MessageConvertor;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.common.messaging.models.MessageBodyType;
+import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
@@ -18,6 +19,8 @@ import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationExc
 import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.SIPRequestBuilder;
@@ -30,6 +33,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SpringBootTest
@@ -37,14 +41,20 @@ public class DsProxyControllerServerTest {
 
   private DsSipProxyManager sipProxyManager;
   DsNetwork dsNetwork;
+  DsNetwork externalIpEnabledNetwork;
   private AppAdaptorInterface adaptorInterface;
   private ProxyAdaptorFactoryInterface proxyAdaptorFactoryInterface;
   @Autowired SipServerLocatorService locatorService;
 
+  DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
+
   @BeforeClass
   void init() throws Exception {
-
+    dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
     dsNetwork = DsNetwork.getNetwork("Default");
+    externalIpEnabledNetwork = DsNetwork.getNetwork("External_IP_enabled");
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
+
     adaptorInterface = mock(AppAdaptorInterface.class);
     proxyAdaptorFactoryInterface = mock(ProxyAdaptorFactoryInterface.class);
     DsREControllerFactory controllerFactory = new DsREControllerFactory();
@@ -72,10 +82,17 @@ public class DsProxyControllerServerTest {
           InetAddress.getByName("127.0.0.1"),
           5060,
           Transport.UDP,
-          InetAddress.getByName("127.0.0.1"));
+          InetAddress.getByName("127.0.0.1"),
+          false);
 
-      DsControllerConfig.addRecordRouteInterface(
-          InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
+      DsControllerConfig.addListenInterface(
+          externalIpEnabledNetwork,
+          InetAddress.getByName("127.0.0.1"),
+          5061,
+          Transport.UDP,
+          InetAddress.getByName("127.0.0.1"),
+          true);
+
     } catch (DsInconsistentConfigurationException ignored) {
       // In this case it was already set, there is no means to remove the key from map
     }
@@ -351,7 +368,7 @@ public class DsProxyControllerServerTest {
   @Test(
       description = "controller sending 200 Ok , but no server context set",
       expectedExceptions = {DhruvaException.class})
-  public void testResponse200OkForInviteNoIntialRequestSent() throws Exception {
+  public void testResponse200OkForInviteNoInitialRequestSent() throws Exception {
 
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
     DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
@@ -462,14 +479,67 @@ public class DsProxyControllerServerTest {
     Assert.assertEquals(resp.toString(), receivedResp.toString());
   }
 
+  @DataProvider
+  public Object[] getRecordRouteHeader() throws DsSipParserListenerException, DsSipParserException {
+    // single network
+    DsSipRecordRouteHeader rr1 =
+        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
+    DsSipRecordRouteHeader rr1AfterFlip =
+        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
+
+    // host portion is a 'external IP' attached network
+    DsSipRecordRouteHeader rr2 =
+        new DsSipRecordRouteHeader("<sip:rr,n=Default@1.1.1.1:5061;transport=udp;lr>".getBytes());
+    DsSipRecordRouteHeader rr2AfterFlip =
+        new DsSipRecordRouteHeader(
+            "<sip:rr,n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
+
+    // user portion is a 'external IP' attached network
+    DsSipRecordRouteHeader rr3 =
+        new DsSipRecordRouteHeader(
+            "<sip:rr,n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
+    DsSipRecordRouteHeader rr3AfterFlip =
+        new DsSipRecordRouteHeader("<sip:rr,n=Default@1.1.1.1:5061;transport=udp;lr>".getBytes());
+    DsSipRecordRouteHeader rr3AfterFlipWithHostPortDisabled =
+        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5061;transport=udp;lr>".getBytes());
+
+    // host portion is a 'external IP' attached network but 'hostPort' toggle is disabled
+    DsSipRecordRouteHeader rr4 =
+        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5061;transport=udp;lr>".getBytes());
+    DsSipRecordRouteHeader rr4AfterFlip =
+        new DsSipRecordRouteHeader(
+            "<sip:rr,n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
+
+    RecordRouteDataProvider rrProvider1 = new RecordRouteDataProvider(rr1, rr1AfterFlip, true);
+    RecordRouteDataProvider rrProvider2 = new RecordRouteDataProvider(rr2, rr2AfterFlip, true);
+    RecordRouteDataProvider rrProvider3 = new RecordRouteDataProvider(rr3, rr3AfterFlip, true);
+    RecordRouteDataProvider rrProvider4 = new RecordRouteDataProvider(rr1, rr1AfterFlip, false);
+    RecordRouteDataProvider rrProvider5 = new RecordRouteDataProvider(rr4, rr4AfterFlip, false);
+    RecordRouteDataProvider rrProvider6 =
+        new RecordRouteDataProvider(rr3, rr3AfterFlipWithHostPortDisabled, false);
+
+    return new RecordRouteDataProvider[][] {
+      {rrProvider1}, {rrProvider2}, {rrProvider3},
+      {rrProvider4}, {rrProvider5}, {rrProvider6}
+    };
+  }
+
   @Test(
       description =
           "success response path for invite transaction.Set Record Route headers in response msg."
-              + "Dhruva should flip the RR (stateful)")
-  public void testResponse200OkWithRRForInvite() throws Exception {
-    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
-    DsSipRequest sipRequest = sipRequestBuilder.getReInviteRequest(null);
+              + "Dhruva should flip the RR (stateful)",
+      dataProvider = "getRecordRouteHeader")
+  public void testResponse200OkWithRRForInvite(RecordRouteDataProvider rrProvider)
+      throws Exception {
 
+    DsControllerConfig.addRecordRouteInterface(
+        InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
+    DsControllerConfig.addRecordRouteInterface(
+        InetAddress.getByName("127.0.0.1"), 5061, Transport.UDP, externalIpEnabledNetwork);
+
+    DsSipRequest sipRequest =
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     dsNetwork.setRemoveOwnRouteHeader(true);
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
 
@@ -512,15 +582,18 @@ public class DsProxyControllerServerTest {
 
     DsSipRecordRouteHeader rr1 =
         new DsSipRecordRouteHeader("<sip:rr,n=service@1.2.3.4:5080;transport=udp;lr>".getBytes());
-
-    DsSipRecordRouteHeader rr2 =
-        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
     resp.addHeader(rr1);
-    resp.addHeader(rr2);
+    resp.addHeader(rrProvider.rrToAdd);
+
+    System.out.println(
+        "RR in the response which will be undergoing change : " + rrProvider.rrToAdd.toString());
 
     IDhruvaMessage responseMsg =
         MessageConvertor.convertSipMessageToDhruvaMessage(
             resp, MessageBodyType.SIPRESPONSE, context);
+
+    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(rrProvider.isHostPortEnabled);
+    when(dhruvaSIPConfigProperties.getHostIp()).thenReturn("1.1.1.1");
 
     handler.onMessage(responseMsg);
     ArgumentCaptor<DsSipResponse> argumentCaptor = ArgumentCaptor.forClass(DsSipResponse.class);
@@ -528,14 +601,17 @@ public class DsProxyControllerServerTest {
 
     DsSipResponse receivedResp = argumentCaptor.getValue();
 
+    System.out.println("Final response after modifications (RR flip) : " + receivedResp.toString());
+
     DsSipHeaderList rrHeader = receivedResp.getHeaders(DsSipConstants.RECORD_ROUTE);
 
     Assert.assertNotNull(receivedResp);
     Assert.assertEquals(receivedResp.getMethodID(), 1);
     Assert.assertEquals(resp.toString(), receivedResp.toString());
 
-    // TODO , since there is only one listen point, there is no flip happening
-    Assert.assertEquals(rrHeader.getLast(), rr2);
+    // TODO , since there is only one listen point, there is no flip happening for first testcase.
+    // For other two, flip happens
+    Assert.assertEquals(rrHeader.getLast(), rrProvider.rrExpected);
   }
 
   @Test(description = "controller forwarding 4xx response to invite request")
@@ -774,5 +850,31 @@ public class DsProxyControllerServerTest {
             resp, MessageBodyType.SIPRESPONSE, context);
 
     handler.onMessage(responseMsg);
+  }
+
+  public class RecordRouteDataProvider {
+
+    DsSipRecordRouteHeader rrToAdd;
+    DsSipRecordRouteHeader rrExpected;
+    boolean isHostPortEnabled;
+
+    public RecordRouteDataProvider(
+        DsSipRecordRouteHeader rrToAdd,
+        DsSipRecordRouteHeader rrExpected,
+        boolean isHostPortEnabled) {
+      this.rrToAdd = rrToAdd;
+      this.rrExpected = rrExpected;
+      this.isHostPortEnabled = isHostPortEnabled;
+    }
+
+    public String toString() {
+      return "Original RR: {"
+          + rrToAdd.toString()
+          + "}; RR after flip: {"
+          + rrExpected.toString()
+          + "}; HostPort feature: {"
+          + isHostPortEnabled
+          + "}";
+    }
   }
 }

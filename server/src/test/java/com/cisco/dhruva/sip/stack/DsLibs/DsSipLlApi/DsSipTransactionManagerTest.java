@@ -11,15 +11,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
+import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.service.MetricService;
 import com.cisco.dhruva.sip.cac.SIPSessions;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipAckMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipCancelMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponse;
-import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipViaHeader;
+import com.cisco.dhruva.sip.controller.DsREControllerFactory;
+import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsBindingInfo;
@@ -39,10 +37,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 public class DsSipTransactionManagerTest {
 
@@ -55,11 +50,13 @@ public class DsSipTransactionManagerTest {
   private InetAddress localAddress;
   private InetAddress remoteAddress;
   private int localPort, remotePort;
+  private DsSipRouteFixInterface rfi;
+  private DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
   @InjectMocks private MetricService metricService;
   @InjectMocks private LMAUtil lmaUtil;
 
   @BeforeClass
-  public void init() throws UnknownHostException, DsException {
+  public void init() throws Exception {
     metricService = mock(MetricService.class);
     transportLayer = mock(DsSipTransportLayer.class);
     strayMessageInterface = mock(DsSipStrayMessageInterface.class);
@@ -72,7 +69,12 @@ public class DsSipTransactionManagerTest {
     incomingMessageBindingInfo =
         new DsBindingInfo(localAddress, localPort, localAddress, remotePort, Transport.UDP);
     DsNetwork dsNetwork = DsNetwork.getNetwork("Default");
+    DsNetwork externalIpEnabledNetwork = DsNetwork.getNetwork("externalIpEnabledNetwork");
     incomingMessageBindingInfo.setNetwork(dsNetwork);
+    rfi = new DsREControllerFactory();
+
+    dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
 
     DsSipServerTransactionImpl.setThreadPoolExecutor(
         (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
@@ -89,6 +91,31 @@ public class DsSipTransactionManagerTest {
     DsSipTransactionManager.setProxyServerMode(true);
     sipTransactionManager.setStrayMessageInterface(strayMessageInterface);
     sipTransactionManager.setTransactionEventInterface(transactionEventInterface);
+
+    try {
+      DsControllerConfig.addListenInterface(
+          dsNetwork,
+          InetAddress.getByName("127.0.0.1"),
+          5060,
+          Transport.UDP,
+          InetAddress.getByName("127.0.0.1"),
+          false);
+
+      DsControllerConfig.addListenInterface(
+          externalIpEnabledNetwork,
+          InetAddress.getByName("127.0.0.1"),
+          5061,
+          Transport.UDP,
+          InetAddress.getByName("127.0.0.1"),
+          true);
+
+      DsControllerConfig.addRecordRouteInterface(
+          InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
+      DsControllerConfig.addRecordRouteInterface(
+          InetAddress.getByName("127.0.0.1"), 5061, Transport.UDP, externalIpEnabledNetwork);
+    } catch (DsInconsistentConfigurationException ignored) {
+      // In this case it was already set, there is no means to remove the key from map
+    }
 
     MockitoAnnotations.initMocks(this);
   }
@@ -186,7 +213,7 @@ public class DsSipTransactionManagerTest {
       description =
           "Testing the Options Processing by the Transaction Manager, "
               + "checks if Message is parsed ,Session is created ,SessionId header"
-              + " is added,And 200 OK is sent to the Options messsage, Also"
+              + " is added,And 200 OK is sent to the Options message, Also"
               + "Checks Options is not forwarded")
   public void testOptionProcessingInTransactionManager() throws Exception {
 
@@ -296,6 +323,85 @@ public class DsSipTransactionManagerTest {
     Assert.assertEquals(
         sipViaHeader.getReceived().toString(),
         incomingMessageBindingInfo.getLocalAddress().getHostAddress());
+  }
+
+  @DataProvider
+  public Object[] getRouteHeader() {
+
+    RouteDataProvider rProvider1 =
+        new RouteDataProvider("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>", false, true);
+    RouteDataProvider rProvider2 =
+        new RouteDataProvider(
+            "<sip:rr,n=externalIpEnabledNetwork@1.1.1.1:5061;transport=udp;lr>", false, true);
+    RouteDataProvider rProvider3 =
+        new RouteDataProvider(
+            "<sip:rr,n=unrecognizedNetwork@1.2.3.4:5065;transport=udp;lr>", true, true);
+    RouteDataProvider rProvider4 =
+        new RouteDataProvider("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>", false, false);
+    RouteDataProvider rProvider5 =
+        new RouteDataProvider(
+            "<sip:rr,n=externalIpEnabledNetwork@127.0.0.1:5061;transport=udp;lr>", false, false);
+    RouteDataProvider rProvider6 =
+        new RouteDataProvider(
+            "<sip:rr,n=unrecognizedNetwork@1.2.3.4:5065;transport=udp;lr>", true, false);
+
+    RouteDataProvider[][] inputs =
+        new RouteDataProvider[][] {
+          {rProvider1}, {rProvider2}, {rProvider3},
+          {rProvider4}, {rProvider5}, {rProvider6}
+        };
+    return inputs;
+  }
+
+  @Test(
+      description =
+          "Testing the ACK Processing by the Transaction Manager, "
+              + "ACK should be processed with Route fix interface. ",
+      dataProvider = "getRouteHeader")
+  public void testACKProcessingInTransactionManagerWithRouteFixInterface(
+      RouteDataProvider rProvider) throws Exception {
+
+    sipTransactionManager.setRouteFixInterface(rfi);
+    SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
+    String callId = sipRequestBuilder.getCallId();
+
+    DsSipRequest sipRequest =
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.ACK));
+    DsSipRouteHeader cpRoute = new DsSipRouteHeader(rProvider.cpRouteToAdd.getBytes());
+    sipRequest.addHeader(cpRoute, true);
+    byte[] messagebytes = sipRequest.toByteArray();
+
+    SipMessageBytes sipMessageBytes = new SipMessageBytes(messagebytes, incomingMessageBindingInfo);
+
+    ArgumentCaptor<DsSipAckMessage> argumentCaptor = ArgumentCaptor.forClass(DsSipAckMessage.class);
+
+    Assert.assertNull(SIPSessions.getActiveSession(callId));
+
+    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(rProvider.isHostPortEnabled);
+
+    sipTransactionManager.processMessageBytes(sipMessageBytes);
+
+    verify(strayMessageInterface).strayAck((argumentCaptor.capture()));
+    DsSipAckMessage requestReceivedAtInterface = argumentCaptor.getValue();
+
+    System.out.println("Processed ACK message : " + requestReceivedAtInterface.toString());
+
+    Assert.assertNotNull(requestReceivedAtInterface);
+    Assert.assertEquals(requestReceivedAtInterface.getMethod(), DsByteString.newInstance("ACK"));
+
+    DsSipRouteHeader topRouteHeader =
+        (DsSipRouteHeader) requestReceivedAtInterface.getHeader(new DsByteString("Route"));
+
+    if (rProvider.topRouteHeaderMatch)
+      // when route header contains a network that CP does not recognize. Then, that route is not
+      // removed
+      Assert.assertEquals(topRouteHeader.toString(), cpRoute.toString());
+    else
+      // Top-most route is recognised by CP and removed
+      Assert.assertNotEquals(topRouteHeader.toString(), cpRoute.toString());
+
+    sipTransactionManager.setRouteFixInterface(null);
   }
 
   @Test(
@@ -642,5 +748,31 @@ public class DsSipTransactionManagerTest {
 
     Assert.assertFalse(sipViaHeader.isRPortPresent());
     Assert.assertEquals(sipViaHeader.getRPort(), -1);
+  }
+
+  public class RouteDataProvider {
+
+    String cpRouteToAdd;
+    boolean topRouteHeaderMatch;
+    boolean isHostPortEnabled;
+
+    public RouteDataProvider(
+        String cpRouteToAdd, boolean topRouteHeaderMatch, boolean isHostPortEnabled) {
+      this.cpRouteToAdd = cpRouteToAdd;
+      this.topRouteHeaderMatch = topRouteHeaderMatch;
+      this.isHostPortEnabled = isHostPortEnabled;
+    }
+
+    public String toString() {
+      return "CP Route to be added in ACK: {"
+          + cpRouteToAdd
+          + "}; "
+          + "Top-route in ACK match with CP route added(i.e.CP route not removed): {"
+          + topRouteHeaderMatch
+          + "}; "
+          + "HostPort feature: {"
+          + isHostPortEnabled
+          + "}";
+    }
   }
 }

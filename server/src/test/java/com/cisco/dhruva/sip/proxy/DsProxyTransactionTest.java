@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 import com.cisco.dhruva.adaptor.AppAdaptorInterface;
 import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
+import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
@@ -32,6 +33,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SpringBootTest
@@ -41,18 +43,25 @@ public class DsProxyTransactionTest {
   private AppAdaptorInterface adaptorInterface;
   private ProxyAdaptorFactoryInterface proxyAdaptorFactoryInterface;
   DsNetwork dsNetwork;
+  DsNetwork externalIpEnabledNetwork;
   DsControllerConfig ourConfig;
-  private DsBindingInfo incomingMessageBindingInfo;
+  private DsBindingInfo incomingMessageBindingInfo1;
+  private DsBindingInfo incomingMessageBindingInfo2;
 
   private InetAddress localAddress;
   private InetAddress remoteAddress;
-  private int localPort, remotePort;
+  private int localPort1, localPort2, remotePort;
+
+  private DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
 
   @Autowired SipServerLocatorService locatorService;
 
   @BeforeClass
   void init() throws Exception {
+    dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
     dsNetwork = DsNetwork.getNetwork("Default");
+    externalIpEnabledNetwork = DsNetwork.getNetwork("External_IP_enabled");
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
     ourConfig = DsControllerConfig.getCurrent();
 
     // This is required to set the via handler, route fix interface, global states are maintained
@@ -75,12 +84,16 @@ public class DsProxyTransactionTest {
 
     localAddress = InetAddress.getByName("127.0.0.1");
     remoteAddress = InetAddress.getByName("127.0.0.1");
-    localPort = 5060;
+    localPort1 = 5060;
+    localPort2 = 5061;
     remotePort = 5070;
-    incomingMessageBindingInfo =
-        new DsBindingInfo(localAddress, localPort, localAddress, remotePort, Transport.UDP);
-    dsNetwork = DsNetwork.getNetwork("Default");
-    incomingMessageBindingInfo.setNetwork(dsNetwork);
+    incomingMessageBindingInfo1 =
+        new DsBindingInfo(localAddress, localPort1, localAddress, remotePort, Transport.UDP);
+    incomingMessageBindingInfo1.setNetwork(dsNetwork);
+
+    incomingMessageBindingInfo2 =
+        new DsBindingInfo(localAddress, localPort2, localAddress, remotePort, Transport.UDP);
+    incomingMessageBindingInfo2.setNetwork(externalIpEnabledNetwork);
 
     DsSipServerTransactionImpl.setThreadPoolExecutor(
         (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
@@ -94,12 +107,19 @@ public class DsProxyTransactionTest {
       DsControllerConfig.addListenInterface(
           dsNetwork,
           InetAddress.getByName("127.0.0.1"),
-          5060,
+          localPort1,
           Transport.UDP,
-          InetAddress.getByName("127.0.0.1"));
+          InetAddress.getByName("127.0.0.1"),
+          false);
 
-      DsControllerConfig.addRecordRouteInterface(
-          InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
+      DsControllerConfig.addListenInterface(
+          externalIpEnabledNetwork,
+          InetAddress.getByName("127.0.0.1"),
+          localPort2,
+          Transport.UDP,
+          InetAddress.getByName("127.0.0.1"),
+          true);
+
     } catch (DsInconsistentConfigurationException ignored) {
       // In this case it was already set, there is no means to remove the key from map
     }
@@ -119,7 +139,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -201,17 +221,36 @@ public class DsProxyTransactionTest {
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
   }
 
-  @Test
-  public void testProxyToAddViaClientTransaction() throws Exception {
+  @DataProvider
+  public Object[] getNetworkAndBindingInfo() {
 
+    return new RRViaHeaderValidationDataProvider[][] {
+      {new RRViaHeaderValidationDataProvider(dsNetwork, incomingMessageBindingInfo1, null, true)},
+      {
+        new RRViaHeaderValidationDataProvider(
+            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, true)
+      },
+      {new RRViaHeaderValidationDataProvider(dsNetwork, incomingMessageBindingInfo1, null, false)},
+      {
+        new RRViaHeaderValidationDataProvider(
+            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, false)
+      }
+    };
+  }
+
+  @Test(dataProvider = "getNetworkAndBindingInfo")
+  public void testProxyToAddViaClientTransaction(RRViaHeaderValidationDataProvider input)
+      throws Exception {
     reset(transactionFactory);
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
-    sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setNetwork(input.network);
+    sipRequest.setBindingInfo(input.bindingInfo);
+
+    System.out.println("Initial request : " + sipRequest.toString());
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -228,6 +267,9 @@ public class DsProxyTransactionTest {
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
+
+    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
+    when(dhruvaSIPConfigProperties.getHostIp()).thenReturn("1.1.1.1");
 
     DsProxyTransaction proxy =
         (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
@@ -263,7 +305,7 @@ public class DsProxyTransactionTest {
 
     Location loc = new Location(sipRequest.getURI());
     loc.setProcessRoute(true);
-    loc.setNetwork(dsNetwork);
+    loc.setNetwork(input.network);
 
     AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
     doNothing()
@@ -271,6 +313,8 @@ public class DsProxyTransactionTest {
         .handleResponse(any(Location.class), any(Optional.class), any(int.class));
 
     ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
+
+    System.out.println("Updated Request (Dhruva Via header added) : " + sipRequest.toString());
 
     ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
 
@@ -287,9 +331,15 @@ public class DsProxyTransactionTest {
 
     Assert.assertEquals(request.getMethod(), DsByteString.newInstance("INVITE"));
 
-    Assert.assertEquals(
-        sipViaHeader.getHost().toString(),
-        incomingMessageBindingInfo.getLocalAddress().getHostAddress());
+    // check Via header IP:port added by CP
+    if (!input.isHostPortEnabled || input.network.getName().equals("Default")) {
+      Assert.assertEquals(
+          sipViaHeader.getHost().toString(), input.bindingInfo.getLocalAddress().getHostAddress());
+    } else {
+      Assert.assertEquals(sipViaHeader.getHost().toString(), "1.1.1.1");
+    }
+
+    Assert.assertEquals(sipViaHeader.getPort(), input.bindingInfo.getLocalPort());
 
     Assert.assertNotNull(proxy.getClientTransaction());
 
@@ -299,27 +349,81 @@ public class DsProxyTransactionTest {
     DsSipResponse resp =
         DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_OK, sipRequest);
 
+    System.out.println("Response expected to be received by Dhruva: " + resp.toString());
+
     transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
+
+    // Check Via in received 200OK. CP Via has to be removed before sending out
+    DsSipViaHeader topMostViaIn200OkSentOut = (DsSipViaHeader) resp.getViaHeader();
+    Assert.assertEquals(
+        topMostViaIn200OkSentOut.getHost().toString(),
+        input.bindingInfo.getLocalAddress().getHostAddress());
+    Assert.assertNotEquals(topMostViaIn200OkSentOut.getPort(), input.bindingInfo.getLocalPort());
+
+    System.out.println("Response after Via header removal: " + resp.toString());
 
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
 
     // Retransmission of 200 OK should not be sent upwards
     transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
     // No increment in verify, same as previous
+
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
   }
 
-  @Test
-  public void testProxyToAddRRClientTransaction() throws Exception {
+  @DataProvider
+  public Object[] getNetworkBindingInfoAndRR() {
 
+    return new RRViaHeaderValidationDataProvider[][] {
+      {
+        new RRViaHeaderValidationDataProvider(
+            dsNetwork,
+            incomingMessageBindingInfo1,
+            "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            true)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            externalIpEnabledNetwork,
+            incomingMessageBindingInfo2,
+            "<sip:rr,n=External_IP_enabled@1.1.1.1:5061;transport=udp;lr>",
+            true)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            dsNetwork,
+            incomingMessageBindingInfo1,
+            "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            false)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            externalIpEnabledNetwork,
+            incomingMessageBindingInfo2,
+            "<sip:rr,n=External_IP_enabled@127.0.0.1:5061;transport=udp;lr>",
+            false)
+      }
+    };
+  }
+
+  @Test(dataProvider = "getNetworkBindingInfoAndRR")
+  public void testProxyToAddRRClientTransaction(RRViaHeaderValidationDataProvider input)
+      throws Exception {
     reset(transactionFactory);
+
+    DsControllerConfig.addRecordRouteInterface(
+        InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
+    DsControllerConfig.addRecordRouteInterface(
+        InetAddress.getByName("127.0.0.1"), 5061, Transport.UDP, externalIpEnabledNetwork);
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
-    sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setNetwork(input.network);
+    sipRequest.setBindingInfo(input.bindingInfo);
+
+    System.out.println("Initial request : " + sipRequest.toString());
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -336,6 +440,9 @@ public class DsProxyTransactionTest {
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
+
+    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
+    when(dhruvaSIPConfigProperties.getHostIp()).thenReturn("1.1.1.1");
 
     DsProxyTransaction proxy =
         (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
@@ -371,7 +478,7 @@ public class DsProxyTransactionTest {
 
     Location loc = new Location(sipRequest.getURI());
     loc.setProcessRoute(true);
-    loc.setNetwork(dsNetwork);
+    loc.setNetwork(input.network);
 
     AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
     doNothing()
@@ -379,6 +486,8 @@ public class DsProxyTransactionTest {
         .handleResponse(any(Location.class), any(Optional.class), any(int.class));
 
     ctrlr.proxyTo(loc, sipRequest, appInterfaceMock);
+
+    System.out.println("Updated Request (Dhruva RR header added) : " + sipRequest.toString());
 
     ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
 
@@ -390,15 +499,14 @@ public class DsProxyTransactionTest {
 
     DsSipRequest request = argumentCaptor.getValue();
     Assert.assertNotNull(request);
-
-    DsSipHeaderList rrHeader = request.getHeaders(DsSipConstants.RECORD_ROUTE);
-
     Assert.assertEquals(request.getMethod(), DsByteString.newInstance("INVITE"));
 
-    DsSipRecordRouteHeader addedRRHeader =
-        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
+    DsSipHeaderList addedRRHeaders = request.getHeaders(DsSipConstants.RECORD_ROUTE);
+    DsSipRecordRouteHeader expectedRRHeader =
+        new DsSipRecordRouteHeader(input.expectedRR.getBytes());
 
-    Assert.assertEquals(rrHeader.getFirst(), addedRRHeader);
+    // check RR header IP:port added by CP
+    Assert.assertEquals(addedRRHeaders.getFirst().toString(), expectedRRHeader.toString());
 
     Assert.assertNotNull(proxy.getClientTransaction());
 
@@ -408,7 +516,15 @@ public class DsProxyTransactionTest {
     DsSipResponse resp =
         DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_OK, sipRequest);
 
+    System.out.println("Response expected to be received by Dhruva : " + resp.toString());
+
     transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
+
+    System.out.println("Response after changes (RR will not be removed) : " + resp.toString());
+
+    // Check RR in received 200OK is same as one sent in INVITE
+    DsSipHeaderList respRRHeader = resp.getHeaders(DsSipConstants.RECORD_ROUTE);
+    Assert.assertEquals(respRRHeader.getFirst().toString(), expectedRRHeader.toString());
 
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
 
@@ -427,7 +543,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -520,7 +636,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -599,7 +715,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -680,7 +796,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -780,7 +896,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -855,7 +971,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -932,7 +1048,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -1008,7 +1124,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -1083,7 +1199,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -1166,7 +1282,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -1243,7 +1359,7 @@ public class DsProxyTransactionTest {
 
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -1323,7 +1439,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -1397,7 +1513,7 @@ public class DsProxyTransactionTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setBindingInfo(incomingMessageBindingInfo);
+    sipRequest.setBindingInfo(incomingMessageBindingInfo1);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
@@ -1460,5 +1576,38 @@ public class DsProxyTransactionTest {
 
     // ErroCode UNREACHABLE = 6
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(6));
+  }
+
+  public class RRViaHeaderValidationDataProvider {
+    public DsNetwork network;
+    public DsBindingInfo bindingInfo;
+    public String expectedRR;
+    public boolean isHostPortEnabled;
+
+    public RRViaHeaderValidationDataProvider(
+        DsNetwork network,
+        DsBindingInfo bindingInfo,
+        String expectedRR,
+        boolean isHostPortEnabled) {
+      this.network = network;
+      this.bindingInfo = bindingInfo;
+      this.expectedRR = expectedRR;
+      this.isHostPortEnabled = isHostPortEnabled;
+    }
+
+    public String toString() {
+      return "Network: {"
+          + network.toString()
+          + "}; "
+          + "BindingInfo: {"
+          + bindingInfo.toString()
+          + "}; "
+          + "CP RR expected in sip msg: {"
+          + expectedRR
+          + "}; "
+          + "HostPort feature: {"
+          + isHostPortEnabled
+          + "}";
+    }
   }
 }

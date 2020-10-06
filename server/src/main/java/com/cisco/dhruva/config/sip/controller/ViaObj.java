@@ -17,6 +17,7 @@ public class ViaObj implements DsViaListenInterface {
   private String m_viaSrcAddress = null;
   private InetAddress m_viaSrcInetAddress = null;
   private int m_viaSrcPort = -1;
+  private boolean m_attachExternalIp = false;
 
   public ViaObj(
       String direction,
@@ -79,6 +80,10 @@ public class ViaObj implements DsViaListenInterface {
     return m_viaAddress;
   }
 
+  public boolean shouldAttachExternalIp() {
+    return m_attachExternalIp;
+  }
+
   public String toString() {
     return "Via Address "
         + m_viaAddress
@@ -90,6 +95,8 @@ public class ViaObj implements DsViaListenInterface {
         + "-- Src Address "
         + m_viaSrcAddress
         + ":"
-        + m_viaSrcPort;
+        + m_viaSrcPort
+        + "; attachExterenalIp = "
+        + m_attachExternalIp;
   }
 }

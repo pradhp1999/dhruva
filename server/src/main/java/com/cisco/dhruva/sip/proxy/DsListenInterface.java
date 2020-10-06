@@ -17,4 +17,7 @@ public interface DsListenInterface {
 
   /** @return the interface to insert into Via header */
   DsByteString getAddress();
+
+  /** @return status on whether to attach externalIp or not */
+  boolean shouldAttachExternalIp();
 }

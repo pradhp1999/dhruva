@@ -22,6 +22,7 @@ public class ViaListenIf extends ListenIf implements DsViaListenInterface {
       int port,
       Transport protocol,
       DsByteString interfaceIP,
+      boolean attachExternalIp,
       DsNetwork direction,
       int srcPort,
       InetAddress scrAddress,
@@ -29,7 +30,14 @@ public class ViaListenIf extends ListenIf implements DsViaListenInterface {
       InetAddress translatedSrcAddress,
       int translatedPort)
       throws UnknownHostException, DsException {
-    super(port, protocol, interfaceIP, direction, translatedAddress, translatedPort);
+    super(
+        port,
+        protocol,
+        interfaceIP,
+        direction,
+        translatedAddress,
+        translatedPort,
+        attachExternalIp);
     this.srcPort = srcPort;
     this.srcAddress = srcAddress;
     this.translatedSrcAddress = translatedSrcAddress;

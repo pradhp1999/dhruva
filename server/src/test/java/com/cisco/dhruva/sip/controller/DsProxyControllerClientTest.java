@@ -411,7 +411,7 @@ public class DsProxyControllerClientTest {
     Assert.assertNotNull(respMessage1);
 
     DsSipResponse resp180Ringing =
-        DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_TRYING, sipRequest);
+        DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_RINGING, sipRequest);
 
     controller.onProvisionalResponse(proxyTransaction, cookie, clientTrans, resp180Ringing);
 

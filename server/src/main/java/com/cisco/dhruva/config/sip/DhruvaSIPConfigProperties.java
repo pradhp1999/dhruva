@@ -35,6 +35,8 @@ public class DhruvaSIPConfigProperties {
 
   public static final boolean DEFAULT_PROXY_PROCESS_ROUTE_HEADER_ENABLED = false;
 
+  public static final boolean DEFAULT_ATTACH_EXTERNAL_IP = false;
+
   private static final String USE_REDIS_AS_CACHE = "useRedis";
 
   private Logger logger = DhruvaLoggerFactory.getLogger(DhruvaSIPConfigProperties.class);
@@ -59,6 +61,13 @@ public class DhruvaSIPConfigProperties {
   private static final Integer DEFAULT_CONNECTION_CACHE_CONNECTION_IDLE_TIMEOUT_MINUTES = 14400;
 
   private static final String TLS_CIPHERS = "dhruva.sipTlsCipherSuites";
+
+  private static final String HOST_PORT_ENABLED = "hostPortEnabled";
+
+  private static final Boolean DEFAULT_HOST_PORT_ENABLED = false;
+
+  private static final String HOST_IP = "hostIp";
+
   private static final String TLS_HANDSHAKE_TIMEOUT_MILLISECONDS =
       "dhruva.tlsHandShakeTimeOutMilliSeconds";
   private static final Integer DEFAULT_TLS_HANDSHAKE_TIMEOUT_MILLISECONDS = 5000;
@@ -104,9 +113,9 @@ public class DhruvaSIPConfigProperties {
                 JsonUtilFactory.getInstance(JsonUtilFactory.JsonUtilType.LOCAL)
                     .toObject(configuredListeningPoints, SIPListenPoint[].class));
       } catch (Exception e) {
-        // TODO shoould we generate an Alarm
+        // TODO should we generate an Alarm
         logger.error(
-            "Error converting JSON ListenPoint configuration provided in the environment , default listenpoint will be choosen ",
+            "Error converting JSON ListenPoint configuration provided in the environment , default listen point will be chosen ",
             e);
         listenPoints = getDefaultListenPoints();
       }
@@ -212,6 +221,14 @@ public class DhruvaSIPConfigProperties {
       return Collections.unmodifiableList(
           CipherSuites.getAllowedCiphers(Arrays.asList(ciphers.split(","))));
     }
+  }
+
+  public String getHostIp() {
+    return env.getProperty(HOST_IP);
+  }
+
+  public boolean isHostPortEnabled() {
+    return env.getProperty(HOST_PORT_ENABLED, Boolean.class, DEFAULT_HOST_PORT_ENABLED);
   }
 
   public String[] getTlsProtocols() {

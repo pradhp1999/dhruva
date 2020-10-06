@@ -94,7 +94,8 @@ public class DsSipProxyManagerTest {
           InetAddress.getByName("127.0.0.1"),
           5060,
           Transport.UDP,
-          InetAddress.getByName("127.0.0.1"));
+          InetAddress.getByName("127.0.0.1"),
+          false);
 
       DsControllerConfig.addRecordRouteInterface(
           InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);

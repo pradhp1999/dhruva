@@ -14,6 +14,7 @@
 package com.cisco.dhruva.sip.proxy;
 
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
+import com.cisco.dhruva.hostPort.HostPortUtil;
 import com.cisco.dhruva.sip.DsUtil.DsReConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
@@ -212,15 +213,24 @@ public class DsProxyServerTransaction {
 
   private void setRRHelper(
       DsSipMessage msg, DsSipURL currentRRURL, boolean compress, DsTokenSipDictionary tokDic) {
+
+    DsControllerConfig config = DsControllerConfig.getCurrent();
+    String currentRRURLHost = null;
+
     if (currentRRURL != null) {
-      DsControllerConfig config = DsControllerConfig.getCurrent();
+
+      // get the network corresponding to the host portion in RR. If host contains externalIP,
+      // get the localIP to know the network accordingly
+      currentRRURLHost = HostPortUtil.reverseExternalIpToLocalIp(currentRRURL).toString();
+
       String network = null;
       String name =
           config.checkRecordRoutes(
               currentRRURL.getUser(),
-              currentRRURL.getHost(),
+              new DsByteString(currentRRURLHost),
               currentRRURL.getPort(),
               currentRRURL.getTransportParam());
+
       if (name != null) {
         // todo optimize when get a chance
         Log.debug("Record Route URL to be modified : " + currentRRURL);
@@ -241,6 +251,7 @@ public class DsProxyServerTransaction {
             if (t.startsWith(DsReConstants.NETWORK_TOKEN)) {
               network = t.substring(DsReConstants.NETWORK_TOKEN.length());
               user = user.replaceFirst(t, DsReConstants.NETWORK_TOKEN + name);
+              Log.debug("Replace Record-route host from {} to {}", t, name);
               break;
             }
             t = st.nextToken(DsReConstants.DELIMITER_STR);
@@ -262,18 +273,19 @@ public class DsProxyServerTransaction {
           return;
         }
 
-        DsSipURL recordRouteInterface = (DsSipURL) recordRouteInterfaceHeader.getURI();
+        DsSipURL RRUrl = (DsSipURL) recordRouteInterfaceHeader.getURI();
 
-        currentRRURL.setHost(recordRouteInterface.getHost());
+        // replace local IP with External IP for public network when modifying user portion of RR
+        currentRRURL.setHost(HostPortUtil.convertLocalIpToExternalIp(RRUrl));
 
-        if (recordRouteInterface.hasPort()) {
-          currentRRURL.setPort(recordRouteInterface.getPort());
+        if (RRUrl.hasPort()) {
+          currentRRURL.setPort(RRUrl.getPort());
         } else {
           currentRRURL.removePort();
         }
 
-        if (recordRouteInterface.hasTransport()) {
-          currentRRURL.setTransportParam(recordRouteInterface.getTransportParam());
+        if (RRUrl.hasTransport()) {
+          currentRRURL.setTransportParam(RRUrl.getTransportParam());
         } else {
           currentRRURL.removeTransportParam();
         }

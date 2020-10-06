@@ -17,7 +17,7 @@ public abstract class AbstractAppSession implements AppInterface {
 
   public void handleRequest(IDhruvaMessage request) {
 
-    logger.info("handleIncomingRequest session Id's {}", request.getSessionId());
+    logger.info("handleIncomingRequest session Id's : {}", request.getSessionId());
 
     if (appEngine == null) {
       appEngine = new AppEngine(this);
@@ -34,7 +34,7 @@ public abstract class AbstractAppSession implements AppInterface {
 
   public void handleResponse(IDhruvaMessage response) {
     Objects.requireNonNull(response);
-    logger.info("onResponse: invoking message handler {}" + response.getSessionId());
+    logger.info("onResponse: invoking message handler {}", response.getSessionId());
     MessageListener handler;
     handler = (MessageListener) response.getContext().get(CommonContext.PROXY_RESPONSE_HANDLER);
     // MEETPASS for end to end test

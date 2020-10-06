@@ -34,6 +34,7 @@ public class ListenIf implements DsListenInterface {
   protected DsByteString translatedAddressStr = null;
   protected int translatedPort = -1;
 
+  protected boolean attachExternalIp;
   // Our Log object
   protected static Trace Log = Trace.getTrace(ListenIf.class.getName());
 
@@ -57,7 +58,8 @@ public class ListenIf implements DsListenInterface {
       DsNetwork direction,
       DsByteString translatedInterfaceIP,
       InetAddress translatedAddress,
-      int translatedPort) {
+      int translatedPort,
+      boolean attachExternalIp) {
     this.port = port;
     this.protocol = protocol;
     this.network = direction;
@@ -74,6 +76,8 @@ public class ListenIf implements DsListenInterface {
       this.translatedAddressInet = address;
       this.translatedPort = port;
     }
+
+    this.attachExternalIp = attachExternalIp;
   }
 
   public ListenIf(
@@ -82,7 +86,8 @@ public class ListenIf implements DsListenInterface {
       DsByteString interfaceIP,
       DsNetwork direction,
       DsByteString translatedInterfaceIP,
-      int translatedPort)
+      int translatedPort,
+      boolean attachExternalIp)
       throws UnknownHostException {
     this(
         port,
@@ -92,7 +97,8 @@ public class ListenIf implements DsListenInterface {
         direction,
         translatedInterfaceIP,
         null,
-        translatedPort);
+        translatedPort,
+        attachExternalIp);
 
     this.addressInet = InetAddress.getByName(interfaceIP.toString());
 
@@ -109,7 +115,7 @@ public class ListenIf implements DsListenInterface {
    * cause getAddress to return null.
    */
   public ListenIf(int port, Transport protocol, InetAddress address) {
-    this(port, protocol, null, address, null, null, null, 0);
+    this(port, protocol, null, address, null, null, null, 0, false);
   }
 
   public int getPort() {
@@ -166,6 +172,11 @@ public class ListenIf implements DsListenInterface {
     return translatedPort;
   }
 
+  /** @return status on whether to attach externalIP or not */
+  public boolean shouldAttachExternalIp() {
+    return attachExternalIp;
+  }
+
   /** Returns true if the port, protocol and address are the same. */
   public boolean equals(Object o) {
     if (o == null) return false;
@@ -198,7 +209,9 @@ public class ListenIf implements DsListenInterface {
         + ", translatedPort = "
         + this.translatedPort
         + ", direction="
-        + network;
+        + network
+        + ", attachExternalIp = "
+        + attachExternalIp;
   }
 
   public DsNetwork getNetwork() {

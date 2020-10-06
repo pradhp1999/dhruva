@@ -13,6 +13,7 @@
 
 package com.cisco.dhruva.sip.proxy;
 
+import com.cisco.dhruva.hostPort.HostPortUtil;
 import com.cisco.dhruva.sip.controller.util.ParseProxyParamUtil;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
@@ -430,7 +431,12 @@ public class DsProxyStatelessTransaction implements DsProxyInterface {
       if (listenIf != null) viaTransport = listenIf.getProtocol().getValue();
 
       assert listenIf != null;
-      via = new DsSipViaHeader(listenIf.getAddress(), listenIf.getPort(), viaTransport);
+
+      // if 'attachExternalIP' toggle is enabled, pass hostIp
+      // else pass actual Ip address
+      via =
+          new DsSipViaHeader(
+              HostPortUtil.convertLocalIpToExternalIp(listenIf), listenIf.getPort(), viaTransport);
 
       forceRequestSource(request, listenIf.getSourcePort(), listenIf.getSourceAddress());
 
@@ -625,6 +631,10 @@ public class DsProxyStatelessTransaction implements DsProxyInterface {
         }
         DsSipURL uri = (DsSipURL) rr.getURI();
         uri.setUser(params.getRecordRouteUserParams());
+
+        // replace Record-Route localIP with externalIP for public network
+        uri.setHost(HostPortUtil.convertLocalIpToExternalIp(uri));
+
         Log.info("Adding " + rr);
         request.addHeader(rr, true, false);
       }

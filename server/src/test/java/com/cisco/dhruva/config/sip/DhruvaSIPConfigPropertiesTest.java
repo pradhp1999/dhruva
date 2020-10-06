@@ -35,6 +35,7 @@ public class DhruvaSIPConfigPropertiesTest {
             .setTransport(Transport.UDP)
             .setPort(5060)
             .setRecordRoute(true)
+            .setAttachExternalIP(false)
             .build();
 
     tcpListenPoint =
@@ -44,6 +45,7 @@ public class DhruvaSIPConfigPropertiesTest {
             .setTransport(Transport.TCP)
             .setPort(5061)
             .setRecordRoute(true)
+            .setAttachExternalIP(false)
             .build();
   }
 
@@ -62,7 +64,7 @@ public class DhruvaSIPConfigPropertiesTest {
   public void getListenPointsFromJSONConfig() {
     when(env.getProperty("sipListenPoints"))
         .thenReturn(
-            "[{\"name\":\"TCPNetwork\",\"hostIPAddress\":\"10.78.98.21\",\"transport\":\"TCP\",\"port\":5061,\"recordRoute\":true}]");
+            "[{\"name\":\"TCPNetwork\",\"hostIPAddress\":\"10.78.98.21\",\"transport\":\"TCP\",\"port\":5061,\"recordRoute\":true,\"attachExternalIP\":false}]");
 
     List<SIPListenPoint> expectedListenPointList = new ArrayList<SIPListenPoint>();
     expectedListenPointList.add(tcpListenPoint);
@@ -73,7 +75,7 @@ public class DhruvaSIPConfigPropertiesTest {
   public void getListenPointsFromInvalidJSONConfig() {
     when(env.getProperty("sipListenPoints"))
         .thenReturn(
-            "[{\"name\":\"TCPNetwork\",hostIPAddress\":\"10.78.98.21\",\"transport\":\"TCP\",\"port\":5061,\"recordRoute\":true}]");
+            "[{\"name\":\"TCPNetwork\",hostIPAddress\":\"10.78.98.21\",\"transport\":\"TCP\",\"port\":5061,\"recordRoute\":true,\"attachExternalIP\":false}]");
     List<SIPListenPoint> expectedListenPointList = new ArrayList<SIPListenPoint>();
     expectedListenPointList.add(defaultListenPoint);
     Assert.assertEquals(sipConfigProperties.getListeningPoints(), expectedListenPointList);
@@ -93,7 +95,7 @@ public class DhruvaSIPConfigPropertiesTest {
 
     when(env.getProperty("sipListenPoints"))
         .thenReturn(
-            "[{\"name\":\"TCPNetwork\",\"hostIPAddress\":\"10.78.98.21\",\"transport\":\"TCP\",\"port\":5061,\"recordRoute\":true},{\"name\":\"UDPNetwork\",\"hostIPAddress\":\"10.78.98.21\",\"transport\":\"UDP\",\"port\":5060,\"recordRoute\":false}]");
+            "[{\"name\":\"TCPNetwork\",\"hostIPAddress\":\"10.78.98.21\",\"transport\":\"TCP\",\"port\":5061,\"recordRoute\":true,\"attachExternalIP\":false},{\"name\":\"UDPNetwork\",\"hostIPAddress\":\"10.78.98.21\",\"transport\":\"UDP\",\"port\":5060,\"recordRoute\":false,\"attachExternalIP\":false}]");
     List<SIPListenPoint> expectedListenPointList = new ArrayList<SIPListenPoint>();
     expectedListenPointList.add(tcpListenPoint);
     expectedListenPointList.add(udpListenPoint);

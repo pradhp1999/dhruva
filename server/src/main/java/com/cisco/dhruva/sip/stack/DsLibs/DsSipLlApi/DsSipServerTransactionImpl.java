@@ -781,7 +781,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
       if (header != null) {
         if (!DsSipResponse.receiveAlways) header.removeReceived();
       } else {
-        throw new DsException("No Via header in reponse.");
+        throw new DsException("No Via header in response.");
       }
 
       m_statusCode = statusCode;
@@ -805,7 +805,7 @@ public class DsSipServerTransactionImpl extends DsSipServerTransaction
           DsSipTransactionManager.addToDialogMap(this);
         }
 
-        // "The UAS MUST send any non-100 provisinal response
+        // "The UAS MUST send any non-100 provisional response
         //  reliably if the initial request contained a Require
         //  header field with option tag 100rel.
         //  If the UAS is unwilling to do so, it MUST reject

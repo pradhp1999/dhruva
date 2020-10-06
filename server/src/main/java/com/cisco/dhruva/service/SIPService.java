@@ -16,7 +16,6 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsTimer;
 import com.cisco.dhruva.transport.DhruvaTransportLayer;
-import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.transport.TransportLayerFactory;
 import com.cisco.dhruva.util.LMAUtil;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
@@ -87,10 +86,6 @@ public class SIPService {
 
     ArrayList<CompletableFuture> listenPointFutures = new ArrayList<CompletableFuture>();
 
-    InetAddress listenAddress;
-    int listenPort;
-    Transport listenTransport;
-
     for (SIPListenPoint sipListenPoint : sipListenPoints) {
 
       logger.info("Trying to start server socket on {} ", sipListenPoint);
@@ -117,7 +112,8 @@ public class SIPService {
                     InetAddress.getByName(sipListenPoint.getHostIPAddress()),
                     sipListenPoint.getPort(),
                     sipListenPoint.getTransport(),
-                    InetAddress.getByName(sipListenPoint.getHostIPAddress()));
+                    InetAddress.getByName(sipListenPoint.getHostIPAddress()),
+                    sipListenPoint.shouldAttachExternalIP());
 
                 if (sipListenPoint.isRecordRoute()) {
                   DsControllerConfig.addRecordRouteInterface(

@@ -21,6 +21,8 @@ public class SIPListenPoint {
 
   private boolean recordRoute;
 
+  private boolean attachExternalIP;
+
   private TLSAuthenticationType tlsAuthType;
 
   private SIPListenPoint(SIPListenPointBuilder listenPointBuilder) {
@@ -29,6 +31,7 @@ public class SIPListenPoint {
     this.transport = listenPointBuilder.transport;
     this.port = listenPointBuilder.port;
     this.recordRoute = listenPointBuilder.recordRoute;
+    this.attachExternalIP = listenPointBuilder.attachExternalIP;
     this.tlsAuthType = listenPointBuilder.tlsAuthType;
   }
 
@@ -52,6 +55,10 @@ public class SIPListenPoint {
     return recordRoute;
   }
 
+  public boolean shouldAttachExternalIP() {
+    return attachExternalIP;
+  }
+
   public TLSAuthenticationType getTlsAuthType() {
     return tlsAuthType;
   }
@@ -67,6 +74,8 @@ public class SIPListenPoint {
         .append(port)
         .append(" recordRouteEnabled = ")
         .append(recordRoute)
+        .append(" attachExternalIP = ")
+        .append(attachExternalIP)
         .toString();
   }
 
@@ -83,6 +92,7 @@ public class SIPListenPoint {
         .append(port, otherListenPoint.getPort())
         .append(transport, otherListenPoint.getTransport())
         .append(recordRoute, otherListenPoint.isRecordRoute())
+        .append(attachExternalIP, otherListenPoint.shouldAttachExternalIP())
         .isEquals();
   }
 
@@ -94,6 +104,7 @@ public class SIPListenPoint {
         .append(port)
         .append(transport)
         .append(recordRoute)
+        .append(attachExternalIP)
         .toHashCode();
   }
 
@@ -109,6 +120,8 @@ public class SIPListenPoint {
 
     @JsonProperty private boolean recordRoute;
 
+    @JsonProperty private boolean attachExternalIP;
+
     @JsonProperty private TLSAuthenticationType tlsAuthType;
 
     public SIPListenPointBuilder() {
@@ -117,6 +130,7 @@ public class SIPListenPoint {
       this.transport = DhruvaSIPConfigProperties.DEFAULT_TRANSPORT;
       this.port = DhruvaSIPConfigProperties.DEFAULT_PORT_UDP;
       this.recordRoute = DhruvaSIPConfigProperties.DEFAULT_RECORD_ROUTE_ENABLED;
+      this.attachExternalIP = DhruvaSIPConfigProperties.DEFAULT_ATTACH_EXTERNAL_IP;
       this.tlsAuthType = DhruvaSIPConfigProperties.DEFAULT_TRANSPORT_AUTH;
     }
 
@@ -142,6 +156,11 @@ public class SIPListenPoint {
 
     public SIPListenPointBuilder setRecordRoute(boolean recordRoute) {
       this.recordRoute = recordRoute;
+      return this;
+    }
+
+    public SIPListenPointBuilder setAttachExternalIP(boolean attachExternalIP) {
+      this.attachExternalIP = attachExternalIP;
       return this;
     }
 

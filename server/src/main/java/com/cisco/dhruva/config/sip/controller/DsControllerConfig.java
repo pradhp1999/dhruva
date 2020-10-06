@@ -244,6 +244,7 @@ public final class DsControllerConfig
                   tempInterface.getPort(),
                   tempInterface.getProtocol(),
                   tempInterface.getAddress(),
+                  tempInterface.shouldAttachExternalIp(),
                   net,
                   -1,
                   null,
@@ -504,7 +505,8 @@ public final class DsControllerConfig
       InetAddress address,
       int port,
       Transport protocol,
-      InetAddress translatedAddress)
+      InetAddress translatedAddress,
+      boolean attachExternalIP)
       throws DsInconsistentConfigurationException, DsException, IOException {
 
     ListenIf newInterface =
@@ -516,7 +518,8 @@ public final class DsControllerConfig
             direction,
             new DsByteString(translatedAddress.getHostAddress()),
             translatedAddress,
-            0);
+            0,
+            attachExternalIP);
 
     if (currentConfig.listenIf.containsKey(newInterface))
       throw new DsInconsistentConfigurationException("Entry already exists");
@@ -585,7 +588,7 @@ public final class DsControllerConfig
 
   /*
    * Implementation of the corresponding DsProxyParamsInterface method.  Returns
-   * the first interface in our hashmap that is useing the specified protocol.
+   * the first interface in our hashmap that is using the specified protocol.
    */
   public DsListenInterface getInterface(Transport protocol, DsNetwork direction) {
     for (ListenIf li : listenIf.values()) {
@@ -594,6 +597,19 @@ public final class DsControllerConfig
       }
     }
     return null; // nothing is found
+  }
+
+  /**
+   * Returns the interface stored by the config that has the port and protocol passed in. If no
+   * interface is found, then null is returned.
+   */
+  public DsListenInterface getInterface(int port, Transport protocol) {
+    for (ListenIf li : listenIf.values()) {
+      if (li.getPort() == port && li.getProtocol() == protocol) {
+        return li;
+      }
+    }
+    return null;
   }
 
   /**

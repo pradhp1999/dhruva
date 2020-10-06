@@ -3,6 +3,7 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
+import com.cisco.dhruva.hostPort.HostPortUtil;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
@@ -751,7 +752,11 @@ public class DsSipRequest extends DsSipMessage {
       DsSipRouteHeader topRoute = (DsSipRouteHeader) getHeaderValidate(ROUTE);
       if (topRoute != null) {
         uri = topRoute.getURI();
-        // user recognizes the top Route
+
+        // Replace the IP address in the top-most route with the local IP, if it contains external
+        // IP
+        ((DsSipURL) uri).setHost(HostPortUtil.reverseExternalIpToLocalIp((DsSipURL) uri));
+
         if (fix.recognize(uri, false)) {
           m_fixURI = uri; // FIXURI  <-- top Route URI
           // save parameters associated with this route header

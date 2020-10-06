@@ -49,13 +49,18 @@ public class RouteResponseHandler implements MessageListener {
 
   @Override
   public void onMessage(IDhruvaMessage message) throws DhruvaException {
-    logger.info("onMessage {}" + message.getSessionId());
+    logger.info("message : " + message.toString());
+    logger.info("onMessage {}", message.getSessionId());
     ProxyInterface controller = proxyAdaptor.getProxyController();
     if (controller == null) {
       throw new DhruvaException(
           "controller object for this message is null" + message.getSessionId());
     }
     MessageBodyType messageType = message.getMessageBody().getBodyType();
+
+    // MEETPASS Check for message type
+    // If request, formulate the Location object from context.Form DsSipRequest object
+    // If response , invoke the controller respond with DsSipResponse
     switch (messageType) {
       case SIPREQUEST:
         ExecutionContext ctx = message.getContext();
@@ -69,9 +74,6 @@ public class RouteResponseHandler implements MessageListener {
         break;
 
       case SIPRESPONSE:
-        // MEETPASS Check for message type
-        // If request, formulate the Location object from context.Form DsSipRequest object
-        // If response , invoke the controller respond with DsSipResponse
         DsSipResponse response =
             (DsSipResponse) MessageConvertor.convertDhruvaMessageToSipMessage(message);
         try {

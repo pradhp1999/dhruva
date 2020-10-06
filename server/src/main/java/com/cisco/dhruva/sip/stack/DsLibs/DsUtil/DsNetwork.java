@@ -1513,6 +1513,10 @@ public class DsNetwork implements Cloneable {
     DsNetwork.dhruvaSIPConfigProperties = dhruvaSIPConfigProperties;
   }
 
+  public static DhruvaSIPConfigProperties getDhruvaSIPConfigProperties() {
+    return dhruvaSIPConfigProperties;
+  }
+
   public String getSipCertificate() {
     return dhruvaSIPConfigProperties.getSipCertificate();
   }

@@ -38,7 +38,7 @@ public class DsAppController extends DsProxyController implements DsControllerIn
    * controller factory (this happens when it receives a new request). The implementation of this
    * method MUST create a DsProxyTransaction object and return it to the ProxyManager
    *
-   * @param request The incoming request that trigered this method
+   * @param request The incoming request that triggered this method
    * @return ProxyStatelessTransaction
    */
   public DsProxyStatelessTransaction onNewRequest(
@@ -46,7 +46,7 @@ public class DsAppController extends DsProxyController implements DsControllerIn
 
     DsProxyStatelessTransaction trans = super.onNewRequest(serverTrans, request);
     if (trans == null) throw new AssertionError();
-    Log.debug("DsAppController: onNewRequest {}");
+    Log.debug("DsAppController.onNewRequest()");
 
     if (respondedOnNewRequest) {
       // request has been responded and no need to continue
@@ -61,10 +61,9 @@ public class DsAppController extends DsProxyController implements DsControllerIn
         Log.info(
             "sending the request to adaptor layer for further processing "
                 + !DsSipClientTransactionImpl.isMidDialogRequest(request)
-                + "route "
+                + "; route: "
                 + request.getHeader(DsSipConstants.ROUTE)
-                + " "
-                + "processRoute "
+                + "; processRoute: "
                 + processRouteHeader);
         AppAdaptorInterface proxyAdaptor = getProxyAdaptor();
         Optional<AppAdaptorInterface> p = Optional.ofNullable(proxyAdaptor);
@@ -73,7 +72,7 @@ public class DsAppController extends DsProxyController implements DsControllerIn
       } else {
         // We don't want App Adaptor layer to process this request, so we by bypass it
         // by making a call directly to the proxy core.  Note that failover
-        // will not be possible for this branch.  Nothng more will be done until
+        // will not be possible for this branch.  Nothing more will be done until
         // the core makes the onBestResponse callback
 
         Log.debug("Skipping App layer and sending to the URL in the " + " Route header");

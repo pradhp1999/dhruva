@@ -56,7 +56,7 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
    */
   @Override
   public void handleRequest(DsSipRequest request) throws DhruvaException {
-    logger.info("ProxyAdaptor.handleRequest:");
+    logger.info("ProxyAdaptor.handleRequest()");
 
     // MEETPASS
     final ExecutionContext context;

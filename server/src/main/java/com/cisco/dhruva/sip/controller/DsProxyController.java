@@ -396,7 +396,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       DsSipResponse response) {
     Log.debug("Entering onSuccessResponse()");
 
-    // The low leve will probably BYE the transaction, so there is no need for the
+    // The low level will probably BYE the transaction, so there is no need for the
     // application layer to know that it was successful.
     // Decided to remove this after the code review, so that the 200 is sent upstream
     // even if the transaction is cancelled MR

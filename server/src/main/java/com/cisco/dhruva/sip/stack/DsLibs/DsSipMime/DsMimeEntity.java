@@ -150,7 +150,7 @@ public class DsMimeEntity
   /**
    * Adds the specified header at the start of the header list (list of same type of headers). This
    * header is first cloned before adding into this SIP message. This operation has no effect if
-   * header is DsSipContentLengthHeader as conent-length will be calculated by the stack based on
+   * header is DsSipContentLengthHeader as content-length will be calculated by the stack based on
    * message body.<br>
    * Note: To add a list of headers of same type at the beginning of the corresponding header list,
    * use {@link DsSipMessage#addHeaders(DsSipHeaderList)}.
