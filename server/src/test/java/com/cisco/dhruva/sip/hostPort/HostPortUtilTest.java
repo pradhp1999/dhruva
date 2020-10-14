@@ -1,4 +1,4 @@
-package com.cisco.dhruva.hostPort;
+package com.cisco.dhruva.sip.hostPort;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -20,17 +20,15 @@ import org.testng.annotations.Test;
 
 public class HostPortUtilTest {
 
-  DsNetwork dsNetwork;
-  DsNetwork externalIpEnabledNetwork;
+  DsNetwork dsNetwork, externalIpEnabledNetwork;
   DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
 
-  DsSipURL privateNetworkInfo;
-  DsSipURL publicNetworkInfo;
-  DsSipURL publicNetworkWithExternalIpInfo;
-  DsSipURL unrecognizedNetworkInfo;
+  DsSipURL privateNetworkInfo, publicNetworkInfo,
+          publicNetworkWithHostIPInfo, publicNetworkWithHostFqdnInfo, unrecognizedNetworkInfo;
   String localIp = "127.0.0.1";
   String hostIp = "1.1.1.1";
   String unknownIp = "1.2.3.4";
+  String hostFqdn = "dhruva.sjc.webex.com";
   boolean enableHostPort = true;
   boolean disableHostPort = false;
 
@@ -46,8 +44,10 @@ public class HostPortUtilTest {
     try {
       privateNetworkInfo = new DsSipURL("Default@127.0.0.1:5060;transport=udp;lr");
       publicNetworkInfo = new DsSipURL("External_IP_enabled@127.0.0.1:5061;transport=udp;lr");
-      publicNetworkWithExternalIpInfo =
+      publicNetworkWithHostIPInfo =
           new DsSipURL("External_IP_enabled@1.1.1.1:5061;transport=udp;lr");
+      publicNetworkWithHostFqdnInfo =
+          new DsSipURL("External_IP_enabled@dhruva.sjc.webex.com:5061;transport=udp;lr");
       unrecognizedNetworkInfo = new DsSipURL("Unrecognized@1.2.3.4:5678;transport=udp;lr");
 
       DsControllerConfig.addListenInterface(
@@ -69,89 +69,90 @@ public class HostPortUtilTest {
     } catch (DsInconsistentConfigurationException ignored) {
       // In this case it was already set, there is no means to remove the key from map
     }
-    when(dhruvaSIPConfigProperties.getHostIp()).thenReturn(hostIp);
   }
 
   public class HostPortTestDataProvider {
 
     DsSipURL uri;
     DsListenInterface listenIf;
-    String expectedIp;
+    String expectedIp, hostInfoFromProps;
     boolean isHostPortEnabled;
 
-    public HostPortTestDataProvider(DsSipURL uri, String expectedIp, boolean isHostPortEnabled) {
+    public HostPortTestDataProvider(
+        DsSipURL uri, String expectedIp, String hostInfoFromProps, boolean isHostPortEnabled) {
       this.uri = uri;
       this.expectedIp = expectedIp;
+      this.hostInfoFromProps = hostInfoFromProps;
       this.isHostPortEnabled = isHostPortEnabled;
     }
 
     public HostPortTestDataProvider(
-        DsListenInterface listenIf, String expectedIp, boolean isHostPortEnabled) {
+        DsListenInterface listenIf,
+        String expectedIp,
+        String hostInfoFromProps,
+        boolean isHostPortEnabled) {
       this.listenIf = listenIf;
       this.expectedIp = expectedIp;
+      this.hostInfoFromProps = hostInfoFromProps;
       this.isHostPortEnabled = isHostPortEnabled;
     }
 
     public String toString() {
-      return "SipUri: {"
-          + uri
-          + "}; "
-          + "Listen Interface: {"
-          + listenIf
-          + "}; "
-          + "IP expected after conversion : {"
-          + expectedIp
-          + "}; "
-          + "When HostPort feature: {"
-          + isHostPortEnabled
-          + "}";
+      return "SipUri: {" + uri + "}; "
+          + "Listen Interface: {" + listenIf + "}; "
+          + "IP expected after conversion : {" + expectedIp + "}; "
+          + "Host IP/FQDN: {" + hostInfoFromProps + "}; "
+          + "When HostPort feature: {" + isHostPortEnabled + "}";
     }
   }
 
   @DataProvider
-  public Object[] getUriAndExpectedIpForLocalToExternal() {
+  public Object[] getUriAndExpectedIpForLocalToHost() {
 
     return new HostPortTestDataProvider[][] {
-      {new HostPortTestDataProvider(privateNetworkInfo, localIp, enableHostPort)},
-      {new HostPortTestDataProvider(publicNetworkInfo, hostIp, enableHostPort)},
-      {new HostPortTestDataProvider(unrecognizedNetworkInfo, unknownIp, enableHostPort)},
-      {new HostPortTestDataProvider(privateNetworkInfo, localIp, disableHostPort)},
-      {new HostPortTestDataProvider(publicNetworkInfo, localIp, disableHostPort)},
-      {new HostPortTestDataProvider(unrecognizedNetworkInfo, unknownIp, disableHostPort)}
+      {new HostPortTestDataProvider(privateNetworkInfo, localIp, hostIp, enableHostPort)},
+      {new HostPortTestDataProvider(publicNetworkInfo, hostIp, hostIp, enableHostPort)},
+      {new HostPortTestDataProvider(publicNetworkInfo, hostFqdn, hostFqdn, enableHostPort)},
+      {new HostPortTestDataProvider(unrecognizedNetworkInfo, unknownIp, hostIp, enableHostPort)},
+      {new HostPortTestDataProvider(privateNetworkInfo, localIp, null, disableHostPort)},
+      {new HostPortTestDataProvider(publicNetworkInfo, localIp, null, disableHostPort)},
+      {new HostPortTestDataProvider(unrecognizedNetworkInfo, unknownIp, null, disableHostPort)}
     };
   }
 
-  @Test(dataProvider = "getUriAndExpectedIpForLocalToExternal")
-  public void testLocalIpToExternalIpConversion(HostPortTestDataProvider input) {
+  @Test(dataProvider = "getUriAndExpectedIpForLocalToHost")
+  public void testLocalIpToHostInfoConversion(HostPortTestDataProvider input) {
 
     when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
+    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(input.hostInfoFromProps);
     Assert.assertEquals(
-        HostPortUtil.convertLocalIpToExternalIp(input.uri).toString(), input.expectedIp);
+        HostPortUtil.convertLocalIpToHostInfo(input.uri).toString(), input.expectedIp);
   }
 
   @DataProvider
-  public Object[] getUriAndExpectedIpForExternalToLocal() {
+  public Object[] getUriAndExpectedIpForHostToLocal() {
 
     return new HostPortTestDataProvider[][] {
-      {new HostPortTestDataProvider(privateNetworkInfo, localIp, enableHostPort)},
-      {new HostPortTestDataProvider(publicNetworkWithExternalIpInfo, localIp, enableHostPort)},
-      {new HostPortTestDataProvider(unrecognizedNetworkInfo, unknownIp, enableHostPort)},
-      {new HostPortTestDataProvider(privateNetworkInfo, localIp, disableHostPort)},
-      {new HostPortTestDataProvider(publicNetworkInfo, localIp, disableHostPort)},
-      {new HostPortTestDataProvider(unrecognizedNetworkInfo, unknownIp, disableHostPort)}
+      {new HostPortTestDataProvider(privateNetworkInfo, localIp, null, enableHostPort)},
+      {new HostPortTestDataProvider(publicNetworkWithHostIPInfo, localIp, null, enableHostPort)},
+      {new HostPortTestDataProvider(publicNetworkWithHostFqdnInfo, localIp, null, enableHostPort)},
+      {new HostPortTestDataProvider(unrecognizedNetworkInfo, unknownIp, null, enableHostPort)},
+      {new HostPortTestDataProvider(privateNetworkInfo, localIp, null, disableHostPort)},
+      {new HostPortTestDataProvider(publicNetworkInfo, localIp, null, disableHostPort)},
+      {new HostPortTestDataProvider(unrecognizedNetworkInfo, unknownIp, null, disableHostPort)}
     };
   }
 
-  @Test(dataProvider = "getUriAndExpectedIpForExternalToLocal")
-  public void testExternalIpToLocalIpConversion(HostPortTestDataProvider input) {
+  @Test(dataProvider = "getUriAndExpectedIpForHostToLocal")
+  public void testHostInfoToLocalIpConversion(HostPortTestDataProvider input) {
 
     when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
     Assert.assertEquals(
-        HostPortUtil.reverseExternalIpToLocalIp(input.uri).toString(), input.expectedIp);
+        HostPortUtil.reverseHostInfoToLocalIp(input.uri).toString(), input.expectedIp);
   }
 
   @DataProvider
-  public Object[] getListenInterfaceAndExpectedIpForExternalToLocal() throws UnknownHostException {
+  public Object[] getListenInterfaceAndExpectedIpForLocalToHost() throws UnknownHostException {
     ListenIf listenIf1 =
         (ListenIf)
             DsControllerConfig.getCurrent()
@@ -169,18 +170,21 @@ public class HostPortUtilTest {
                     publicNetworkInfo.getPort());
 
     return new HostPortTestDataProvider[][] {
-      {new HostPortTestDataProvider(listenIf1, localIp, enableHostPort)},
-      {new HostPortTestDataProvider(listenIf2, hostIp, enableHostPort)},
-      {new HostPortTestDataProvider(listenIf1, localIp, disableHostPort)},
-      {new HostPortTestDataProvider(listenIf2, localIp, disableHostPort)},
+      {new HostPortTestDataProvider(listenIf1, localIp, hostIp, enableHostPort)},
+      {new HostPortTestDataProvider(listenIf2, hostIp, hostIp, enableHostPort)},
+      {new HostPortTestDataProvider(listenIf2, hostFqdn, hostFqdn, enableHostPort)},
+      {new HostPortTestDataProvider(listenIf1, localIp, null, disableHostPort)},
+      {new HostPortTestDataProvider(listenIf2, localIp, null, disableHostPort)},
     };
   }
 
-  @Test(dataProvider = "getListenInterfaceAndExpectedIpForExternalToLocal")
-  public void testExternalIpToLocalIpUsingListenInterface(HostPortTestDataProvider input) {
+  @Test(dataProvider = "getListenInterfaceAndExpectedIpForLocalToHost")
+  public void testLocalIpToHostInfoUsingListenInterface(HostPortTestDataProvider input) {
 
     when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
+    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(input.hostInfoFromProps);
     Assert.assertEquals(
-        HostPortUtil.convertLocalIpToExternalIp(input.listenIf).toString(), input.expectedIp);
+        HostPortUtil.convertLocalIpToHostInfo(input.listenIf).toString(), input.expectedIp);
   }
+
 }

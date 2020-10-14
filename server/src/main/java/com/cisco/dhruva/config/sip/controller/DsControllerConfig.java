@@ -543,7 +543,7 @@ public final class DsControllerConfig
   }
 
   public static synchronized void addRecordRouteInterface(
-      InetAddress ipAddress, int port, Transport protocol, DsNetwork direction) throws Exception {
+      InetAddress ipAddress, int port, Transport protocol, DsNetwork direction) {
 
     currentConfig.doRecordRoute = true;
 

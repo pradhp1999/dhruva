@@ -14,7 +14,7 @@
 package com.cisco.dhruva.sip.proxy;
 
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
-import com.cisco.dhruva.hostPort.HostPortUtil;
+import com.cisco.dhruva.sip.hostPort.HostPortUtil;
 import com.cisco.dhruva.sip.DsUtil.DsReConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
@@ -221,7 +221,7 @@ public class DsProxyServerTransaction {
 
       // get the network corresponding to the host portion in RR. If host contains externalIP,
       // get the localIP to know the network accordingly
-      currentRRURLHost = HostPortUtil.reverseExternalIpToLocalIp(currentRRURL).toString();
+      currentRRURLHost = HostPortUtil.reverseHostInfoToLocalIp(currentRRURL).toString();
 
       String network = null;
       String name =
@@ -276,7 +276,7 @@ public class DsProxyServerTransaction {
         DsSipURL RRUrl = (DsSipURL) recordRouteInterfaceHeader.getURI();
 
         // replace local IP with External IP for public network when modifying user portion of RR
-        currentRRURL.setHost(HostPortUtil.convertLocalIpToExternalIp(RRUrl));
+        currentRRURL.setHost(HostPortUtil.convertLocalIpToHostInfo(RRUrl));
 
         if (RRUrl.hasPort()) {
           currentRRURL.setPort(RRUrl.getPort());

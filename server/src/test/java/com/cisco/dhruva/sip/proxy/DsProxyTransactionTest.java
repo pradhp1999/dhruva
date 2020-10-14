@@ -225,15 +225,37 @@ public class DsProxyTransactionTest {
   public Object[] getNetworkAndBindingInfo() {
 
     return new RRViaHeaderValidationDataProvider[][] {
-      {new RRViaHeaderValidationDataProvider(dsNetwork, incomingMessageBindingInfo1, null, true)},
       {
         new RRViaHeaderValidationDataProvider(
-            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, true)
+            dsNetwork, incomingMessageBindingInfo1, null, "1.1.1.1", true)
       },
-      {new RRViaHeaderValidationDataProvider(dsNetwork, incomingMessageBindingInfo1, null, false)},
       {
         new RRViaHeaderValidationDataProvider(
-            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, false)
+            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, "1.1.1.1", true)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            dsNetwork, incomingMessageBindingInfo1, null, "1.1.1.1", false)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, "1.1.1.1", false)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            dsNetwork, incomingMessageBindingInfo1, null, "dhruva.sjc.webex.com", true)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            externalIpEnabledNetwork, incomingMessageBindingInfo2,null,"dhruva.sjc.webex.com",true)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            dsNetwork, incomingMessageBindingInfo1, null, "dhruva.sjc.webex.com", false)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            externalIpEnabledNetwork, incomingMessageBindingInfo2,null,"dhruva.sjc.webex.com",false)
       }
     };
   }
@@ -269,7 +291,7 @@ public class DsProxyTransactionTest {
         .thenReturn(adaptorInterface);
 
     when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
-    when(dhruvaSIPConfigProperties.getHostIp()).thenReturn("1.1.1.1");
+    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(input.hostIpOrFqdn);
 
     DsProxyTransaction proxy =
         (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
@@ -336,7 +358,7 @@ public class DsProxyTransactionTest {
       Assert.assertEquals(
           sipViaHeader.getHost().toString(), input.bindingInfo.getLocalAddress().getHostAddress());
     } else {
-      Assert.assertEquals(sipViaHeader.getHost().toString(), "1.1.1.1");
+      Assert.assertEquals(sipViaHeader.getHost().toString(), input.hostIpOrFqdn);
     }
 
     Assert.assertEquals(sipViaHeader.getPort(), input.bindingInfo.getLocalPort());
@@ -380,6 +402,7 @@ public class DsProxyTransactionTest {
             dsNetwork,
             incomingMessageBindingInfo1,
             "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            "1.1.1.1",
             true)
       },
       {
@@ -387,6 +410,7 @@ public class DsProxyTransactionTest {
             externalIpEnabledNetwork,
             incomingMessageBindingInfo2,
             "<sip:rr,n=External_IP_enabled@1.1.1.1:5061;transport=udp;lr>",
+            "1.1.1.1",
             true)
       },
       {
@@ -394,6 +418,7 @@ public class DsProxyTransactionTest {
             dsNetwork,
             incomingMessageBindingInfo1,
             "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            "1.1.1.1",
             false)
       },
       {
@@ -401,6 +426,39 @@ public class DsProxyTransactionTest {
             externalIpEnabledNetwork,
             incomingMessageBindingInfo2,
             "<sip:rr,n=External_IP_enabled@127.0.0.1:5061;transport=udp;lr>",
+            "1.1.1.1",
+            false)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            dsNetwork,
+            incomingMessageBindingInfo1,
+            "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            "dhruva.sjc.webex.com",
+            true)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            externalIpEnabledNetwork,
+            incomingMessageBindingInfo2,
+            "<sip:rr,n=External_IP_enabled@dhruva.sjc.webex.com:5061;transport=udp;lr>",
+            "dhruva.sjc.webex.com",
+            true)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            dsNetwork,
+            incomingMessageBindingInfo1,
+            "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            "dhruva.sjc.webex.com",
+            false)
+      },
+      {
+        new RRViaHeaderValidationDataProvider(
+            externalIpEnabledNetwork,
+            incomingMessageBindingInfo2,
+            "<sip:rr,n=External_IP_enabled@127.0.0.1:5061;transport=udp;lr>",
+            "dhruva.sjc.webex.com",
             false)
       }
     };
@@ -442,7 +500,7 @@ public class DsProxyTransactionTest {
         .thenReturn(adaptorInterface);
 
     when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
-    when(dhruvaSIPConfigProperties.getHostIp()).thenReturn("1.1.1.1");
+    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(input.hostIpOrFqdn);
 
     DsProxyTransaction proxy =
         (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
@@ -1582,32 +1640,28 @@ public class DsProxyTransactionTest {
     public DsNetwork network;
     public DsBindingInfo bindingInfo;
     public String expectedRR;
+    public String hostIpOrFqdn;
     public boolean isHostPortEnabled;
 
     public RRViaHeaderValidationDataProvider(
         DsNetwork network,
         DsBindingInfo bindingInfo,
         String expectedRR,
+        String hostIpOrFqdn,
         boolean isHostPortEnabled) {
       this.network = network;
       this.bindingInfo = bindingInfo;
       this.expectedRR = expectedRR;
+      this.hostIpOrFqdn = hostIpOrFqdn;
       this.isHostPortEnabled = isHostPortEnabled;
     }
 
     public String toString() {
-      return "Network: {"
-          + network.toString()
-          + "}; "
-          + "BindingInfo: {"
-          + bindingInfo.toString()
-          + "}; "
-          + "CP RR expected in sip msg: {"
-          + expectedRR
-          + "}; "
-          + "HostPort feature: {"
-          + isHostPortEnabled
-          + "}";
+      return "Network: {" + network.toString() + "}; "
+          + "BindingInfo: {" + bindingInfo.toString() + "}; "
+          + "CP RR expected in sip msg: {" + expectedRR + "}; "
+          + "Host IP/FQDN: {" + hostIpOrFqdn + "}; "
+          + "HostPort feature: {" + isHostPortEnabled + "}";
     }
   }
 }

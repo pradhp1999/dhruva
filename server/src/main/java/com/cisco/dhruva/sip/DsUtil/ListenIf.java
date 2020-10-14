@@ -4,12 +4,13 @@
 
 package com.cisco.dhruva.sip.DsUtil;
 
+import com.cisco.dhruva.sip.hostPort.HostPortUtil;
 import com.cisco.dhruva.sip.proxy.DsListenInterface;
-import com.cisco.dhruva.sip.proxy.DsSipProxyManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
-import com.cisco.dhruva.util.log.Trace;
+import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.Logger;
 import java.net.*;
 import java.net.InetAddress;
 
@@ -25,8 +26,6 @@ public class ListenIf implements DsListenInterface {
 
   protected InetAddress translatedAddressInet = null;
 
-  DsSipProxyManager manager;
-
   protected DsNetwork network =
       null; // this data member indicated INTERNAL, EXTERNAL or EXTERNAL_OBTAIN in listen command
 
@@ -36,7 +35,7 @@ public class ListenIf implements DsListenInterface {
 
   protected boolean attachExternalIp;
   // Our Log object
-  protected static Trace Log = Trace.getTrace(ListenIf.class.getName());
+  private static final Logger Log = DhruvaLoggerFactory.getLogger(HostPortUtil.class);
 
   /**
    * Creates a new ListenIf that based on the resolveAddress parameter, will try create an

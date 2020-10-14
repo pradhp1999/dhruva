@@ -66,7 +66,7 @@ public class DhruvaSIPConfigProperties {
 
   private static final Boolean DEFAULT_HOST_PORT_ENABLED = false;
 
-  private static final String HOST_IP = "hostIp";
+  private static final String HOST_IP_OR_FQDN = "hostIpOrFqdn";
 
   private static final String TLS_HANDSHAKE_TIMEOUT_MILLISECONDS =
       "dhruva.tlsHandShakeTimeOutMilliSeconds";
@@ -223,8 +223,8 @@ public class DhruvaSIPConfigProperties {
     }
   }
 
-  public String getHostIp() {
-    return env.getProperty(HOST_IP);
+  public String getHostInfo() {
+    return env.getProperty(HOST_IP_OR_FQDN);
   }
 
   public boolean isHostPortEnabled() {

@@ -3,7 +3,7 @@
 
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipObject;
 
-import com.cisco.dhruva.hostPort.HostPortUtil;
+import com.cisco.dhruva.sip.hostPort.HostPortUtil;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.TokenSip.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.*;
@@ -755,7 +755,7 @@ public class DsSipRequest extends DsSipMessage {
 
         // Replace the IP address in the top-most route with the local IP, if it contains external
         // IP
-        ((DsSipURL) uri).setHost(HostPortUtil.reverseExternalIpToLocalIp((DsSipURL) uri));
+        ((DsSipURL) uri).setHost(HostPortUtil.reverseHostInfoToLocalIp((DsSipURL) uri));
 
         if (fix.recognize(uri, false)) {
           m_fixURI = uri; // FIXURI  <-- top Route URI

@@ -481,7 +481,7 @@ public class DsProxyControllerServerTest {
 
   @DataProvider
   public Object[] getRecordRouteHeader() throws DsSipParserListenerException, DsSipParserException {
-    // single network
+    // single network (hostPort true/false & host IP/FQDN will result in same output after flip)
     DsSipRecordRouteHeader rr1 =
         new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
     DsSipRecordRouteHeader rr1AfterFlip =
@@ -502,6 +502,9 @@ public class DsProxyControllerServerTest {
         new DsSipRecordRouteHeader("<sip:rr,n=Default@1.1.1.1:5061;transport=udp;lr>".getBytes());
     DsSipRecordRouteHeader rr3AfterFlipWithHostPortDisabled =
         new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5061;transport=udp;lr>".getBytes());
+    DsSipRecordRouteHeader rr3AfterFlipWithFqdn =
+        new DsSipRecordRouteHeader(
+            "<sip:rr,n=Default@dhruva.sjc.webex.com:5061;transport=udp;lr>".getBytes());
 
     // host portion is a 'external IP' attached network but 'hostPort' toggle is disabled
     DsSipRecordRouteHeader rr4 =
@@ -510,17 +513,35 @@ public class DsProxyControllerServerTest {
         new DsSipRecordRouteHeader(
             "<sip:rr,n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
 
-    RecordRouteDataProvider rrProvider1 = new RecordRouteDataProvider(rr1, rr1AfterFlip, true);
-    RecordRouteDataProvider rrProvider2 = new RecordRouteDataProvider(rr2, rr2AfterFlip, true);
-    RecordRouteDataProvider rrProvider3 = new RecordRouteDataProvider(rr3, rr3AfterFlip, true);
-    RecordRouteDataProvider rrProvider4 = new RecordRouteDataProvider(rr1, rr1AfterFlip, false);
-    RecordRouteDataProvider rrProvider5 = new RecordRouteDataProvider(rr4, rr4AfterFlip, false);
+    // host portion is a 'external IP' attached network, FQDN provided
+    DsSipRecordRouteHeader rr5 =
+        new DsSipRecordRouteHeader(
+            "<sip:rr,n=Default@dhruva.sjc.webex.com:5061;transport=udp;lr>".getBytes());
+
+    String hostIP = "1.1.1.1";
+    String hostFqdn = "dhruva.sjc.webex.com";
+    RecordRouteDataProvider rrProvider1 =
+        new RecordRouteDataProvider(rr1, rr1AfterFlip, hostIP, true);
+    RecordRouteDataProvider rrProvider2 =
+        new RecordRouteDataProvider(rr2, rr2AfterFlip, hostIP, true);
+    RecordRouteDataProvider rrProvider3 =
+        new RecordRouteDataProvider(rr3, rr3AfterFlip, hostIP, true);
+    RecordRouteDataProvider rrProvider4 =
+        new RecordRouteDataProvider(rr1, rr1AfterFlip, hostIP, false);
+    RecordRouteDataProvider rrProvider5 =
+        new RecordRouteDataProvider(rr4, rr4AfterFlip, hostIP, false);
     RecordRouteDataProvider rrProvider6 =
-        new RecordRouteDataProvider(rr3, rr3AfterFlipWithHostPortDisabled, false);
+        new RecordRouteDataProvider(rr3, rr3AfterFlipWithHostPortDisabled, hostIP, false);
+
+    RecordRouteDataProvider rrProvider7 =
+        new RecordRouteDataProvider(rr5, rr2AfterFlip, hostFqdn, true);
+    RecordRouteDataProvider rrProvider8 =
+        new RecordRouteDataProvider(rr3, rr3AfterFlipWithFqdn, hostFqdn, true);
 
     return new RecordRouteDataProvider[][] {
       {rrProvider1}, {rrProvider2}, {rrProvider3},
-      {rrProvider4}, {rrProvider5}, {rrProvider6}
+      {rrProvider4}, {rrProvider5}, {rrProvider6},
+      {rrProvider7}, {rrProvider8}
     };
   }
 
@@ -593,7 +614,7 @@ public class DsProxyControllerServerTest {
             resp, MessageBodyType.SIPRESPONSE, context);
 
     when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(rrProvider.isHostPortEnabled);
-    when(dhruvaSIPConfigProperties.getHostIp()).thenReturn("1.1.1.1");
+    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(rrProvider.hostIpOrFqdn);
 
     handler.onMessage(responseMsg);
     ArgumentCaptor<DsSipResponse> argumentCaptor = ArgumentCaptor.forClass(DsSipResponse.class);
@@ -856,25 +877,25 @@ public class DsProxyControllerServerTest {
 
     DsSipRecordRouteHeader rrToAdd;
     DsSipRecordRouteHeader rrExpected;
+    String hostIpOrFqdn;
     boolean isHostPortEnabled;
 
     public RecordRouteDataProvider(
         DsSipRecordRouteHeader rrToAdd,
         DsSipRecordRouteHeader rrExpected,
+        String hostIpOrFqdn,
         boolean isHostPortEnabled) {
       this.rrToAdd = rrToAdd;
       this.rrExpected = rrExpected;
+      this.hostIpOrFqdn = hostIpOrFqdn;
       this.isHostPortEnabled = isHostPortEnabled;
     }
 
     public String toString() {
-      return "Original RR: {"
-          + rrToAdd.toString()
-          + "}; RR after flip: {"
-          + rrExpected.toString()
-          + "}; HostPort feature: {"
-          + isHostPortEnabled
-          + "}";
+      return "Original RR: {" + rrToAdd.toString() + "}; "
+          + "RR after flip: {" + rrExpected.toString() + "}; "
+          + "Host IP/FQDN: {" + hostIpOrFqdn + "}; "
+          + "HostPort feature: {" + isHostPortEnabled + "}";
     }
   }
 }

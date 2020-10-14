@@ -32,21 +32,21 @@ public final class DnsResolvers {
 
     private DnsResolverBuilder() {
       this(
-              null,
-              null,
-              DEFAULT_CACHE_SIZE,
-              SECONDS.toMillis(DEFAULT_DNS_TIMEOUT_SECONDS),
-              HOURS.toMillis(DEFAULT_RETENTION_DURATION_HOURS),
-              null);
+          null,
+          null,
+          DEFAULT_CACHE_SIZE,
+          SECONDS.toMillis(DEFAULT_DNS_TIMEOUT_SECONDS),
+          HOURS.toMillis(DEFAULT_RETENTION_DURATION_HOURS),
+          null);
     }
 
     private DnsResolverBuilder(
-            DnsReporter reporter,
-            LookupFactory lookupFactory,
-            long cacheSize,
-            long dnsLookupTimeoutMillis,
-            long retentionDurationMillis,
-            List<String> servers) {
+        DnsReporter reporter,
+        LookupFactory lookupFactory,
+        long cacheSize,
+        long dnsLookupTimeoutMillis,
+        long retentionDurationMillis,
+        List<String> servers) {
       this.reporter = reporter;
       this.lookupFactory = lookupFactory;
       this.dnsLookupTimeoutMillis = dnsLookupTimeoutMillis;
@@ -61,9 +61,9 @@ public final class DnsResolvers {
         Resolver resolver;
         try {
           resolver =
-                  servers == null
-                          ? new ExtendedResolver()
-                          : new ExtendedResolver(servers.toArray(new String[servers.size()]));
+              servers == null
+                  ? new ExtendedResolver()
+                  : new ExtendedResolver(servers.toArray(new String[servers.size()]));
 
           final Duration timeoutDuration = Duration.ofMillis(dnsLookupTimeoutMillis);
           resolver.setTimeout(timeoutDuration.getNano());
@@ -88,62 +88,62 @@ public final class DnsResolvers {
     // This is used for stats and metrics
     public DnsResolverBuilder metered(DnsReporter reporter) {
       return new DnsResolverBuilder(
-              reporter,
-              lookupFactory,
-              cacheSize,
-              dnsLookupTimeoutMillis,
-              retentionDurationMillis,
-              servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
 
     public DnsResolverBuilder dnsLookupTimeoutMillis(long dnsLookupTimeoutMillis) {
       return new DnsResolverBuilder(
-              reporter,
-              lookupFactory,
-              cacheSize,
-              dnsLookupTimeoutMillis,
-              retentionDurationMillis,
-              servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
 
     public DnsResolverBuilder retentionDurationMillis(long retentionDurationMillis) {
       return new DnsResolverBuilder(
-              reporter,
-              lookupFactory,
-              cacheSize,
-              dnsLookupTimeoutMillis,
-              retentionDurationMillis,
-              servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
 
     public DnsResolverBuilder cacheSize(long cacheSize) {
       return new DnsResolverBuilder(
-              reporter,
-              lookupFactory,
-              cacheSize,
-              dnsLookupTimeoutMillis,
-              retentionDurationMillis,
-              servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
 
     public DnsResolverBuilder lookupFactory(LookupFactory lookupFactory) {
       return new DnsResolverBuilder(
-              reporter,
-              lookupFactory,
-              cacheSize,
-              dnsLookupTimeoutMillis,
-              retentionDurationMillis,
-              servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
 
     public DnsResolverBuilder servers(List<String> servers) {
       return new DnsResolverBuilder(
-              reporter,
-              lookupFactory,
-              cacheSize,
-              dnsLookupTimeoutMillis,
-              retentionDurationMillis,
-              servers);
+          reporter,
+          lookupFactory,
+          cacheSize,
+          dnsLookupTimeoutMillis,
+          retentionDurationMillis,
+          servers);
     }
   }
 

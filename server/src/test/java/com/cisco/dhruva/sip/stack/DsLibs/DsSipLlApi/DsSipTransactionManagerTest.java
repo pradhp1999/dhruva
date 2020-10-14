@@ -335,20 +335,30 @@ public class DsSipTransactionManagerTest {
             "<sip:rr,n=externalIpEnabledNetwork@1.1.1.1:5061;transport=udp;lr>", false, true);
     RouteDataProvider rProvider3 =
         new RouteDataProvider(
-            "<sip:rr,n=unrecognizedNetwork@1.2.3.4:5065;transport=udp;lr>", true, true);
+            "<sip:rr,n=externalIpEnabledNetwork@dhruva.sjc.webex.com:5061;transport=udp;lr>",
+            false,
+            true);
     RouteDataProvider rProvider4 =
-        new RouteDataProvider("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>", false, false);
+        new RouteDataProvider(
+            "<sip:rr,n=unrecognizedNetwork@1.2.3.4:5065;transport=udp;lr>", true, true);
     RouteDataProvider rProvider5 =
+        new RouteDataProvider("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>", false, false);
+    RouteDataProvider rProvider6 =
         new RouteDataProvider(
             "<sip:rr,n=externalIpEnabledNetwork@127.0.0.1:5061;transport=udp;lr>", false, false);
-    RouteDataProvider rProvider6 =
+    RouteDataProvider rProvider7 =
         new RouteDataProvider(
             "<sip:rr,n=unrecognizedNetwork@1.2.3.4:5065;transport=udp;lr>", true, false);
 
     RouteDataProvider[][] inputs =
         new RouteDataProvider[][] {
-          {rProvider1}, {rProvider2}, {rProvider3},
-          {rProvider4}, {rProvider5}, {rProvider6}
+          {rProvider1},
+          {rProvider2},
+          {rProvider3},
+          {rProvider4},
+          {rProvider5},
+          {rProvider6},
+          {rProvider7}
         };
     return inputs;
   }
@@ -370,6 +380,7 @@ public class DsSipTransactionManagerTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.ACK));
     DsSipRouteHeader cpRoute = new DsSipRouteHeader(rProvider.cpRouteToAdd.getBytes());
     sipRequest.addHeader(cpRoute, true);
+    System.out.println("Route in incoming ACK: " + cpRoute.toString());
     byte[] messagebytes = sipRequest.toByteArray();
 
     SipMessageBytes sipMessageBytes = new SipMessageBytes(messagebytes, incomingMessageBindingInfo);

@@ -13,7 +13,7 @@
 
 package com.cisco.dhruva.sip.proxy;
 
-import com.cisco.dhruva.hostPort.HostPortUtil;
+import com.cisco.dhruva.sip.hostPort.HostPortUtil;
 import com.cisco.dhruva.sip.controller.util.ParseProxyParamUtil;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
@@ -436,7 +436,7 @@ public class DsProxyStatelessTransaction implements DsProxyInterface {
       // else pass actual Ip address
       via =
           new DsSipViaHeader(
-              HostPortUtil.convertLocalIpToExternalIp(listenIf), listenIf.getPort(), viaTransport);
+              HostPortUtil.convertLocalIpToHostInfo(listenIf), listenIf.getPort(), viaTransport);
 
       forceRequestSource(request, listenIf.getSourcePort(), listenIf.getSourceAddress());
 
@@ -633,7 +633,7 @@ public class DsProxyStatelessTransaction implements DsProxyInterface {
         uri.setUser(params.getRecordRouteUserParams());
 
         // replace Record-Route localIP with externalIP for public network
-        uri.setHost(HostPortUtil.convertLocalIpToExternalIp(uri));
+        uri.setHost(HostPortUtil.convertLocalIpToHostInfo(uri));
 
         Log.info("Adding " + rr);
         request.addHeader(rr, true, false);
