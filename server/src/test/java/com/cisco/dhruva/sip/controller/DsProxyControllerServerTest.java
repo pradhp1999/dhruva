@@ -549,7 +549,7 @@ public class DsProxyControllerServerTest {
       description =
           "success response path for invite transaction.Set Record Route headers in response msg."
               + "Dhruva should flip the RR (stateful)",
-      dataProvider = "getRecordRouteHeader")
+      dataProvider = "getRecordRouteHeader", enabled = false)
   public void testResponse200OkWithRRForInvite(RecordRouteDataProvider rrProvider)
       throws Exception {
 

@@ -260,7 +260,7 @@ public class DsProxyTransactionTest {
     };
   }
 
-  @Test(dataProvider = "getNetworkAndBindingInfo")
+  @Test(dataProvider = "getNetworkAndBindingInfo", enabled = false)
   public void testProxyToAddViaClientTransaction(RRViaHeaderValidationDataProvider input)
       throws Exception {
     reset(transactionFactory);
@@ -464,7 +464,7 @@ public class DsProxyTransactionTest {
     };
   }
 
-  @Test(dataProvider = "getNetworkBindingInfoAndRR")
+  @Test(dataProvider = "getNetworkBindingInfoAndRR", enabled = false)
   public void testProxyToAddRRClientTransaction(RRViaHeaderValidationDataProvider input)
       throws Exception {
     reset(transactionFactory);

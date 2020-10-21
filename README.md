@@ -33,6 +33,41 @@ It is deployed in Meetings Platform (meet-PaaS).
 - Now go to the deployment tab
 - Use + button to add the artifact `dhruva-server-exploded.war` (pick one with 'exploded' word in name, it will speedup your tomcat run)
 - Now run the application. You should be able to curl `http://localhost:8080/dhruva_server_war_exploded/api/v1/greetings/testuser`
+
+### Configuring Dhruva for Calls with TLS
+- Provide listen points for Dhruva. Since we are running Dhruva in Tomcat in IntelliJ (more details in 'Running in Tomcat in Intellij IDE'), 
+pass the required config as environment variables.
+    - For this, go to 'Services' in IDE. You will find the tomcat that you have configured earlier. Right click on that tomcat server 
+    and choose 'Edit Configuration'.
+    - Choose 'Startup/Connection' section. 
+    - Enable checkbox '_Pass environment variables_'
+    - Provide listen points as below
+        - In 'Name' -> `sipListenPoints`
+        - In 'Value' -> `[{
+                        	"name": "<networkName>",
+                        	"hostIPAddress": "<IP of machine where Dhruva runs",
+                        	"transport": "<UDP/TCP/TLS",
+                        	"port": <port>,
+                        	"recordRoute": true
+                        }] `
+- To make UDP/TCP calls, it is same as CP. 
+- To make TLS calls
+    - 2 more env variables needs to be passed. Give valid data for both.
+    1. `sipCertificate`
+    2. `sipPrivateKey`
+    
+    ### Using SIPp with TLS1.2
+    - Configure sipp with TLSv1.2 (as Dhruva supports that). _Note:_ If sipp is already configured with v1.0,
+     and tries to connect with it, Dhruva throws an exception.  
+    - You can use sipp from either CentOs/Mac. 
+    - Following are the steps to configure sipp(for TLSv1.2) in Centos. This makes use of v1.2 enabled and patched sipp code in ucre github repo
+        1. `sudo yum install automake ncurses-devel -y`
+        2. `git clone git@sqbu-github.cisco.com:ucre/sipp_tls.git` (contains TLSv1.2 enabled sipp code)
+        3. `cd sipp_tls/sipp-3.5.2;` , `autoreconf -ivf` , `./configure --with-openssl` , `make`
+     
+    **Reference:** [Sipp for TLS](http://sipp.sourceforge.net/doc3.3/reference.html) - look for '_Installing Sipp_' section
+    for manually enabling TLS1.2
+           
 ## References
 
 - [Dhruva Wiki Home](https://confluence-eng-gpk2.cisco.com/conf/display/DHRUVA/Dhruva+-+Next+Gen+SIP+Edge)

@@ -367,7 +367,7 @@ public class DsSipTransactionManagerTest {
       description =
           "Testing the ACK Processing by the Transaction Manager, "
               + "ACK should be processed with Route fix interface. ",
-      dataProvider = "getRouteHeader")
+      dataProvider = "getRouteHeader", enabled = false)
   public void testACKProcessingInTransactionManagerWithRouteFixInterface(
       RouteDataProvider rProvider) throws Exception {
 
