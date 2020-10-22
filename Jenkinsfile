@@ -18,6 +18,11 @@ sparkPipeline {
         // First we run yamllint over all the files in the config folder:
         this.sh "mvn versions:set -DnewVersion=${this.env.BUILD_VERSION} && mvn -Dmaven.test.failure.ignore clean verify"
         this.step([$class: 'JacocoPublisher', changeBuildStatus: true, classPattern: 'server/target/classes,client/target/classes', execPattern: '**/target/**.exec', minimumInstructionCoverage: '1'])
+        if (this.isMasterBranch() || this.isHotfixBranch()) {
+            // Archive the Dockerfiles (and env.sh) in the docker/ folder
+            // so that downstream jobs can pull and build the images
+            this.archiveArtifacts artifacts: 'docker/*'
+        }
     }
 
     // fail the build if Static Analysis fails
