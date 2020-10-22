@@ -125,3 +125,15 @@ security-automation:
 # See https://sqbu-github.cisco.com/pages/WebExSquared/docs/deployment/pipeline-concepts.html#fedramp
 fedramp:
   enabled: "false"
+
+wbx3:
+  files:
+    - docker/dhruva.Dockerfile
+    - docker/dhruva-tests.Dockerfile
+  artifacts:
+    dockerhub.cisco.com/webexkubed-docker/wbx3-dhruva:
+      dockerRegistry: https://dockerhub.cisco.com
+      dockerFile: docker/dhruva.Dockerfile
+    dockerhub.cisco.com/webexkubed-docker/wbx3-dhruva-integration-tests:
+      dockerRegistry: https://dockerhub.cisco.com
+      dockerFile: docker/dhruva-tests.Dockerfile
