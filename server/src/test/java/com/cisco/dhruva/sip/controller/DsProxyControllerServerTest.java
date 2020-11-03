@@ -46,14 +46,10 @@ public class DsProxyControllerServerTest {
   private ProxyAdaptorFactoryInterface proxyAdaptorFactoryInterface;
   @Autowired SipServerLocatorService locatorService;
 
-  DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
-
   @BeforeClass
   void init() throws Exception {
-    dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
     dsNetwork = DsNetwork.getNetwork("Default");
     externalIpEnabledNetwork = DsNetwork.getNetwork("External_IP_enabled");
-    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
 
     adaptorInterface = mock(AppAdaptorInterface.class);
     proxyAdaptorFactoryInterface = mock(ProxyAdaptorFactoryInterface.class);
@@ -84,14 +80,6 @@ public class DsProxyControllerServerTest {
           Transport.UDP,
           InetAddress.getByName("127.0.0.1"),
           false);
-
-      DsControllerConfig.addListenInterface(
-          externalIpEnabledNetwork,
-          InetAddress.getByName("127.0.0.1"),
-          5061,
-          Transport.UDP,
-          InetAddress.getByName("127.0.0.1"),
-          true);
 
     } catch (DsInconsistentConfigurationException ignored) {
       // In this case it was already set, there is no means to remove the key from map
@@ -549,9 +537,25 @@ public class DsProxyControllerServerTest {
       description =
           "success response path for invite transaction.Set Record Route headers in response msg."
               + "Dhruva should flip the RR (stateful)",
-      dataProvider = "getRecordRouteHeader", enabled = false)
+      dataProvider = "getRecordRouteHeader")
   public void testResponse200OkWithRRForInvite(RecordRouteDataProvider rrProvider)
       throws Exception {
+
+    try {
+      DsControllerConfig.addListenInterface(
+          externalIpEnabledNetwork,
+          InetAddress.getByName("127.0.0.1"),
+          5061,
+          Transport.UDP,
+          InetAddress.getByName("127.0.0.1"),
+          true);
+
+    } catch (DsInconsistentConfigurationException ignored) {
+      // In this case it was already set, there is no means to remove the key from map
+    }
+
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
 
     DsControllerConfig.addRecordRouteInterface(
         InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
@@ -613,8 +617,11 @@ public class DsProxyControllerServerTest {
         MessageConvertor.convertSipMessageToDhruvaMessage(
             resp, MessageBodyType.SIPRESPONSE, context);
 
-    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(rrProvider.isHostPortEnabled);
-    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(rrProvider.hostIpOrFqdn);
+    doReturn(rrProvider.isHostPortEnabled).when(dhruvaSIPConfigProperties).isHostPortEnabled();
+    doReturn(rrProvider.hostIpOrFqdn).when(dhruvaSIPConfigProperties).getHostInfo();
+
+    // when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(rrProvider.isHostPortEnabled);
+    // when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(rrProvider.hostIpOrFqdn);
 
     handler.onMessage(responseMsg);
     ArgumentCaptor<DsSipResponse> argumentCaptor = ArgumentCaptor.forClass(DsSipResponse.class);
@@ -633,6 +640,8 @@ public class DsProxyControllerServerTest {
     // TODO , since there is only one listen point, there is no flip happening for first testcase.
     // For other two, flip happens
     Assert.assertEquals(rrHeader.getLast(), rrProvider.rrExpected);
+
+    DsNetwork.setDhruvaConfigProperties(null);
   }
 
   @Test(description = "controller forwarding 4xx response to invite request")

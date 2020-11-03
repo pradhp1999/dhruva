@@ -5,11 +5,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.atMost;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
@@ -50,8 +46,8 @@ public class DsSipTransactionManagerTest {
   private InetAddress localAddress;
   private InetAddress remoteAddress;
   private int localPort, remotePort;
+  DsNetwork dsNetwork, externalIpEnabledNetwork;
   private DsSipRouteFixInterface rfi;
-  private DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
   @InjectMocks private MetricService metricService;
   @InjectMocks private LMAUtil lmaUtil;
 
@@ -68,13 +64,10 @@ public class DsSipTransactionManagerTest {
     remotePort = 5070;
     incomingMessageBindingInfo =
         new DsBindingInfo(localAddress, localPort, localAddress, remotePort, Transport.UDP);
-    DsNetwork dsNetwork = DsNetwork.getNetwork("Default");
-    DsNetwork externalIpEnabledNetwork = DsNetwork.getNetwork("externalIpEnabledNetwork");
+    dsNetwork = DsNetwork.getNetwork("Default");
+    externalIpEnabledNetwork = DsNetwork.getNetwork("External_IP_enabled");
     incomingMessageBindingInfo.setNetwork(dsNetwork);
     rfi = new DsREControllerFactory();
-
-    dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
-    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
 
     DsSipServerTransactionImpl.setThreadPoolExecutor(
         (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
@@ -100,14 +93,6 @@ public class DsSipTransactionManagerTest {
           Transport.UDP,
           InetAddress.getByName("127.0.0.1"),
           false);
-
-      DsControllerConfig.addListenInterface(
-          externalIpEnabledNetwork,
-          InetAddress.getByName("127.0.0.1"),
-          5061,
-          Transport.UDP,
-          InetAddress.getByName("127.0.0.1"),
-          true);
 
       DsControllerConfig.addRecordRouteInterface(
           InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
@@ -136,8 +121,13 @@ public class DsSipTransactionManagerTest {
     sipTransactionManager.setTransactionEventInterface(transactionEventInterface);
     sipTransactionManager.setRequestInterface(requestInterface, null);
     sipTransactionManager.setTransportLayer(transportLayer);
-
     sipTransactionManager.setM_transactionTable(new DsSipTransactionTable());
+    DsNetwork.setDhruvaConfigProperties(null);
+  }
+
+  private void setDhruvaProp() {
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
   }
 
   @Test(
@@ -148,6 +138,7 @@ public class DsSipTransactionManagerTest {
               + "forwarded to requestInterface ")
   public void testInviteProcessingInTransactionManager() throws DsException, IOException {
 
+    setDhruvaProp();
     String callId = "05e3b66d495da4d4f172a99384ce24";
     byte[] messagebytes = SIPMessageGenerator.getInviteMessage("graivitt", callId).getBytes();
 
@@ -207,6 +198,7 @@ public class DsSipTransactionManagerTest {
         sipViaHeader.getReceived().toString(),
         incomingMessageBindingInfo.getLocalAddress().getHostAddress());
     Assert.assertEquals(sipViaHeader.getRPort(), incomingMessageBindingInfo.getRemotePort());
+
   }
 
   @Test(
@@ -217,6 +209,7 @@ public class DsSipTransactionManagerTest {
               + "Checks Options is not forwarded")
   public void testOptionProcessingInTransactionManager() throws Exception {
 
+    setDhruvaProp();
     String callId;
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
     byte[] messagebytes =
@@ -236,6 +229,7 @@ public class DsSipTransactionManagerTest {
     when(responseConnection.getTransportType()).thenReturn(Transport.UDP);
     ArgumentCaptor<DsSipResponse> argumentCaptor200Response =
         ArgumentCaptor.forClass(DsSipResponse.class);
+
     when(transportLayer.getConnection(
             incomingMessageBindingInfo.getNetwork(),
             localAddress,
@@ -262,6 +256,7 @@ public class DsSipTransactionManagerTest {
 
     // Check If Invite is forwarded to request interface , and Check Transaction manager functions
     verify(requestInterface, times(0)).request(argumentCaptor.capture());
+
   }
 
   @Test(
@@ -270,6 +265,7 @@ public class DsSipTransactionManagerTest {
               + "Here the response is processed as stray response")
   public void testResponseProcessingInTransactionManager() throws DsException, IOException {
 
+    setDhruvaProp();
     String callId;
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
     DsSipResponse sipResponse = sipRequestBuilder.getResponse(200);
@@ -290,6 +286,7 @@ public class DsSipTransactionManagerTest {
     Assert.assertEquals(responseReceivedAtConnection.getMethodID(), 1);
     Assert.assertEquals(responseReceivedAtConnection.getStatusCode(), 200);
     Assert.assertEquals(responseReceivedAtConnection.getReasonPhrase().toString(), "OK");
+
   }
 
   @Test(
@@ -298,6 +295,7 @@ public class DsSipTransactionManagerTest {
               + "ACK should be sent to the strayInterface")
   public void testACKProcessingInTransactionManager() throws Exception {
 
+    setDhruvaProp();
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
     byte[] messagebytes = sipRequestBuilder.getRequestAsString(RequestMethod.ACK, true).getBytes();
     String callId = sipRequestBuilder.getCallId();
@@ -323,6 +321,7 @@ public class DsSipTransactionManagerTest {
     Assert.assertEquals(
         sipViaHeader.getReceived().toString(),
         incomingMessageBindingInfo.getLocalAddress().getHostAddress());
+
   }
 
   @DataProvider
@@ -332,10 +331,10 @@ public class DsSipTransactionManagerTest {
         new RouteDataProvider("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>", false, true);
     RouteDataProvider rProvider2 =
         new RouteDataProvider(
-            "<sip:rr,n=externalIpEnabledNetwork@1.1.1.1:5061;transport=udp;lr>", false, true);
+            "<sip:rr,n=External_IP_enabled@1.1.1.1:5061;transport=udp;lr>", false, true);
     RouteDataProvider rProvider3 =
         new RouteDataProvider(
-            "<sip:rr,n=externalIpEnabledNetwork@dhruva.sjc.webex.com:5061;transport=udp;lr>",
+            "<sip:rr,n=External_IP_enabled@dhruva.sjc.webex.com:5061;transport=udp;lr>",
             false,
             true);
     RouteDataProvider rProvider4 =
@@ -345,7 +344,7 @@ public class DsSipTransactionManagerTest {
         new RouteDataProvider("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>", false, false);
     RouteDataProvider rProvider6 =
         new RouteDataProvider(
-            "<sip:rr,n=externalIpEnabledNetwork@127.0.0.1:5061;transport=udp;lr>", false, false);
+            "<sip:rr,n=External_IP_enabled@127.0.0.1:5061;transport=udp;lr>", false, false);
     RouteDataProvider rProvider7 =
         new RouteDataProvider(
             "<sip:rr,n=unrecognizedNetwork@1.2.3.4:5065;transport=udp;lr>", true, false);
@@ -367,9 +366,25 @@ public class DsSipTransactionManagerTest {
       description =
           "Testing the ACK Processing by the Transaction Manager, "
               + "ACK should be processed with Route fix interface. ",
-      dataProvider = "getRouteHeader", enabled = false)
+      dataProvider = "getRouteHeader")
   public void testACKProcessingInTransactionManagerWithRouteFixInterface(
       RouteDataProvider rProvider) throws Exception {
+
+    try {
+      DsControllerConfig.addListenInterface(
+          externalIpEnabledNetwork,
+          InetAddress.getByName("127.0.0.1"),
+          5061,
+          Transport.UDP,
+          InetAddress.getByName("127.0.0.1"),
+          true);
+
+    } catch (DsInconsistentConfigurationException ignored) {
+      // In this case it was already set, there is no means to remove the key from map
+    }
+
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
 
     sipTransactionManager.setRouteFixInterface(rfi);
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
@@ -389,7 +404,8 @@ public class DsSipTransactionManagerTest {
 
     Assert.assertNull(SIPSessions.getActiveSession(callId));
 
-    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(rProvider.isHostPortEnabled);
+    doReturn(rProvider.isHostPortEnabled).when(dhruvaSIPConfigProperties).isHostPortEnabled();
+    // when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(rProvider.isHostPortEnabled);
 
     sipTransactionManager.processMessageBytes(sipMessageBytes);
 
@@ -408,9 +424,10 @@ public class DsSipTransactionManagerTest {
       // when route header contains a network that CP does not recognize. Then, that route is not
       // removed
       Assert.assertEquals(topRouteHeader.toString(), cpRoute.toString());
-    else
+    else {
       // Top-most route is recognised by CP and removed
       Assert.assertNotEquals(topRouteHeader.toString(), cpRoute.toString());
+    }
 
     sipTransactionManager.setRouteFixInterface(null);
   }
@@ -423,6 +440,7 @@ public class DsSipTransactionManagerTest {
   public void testCancelProcessingInTransactionManagerWithInviteTransactionWhichIsNotStarted()
       throws Exception {
     // Send Invite first
+    setDhruvaProp();
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
     byte[] messagebytes = sipRequestBuilder.getRequestAsString(RequestMethod.INVITE).getBytes();
     String callId = sipRequestBuilder.getCallId();
@@ -463,6 +481,7 @@ public class DsSipTransactionManagerTest {
     sipTransactionManager.processMessageBytes(sipMessageBytes);
 
     verify(strayMessageInterface, times(0)).strayCancel(any());
+
   }
 
   @Test(
@@ -472,6 +491,7 @@ public class DsSipTransactionManagerTest {
               + "Manager should process it as stray cancel")
   public void testCancelProcessingInTransactionManagerWithNoInviteTransaction() throws Exception {
 
+    setDhruvaProp();
     SIPRequestBuilder sipRequestBuilder = new SIPRequestBuilder();
     byte[] messagebytes = sipRequestBuilder.getRequestAsString(RequestMethod.CANCEL).getBytes();
     String callId = sipRequestBuilder.getCallId();
@@ -498,6 +518,7 @@ public class DsSipTransactionManagerTest {
         "Max-Forwards: 70\r\n");
     Assert.assertEquals(requestReceivedAtInterface.getBindingInfo(), incomingMessageBindingInfo);
     Assert.assertEquals(sipViaHeader.getRPort(), incomingMessageBindingInfo.getRemotePort());
+
   }
 
   @Test(
@@ -507,6 +528,7 @@ public class DsSipTransactionManagerTest {
   public void testInviteProcessingInTransactionManagerWithInviteMessageHavingNoFromHeader()
       throws Exception {
 
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(RequestMethod.INVITE));
@@ -549,6 +571,7 @@ public class DsSipTransactionManagerTest {
 
     Assert.assertNull(SIPSessions.getActiveSession(callId));
     Assert.assertEquals(responseReceivedAtConnection.getBindingInfo(), incomingMessageBindingInfo);
+
   }
 
   @Test(
@@ -558,6 +581,7 @@ public class DsSipTransactionManagerTest {
   public void testInviteProcessingInTransactionManagerWithReTransmittedInvite()
       throws DsException, IOException {
 
+    setDhruvaProp();
     String callId = "05e3b66d495da4d4f172a99384ce24";
     byte[] messagebytes = SIPMessageGenerator.getInviteMessage("graivitt", callId).getBytes();
 
@@ -608,6 +632,7 @@ public class DsSipTransactionManagerTest {
 
     // verify that the Invite was dropped by checking if the request reached the requestInterface
     verify(requestInterface, atMost(1)).request(argumentCaptor.capture());
+
   }
 
   @Test(
@@ -617,6 +642,7 @@ public class DsSipTransactionManagerTest {
   public void testInviteProcessingInTransactionManagerWithInvalidBytes()
       throws DsException, IOException {
 
+    setDhruvaProp();
     String callId = "05e3b66d495da4d4f172a99384ce24";
     byte[] messagebytes = SIPMessageGenerator.getInviteMessage("graivitt", callId).getBytes();
 
@@ -656,6 +682,7 @@ public class DsSipTransactionManagerTest {
         "Method Type and CSeq Type Do Not Match\r\n");
     Assert.assertNull(SIPSessions.getActiveSession(callId));
     Assert.assertEquals(responseReceivedAtConnection.getBindingInfo(), incomingMessageBindingInfo);
+
   }
 
   @Test(

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import com.cisco.dhruva.adaptor.AppAdaptorInterface;
 import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
+import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
@@ -142,6 +143,10 @@ public class DsSipClientTransactionTest {
 
   @Test
   public void testSipClientTransaction() throws Exception {
+
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
+
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -209,10 +214,16 @@ public class DsSipClientTransactionTest {
     DsSipRequest requestReceivedAtConnection = (DsSipRequest) argumentCaptor.getValue();
     Assert.assertNotNull(requestReceivedAtConnection);
     Assert.assertEquals(requestReceivedAtConnection.getMethodID(), 1);
+
+    DsNetwork.setDhruvaConfigProperties(null);
   }
 
   @Test()
   public void testSipClientGetConnectionException() throws Exception {
+
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
+
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -274,5 +285,7 @@ public class DsSipClientTransactionTest {
 
     // errorCode 6 for unReachable
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(6));
+
+    DsNetwork.setDhruvaConfigProperties(null);
   }
 }

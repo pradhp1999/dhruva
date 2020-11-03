@@ -31,10 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 @SpringBootTest
 public class DsProxyTransactionTest {
@@ -52,16 +49,12 @@ public class DsProxyTransactionTest {
   private InetAddress remoteAddress;
   private int localPort1, localPort2, remotePort;
 
-  private DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
-
   @Autowired SipServerLocatorService locatorService;
 
   @BeforeClass
   void init() throws Exception {
-    dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
     dsNetwork = DsNetwork.getNetwork("Default");
     externalIpEnabledNetwork = DsNetwork.getNetwork("External_IP_enabled");
-    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
     ourConfig = DsControllerConfig.getCurrent();
 
     // This is required to set the via handler, route fix interface, global states are maintained
@@ -112,14 +105,6 @@ public class DsProxyTransactionTest {
           InetAddress.getByName("127.0.0.1"),
           false);
 
-      DsControllerConfig.addListenInterface(
-          externalIpEnabledNetwork,
-          InetAddress.getByName("127.0.0.1"),
-          localPort2,
-          Transport.UDP,
-          InetAddress.getByName("127.0.0.1"),
-          true);
-
     } catch (DsInconsistentConfigurationException ignored) {
       // In this case it was already set, there is no means to remove the key from map
     }
@@ -131,9 +116,20 @@ public class DsProxyTransactionTest {
     DsSipProxyManager.setM_Singleton(null);
   }
 
+  private void setDhruvaProp() {
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
+  }
+
+  @AfterMethod
+  private void resetDhruvaProp() {
+    DsNetwork.setDhruvaConfigProperties(null);
+  }
+
   @Test
   public void testProxyClientTransaction() throws Exception {
 
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -219,6 +215,7 @@ public class DsProxyTransactionTest {
     transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
     // No increment in verify, same as previous
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   @DataProvider
@@ -247,7 +244,7 @@ public class DsProxyTransactionTest {
       },
       {
         new RRViaHeaderValidationDataProvider(
-            externalIpEnabledNetwork, incomingMessageBindingInfo2,null,"dhruva.sjc.webex.com",true)
+            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, "dhruva.sjc.webex.com", true)
       },
       {
         new RRViaHeaderValidationDataProvider(
@@ -255,15 +252,32 @@ public class DsProxyTransactionTest {
       },
       {
         new RRViaHeaderValidationDataProvider(
-            externalIpEnabledNetwork, incomingMessageBindingInfo2,null,"dhruva.sjc.webex.com",false)
+            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, "dhruva.sjc.webex.com", false)
       }
     };
   }
 
-  @Test(dataProvider = "getNetworkAndBindingInfo", enabled = false)
+  @Test(dataProvider = "getNetworkAndBindingInfo")
   public void testProxyToAddViaClientTransaction(RRViaHeaderValidationDataProvider input)
       throws Exception {
+
+    try {
+      DsControllerConfig.addListenInterface(
+          externalIpEnabledNetwork,
+          InetAddress.getByName("127.0.0.1"),
+          localPort2,
+          Transport.UDP,
+          InetAddress.getByName("127.0.0.1"),
+          true);
+
+    } catch (DsInconsistentConfigurationException ignored) {
+      // In this case it was already set, there is no means to remove the key from map
+    }
+
     reset(transactionFactory);
+
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
 
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
@@ -290,8 +304,10 @@ public class DsProxyTransactionTest {
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
 
-    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
-    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(input.hostIpOrFqdn);
+    doReturn(input.isHostPortEnabled).when(dhruvaSIPConfigProperties).isHostPortEnabled();
+    doReturn(input.hostIpOrFqdn).when(dhruvaSIPConfigProperties).getHostInfo();
+    // when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
+    // when(dhruvaSI PConfigProperties.getHostInfo()).thenReturn(input.hostIpOrFqdn);
 
     DsProxyTransaction proxy =
         (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
@@ -391,6 +407,7 @@ public class DsProxyTransactionTest {
     // No increment in verify, same as previous
 
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   @DataProvider
@@ -464,9 +481,26 @@ public class DsProxyTransactionTest {
     };
   }
 
-  @Test(dataProvider = "getNetworkBindingInfoAndRR", enabled = false)
+  @Test(dataProvider = "getNetworkBindingInfoAndRR")
   public void testProxyToAddRRClientTransaction(RRViaHeaderValidationDataProvider input)
       throws Exception {
+
+    try {
+      DsControllerConfig.addListenInterface(
+          externalIpEnabledNetwork,
+          InetAddress.getByName("127.0.0.1"),
+          localPort2,
+          Transport.UDP,
+          InetAddress.getByName("127.0.0.1"),
+          true);
+
+    } catch (DsInconsistentConfigurationException ignored) {
+      // In this case it was already set, there is no means to remove the key from map
+    }
+
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
+
     reset(transactionFactory);
 
     DsControllerConfig.addRecordRouteInterface(
@@ -499,8 +533,11 @@ public class DsProxyTransactionTest {
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
 
-    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
-    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(input.hostIpOrFqdn);
+    doReturn(input.isHostPortEnabled).when(dhruvaSIPConfigProperties).isHostPortEnabled();
+    doReturn(input.hostIpOrFqdn).when(dhruvaSIPConfigProperties).getHostInfo();
+
+    // when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
+    // when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(input.hostIpOrFqdn);
 
     DsProxyTransaction proxy =
         (DsProxyTransaction) controller.onNewRequest(serverTransaction, sipRequest);
@@ -590,12 +627,14 @@ public class DsProxyTransactionTest {
     transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
     // No increment in verify, same as previous
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   // TODO, FIXME respond is called on server side
   @Test
   public void testProxyClientResponseWithRRHeader() throws Exception {
 
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -685,10 +724,13 @@ public class DsProxyTransactionTest {
     transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
     // No increment in verify, same as previous
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   @Test
   public void testTransactionInterfacesClientTimeout() throws Exception {
+
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -764,10 +806,13 @@ public class DsProxyTransactionTest {
     transactionInterfaces.timeOut(mockSipClientTransaction);
 
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(408));
+
   }
 
   @Test
   public void testTransactionInterfacesClientProvisionalResponse() throws Exception {
+
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -844,11 +889,13 @@ public class DsProxyTransactionTest {
 
     transactionInterfaces.provisionalResponse(mockSipClientTransaction, resp);
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(180));
+
   }
 
   @Test
   public void testProxyClientTransactionFinalResponses() throws Exception {
 
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -945,10 +992,13 @@ public class DsProxyTransactionTest {
 
     // Check, why Controller sends response code as 1 for 3xx responses?
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   @Test
   public void testTransactionInterfacesClientICMPError() throws Exception {
+
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1020,10 +1070,13 @@ public class DsProxyTransactionTest {
 
     transactionInterfaces.icmpError(mockSipClientTransaction);
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(4));
+
   }
 
   @Test
   public void testTransactionInterfacesClientCloseEvent() throws Exception {
+
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1097,10 +1150,13 @@ public class DsProxyTransactionTest {
 
     transactionInterfaces.close(mockSipClientTransaction);
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(500));
+
   }
 
   @Test
   public void testTransactionInterfacesServerICMPError() throws Exception {
+
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1173,10 +1229,13 @@ public class DsProxyTransactionTest {
     // Just used for logging purpose incase of server flow
     verify(appInterfaceMock, times(0))
         .handleResponse(any(Location.class), any(Optional.class), eq(4));
+
   }
 
   @Test
   public void testTransactionInterfacesServerCloseEvent() throws Exception {
+
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1248,10 +1307,13 @@ public class DsProxyTransactionTest {
     // In this case CANCEL is triggered from proxy/controller for server close, first call
     // onNewRequest
     verify(appInterfaceMock, times(2)).handleRequest(any(DsSipCancelMessage.class));
+
   }
 
   @Test
   public void testTransactionInterfacesServerAckEvent() throws Exception {
+
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1331,10 +1393,13 @@ public class DsProxyTransactionTest {
     // In this case CANCEL is triggered from proxy/controller for server close, first call
     // onNewRequest
     verify(appInterfaceMock, times(2)).handleRequest(any(DsSipAckMessage.class));
+
   }
 
   @Test
   public void testTransactionInterfacesServerTimeout() throws Exception {
+
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1404,13 +1469,14 @@ public class DsProxyTransactionTest {
     transactionInterfaces.timeOut(serverTransaction);
     // Logging purpose, no message is passed to upper layer, 1 is for onNewRequest
     verify(appInterfaceMock, times(1)).handleRequest(any(DsSipRequest.class));
+
   }
 
   @Test
   public void testProxyToStrayACKClientTransaction() throws Exception {
 
     reset(transactionFactory);
-
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.ACK));
@@ -1484,6 +1550,7 @@ public class DsProxyTransactionTest {
             any(DsSipRequest.class),
             any(DsSipClientTransportInfo.class),
             any(DsSipClientTransactionInterface.class));
+
   }
 
   // Test all exceptions
@@ -1491,7 +1558,7 @@ public class DsProxyTransactionTest {
   @Test()
   public void testClientInvalidParamException() throws Exception {
     reset(transactionFactory);
-
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1560,12 +1627,13 @@ public class DsProxyTransactionTest {
 
     // errorCode 10 for PROXY_ERROR
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(10));
+
   }
 
   @Test()
   public void testClientDestinationUnreachableException() throws Exception {
     reset(transactionFactory);
-
+    setDhruvaProp();
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -1634,6 +1702,7 @@ public class DsProxyTransactionTest {
 
     // ErroCode UNREACHABLE = 6
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(6));
+
   }
 
   public class RRViaHeaderValidationDataProvider {

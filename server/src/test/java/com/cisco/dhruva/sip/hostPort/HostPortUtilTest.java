@@ -1,12 +1,10 @@
 package com.cisco.dhruva.sip.hostPort;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.sip.DsUtil.ListenIf;
-import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationException;
 import com.cisco.dhruva.sip.proxy.DsListenInterface;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipURL;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
@@ -14,17 +12,12 @@ import com.cisco.dhruva.transport.Transport;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 public class HostPortUtilTest {
 
   DsNetwork dsNetwork, externalIpEnabledNetwork;
-  DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
-
-  DsSipURL privateNetworkInfo, publicNetworkInfo,
-          publicNetworkWithHostIPInfo, publicNetworkWithHostFqdnInfo, unrecognizedNetworkInfo;
+  DsSipURL privateNetworkInfo, publicNetworkInfo, publicNetworkWithHostIPInfo, publicNetworkWithHostFqdnInfo, unrecognizedNetworkInfo;
   String localIp = "127.0.0.1";
   String hostIp = "1.1.1.1";
   String unknownIp = "1.2.3.4";
@@ -34,13 +27,9 @@ public class HostPortUtilTest {
 
   @BeforeClass
   void init() throws Exception {
-    dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
     dsNetwork = DsNetwork.getNetwork("Default");
     externalIpEnabledNetwork = DsNetwork.getNetwork("External_IP_enabled");
-    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
 
-    // Add listen interfaces in DsControllerConfig, causes issues in getVia while sending out the
-    // packet
     try {
       privateNetworkInfo = new DsSipURL("Default@127.0.0.1:5060;transport=udp;lr");
       publicNetworkInfo = new DsSipURL("External_IP_enabled@127.0.0.1:5061;transport=udp;lr");
@@ -49,7 +38,16 @@ public class HostPortUtilTest {
       publicNetworkWithHostFqdnInfo =
           new DsSipURL("External_IP_enabled@dhruva.sjc.webex.com:5061;transport=udp;lr");
       unrecognizedNetworkInfo = new DsSipURL("Unrecognized@1.2.3.4:5678;transport=udp;lr");
+    } catch (Exception ignored) {
 
+    }
+  }
+
+  @BeforeMethod
+  private void addListenInterfaces() {
+
+    // Add listen interfaces in DsControllerConfig
+    try {
       DsControllerConfig.addListenInterface(
           dsNetwork,
           InetAddress.getByName(localIp),
@@ -66,9 +64,14 @@ public class HostPortUtilTest {
           InetAddress.getByName(localIp),
           true);
 
-    } catch (DsInconsistentConfigurationException ignored) {
+    } catch (Exception ignored) {
       // In this case it was already set, there is no means to remove the key from map
     }
+  }
+
+  @AfterMethod
+  private void resetDhruvaProp() {
+    DsNetwork.setDhruvaConfigProperties(null);
   }
 
   public class HostPortTestDataProvider {
@@ -120,13 +123,18 @@ public class HostPortUtilTest {
     };
   }
 
-  @Test(dataProvider = "getUriAndExpectedIpForLocalToHost", enabled = false)
+  @Test(dataProvider = "getUriAndExpectedIpForLocalToHost")
   public void testLocalIpToHostInfoConversion(HostPortTestDataProvider input) {
 
-    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
-    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(input.hostInfoFromProps);
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
+
+    doReturn(input.isHostPortEnabled).when(dhruvaSIPConfigProperties).isHostPortEnabled();
+    doReturn(input.hostInfoFromProps).when(dhruvaSIPConfigProperties).getHostInfo();
+
     Assert.assertEquals(
         HostPortUtil.convertLocalIpToHostInfo(input.uri).toString(), input.expectedIp);
+
   }
 
   @DataProvider
@@ -143,12 +151,17 @@ public class HostPortUtilTest {
     };
   }
 
-  @Test(dataProvider = "getUriAndExpectedIpForHostToLocal", enabled = false)
+  @Test(dataProvider = "getUriAndExpectedIpForHostToLocal")
   public void testHostInfoToLocalIpConversion(HostPortTestDataProvider input) {
 
-    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
+
+    doReturn(input.isHostPortEnabled).when(dhruvaSIPConfigProperties).isHostPortEnabled();
+
     Assert.assertEquals(
         HostPortUtil.reverseHostInfoToLocalIp(input.uri).toString(), input.expectedIp);
+
   }
 
   @DataProvider
@@ -178,13 +191,17 @@ public class HostPortUtilTest {
     };
   }
 
-  @Test(dataProvider = "getListenInterfaceAndExpectedIpForLocalToHost", enabled = false)
+  @Test(dataProvider = "getListenInterfaceAndExpectedIpForLocalToHost")
   public void testLocalIpToHostInfoUsingListenInterface(HostPortTestDataProvider input) {
 
-    when(dhruvaSIPConfigProperties.isHostPortEnabled()).thenReturn(input.isHostPortEnabled);
-    when(dhruvaSIPConfigProperties.getHostInfo()).thenReturn(input.hostInfoFromProps);
+    DhruvaSIPConfigProperties dhruvaSIPConfigProperties = mock(DhruvaSIPConfigProperties.class);
+    DsNetwork.setDhruvaConfigProperties(dhruvaSIPConfigProperties);
+
+    doReturn(input.isHostPortEnabled).when(dhruvaSIPConfigProperties).isHostPortEnabled();
+    doReturn(input.hostInfoFromProps).when(dhruvaSIPConfigProperties).getHostInfo();
+
     Assert.assertEquals(
         HostPortUtil.convertLocalIpToHostInfo(input.listenIf).toString(), input.expectedIp);
-  }
 
+  }
 }

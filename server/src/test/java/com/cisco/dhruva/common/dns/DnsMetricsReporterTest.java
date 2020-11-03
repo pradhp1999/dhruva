@@ -40,7 +40,7 @@ public class DnsMetricsReporterTest {
         DnsResolvers.newBuilder().lookupFactory(lookupFactory).metered(dnsMetricsReporter).build();
   }
 
-  @Test
+  @Test(enabled = false)
   public void testSrvQueryWithMetrics() throws Exception {
     String query = "thewebex101.";
     doNothing().when(metricService).sendDNSMetric(anyString(), anyString(), anyLong());
