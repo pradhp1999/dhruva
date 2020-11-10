@@ -131,9 +131,9 @@ wbx3:
     - docker/dhruva.Dockerfile
     - docker/dhruva-tests.Dockerfile
   artifacts:
-    dockerhub.cisco.com/webexkubed-docker/wbx3-dhruva:
-      dockerRegistry: https://dockerhub.cisco.com
+    containers.cisco.com/edge_group/dhruva:
+      dockerRegistry: https://containers.cisco.com
       dockerFile: docker/dhruva.Dockerfile
-    dockerhub.cisco.com/webexkubed-docker/wbx3-dhruva-integration-tests:
-      dockerRegistry: https://dockerhub.cisco.com
+    containers.cisco.com/edge_group/dhruva-integration-tests:
+      dockerRegistry: https://containers.cisco.com
       dockerFile: docker/dhruva-tests.Dockerfile

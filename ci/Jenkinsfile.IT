@@ -1,0 +1,134 @@
+#!groovy
+/*
+This Jenkinsfile builds the dhruva war, and then invokes a wbx3 script to
+create the docker image as well.
+The result is uploaded to containers.cisco.com/edge_group/dhruva
+
+We use some functions from WebexSquared/pipeline, e.g. notifyPipelineRoom
+And others from WebexPlatform/pipeline, e.g. buildAndPushWbx3DockerImages
+*/
+@Library(['kubedPipeline', 'sparkPipeline']) _
+
+node() {
+    lock("dhruva") {
+        try {
+
+            // ***** CREDENTIALS USED IN IT-JENKINS *****
+
+            // Bot to talk to Teams rooms
+            env.PIPELINE_SPARK_BOT_API_TOKEN = "BeechNotifyBot"
+            // github token to talk to sqbu-github.cisco.com and notify build status
+            env.WBXKUBED_GIT_CREDENTIALS = 'arunsrin-sqbu-github-authtoken'
+            // bot token to talk to containers.cisco.com
+            REGISTRY_CREDENTIALS = 'dhruva_ccc_bot'
+
+            // ***** END CREDENTIALS *****
+
+            // 'Dhruva Build & Deploy Notifications - IT Jenkins' room
+            notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vMDc1NDVhZDAtMWYyMi0xMWViLWIxZjgtMzdmOGEzNjNhOGQ5'
+
+            stage('Checkout') {
+                cleanWs notFailBuild: true
+                checkout scm
+            }
+
+            stage('initializeEnv') {
+                env.GIT_BRANCH = env.BRANCH_NAME ?: 'master'
+                env.BUILD_NAME = env.GIT_BRANCH == 'master' ? env.BUILD_ID : env.GIT_BRANCH + "-" + env.BUILD_NUMBER
+                env.GIT_COMMIT_FULL = sh(returnStdout: true, script: 'git rev-parse HEAD || echo na').trim()
+                env.GIT_COMMIT_AUTHOR = sh(returnStdout: true, script: "git show -s --format='format:%ae' ${env.GIT_COMMIT_FULL} || echo na").trim()
+                // TODO will be nice to have a BUILD_ID+TIMESTAMP+GIT_COMMIT_ID here instead of just BUILD_ID
+                setBuildName(env.BUILD_NAME)
+                if (env.CHANGE_AUTHOR && !env.CHANGE_AUTHOR_EMAIL) {
+                    env.CHANGE_AUTHOR_EMAIL = env.CHANGE_AUTHOR + '@cisco.com'
+                }
+
+                if (env.CHANGE_ID && !env.CHANGE_AUTHOR_EMAIL) {
+                    env.CHANGE_AUTHOR_EMAIL = env.GIT_COMMIT_AUTHOR
+                }
+                if (env.CHANGE_ID == null) { // CHANGE_ID will be null if there is no Pull Request
+                    // Announce in build notifications room
+                    notifyPipelineRoom("wbx3-dhruva: Build started.", roomId: notifySparkRoomId)
+                } else {
+                    // 1:1 notification to PR owner
+                    notifyPipelineRoom("wbx3-dhruva: Build started.", toPersonEmail: env.CHANGE_AUTHOR_EMAIL)
+                }
+            }
+            stage('build') {
+
+                sh '''
+                 env
+                 ls -lrth
+                 docker run --rm -v `pwd`:/opt/code -w /opt/code -e JAVA_VERSION=8  containers.cisco.com/ayogalin/maven-builder:one sh -c "/setenv.sh; java -version; /usr/share/maven/bin/mvn -Dmaven.test.failure.ignore clean verify"
+                '''
+                step([$class: 'JacocoPublisher', changeBuildStatus: true, classPattern: 'server/target/classes,client/target/classes', execPattern: '**/target/**.exec', minimumInstructionCoverage: '1'])
+            }
+            stage('post-build') {
+                // Report SpotBugs static analysis warnings (also sets build result on failure)
+                findbugs pattern: '**/spotbugsXml.xml', failedTotalAll: '0'
+                failBuildIfUnsuccessfulBuildResult("ERROR: Failed SpotBugs static analysis")
+            }
+            stage('archive') {
+                archiveArtifacts artifacts: 'microservice.yml', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'docker/*', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'server/target/dhruva-server.war', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'integration/target/dhruva-integration-tests.jar', allowEmptyArchive: true
+            }
+
+            if (env.GIT_BRANCH == 'master') {
+                stage('build and publish wbx3 images') {
+                    try {
+                        sh 'ls -lrth'
+                        /* This is in WebexPlatform/pipeline. It reads dhruva's microservice.yml
+                        to determine where to build and push (in our case, containers.cisco.com/edge_group)
+                        */
+                        // TODO will be nice to have a BUILD_ID+TIMESTAMP+GIT_COMMIT_ID here instead of just BUILD_NUMBER
+                        buildAndPushWbx3DockerImages("microservice.yml", env.BUILD_NUMBER, REGISTRY_CREDENTIALS)
+                    } catch (Exception ex) {
+                        echo "ERROR: Could not trigger the build"
+                        throw ex
+                    }
+                }
+            }
+
+        }
+        catch (Exception ex) {
+            echo "ERROR: Could not trigger the image publisher router job"
+            throw ex
+        }
+        finally {
+            def message
+            def details = ''
+            if (currentBuild.result == 'FAILURE') {
+                message = 'wbx3-dhruva: Build failed.'
+            } else if (currentBuild.result == 'SUCCESS') {
+                message = 'wbx3-dhruva: Build succeeded.'
+            } else if (currentBuild.result == 'UNSTABLE') {
+                def testFailures = script.junit2html(args.junitPattern).trim()
+                if (testFailures) {
+                    details += "<p><small><i><a href=\"${env.BUILD_URL}testReport\">Test Failures</a>:</i>${script.junit2html(args.junitPattern)}</small>"
+                }
+                message = "wbx3-dhruva: Build is unstable."
+            } else {
+                message = "wbx3-dhruva: Build finished."
+            }
+            if (env.CHANGE_ID == null) {
+                notifyPipelineRoom("$message $details", roomId: notifySparkRoomId)
+            } else {
+                notifyPipelineRoom("$message $details", toPersonEmail: env.CHANGE_AUTHOR_EMAIL)
+            }
+        } // end finally
+    }
+}
+
+def failBuildIfUnsuccessfulBuildResult(message) {
+    // Check for UNSTABLE/FAILURE build result or any result other than "SUCCESS" (or null)
+    if (currentBuild.result != null && currentBuild.result != 'SUCCESS') {
+        failBuild(message)
+    }
+}
+
+def failBuild(message) {
+    echo message
+    throw new SparkException(message)
+}
