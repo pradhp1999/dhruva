@@ -32,7 +32,7 @@ It is deployed in Meetings Platform (meet-PaaS).
 - In VM options field enter: `-Xmx2048m -Xms1024m`, and `-DexternalUrlProtocol=http`, and `-DjedisPoolHealthCheckMonitorEnabled=false`.
 - Now go to the deployment tab
 - Use + button to add the artifact `dhruva-server-exploded.war` (pick one with 'exploded' word in name, it will speedup your tomcat run)
-- Now run the application. You should be able to curl `http://localhost:8080/dhruva_server_war_exploded/api/v1/greetings/testuser`
+- Now run the application. You should be able to curl `http://localhost:8080/dhruva_server_war_exploded/api/v1/ping`
 
 ### Configuring Dhruva for Calls with TLS
 - Provide listen points for Dhruva. Since we are running Dhruva in Tomcat in IntelliJ (more details in 'Running in Tomcat in Intellij IDE'), 
@@ -52,7 +52,7 @@ pass the required config as environment variables.
                         }] `
 - To make UDP/TCP calls, it is same as CP. 
 - To make TLS calls
-    - 2 more env variables needs to be passed. Give valid data for both.
+    - Following environment variables have to bet set in Intellij, with certificate and private key file contents as its value respectively.
     1. `sipCertificate`
     2. `sipPrivateKey`
     
@@ -60,10 +60,16 @@ pass the required config as environment variables.
     - Configure sipp with TLSv1.2 (as Dhruva supports that). _Note:_ If sipp is already configured with v1.0,
      and tries to connect with it, Dhruva throws an exception.  
     - You can use sipp from either CentOs/Mac. 
-    - Following are the steps to configure sipp(for TLSv1.2) in Centos. This makes use of v1.2 enabled and patched sipp code in ucre github repo
-        1. `sudo yum install automake ncurses-devel -y`
+    - Following are the steps to configure sipp(for TLSv1.2). This makes use of v1.2 enabled and patched sipp code in ucre github repo.
+        1. ##### CentOS
+            `sudo yum install automake ncurses-devel -y`
+           ##### MacOS
+            `sudo brew install automake ncurses -y`
         2. `git clone git@sqbu-github.cisco.com:ucre/sipp_tls.git` (contains TLSv1.2 enabled sipp code)
-        3. `cd sipp_tls/sipp-3.5.2;` , `autoreconf -ivf` , `./configure --with-openssl` , `make`
+        3. `cd sipp_tls/sipp-3.5.2` <br/> 
+           `autoreconf -ivf` <br/> 
+           `./configure --with-openssl` _Note_: For MacOS this step could fail if compiler is unable to find libraries in standard locations, pass LDFLAGS and CPPFLAGS with correct paths for this step to pass. <br/> 
+           `make`
      
     **Reference:** [Sipp for TLS](http://sipp.sourceforge.net/doc3.3/reference.html) - look for '_Installing Sipp_' section
     for manually enabling TLS1.2
