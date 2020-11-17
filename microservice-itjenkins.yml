@@ -2,11 +2,9 @@
 # dhruva microservice file
 # -----------------------------
 # This file contains metadata about the dhruva service.
-# It's important that the data be populated correctly, and as fully as possible
-# because it is used for the generation of the Service Owners Matrix
-#
-# Documentation about a microservice.yaml file can be found in the pipeline repository
-# https://sqbu-github.cisco.com/WebExSquared/pipeline/blob/master/docs/microservice.rst
+# This specific file is used by IT jenkins to build docker images and push to 
+# containers.cisco.com. Down the line this will become the default and the
+# other microservice.yml should be merged with this.
 #
 ###########################################################################################
 
@@ -131,9 +129,9 @@ wbx3:
     - docker/dhruva.Dockerfile
     - docker/dhruva-tests.Dockerfile
   artifacts:
-    dockerhub.cisco.com/webexkubed-docker/wbx3-dhruva:
-      dockerRegistry: https://dockerhub.cisco.com
+    containers.cisco.com/edge_group/dhruva:
+      dockerRegistry: https://containers.cisco.com
       dockerFile: docker/dhruva.Dockerfile
-    dockerhub.cisco.com/webexkubed-docker/wbx3-dhruva-integration-tests:
-      dockerRegistry: https://dockerhub.cisco.com
+    containers.cisco.com/edge_group/dhruva-integration-tests:
+      dockerRegistry: https://containers.cisco.com
       dockerFile: docker/dhruva-tests.Dockerfile

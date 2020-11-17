@@ -69,7 +69,7 @@ node() {
                 failBuildIfUnsuccessfulBuildResult("ERROR: Failed SpotBugs static analysis")
             }
             stage('archive') {
-                archiveArtifacts artifacts: 'microservice.yml', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'microservice-itjenkins.yml', allowEmptyArchive: true
                 archiveArtifacts artifacts: 'docker/*', allowEmptyArchive: true
                 archiveArtifacts artifacts: 'server/target/dhruva-server.war', allowEmptyArchive: true
                 archiveArtifacts artifacts: 'integration/target/dhruva-integration-tests.jar', allowEmptyArchive: true
@@ -83,7 +83,11 @@ node() {
                         to determine where to build and push (in our case, containers.cisco.com/edge_group)
                         */
                         // TODO will be nice to have a BUILD_ID+TIMESTAMP+GIT_COMMIT_ID here instead of just BUILD_NUMBER
-                        buildAndPushWbx3DockerImages("microservice.yml", env.BUILD_NUMBER, REGISTRY_CREDENTIALS)
+                        // Since the existing pipeline currently uses
+                        // dockerhub.cisco.com but the new build pipeline uses containers.cisco.com, we
+                        // pass a file called microservice-itjenkins.yml in this case (which lets us handle
+                        // both requirements for now).
+                        buildAndPushWbx3DockerImages("microservice-itjenkins.yml", env.BUILD_NUMBER, REGISTRY_CREDENTIALS)
                     } catch (Exception ex) {
                         echo "ERROR: Could not trigger the build"
                         throw ex
