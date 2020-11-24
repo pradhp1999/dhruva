@@ -100,7 +100,7 @@ public class DsSipClientTransactionTest {
     sipTransactionManager = DsSipTransactionManager.getTransactionManager();
 
     DsSipTransactionManager.setProxyServerMode(true);
-
+    DsProxyController.setIsCreateDnsServerGroup(false);
     try {
       DsControllerConfig.addListenInterface(
           dsNetwork,
@@ -164,7 +164,7 @@ public class DsSipClientTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -241,7 +241,7 @@ public class DsSipClientTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);

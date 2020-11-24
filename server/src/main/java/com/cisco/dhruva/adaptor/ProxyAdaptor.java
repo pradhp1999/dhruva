@@ -35,12 +35,6 @@ public class ProxyAdaptor extends AbstractProxyAdaptor<AppSession> implements Ap
 
   protected AppInterface appSession;
 
-  /*
-  public ProxyAdaptor(DsProxyController controller) {
-      super(controller);
-  }
-  */
-
   public ProxyAdaptor(DsProxyController controller, AppInterface appSession) {
     super();
     requireNonNull(controller, "controller cannot be null");

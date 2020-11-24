@@ -74,6 +74,7 @@ public class SIPService {
     DsSipProxyManager proxyManager =
         new DsSipProxyManager(sipTransportLayer, controllerFactory, transactionFactory, resolver);
     proxyManager.setRouteFixInterface(controllerFactory);
+    DsControllerConfig.getCurrent().setLocatorService(resolver);
   }
 
   private void initTransportLayer(List<SIPListenPoint> sipListenPoints) throws Exception {
@@ -147,6 +148,7 @@ public class SIPService {
         "Releasing Resources as part of App shutdown, Shutting down executors and Transport layer");
     executorService.shutdown();
     dhruvaTransportLayer.shutdown();
+
     logger.info("Executor service and Transport layer shutdown complete as part of App shutdown");
   }
 

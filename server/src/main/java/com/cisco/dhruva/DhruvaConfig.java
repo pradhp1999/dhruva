@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 
 @Configuration
 @ConditionalOnWebApplication
@@ -21,7 +22,11 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
 
   @Autowired DhruvaSIPConfigProperties dhruvaSIPConfigProperties;
 
+  @Autowired private Environment env;
+
   private static final long DEFAULT_CACHE_TIMEOUT = 10;
+
+  public static final String MACHINE_ACCOUNT_CREDENTIAL = "MachineAccountCredential";
 
   @Override
   public String getServiceName() {
@@ -81,7 +86,70 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
         .cacheSize(dhruvaSIPConfigProperties.getDhruvaDnsCacheMaxSize())
         .dnsLookupTimeoutMillis(dhruvaSIPConfigProperties.dnsCacheRetentionTimeMillis())
         .retentionDurationMillis(dhruvaSIPConfigProperties.dnsCacheRetentionTimeMillis())
-        .metered(new DnsMetricsReporter())
+        .metered(getApplicationContext().getBean(DnsMetricsReporter.class))
         .build();
+  }
+
+  //  @Bean
+  //  public MeetingRegistryClientFactory meetingRegistryClientFactory() {
+  //    return MeetingRegistryClientFactory.builder(configProperties())
+  //        .authorizationProvider(meetingRegistryAuthorizationProvider())
+  //        .baseUrl(configProperties().getMeetingRegistryServicePublicUrl())
+  //        .timeoutPolicy(timeoutPolicy())
+  //        .build();
+  //  }
+  //
+  //  @Bean
+  //  public AuthorizationProvider meetingRegistryAuthorizationProvider() {
+  //    return createDhruvaClientAuthorizationProvider(MeetingRegistryClient.OAUTH_SCOPE_READ);
+  //  }
+
+  //  private AuthorizationProvider createDhruvaClientAuthorizationProvider(String... scopes) {
+  //    AuthorizationProvider authProvider =
+  //        BearerAuthorizationProvider.builder()
+  //            .commonIdentityClientFactory(commonIdentityClientFactory())
+  //            .orgId(OrgId.fromString(getDhruvaOrgId()))
+  //            .userId(getDhruvaMachineAccountUser())
+  //            .password(getDhruvaMachineAccountPassword())
+  //            .scope(Joiner.on(" ").join(scopes))
+  //            .clientId(getDhruvaClientId())
+  //            .clientSecret(getDhruvaClientSecret())
+  //            .build();
+  //
+  //    try {
+  //      String auth = authProvider.getAuthorization();
+  //      if (auth != null && auth.length() < 512) {
+  //        log.warn(
+  //            "Check that machine account is using a self-contained token, length = {}, scopes =
+  // {}",
+  //            auth.length(),
+  //            scopes);
+  //      }
+  //    } catch (Exception ignore) {
+  //      log.info("Unable to get machine account authorization, scopes = {}", scopes);
+  //    }
+  //
+  //    return authProvider;
+  //  }
+
+  private String getDhruvaClientSecret() {
+    return "506bdb44b82cca6a9115c3aad3a83a477c3558e352a347a2d91153afb7e302e6";
+  }
+
+  private String getDhruvaClientId() {
+    return "C9e6d83d9a4fde244fd84fe30d1df661c0b58e10341826234aee7a8a57f813395";
+  }
+
+  private String getDhruvaMachineAccountPassword() {
+    return env.getProperty("MachineAccountCredential");
+    // return "DFHO.rcsv.35.CTDU.dijm.36.CDYZ.tdej.0479";
+  }
+
+  private String getDhruvaMachineAccountUser() {
+    return "CP-PROD-ACCOUNT-5";
+  }
+
+  private String getDhruvaOrgId() {
+    return "6078fba4-49d9-4291-9f7b-80116aab6974";
   }
 }

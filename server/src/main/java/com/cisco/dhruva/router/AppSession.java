@@ -1,5 +1,6 @@
 package com.cisco.dhruva.router;
 
+import com.cisco.dhruva.Exception.DhruvaException;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -23,12 +24,12 @@ public class AppSession extends AbstractAppSession {
   }
 
   @Override
-  public void handleRequest(IDhruvaMessage request) {
+  public void handleRequest(IDhruvaMessage request) throws DhruvaException {
     super.handleRequest(request);
   }
 
   @Override
-  public void handleResponse(IDhruvaMessage response) {
+  public void handleResponse(IDhruvaMessage response) throws DhruvaException {
     super.handleResponse(response);
   }
 }

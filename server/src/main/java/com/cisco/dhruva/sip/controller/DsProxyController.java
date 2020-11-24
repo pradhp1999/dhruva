@@ -18,7 +18,6 @@ import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.proxy.Errors.DsProxyErrorAggregator;
 import com.cisco.dhruva.sip.servergroups.AbstractServerGroup;
 import com.cisco.dhruva.sip.servergroups.DnsServerGroupUtil;
-import com.cisco.dhruva.sip.servergroups.ServerGroupInterface;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
@@ -28,7 +27,6 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.util.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,8 +62,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
   // Forking types
   public static final byte SEARCH_PARALLEL = 0;
 
-  // TODO DNS
-  @Autowired SipServerLocatorService resolver;
+  SipServerLocatorService resolver;
 
   static final boolean mEmulate2543 =
       DsConfigManager.getProperty(
@@ -180,7 +177,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         0,
         null,
         DsControllerConfig.NHF_ACTION_FAILOVER,
-        new DsProxyFactory());
+        new DsProxyFactory(),
+        null);
   }
 
   /* Used to initialize the controller.  This should be called before call backs
@@ -205,7 +203,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       int defaultRetryAfterMillis,
       LBRepositoryHolder holder,
       byte nextHopFailoverAction,
-      DsProxyFactoryInterface proxyFactory) {
+      DsProxyFactoryInterface proxyFactory,
+      SipServerLocatorService resolver) {
     Log.debug("DsProxyController: Entering init()");
 
     Log.debug("Timeout value for init is: " + timeout);
@@ -220,6 +219,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     this.proxyFactoryInterface = proxyFactory;
     ourProxy = null;
     timeToTry = timeout;
+    this.resolver = resolver;
   }
 
   public DsProxyErrorAggregator getProxyErrorAggregator() {
@@ -1571,11 +1571,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       // Use the load balancer factory to create the load balancer.  It will automatically
       // return the correct type of load balancer for the specified server group.
       try {
-        lb =
-            LBFactory.createLoadBalancer(
-                location.getServerGroupName(),
-                (com.cisco.dhruva.loadbalancer.ServerGroupInterface) serverGroup,
-                ourRequest);
+        lb = LBFactory.createLoadBalancer(location.getServerGroupName(), serverGroup, ourRequest);
 
       } catch (LBException e) {
         Log.error("Load Balance exception. Sending a 500", e);
