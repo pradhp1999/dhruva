@@ -85,7 +85,7 @@ public class DsAppController extends DsProxyController implements DsControllerIn
       }
     } catch (Throwable e) {
       // Error Logging
-      Log.error("onNewRequest() - Execution error while invoking adaptor layer " + e.getMessage());
+      Log.error("onNewRequest() - Execution error while invoking adaptor layer ", e);
       // Set the request var in the proxy controller so it can send the response
       ourRequest = request;
       // Try to send a 500

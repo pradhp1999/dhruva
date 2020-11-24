@@ -19,6 +19,7 @@ import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.loadbalancer.LBRepositoryHolder;
 import com.cisco.dhruva.router.AppInterface;
+import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
@@ -51,7 +52,8 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
       DsSipRequest request,
       ProxyAdaptorFactoryInterface pf,
       AppInterface app,
-      DsProxyFactoryInterface proxyFactory) {
+      DsProxyFactoryInterface proxyFactory,
+      SipServerLocatorService resolver) {
 
     Log.debug("Entering getController in DsControllerFactory {}");
 
@@ -75,7 +77,8 @@ public class DsREControllerFactory implements DsControllerFactoryInterface, DsSi
         ourConfig.getDefaultRetryAfterMilliSeconds(),
         sgConfig,
         ourConfig.getNextHopFailureAction(),
-        proxyFactory);
+        proxyFactory,
+        resolver);
 
     if (ourConfig.isStateful()
         && (request.getMethodID() != DsSipMessage.ACK)

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.loadbalancer.ServerGroupElementInterface;
+import com.cisco.dhruva.loadbalancer.ServerGroupInterface;
 import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.dto.Hop;
 import com.cisco.dhruva.sip.enums.DNSRecordSource;

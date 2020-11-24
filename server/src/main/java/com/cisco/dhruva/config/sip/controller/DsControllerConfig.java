@@ -109,7 +109,7 @@ public final class DsControllerConfig
 
   protected int defaultRetryAfterMilliSeconds = 0;
 
-  @Autowired private SipServerLocatorService sipLocator;
+  protected SipServerLocatorService sipLocator;
 
   /** default constructor is protected. It's only used from clone() method. */
   static {
@@ -119,6 +119,7 @@ public final class DsControllerConfig
   private Transport defaultProtocol = Transport.UDP;
 
   /** Our Constructor */
+  @Autowired
   private DsControllerConfig() {}
 
   /**
@@ -169,6 +170,14 @@ public final class DsControllerConfig
 
   public static int getTimerInterval() {
     return INTERVAL;
+  }
+
+  public SipServerLocatorService getLocatorService() {
+    return sipLocator;
+  }
+
+  public void setLocatorService(SipServerLocatorService locatorService) {
+    this.sipLocator = locatorService;
   }
 
   public DsSipRecordRouteHeader getRecordRouteInterface(String direction, boolean clone) {

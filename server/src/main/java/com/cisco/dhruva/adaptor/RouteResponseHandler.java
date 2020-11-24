@@ -4,6 +4,7 @@ import static com.cisco.dhruva.common.CommonContext.PROXY_ROUTE_RESULT;
 import static java.util.Objects.requireNonNull;
 
 import com.cisco.dhruva.Exception.DhruvaException;
+import com.cisco.dhruva.app.Destination;
 import com.cisco.dhruva.common.context.ExecutionContext;
 import com.cisco.dhruva.common.messaging.MessageConvertor;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
@@ -20,7 +21,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 
-// MEETPASS, delete AppResponseInterface, not used
+// MEETPASS
 // Use the same MessageListener interface for any communication,let the context object store the
 // routes
 public class RouteResponseHandler implements MessageListener {
@@ -33,12 +34,20 @@ public class RouteResponseHandler implements MessageListener {
     this.proxyAdaptor = proxyAdaptor;
   }
 
-  public Location constructProxyLocation(DsSipRequest request, String routeResult)
+  public Location constructProxyLocation(DsSipRequest request, Destination routeResult)
       throws DhruvaException {
     try {
-      DsURI uri = DsURI.constructFrom(routeResult);
       DsNetwork network = request.getNetwork();
-      Location loc = new Location(uri);
+      Location loc = new Location(request.getURI());
+      switch (routeResult.destinationType) {
+        case DEFAULT_SIP:
+          loc.setProcessRoute(true);
+        case SRV:
+          loc.setURI(DsURI.constructFrom(routeResult.address));
+        default:
+          logger.warn("routeResult not set properly for request {}", request.getCallId());
+      }
+
       loc.setNetwork(network);
       return loc;
     } catch (DsSipParserException ex) {
@@ -64,7 +73,7 @@ public class RouteResponseHandler implements MessageListener {
     switch (messageType) {
       case SIPREQUEST:
         ExecutionContext ctx = message.getContext();
-        String routeResult = (String) ctx.get(PROXY_ROUTE_RESULT);
+        Destination routeResult = (Destination) ctx.get(PROXY_ROUTE_RESULT);
 
         DsSipRequest request =
             (DsSipRequest) MessageConvertor.convertDhruvaMessageToSipMessage(message);

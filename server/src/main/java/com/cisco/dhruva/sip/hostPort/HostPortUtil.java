@@ -19,17 +19,17 @@ public class HostPortUtil {
 
   private HostPortUtil() {}
 
-  private static Predicate<DsListenInterface> hostPortCheck = (DsListenInterface listenIf) ->
+  private static Predicate<DsListenInterface> hostPortCheck =
+      (DsListenInterface listenIf) ->
           DsNetwork.getDhruvaSIPConfigProperties().isHostPortEnabled()
-          && listenIf != null
-          && listenIf.shouldAttachExternalIp();
+              && listenIf != null
+              && listenIf.shouldAttachExternalIp();
 
   private static Optional<String> getHostInfo(DsListenInterface listenIf) {
     if (hostPortCheck.test(listenIf)) {
       return Optional.ofNullable(DsNetwork.getDhruvaSIPConfigProperties().getHostInfo());
     }
     return Optional.empty();
-
   }
 
   /**
@@ -52,14 +52,16 @@ public class HostPortUtil {
 
       Optional<String> hostInfo = getHostInfo(listenIf);
 
-      return hostInfo.map( h -> {
+      return hostInfo
+          .map(
+              h -> {
                 Log.debug("Host IP/FQDN {} obtained for {}", h, uri);
                 return new DsByteString(h);
-
-              }).orElseGet( () -> {
+              })
+          .orElseGet(
+              () -> {
                 Log.debug("No host IP/FQDN found. Use local IP from {}", uri);
                 return uri.getHost();
-
               });
 
     } catch (UnknownHostException e) {
@@ -79,20 +81,22 @@ public class HostPortUtil {
   public static DsByteString convertLocalIpToHostInfo(DsListenInterface listenIf) {
     Optional<String> hostInfo = getHostInfo(listenIf);
 
-    return hostInfo.map( h -> {
-      Log.debug("Host IP/FQDN {} obtained for {}", h, listenIf);
-      return new DsByteString(h);
-
-    }).orElseGet( () -> {
-      Log.debug("No host IP/FQDN found. Use local IP from {}", listenIf);
-      return listenIf.getAddress();
-
-    });
+    return hostInfo
+        .map(
+            h -> {
+              Log.debug("Host IP/FQDN {} obtained for {}", h, listenIf);
+              return new DsByteString(h);
+            })
+        .orElseGet(
+            () -> {
+              Log.debug("No host IP/FQDN found. Use local IP from {}", listenIf);
+              return listenIf.getAddress();
+            });
   }
 
   /**
-   * when 'hostPort' feature is enabled & if host IP/FQDN is attached to the URL -> get the corresponding network's local IP
-   * when disabled -> host itself contains local IP, hence use that
+   * when 'hostPort' feature is enabled & if host IP/FQDN is attached to the URL -> get the
+   * corresponding network's local IP when disabled -> host itself contains local IP, hence use that
    *
    * <p>Used for RR modification and Route header removal
    *
