@@ -30,8 +30,6 @@ public class MessageConvertor {
         .withPayload(MessageBody.fromPayloadData(message, type))
         .callType(CallType.SIP)
         .reqURI(reqURI)
-        .midCall(message.isMidCall())
-        .request(message.isRequest())
         .build();
   }
 

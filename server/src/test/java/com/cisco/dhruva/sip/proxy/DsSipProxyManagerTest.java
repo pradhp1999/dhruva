@@ -131,8 +131,7 @@ public class DsSipProxyManagerTest {
             any(DsSipRequest.class),
             any(ProxyAdaptorFactoryInterface.class),
             any(AppInterface.class),
-            any(DsProxyFactoryInterface.class),
-            any()))
+            any(DsProxyFactoryInterface.class)))
         .thenReturn(controller);
     ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
     dsSipProxyManager.request(serverTransaction, sipRequest);
@@ -160,8 +159,7 @@ public class DsSipProxyManagerTest {
             any(DsSipRequest.class),
             any(ProxyAdaptorFactoryInterface.class),
             any(AppInterface.class),
-            any(DsProxyFactoryInterface.class),
-            any()))
+            any(DsProxyFactoryInterface.class)))
         .thenReturn(controller);
     ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
     dsSipProxyManager.strayAck((DsSipAckMessage) sipRequest);

@@ -104,7 +104,7 @@ public class DsProxyControllerClientTest {
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     when(proxyFactory.createProxyTransaction(controller, ppIface, serverTransaction, sipRequest))
         .thenReturn(proxyInterface);
@@ -145,7 +145,6 @@ public class DsProxyControllerClientTest {
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
-    sipRequest.setURI(DsURI.constructFrom("INVITE sip:92839@webex.com SIP/2.0"));
     // Let the App handle
     sipRequest.removeHeaders(DsSipConstants.ROUTE);
 
@@ -158,8 +157,7 @@ public class DsProxyControllerClientTest {
 
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
 
-    AppInterface appTest = new AppSession();
-    AppInterface app = spy(appTest);
+    AppInterface app = new AppSession();
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     DsProxyInterface proxyInterface;
     DsProxyStatelessTransaction statelessTransaction = mock(DsProxyStatelessTransaction.class);
@@ -167,7 +165,7 @@ public class DsProxyControllerClientTest {
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     when(proxyFactory.createProxyTransaction(controller, ppIface, serverTransaction, sipRequest))
         .thenReturn(statelessTransaction);
@@ -177,12 +175,29 @@ public class DsProxyControllerClientTest {
 
     DsProxyController ctrlr = (DsAppController) controller;
     proxyInterface = ctrlr.onNewRequest(serverTransaction, sipRequest);
+    //    Assert.assertNotNull(proxy);
 
-    ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
+    //    Location loc = new Location(sipRequest.getURI());
+    //    // loc.setProcessRoute(true);
+    //    loc.setNetwork(dsNetwork);
+    //    ctrlr.usingRouteHeader = false;
+    //
+    //    // This is to set ourRequest global variable
+    //
+    //    ctrlr.setRequest(sipRequest);
+    //    ctrlr.setProxyTransaction(proxyInterface);
+    //
+    //    ctrlr.proxyTo(loc, sipRequest, null);
 
-    verify(app).handleRequest(argumentCaptor.capture());
+    ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
 
-    IDhruvaMessage requestReceived = argumentCaptor.getValue();
+    verify(proxyInterface)
+        .proxyTo(
+            argumentCaptor.capture(),
+            any(DsProxyCookieInterface.class),
+            any(DsProxyBranchParamsInterface.class));
+
+    DsSipRequest requestReceived = argumentCaptor.getValue();
     Assert.assertNotNull(requestReceived);
   }
 
@@ -210,7 +225,7 @@ public class DsProxyControllerClientTest {
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     when(proxyFactory.createProxyTransaction(controller, ppIface, serverTransaction, sipRequest))
         .thenReturn(proxyInterface);
@@ -265,7 +280,7 @@ public class DsProxyControllerClientTest {
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     doNothing().when(app).handleResponse(any(IDhruvaMessage.class));
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
@@ -314,7 +329,7 @@ public class DsProxyControllerClientTest {
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     doNothing().when(app).handleResponse(null);
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
@@ -372,7 +387,7 @@ public class DsProxyControllerClientTest {
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     doNothing().when(app).handleResponse(null);
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
@@ -429,7 +444,7 @@ public class DsProxyControllerClientTest {
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     doNothing().when(app).handleResponse(null);
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
@@ -479,7 +494,7 @@ public class DsProxyControllerClientTest {
     DsProxyParamsInterface ppIface = ourConfig;
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     doNothing().when(app).handleResponse(null);
     ArgumentCaptor<IDhruvaMessage> argumentCaptor = ArgumentCaptor.forClass(IDhruvaMessage.class);
@@ -529,7 +544,7 @@ public class DsProxyControllerClientTest {
     DsProxyTransaction proxyTransaction = mock(DsProxyTransaction.class);
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     doNothing().when(app).handleResponse(null);
 

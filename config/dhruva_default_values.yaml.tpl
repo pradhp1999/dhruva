@@ -3,7 +3,6 @@ Dhruva:
     sipListenPoints: '[{"name":"DhruvaUDPNetwork","transport":"UDP","port":5070,"recordRoute":true}]'
     MetricsNamespacePrefix: '{{ .MeetPaas.clusterName }}.dhruva'
     MetricsPort: '8125'
-    MachineAccountCredential: "DFHO.rcsv.35.CTDU.dijm.36.CDYZ.tdej.0479"
     aggrMetricsKafkaAddressPropertyName: lmabufKafkaBootstrapServers
     aggrMetricsKafkaTopicName: metrics_app_{{ .MeetPaas.internalSiteName }}_dhruva
     aggrMetricsViaKafkaEnabled: 'true'

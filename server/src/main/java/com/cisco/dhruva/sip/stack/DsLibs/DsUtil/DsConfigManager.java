@@ -565,9 +565,7 @@ public final class DsConfigManager implements DsSipConstants {
    */
   public static final String PROP_CREATE_DNS_SERVER_GROUP =
       "com.dynamicsoft.DsLibs.DsSipLlApi.createDnsServerGroup";
-
-  // MEETPASS
-  public static final boolean PROP_CREATE_DNS_SERVER_GROUP_DEFAULT = true;
+  public static final boolean PROP_CREATE_DNS_SERVER_GROUP_DEFAULT = false;
 
   public static final String PROP_CREATE_CA_EVENTS =
       "com.dynamicsoft.DsLibs.DsSipLlApi.createCAEvents";

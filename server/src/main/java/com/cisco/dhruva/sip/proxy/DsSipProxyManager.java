@@ -203,7 +203,7 @@ public class DsSipProxyManager
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, request, pf, app, proxyFactory, resolver);
+        cf.getController(serverTransaction, request, pf, app, proxyFactory);
 
     DsProxyStatelessTransaction proxy = controller.onNewRequest(serverTransaction, request);
 

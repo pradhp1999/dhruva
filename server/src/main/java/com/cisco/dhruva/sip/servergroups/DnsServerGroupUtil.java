@@ -1,7 +1,6 @@
 package com.cisco.dhruva.sip.servergroups;
 
 import com.cisco.dhruva.loadbalancer.ServerGroupElementInterface;
-import com.cisco.dhruva.loadbalancer.ServerGroupInterface;
 import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.dto.Hop;
 import com.cisco.dhruva.sip.enums.LocateSIPServerTransportType;

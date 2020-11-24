@@ -15,7 +15,6 @@ package com.cisco.dhruva.sip.proxy;
 
 import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
 import com.cisco.dhruva.router.AppInterface;
-import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipServerTransaction;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 
@@ -39,6 +38,5 @@ public interface DsControllerFactoryInterface {
       DsSipRequest request,
       ProxyAdaptorFactoryInterface pf,
       AppInterface app,
-      DsProxyFactoryInterface proxyFactory,
-      SipServerLocatorService locatorService);
+      DsProxyFactoryInterface proxyFactory);
 }

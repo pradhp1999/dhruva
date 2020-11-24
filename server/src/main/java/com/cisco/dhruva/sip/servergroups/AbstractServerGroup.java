@@ -17,7 +17,6 @@
 package com.cisco.dhruva.sip.servergroups;
 
 import com.cisco.dhruva.loadbalancer.LBFactory;
-import com.cisco.dhruva.loadbalancer.ServerGroupInterface;
 import com.cisco.dhruva.sip.DsUtil.EndPoint;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import java.util.HashMap;

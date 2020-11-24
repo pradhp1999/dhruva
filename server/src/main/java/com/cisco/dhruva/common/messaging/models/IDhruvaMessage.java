@@ -41,14 +41,6 @@ public interface IDhruvaMessage extends Cloneable {
 
   public void setReqURI(String reqURI);
 
-  public boolean isMidCall();
-
-  public void setMidCall(boolean isMidCall);
-
-  public boolean isRequest();
-
-  public void setRequest(boolean isRequest);
-
   /** Returns a copy of this message. */
   IDhruvaMessage clone();
 }

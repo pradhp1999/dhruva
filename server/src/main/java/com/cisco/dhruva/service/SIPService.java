@@ -74,7 +74,6 @@ public class SIPService {
     DsSipProxyManager proxyManager =
         new DsSipProxyManager(sipTransportLayer, controllerFactory, transactionFactory, resolver);
     proxyManager.setRouteFixInterface(controllerFactory);
-    DsControllerConfig.getCurrent().setLocatorService(resolver);
   }
 
   private void initTransportLayer(List<SIPListenPoint> sipListenPoints) throws Exception {

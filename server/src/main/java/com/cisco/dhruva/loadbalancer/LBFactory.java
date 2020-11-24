@@ -75,12 +75,14 @@ public abstract class LBFactory {
       throws LBException {
     if (Log.on && Log.isTraceEnabled()) Log.trace("Entering createLoadBalancer()");
 
-    if (serverGroup == null)
+    ServerGroupInterface sgi = (ServerGroupInterface) serverGroup;
+
+    if (sgi == null)
       throw new LBException(
           "Cannot create load balancer.  Server group " + serverGroupName + " not found.");
     RepositoryReceiverInterface lb = null;
     boolean useDefaultCustom = false;
-    int lbtype = serverGroup.getLBType();
+    int lbtype = sgi.getLBType();
     if (Log.on && Log.isInfoEnabled())
       Log.info("lbtype is " + lbtype + "(" + getLBTypeAsString(lbtype) + ")");
     if (lbtype == GLOBAL) {
@@ -114,7 +116,7 @@ public abstract class LBFactory {
       case CUSTOM:
         String lbStrType = null;
         if (useDefaultCustom) lbStrType = getDefaultLBStrType();
-        else lbStrType = serverGroup.getStrLBType();
+        else lbStrType = sgi.getStrLBType();
         if (lbStrType == null)
           throw new LBException("Cannot create custom load balancer.  Class name is null.");
         if (customClasses == null) customClasses = new HashMap();

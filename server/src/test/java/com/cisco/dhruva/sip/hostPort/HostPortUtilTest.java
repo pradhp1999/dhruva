@@ -17,11 +17,7 @@ import org.testng.annotations.*;
 public class HostPortUtilTest {
 
   DsNetwork dsNetwork, externalIpEnabledNetwork;
-  DsSipURL privateNetworkInfo,
-      publicNetworkInfo,
-      publicNetworkWithHostIPInfo,
-      publicNetworkWithHostFqdnInfo,
-      unrecognizedNetworkInfo;
+  DsSipURL privateNetworkInfo, publicNetworkInfo, publicNetworkWithHostIPInfo, publicNetworkWithHostFqdnInfo, unrecognizedNetworkInfo;
   String localIp = "127.0.0.1";
   String hostIp = "1.1.1.1";
   String unknownIp = "1.2.3.4";
@@ -105,21 +101,11 @@ public class HostPortUtilTest {
     }
 
     public String toString() {
-      return "SipUri: {"
-          + uri
-          + "}; "
-          + "Listen Interface: {"
-          + listenIf
-          + "}; "
-          + "IP expected after conversion : {"
-          + expectedIp
-          + "}; "
-          + "Host IP/FQDN: {"
-          + hostInfoFromProps
-          + "}; "
-          + "When HostPort feature: {"
-          + isHostPortEnabled
-          + "}";
+      return "SipUri: {" + uri + "}; "
+          + "Listen Interface: {" + listenIf + "}; "
+          + "IP expected after conversion : {" + expectedIp + "}; "
+          + "Host IP/FQDN: {" + hostInfoFromProps + "}; "
+          + "When HostPort feature: {" + isHostPortEnabled + "}";
     }
   }
 
@@ -148,6 +134,7 @@ public class HostPortUtilTest {
 
     Assert.assertEquals(
         HostPortUtil.convertLocalIpToHostInfo(input.uri).toString(), input.expectedIp);
+
   }
 
   @DataProvider
@@ -174,6 +161,7 @@ public class HostPortUtilTest {
 
     Assert.assertEquals(
         HostPortUtil.reverseHostInfoToLocalIp(input.uri).toString(), input.expectedIp);
+
   }
 
   @DataProvider
@@ -214,5 +202,6 @@ public class HostPortUtilTest {
 
     Assert.assertEquals(
         HostPortUtil.convertLocalIpToHostInfo(input.listenIf).toString(), input.expectedIp);
+
   }
 }

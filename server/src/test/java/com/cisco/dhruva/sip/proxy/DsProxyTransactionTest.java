@@ -148,7 +148,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -215,6 +215,7 @@ public class DsProxyTransactionTest {
     transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
     // No increment in verify, same as previous
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   @DataProvider
@@ -243,11 +244,7 @@ public class DsProxyTransactionTest {
       },
       {
         new RRViaHeaderValidationDataProvider(
-            externalIpEnabledNetwork,
-            incomingMessageBindingInfo2,
-            null,
-            "dhruva.sjc.webex.com",
-            true)
+            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, "dhruva.sjc.webex.com", true)
       },
       {
         new RRViaHeaderValidationDataProvider(
@@ -255,11 +252,7 @@ public class DsProxyTransactionTest {
       },
       {
         new RRViaHeaderValidationDataProvider(
-            externalIpEnabledNetwork,
-            incomingMessageBindingInfo2,
-            null,
-            "dhruva.sjc.webex.com",
-            false)
+            externalIpEnabledNetwork, incomingMessageBindingInfo2, null, "dhruva.sjc.webex.com", false)
       }
     };
   }
@@ -306,7 +299,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -414,6 +407,7 @@ public class DsProxyTransactionTest {
     // No increment in verify, same as previous
 
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   @DataProvider
@@ -534,7 +528,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -633,6 +627,7 @@ public class DsProxyTransactionTest {
     transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
     // No increment in verify, same as previous
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   // TODO, FIXME respond is called on server side
@@ -658,7 +653,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -729,6 +724,7 @@ public class DsProxyTransactionTest {
     transactionInterfaces.finalResponse(mockSipClientTransaction, resp);
     // No increment in verify, same as previous
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   @Test
@@ -753,7 +749,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -810,6 +806,7 @@ public class DsProxyTransactionTest {
     transactionInterfaces.timeOut(mockSipClientTransaction);
 
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(408));
+
   }
 
   @Test
@@ -834,7 +831,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -892,6 +889,7 @@ public class DsProxyTransactionTest {
 
     transactionInterfaces.provisionalResponse(mockSipClientTransaction, resp);
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(180));
+
   }
 
   @Test
@@ -916,7 +914,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -994,6 +992,7 @@ public class DsProxyTransactionTest {
 
     // Check, why Controller sends response code as 1 for 3xx responses?
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(1));
+
   }
 
   @Test
@@ -1018,7 +1017,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -1071,6 +1070,7 @@ public class DsProxyTransactionTest {
 
     transactionInterfaces.icmpError(mockSipClientTransaction);
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(4));
+
   }
 
   @Test
@@ -1095,7 +1095,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -1150,6 +1150,7 @@ public class DsProxyTransactionTest {
 
     transactionInterfaces.close(mockSipClientTransaction);
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(500));
+
   }
 
   @Test
@@ -1174,7 +1175,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -1228,6 +1229,7 @@ public class DsProxyTransactionTest {
     // Just used for logging purpose incase of server flow
     verify(appInterfaceMock, times(0))
         .handleResponse(any(Location.class), any(Optional.class), eq(4));
+
   }
 
   @Test
@@ -1252,7 +1254,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
 
@@ -1305,6 +1307,7 @@ public class DsProxyTransactionTest {
     // In this case CANCEL is triggered from proxy/controller for server close, first call
     // onNewRequest
     verify(appInterfaceMock, times(2)).handleRequest(any(DsSipCancelMessage.class));
+
   }
 
   @Test
@@ -1329,7 +1332,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
 
@@ -1390,6 +1393,7 @@ public class DsProxyTransactionTest {
     // In this case CANCEL is triggered from proxy/controller for server close, first call
     // onNewRequest
     verify(appInterfaceMock, times(2)).handleRequest(any(DsSipAckMessage.class));
+
   }
 
   @Test
@@ -1414,7 +1418,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
 
@@ -1465,6 +1469,7 @@ public class DsProxyTransactionTest {
     transactionInterfaces.timeOut(serverTransaction);
     // Logging purpose, no message is passed to upper layer, 1 is for onNewRequest
     verify(appInterfaceMock, times(1)).handleRequest(any(DsSipRequest.class));
+
   }
 
   @Test
@@ -1491,7 +1496,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -1545,6 +1550,7 @@ public class DsProxyTransactionTest {
             any(DsSipRequest.class),
             any(DsSipClientTransportInfo.class),
             any(DsSipClientTransactionInterface.class));
+
   }
 
   // Test all exceptions
@@ -1571,7 +1577,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
 
@@ -1621,6 +1627,7 @@ public class DsProxyTransactionTest {
 
     // errorCode 10 for PROXY_ERROR
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(10));
+
   }
 
   @Test()
@@ -1645,7 +1652,7 @@ public class DsProxyTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     AppAdaptorInterface appInterfaceMock = mock(AppAdaptorInterface.class);
 
@@ -1695,6 +1702,7 @@ public class DsProxyTransactionTest {
 
     // ErroCode UNREACHABLE = 6
     verify(appInterfaceMock).handleResponse(any(Location.class), any(Optional.class), eq(6));
+
   }
 
   public class RRViaHeaderValidationDataProvider {
@@ -1718,21 +1726,11 @@ public class DsProxyTransactionTest {
     }
 
     public String toString() {
-      return "Network: {"
-          + network.toString()
-          + "}; "
-          + "BindingInfo: {"
-          + bindingInfo.toString()
-          + "}; "
-          + "CP RR expected in sip msg: {"
-          + expectedRR
-          + "}; "
-          + "Host IP/FQDN: {"
-          + hostIpOrFqdn
-          + "}; "
-          + "HostPort feature: {"
-          + isHostPortEnabled
-          + "}";
+      return "Network: {" + network.toString() + "}; "
+          + "BindingInfo: {" + bindingInfo.toString() + "}; "
+          + "CP RR expected in sip msg: {" + expectedRR + "}; "
+          + "Host IP/FQDN: {" + hostIpOrFqdn + "}; "
+          + "HostPort feature: {" + isHostPortEnabled + "}";
     }
   }
 }

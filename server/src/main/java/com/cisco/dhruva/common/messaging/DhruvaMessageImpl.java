@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
-
   protected final ExecutionContext context;
   protected MessageHeaders headers;
   private MessageBody messageBody;
@@ -20,8 +19,6 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
   private String reqURI;
 
   private boolean hasBody;
-  private boolean isMidCall;
-  private boolean isRequest;
 
   public DhruvaMessageImpl(ExecutionContext context, MessageHeaders headers, MessageBody payload) {
     this.context = context == null ? new ExecutionContext() : context;
@@ -110,26 +107,6 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
   @Override
   public void setReqURI(String reqURI) {
     this.reqURI = reqURI;
-  }
-
-  @Override
-  public boolean isMidCall() {
-    return isMidCall;
-  }
-
-  @Override
-  public void setMidCall(boolean isMidCall) {
-    this.isMidCall = isMidCall;
-  }
-
-  @Override
-  public boolean isRequest() {
-    return isRequest;
-  }
-
-  @Override
-  public void setRequest(boolean isRequest) {
-    this.isRequest = isRequest;
   }
 
   @Override

@@ -164,7 +164,7 @@ public class DsSipClientTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -241,7 +241,7 @@ public class DsSipClientTransactionTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);

@@ -113,7 +113,7 @@ public class DsProxyControllerServerTest {
     AppInterface app = new AppSession();
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     DsProxyStatelessTransaction proxy = controller.onNewRequest(serverTransaction, sipRequest);
 
@@ -146,7 +146,7 @@ public class DsProxyControllerServerTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
 
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     DsProxyStatelessTransaction proxy = controller.onNewRequest(serverTransaction, sipRequest);
 
@@ -181,7 +181,7 @@ public class DsProxyControllerServerTest {
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
         cf.getController(
-            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory, null);
+            serverTransaction, sipRequest, proxyAdaptorFactoryInterface, app, proxyFactory);
 
     when(proxyAdaptorFactoryInterface.getProxyAdaptor(((DsAppController) controller), app))
         .thenReturn(adaptorInterface);
@@ -227,7 +227,7 @@ public class DsProxyControllerServerTest {
     AppInterface app = new AppSession();
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
     DsAppController c = (DsAppController) controller;
     AppAdaptorInterface adaptor = mock(AppAdaptorInterface.class);
     c.setProxyAdaptor(adaptor);
@@ -286,7 +286,7 @@ public class DsProxyControllerServerTest {
     AppInterface app = new AppSession();
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
     DsAppController c = (DsAppController) controller;
     AppAdaptorInterface adaptor = mock(AppAdaptorInterface.class);
     c.setProxyAdaptor(adaptor);
@@ -334,7 +334,7 @@ public class DsProxyControllerServerTest {
     AppInterface app = new AppSession();
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
     DsAppController c = (DsAppController) controller;
     AppAdaptorInterface adaptor = mock(AppAdaptorInterface.class);
     c.setProxyAdaptor(adaptor);
@@ -379,7 +379,7 @@ public class DsProxyControllerServerTest {
     AppInterface app = new AppSession();
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor =
         (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, new AppSession());
@@ -435,7 +435,7 @@ public class DsProxyControllerServerTest {
 
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
@@ -588,7 +588,7 @@ public class DsProxyControllerServerTest {
 
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
@@ -671,7 +671,7 @@ public class DsProxyControllerServerTest {
     doNothing().when(app).handleRequest(null);
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
@@ -733,7 +733,7 @@ public class DsProxyControllerServerTest {
     doNothing().when(app).handleRequest(null);
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
@@ -795,7 +795,7 @@ public class DsProxyControllerServerTest {
     doNothing().when(app).handleRequest(null);
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface controller =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     ProxyAdaptor adaptor = (ProxyAdaptor) f.getProxyAdaptor((DsProxyController) controller, app);
 
@@ -855,7 +855,7 @@ public class DsProxyControllerServerTest {
     AppInterface app = new AppSession();
     DsProxyFactoryInterface proxyFactory = new DsProxyFactory();
     DsControllerInterface ctrlr =
-        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory, null);
+        cf.getController(serverTransaction, sipRequest, pf, app, proxyFactory);
 
     DsControllerInterface controller = spy(ctrlr);
 
@@ -901,18 +901,10 @@ public class DsProxyControllerServerTest {
     }
 
     public String toString() {
-      return "Original RR: {"
-          + rrToAdd.toString()
-          + "}; "
-          + "RR after flip: {"
-          + rrExpected.toString()
-          + "}; "
-          + "Host IP/FQDN: {"
-          + hostIpOrFqdn
-          + "}; "
-          + "HostPort feature: {"
-          + isHostPortEnabled
-          + "}";
+      return "Original RR: {" + rrToAdd.toString() + "}; "
+          + "RR after flip: {" + rrExpected.toString() + "}; "
+          + "Host IP/FQDN: {" + hostIpOrFqdn + "}; "
+          + "HostPort feature: {" + isHostPortEnabled + "}";
     }
   }
 }

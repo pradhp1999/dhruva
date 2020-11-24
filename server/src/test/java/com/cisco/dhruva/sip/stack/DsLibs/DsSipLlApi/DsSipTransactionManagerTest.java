@@ -198,6 +198,7 @@ public class DsSipTransactionManagerTest {
         sipViaHeader.getReceived().toString(),
         incomingMessageBindingInfo.getLocalAddress().getHostAddress());
     Assert.assertEquals(sipViaHeader.getRPort(), incomingMessageBindingInfo.getRemotePort());
+
   }
 
   @Test(
@@ -255,6 +256,7 @@ public class DsSipTransactionManagerTest {
 
     // Check If Invite is forwarded to request interface , and Check Transaction manager functions
     verify(requestInterface, times(0)).request(argumentCaptor.capture());
+
   }
 
   @Test(
@@ -284,6 +286,7 @@ public class DsSipTransactionManagerTest {
     Assert.assertEquals(responseReceivedAtConnection.getMethodID(), 1);
     Assert.assertEquals(responseReceivedAtConnection.getStatusCode(), 200);
     Assert.assertEquals(responseReceivedAtConnection.getReasonPhrase().toString(), "OK");
+
   }
 
   @Test(
@@ -318,6 +321,7 @@ public class DsSipTransactionManagerTest {
     Assert.assertEquals(
         sipViaHeader.getReceived().toString(),
         incomingMessageBindingInfo.getLocalAddress().getHostAddress());
+
   }
 
   @DataProvider
@@ -477,6 +481,7 @@ public class DsSipTransactionManagerTest {
     sipTransactionManager.processMessageBytes(sipMessageBytes);
 
     verify(strayMessageInterface, times(0)).strayCancel(any());
+
   }
 
   @Test(
@@ -513,6 +518,7 @@ public class DsSipTransactionManagerTest {
         "Max-Forwards: 70\r\n");
     Assert.assertEquals(requestReceivedAtInterface.getBindingInfo(), incomingMessageBindingInfo);
     Assert.assertEquals(sipViaHeader.getRPort(), incomingMessageBindingInfo.getRemotePort());
+
   }
 
   @Test(
@@ -565,6 +571,7 @@ public class DsSipTransactionManagerTest {
 
     Assert.assertNull(SIPSessions.getActiveSession(callId));
     Assert.assertEquals(responseReceivedAtConnection.getBindingInfo(), incomingMessageBindingInfo);
+
   }
 
   @Test(
@@ -625,6 +632,7 @@ public class DsSipTransactionManagerTest {
 
     // verify that the Invite was dropped by checking if the request reached the requestInterface
     verify(requestInterface, atMost(1)).request(argumentCaptor.capture());
+
   }
 
   @Test(
@@ -674,6 +682,7 @@ public class DsSipTransactionManagerTest {
         "Method Type and CSeq Type Do Not Match\r\n");
     Assert.assertNull(SIPSessions.getActiveSession(callId));
     Assert.assertEquals(responseReceivedAtConnection.getBindingInfo(), incomingMessageBindingInfo);
+
   }
 
   @Test(
