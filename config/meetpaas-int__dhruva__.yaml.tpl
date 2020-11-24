@@ -16,6 +16,8 @@ Dhruva:
     logstash_pii_sampling_rate: '1.0'
     influxDBUrl: https://influxdb.int.{{ .MeetPaas.clusterManagerAddress }}:8086
     serviceLevel: integration
+    hostPortEnabled: 'true'
+    hostIpOrFqdn: "66.114.164.84"
   deploy:
     CATALINA_OPTS: '-Dcom.sun.management.jmxremote
                         -Dcom.sun.management.jmxremote.host=127.0.0.1
