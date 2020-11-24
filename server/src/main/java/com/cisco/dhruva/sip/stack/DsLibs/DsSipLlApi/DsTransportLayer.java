@@ -18,6 +18,7 @@ import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.transport.TransportLayer;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.LogContext;
 import com.cisco.dhruva.util.log.Logger;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -363,7 +364,7 @@ public abstract class DsTransportLayer
       connection = connectionFuture.get(network.getTcpConnectionTimeout(), TimeUnit.MILLISECONDS);
 
       logger.setMDC(
-          Connection.ConnectionSignature,
+          LogContext.CONNECTION_SIGNATURE,
           Connection.getConnectionSignature.apply(
               connection.getLocalSocketAddress(), connection.getRemoteSocketAddress()));
 

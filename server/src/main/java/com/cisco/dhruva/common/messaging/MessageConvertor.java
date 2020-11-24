@@ -10,6 +10,7 @@ import com.cisco.dhruva.common.messaging.models.MessageBodyType;
 import com.cisco.dhruva.common.messaging.models.RouteAppMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
+import com.cisco.dhruva.util.log.LogContext;
 
 public class MessageConvertor {
 
@@ -25,6 +26,7 @@ public class MessageConvertor {
       reqURI = request.getURI().toString();
     }
 
+    LogContext logContext = LogContext.newLogContext();
     return RouteAppMessage.newBuilder()
         .withContext(context)
         .withPayload(MessageBody.fromPayloadData(message, type))
@@ -32,6 +34,7 @@ public class MessageConvertor {
         .reqURI(reqURI)
         .midCall(message.isMidCall())
         .request(message.isRequest())
+        .loggingContext(logContext.getLogContext(message).get())
         .build();
   }
 

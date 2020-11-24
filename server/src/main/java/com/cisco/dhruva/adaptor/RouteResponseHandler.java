@@ -37,17 +37,19 @@ public class RouteResponseHandler implements MessageListener {
   public Location constructProxyLocation(DsSipRequest request, Destination routeResult)
       throws DhruvaException {
     try {
-      DsNetwork network = request.getNetwork();
+      DsNetwork network = DsNetwork.findNetwork(routeResult.network);
       Location loc = new Location(request.getURI());
       switch (routeResult.destinationType) {
         case DEFAULT_SIP:
           loc.setProcessRoute(true);
+          network = request.getNetwork();
+          break;
         case SRV:
-          loc.setURI(DsURI.constructFrom(routeResult.address));
+          loc.setURI(DsURI.constructFrom("sip:" + routeResult.address));
+          break;
         default:
           logger.warn("routeResult not set properly for request {}", request.getCallId());
       }
-
       loc.setNetwork(network);
       return loc;
     } catch (DsSipParserException ex) {

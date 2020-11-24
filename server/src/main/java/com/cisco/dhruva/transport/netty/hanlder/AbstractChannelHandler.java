@@ -19,6 +19,7 @@ import com.cisco.dhruva.transport.Connection.STATE;
 import com.cisco.dhruva.transport.MessageForwarder;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
+import com.cisco.dhruva.util.log.LogContext;
 import com.cisco.dhruva.util.log.Logger;
 import com.cisco.dhruva.util.log.event.Event;
 import com.cisco.dhruva.util.log.event.Event.DIRECTION;
@@ -270,7 +271,7 @@ public abstract class AbstractChannelHandler implements ChannelInboundHandler {
                 serverMode ? "IN" : "OUT"));
 
     connectionMap.put(
-        Connection.ConnectionSignature,
+        LogContext.CONNECTION_SIGNATURE,
         Connection.getConnectionSignature.apply(localAddress, remoteAddress));
 
     addConnectionSignatureToMDC(localAddress, remoteAddress);
@@ -280,7 +281,7 @@ public abstract class AbstractChannelHandler implements ChannelInboundHandler {
   private static void addConnectionSignatureToMDC(
       InetSocketAddress localAddress, InetSocketAddress remoteAddress) {
     logger.setMDC(
-        Connection.ConnectionSignature,
+        LogContext.CONNECTION_SIGNATURE,
         Connection.getConnectionSignature.apply(localAddress, remoteAddress));
   }
 

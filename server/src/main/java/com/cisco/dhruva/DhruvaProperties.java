@@ -19,44 +19,20 @@ import org.springframework.stereotype.Component;
 public class DhruvaProperties {
 
   private static final String DEFAULT_DHRUVA_USER_AGENT = "WX2_DHRUVA";
+
   private static BuildInfo buildInfo;
-  /** The default greeting prefix if no specific greeting is found. */
-  private String defaultGreetingPrefix = "Hello";
-
-  /** Message to be delivered with the greeting. */
-  private String message = "Beer is proof God loves us and wants us to be happy";
-
-  /** Something to optionally append to the greeting. */
-  private String trailer = "Message lovingly crafted by";
+  private final Environment env;
 
   @Autowired private DhruvaSIPConfigProperties sipConfigProperties;
 
+  @Autowired
   public DhruvaProperties(Environment env) {
     // super(env, createUserAgentString(DEFAULT_DHRUVA_USER_AGENT, env));
+    this.env = env;
   }
 
-  public String getDefaultGreetingPrefix() {
-    return this.defaultGreetingPrefix;
-  }
-
-  public String getMessage() {
-    return this.message;
-  }
-
-  public String getTrailer() {
-    return this.trailer;
-  }
-
-  public void setDefaultGreetingPrefix(String defaultGreetingPrefix) {
-    this.defaultGreetingPrefix = defaultGreetingPrefix;
-  }
-
-  public void setMessage(String message) {
-    this.message = message;
-  }
-
-  public void setTrailer(String trailer) {
-    this.trailer = trailer;
+  public String getL2SIPClusterAddress() {
+    return env.getProperty("l2sipClusterAddress", String.class, "l2sip.l2sip");
   }
 
   public static String createUserAgentString(String uaType, Environment env) {

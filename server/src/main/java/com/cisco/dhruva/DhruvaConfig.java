@@ -7,7 +7,13 @@ import com.cisco.dhruva.common.metric.InfluxClient;
 import com.cisco.dhruva.common.metric.MetricClient;
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.service.SipServerLocatorService;
+import com.cisco.wx2.client.AuthorizationProvider;
+import com.cisco.wx2.client.commonidentity.BearerAuthorizationProvider;
+import com.cisco.wx2.meetingregistry.client.MeetingRegistryClient;
+import com.cisco.wx2.meetingregistry.client.MeetingRegistryClientFactory;
+import com.cisco.wx2.util.OrgId;
 import com.ciscospark.server.Wx2ConfigAdapter;
+import com.google.common.base.Joiner;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -90,47 +96,44 @@ public class DhruvaConfig extends Wx2ConfigAdapter {
         .build();
   }
 
-  //  @Bean
-  //  public MeetingRegistryClientFactory meetingRegistryClientFactory() {
-  //    return MeetingRegistryClientFactory.builder(configProperties())
-  //        .authorizationProvider(meetingRegistryAuthorizationProvider())
-  //        .baseUrl(configProperties().getMeetingRegistryServicePublicUrl())
-  //        .timeoutPolicy(timeoutPolicy())
-  //        .build();
-  //  }
-  //
-  //  @Bean
-  //  public AuthorizationProvider meetingRegistryAuthorizationProvider() {
-  //    return createDhruvaClientAuthorizationProvider(MeetingRegistryClient.OAUTH_SCOPE_READ);
-  //  }
+  public MeetingRegistryClientFactory meetingRegistryClientFactory() {
+    return MeetingRegistryClientFactory.builder(configProperties())
+        .authorizationProvider(meetingRegistryAuthorizationProvider())
+        .baseUrl(configProperties().getMeetingRegistryServicePublicUrl())
+        .timeoutPolicy(timeoutPolicy())
+        .build();
+  }
 
-  //  private AuthorizationProvider createDhruvaClientAuthorizationProvider(String... scopes) {
-  //    AuthorizationProvider authProvider =
-  //        BearerAuthorizationProvider.builder()
-  //            .commonIdentityClientFactory(commonIdentityClientFactory())
-  //            .orgId(OrgId.fromString(getDhruvaOrgId()))
-  //            .userId(getDhruvaMachineAccountUser())
-  //            .password(getDhruvaMachineAccountPassword())
-  //            .scope(Joiner.on(" ").join(scopes))
-  //            .clientId(getDhruvaClientId())
-  //            .clientSecret(getDhruvaClientSecret())
-  //            .build();
-  //
-  //    try {
-  //      String auth = authProvider.getAuthorization();
-  //      if (auth != null && auth.length() < 512) {
-  //        log.warn(
-  //            "Check that machine account is using a self-contained token, length = {}, scopes =
-  // {}",
-  //            auth.length(),
-  //            scopes);
-  //      }
-  //    } catch (Exception ignore) {
-  //      log.info("Unable to get machine account authorization, scopes = {}", scopes);
-  //    }
-  //
-  //    return authProvider;
-  //  }
+  public AuthorizationProvider meetingRegistryAuthorizationProvider() {
+    return createDhruvaClientAuthorizationProvider(MeetingRegistryClient.OAUTH_SCOPE_READ);
+  }
+
+  private AuthorizationProvider createDhruvaClientAuthorizationProvider(String... scopes) {
+    AuthorizationProvider authProvider =
+        BearerAuthorizationProvider.builder()
+            .commonIdentityClientFactory(commonIdentityClientFactory())
+            .orgId(OrgId.fromString(getDhruvaOrgId()))
+            .userId(getDhruvaMachineAccountUser())
+            .password(getDhruvaMachineAccountPassword())
+            .scope(Joiner.on(" ").join(scopes))
+            .clientId(getDhruvaClientId())
+            .clientSecret(getDhruvaClientSecret())
+            .build();
+
+    try {
+      String auth = authProvider.getAuthorization();
+      if (auth != null && auth.length() < 512) {
+        log.warn(
+            "Check that machine account is using a self-contained token, length = {}, scopes = {}",
+            auth.length(),
+            scopes);
+      }
+    } catch (Exception ignore) {
+      log.info("Unable to get machine account authorization, scopes = {}", (Object[]) scopes);
+    }
+
+    return authProvider;
+  }
 
   private String getDhruvaClientSecret() {
     return "506bdb44b82cca6a9115c3aad3a83a477c3558e352a347a2d91153afb7e302e6";

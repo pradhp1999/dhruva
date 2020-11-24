@@ -5,6 +5,7 @@ import com.cisco.dhruva.common.context.ExecutionContext;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.common.messaging.models.MessageBody;
 import com.cisco.dhruva.common.messaging.models.MessageHeaders;
+import com.cisco.dhruva.util.log.LogContext;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +23,7 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
   private boolean hasBody;
   private boolean isMidCall;
   private boolean isRequest;
+  private LogContext loggingContext;
 
   public DhruvaMessageImpl(ExecutionContext context, MessageHeaders headers, MessageBody payload) {
     this.context = context == null ? new ExecutionContext() : context;
@@ -136,5 +138,15 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
   public IDhruvaMessage clone() {
     final DhruvaMessageImpl copy = new DhruvaMessageImpl(context.clone(), headers, messageBody);
     return copy;
+  }
+
+  @Override
+  public LogContext getLogContext() {
+    return this.loggingContext;
+  }
+
+  @Override
+  public void setLoggingContext(LogContext loggingContext) {
+    this.loggingContext = loggingContext;
   }
 }

@@ -3,6 +3,7 @@ package com.cisco.dhruva.common.messaging.models;
 import com.cisco.dhruva.common.CallType;
 import com.cisco.dhruva.common.context.ExecutionContext;
 import com.cisco.dhruva.common.messaging.DhruvaMessageImpl;
+import com.cisco.dhruva.util.log.LogContext;
 import org.springframework.util.Assert;
 
 public final class RouteAppMessage {
@@ -25,6 +26,7 @@ public final class RouteAppMessage {
     private String reqURI;
     private boolean isMidCall;
     private boolean isRequest;
+    private LogContext loggingContext;
 
     private RouteAppMessageBuilder() {
       routeAppMessageBuilder(null, null, null, null, null, null, null, false);
@@ -63,6 +65,8 @@ public final class RouteAppMessage {
       if (sessionID != null) {
         message.setSessionId(sessionID);
       }
+
+      message.setLoggingContext(loggingContext);
       message.setMidCall(isMidCall);
       message.setRequest(isRequest);
       return message;
@@ -113,6 +117,11 @@ public final class RouteAppMessage {
 
     public RouteAppMessageBuilder request(boolean isRequest) {
       this.isRequest = isRequest;
+      return this;
+    }
+
+    public RouteAppMessageBuilder loggingContext(LogContext loggingContext) {
+      this.loggingContext = loggingContext;
       return this;
     }
   }

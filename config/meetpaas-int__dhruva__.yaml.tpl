@@ -1,6 +1,6 @@
 Dhruva:
   config:
-    sipListenPoints: '[{"name":"DhruvaIntUDPNetwork","transport":"UDP","port":5070,"recordRoute":true,"attachExternalIP":true}]'
+    sipListenPoints: '[{"name":"DhruvaIntUDPNetwork","transport":"UDP","port":5070,"recordRoute":true,"attachExternalIP":true},{"name":"DhruvaTlsNetwork","hostIPAddress":"${POD_IP}","transport":"TLS","port":5061,"recordRoute":true}]'
     avroSchemaMetricsURL: https://prod-kafka-schema-registry.prodksr.wbx2.com:8082/subjects/LmaEventSchema/versions/1
     avroSchemaURL: https://prod-kafka-schema-registry.prodksr.wbx2.com:8082/subjects/LmaEventSchema/versions/1
     metricsPublicUrl: https://metrics-intb.ciscospark.com/metrics/api/v1

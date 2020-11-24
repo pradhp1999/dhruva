@@ -5,7 +5,6 @@
 package com.cisco.dhruva.sip.controller;
 
 import com.cisco.dhruva.adaptor.AppAdaptorInterface;
-import com.cisco.dhruva.common.dns.DnsException;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.config.sip.controller.UACfgStats;
 import com.cisco.dhruva.loadbalancer.*;
@@ -1187,9 +1186,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       //        throw dnsServerGroupUtil.getFailureException();
       //      }
       // TODO DNS
-      if (dnsServerGroup == null) {
-        throw new DnsException("exception while forming server group");
-      }
+
     }
     return (AbstractServerGroup) dnsServerGroup;
   }

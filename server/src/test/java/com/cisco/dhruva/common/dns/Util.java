@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.xbill.DNS.*;
+import org.xbill.DNS.Record;
 
 public class Util {
 

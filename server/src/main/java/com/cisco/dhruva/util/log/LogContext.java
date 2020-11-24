@@ -13,10 +13,13 @@ import java.util.Optional;
 
 public class LogContext {
 
+  private static Logger logger = DhruvaLoggerFactory.getLogger(LogContext.class);
   public static final String SIP_METHOD = "sipMethod";
   public static final String SIP_CALL_ID = "sipCallId";
   public static final String LOCAL_SIP_SESSION_ID_FIELD = "localSessionID";
   public static final String REMOTE_SIP_SESSION_ID_FIELD = "remoteSessionID";
+  public static final String WEBEX_TRACKING_ID = "WEBEX_TRACKINGID";
+  public static final String CONNECTION_SIGNATURE = "connectionSignature";
 
   private String callId;
   private String localSessionId;
@@ -24,10 +27,16 @@ public class LogContext {
   private String trackingId;
   private String method;
   private String sipMethod;
+  private String connectionSignature;
+
+  public static LogContext newLogContext() {
+    return new LogContext()
+        .setTrackingId(logger.getMDCMap().get(WEBEX_TRACKING_ID))
+        .setConnectionSignature(logger.getMDCMap().get(CONNECTION_SIGNATURE));
+  }
 
   public LogContext setCallId(String callId) {
     this.callId = callId;
-    this.trackingId = callId;
     return this;
   }
 
@@ -46,6 +55,16 @@ public class LogContext {
     return this;
   }
 
+  public LogContext setTrackingId(String trackingId) {
+    this.trackingId = trackingId;
+    return this;
+  }
+
+  public LogContext setConnectionSignature(String connectionSignature) {
+    this.connectionSignature = connectionSignature;
+    return this;
+  }
+
   public void setLogContext(Map<String, String> logContextMap) {
     callId = logContextMap.get(SIP_CALL_ID);
     localSessionId = logContextMap.get(LOCAL_SIP_SESSION_ID_FIELD);
@@ -58,6 +77,12 @@ public class LogContext {
     logContextMap.put(LOCAL_SIP_SESSION_ID_FIELD, localSessionId);
     logContextMap.put(REMOTE_SIP_SESSION_ID_FIELD, remoteSessionId);
     logContextMap.put(SIP_METHOD, sipMethod);
+    if (trackingId != null) {
+      logContextMap.put(WEBEX_TRACKING_ID, trackingId);
+    }
+    if (connectionSignature != null) {
+      logContextMap.put(CONNECTION_SIGNATURE, connectionSignature);
+    }
     return logContextMap;
   }
 
@@ -77,5 +102,7 @@ public class LogContext {
     callId = null;
     localSessionId = null;
     remoteSessionId = null;
+    sipMethod = null;
+    trackingId = null;
   }
 }

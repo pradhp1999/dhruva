@@ -83,7 +83,7 @@ public class AppEngine {
           .whenCompleteAsync(appCallback)
           .exceptionally(
               throwable -> {
-                logger.error("error in route processing", throwable.getMessage());
+                logger.error("exit" + "error in route processing", throwable.getMessage());
                 return new ControllerActor.RouteResult(
                     null, null, new DhruvaException("route failure"));
               });

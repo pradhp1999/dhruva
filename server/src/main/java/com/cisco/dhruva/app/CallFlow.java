@@ -4,6 +4,7 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
+import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import akka.actor.typed.javadsl.ReceiveBuilder;
 import com.cisco.dhruva.app.CallFlow.Command;
@@ -33,7 +34,17 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
   }
 
   static void registerCallFlow() {
-    callFlowMap.put(DoDefault.getFilter(), DoDefault::create);
+    callFlowMap.put(
+        OneOnOneCallingFlowActor.getFilter(), behaviourWithMDC(OneOnOneCallingFlowActor::create));
+  }
+
+  private static Supplier<Behavior<Command>> behaviourWithMDC(Supplier<Behavior<Command>> create) {
+    return () ->
+        Behaviors.withMdc(
+            Command.class,
+            doCallFlowCommand ->
+                ((DoCallFlow) doCallFlowCommand).dhurvaMessage.getLogContext().getLogContextAsMap(),
+            create.get());
   }
 
   abstract ReceiveBuilder<Command> callFlowBehavior();
@@ -82,6 +93,10 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
 
   Behavior<Command> handleCall(CallFlow.DoCallFlow doCallFlowCommand) {
     if (doCallFlowCommand.dhurvaMessage.isMidCall()) {
+      getContext()
+          .getLog()
+          .info(
+              "Message is mid-call , routing decision is default , so Message will be routed to Route Header / Request URI");
       return defaultSipResponse(doCallFlowCommand);
     } else {
       return handleRequest((DoCallFlowForRequest) doCallFlowCommand);
@@ -89,6 +104,10 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
   }
 
   Behavior<Command> handleResponse(DoCallFlowForResponse doCallFlowCommand) {
+    getContext()
+        .getLog()
+        .info(
+            "Message is Response , routing decision is default , so Message will be routed by resolving VIA");
     return defaultSipResponse(doCallFlowCommand);
   }
 
@@ -96,7 +115,9 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
     doCallFlowCommand.replyTo.tell(
         new RouteResponse(
             new Destination(
-                DestinationType.DEFAULT_SIP, doCallFlowCommand.dhurvaMessage.getReqURI(), "sipnet"),
+                DestinationType.DEFAULT_SIP,
+                doCallFlowCommand.dhurvaMessage.getReqURI(),
+                "DhruvaTlsNetwork"),
             null,
             doCallFlowCommand.dhurvaMessage));
     return this;

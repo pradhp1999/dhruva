@@ -2,6 +2,7 @@ package com.cisco.dhruva.common.messaging.models;
 
 import com.cisco.dhruva.common.CallType;
 import com.cisco.dhruva.common.context.ExecutionContext;
+import com.cisco.dhruva.util.log.LogContext;
 import java.util.Map;
 
 public interface IDhruvaMessage extends Cloneable {
@@ -51,4 +52,8 @@ public interface IDhruvaMessage extends Cloneable {
 
   /** Returns a copy of this message. */
   IDhruvaMessage clone();
+
+  LogContext getLogContext();
+
+  void setLoggingContext(LogContext loggingContext);
 }

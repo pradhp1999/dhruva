@@ -12,8 +12,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
 public interface Connection {
-
-  String ConnectionSignature = "connectionSignature";
   String COLON = ":";
 
   BiFunction<InetSocketAddress, InetSocketAddress, String> getConnectionSignature =
