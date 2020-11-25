@@ -29,7 +29,7 @@ It is deployed in Meetings Platform (meet-PaaS).
 - Add path to your local tomcat installation (make sure the version is `> 7.x`)
 - Optionally uncheck "After launch" under the "Open browser" section.
 - Set the URL as `http://localhost:8080/dhruva_server_war_exploded/`
-- In VM options field enter: `-Xmx2048m -Xms1024m`, and `-DexternalUrlProtocol=http`, and `-DjedisPoolHealthCheckMonitorEnabled=false`.
+- In VM options field enter: `-Xmx2048m -Xms1024m -DexternalUrlProtocol=http -DjedisPoolHealthCheckMonitorEnabled=false`.
 - Now go to the deployment tab
 - Use + button to add the artifact `dhruva-server-exploded.war` (pick one with 'exploded' word in name, it will speedup your tomcat run)
 - Now run the application. You should be able to curl `http://localhost:8080/dhruva_server_war_exploded/api/v1/ping`
@@ -53,8 +53,8 @@ pass the required config as environment variables.
 - To make UDP/TCP calls, it is same as CP. 
 - To make TLS calls
     - Following environment variables have to bet set in Intellij, with certificate and private key file contents as its value respectively.
-    1. `sipCertificate`
-    2. `sipPrivateKey`
+    1. `tls.crt`
+    2. `tls.key`
     
     ### Using SIPp with TLS1.2
     - Configure sipp with TLSv1.2 (as Dhruva supports that). _Note:_ If sipp is already configured with v1.0,

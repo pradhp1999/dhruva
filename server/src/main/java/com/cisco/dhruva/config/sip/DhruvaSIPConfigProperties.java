@@ -7,14 +7,15 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.JsonUtilFactory;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
 @Component
 public class DhruvaSIPConfigProperties {
@@ -43,9 +44,9 @@ public class DhruvaSIPConfigProperties {
 
   public static final TLSAuthenticationType DEFAULT_TRANSPORT_AUTH = TLSAuthenticationType.MTLS;
 
-  private static final String SIP_CERTIFICATE = "sipCertificate";
+  private static final String SIP_CERTIFICATE = "tls.crt";
 
-  private static final String SIP_PRIVATE_KEY = "sipPrivateKey";
+  private static final String SIP_PRIVATE_KEY = "tls.key";
 
   private static final String UDP_EVENTLOOP_THREAD_COUNT = "dhruva.network.udpEventloopThreadCount";
 
