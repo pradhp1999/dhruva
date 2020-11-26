@@ -1,6 +1,6 @@
 Dhruva:
   config:
-    sipListenPoints: '[{"name":"DhruvaIntUDPNetwork","transport":"UDP","port":5070,"recordRoute":true,"attachExternalIP":true},{"name":"DhruvaTlsNetwork","hostIPAddress":"${POD_IP}","transport":"TLS","port":5061,"recordRoute":true}]'
+    sipListenPoints: '[{"name":"DhruvaTlsPublic","hostIPAddress":"${POD_IP}","transport":"TLS","port":11501,"recordRoute":true,"attachExternalIP":true},{"name":"DhruvaUdpPublic","hostIPAddress":"${POD_IP}","transport":"UDP","port":11500,"recordRoute":true,"attachExternalIP":true},{"name":"DhruvaTlsPrivate","hostIPAddress":"${POD_IP}","transport":"TLS","port":5070,"recordRoute":true}]'
     avroSchemaMetricsURL: https://prod-kafka-schema-registry.prodksr.wbx2.com:8082/subjects/LmaEventSchema/versions/1
     avroSchemaURL: https://prod-kafka-schema-registry.prodksr.wbx2.com:8082/subjects/LmaEventSchema/versions/1
     metricsPublicUrl: https://metrics-intb.ciscospark.com/metrics/api/v1
@@ -17,7 +17,7 @@ Dhruva:
     influxDBUrl: https://influxdb.int.{{ .MeetPaas.clusterManagerAddress }}:8086
     serviceLevel: integration
     hostPortEnabled: 'true'
-    hostIpOrFqdn: "66.114.164.84"
+    hostIpOrFqdn: dhruva.{{ .MeetPaas.clusterName }}.int.meetapi.webex.com
   deploy:
     CATALINA_OPTS: '-Dcom.sun.management.jmxremote
                         -Dcom.sun.management.jmxremote.host=127.0.0.1

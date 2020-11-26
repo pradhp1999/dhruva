@@ -53,8 +53,8 @@ pass the required config as environment variables.
 - To make UDP/TCP calls, it is same as CP. 
 - To make TLS calls
     - Following environment variables have to bet set in Intellij, with certificate and private key file contents as its value respectively.
-    1. `tls.crt`
-    2. `tls.key`
+    1. `sipCertificate`
+    2. `sipPrivateKey`
     
     ### Using SIPp with TLS1.2
     - Configure sipp with TLSv1.2 (as Dhruva supports that). _Note:_ If sipp is already configured with v1.0,

@@ -12,6 +12,16 @@ The files in this folder serve the following purposes:
 - *meetpaas-int__dhruva__.yaml.tpl* - These are variables that are specific to the `meetpaas-int` environment. 
   - e.g. `metricsPublicUrl`, which is a per-environment URL.
   
+### Current Network configuration
+
+We bind to 5070 as the internal port and 11500/11501 as the external port. This is just a convention and can be changed.
+These 3 port mappings should align with the external and internal mappings in our helm charts. 
+ 
+The following networks are used for now:
+- One TLS Pub network with hostPort configuration, so that dhruva.{{dc}}.int.meetapi.webex.com is inserted in the headers.
+- One UDP Pub network, same as above.
+- One TLS Prv network, without hostPort
+
 ## Other Repos
 
 - [int-app-clusters](https://sqbu-github.cisco.com/WebexPlatform/int-app-clusters) - This repo has variables for 

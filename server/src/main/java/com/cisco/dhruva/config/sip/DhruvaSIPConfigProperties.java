@@ -44,9 +44,9 @@ public class DhruvaSIPConfigProperties {
 
   public static final TLSAuthenticationType DEFAULT_TRANSPORT_AUTH = TLSAuthenticationType.MTLS;
 
-  private static final String SIP_CERTIFICATE = "tls.crt";
+  private static final String SIP_CERTIFICATE = "sipCertificate";
 
-  private static final String SIP_PRIVATE_KEY = "tls.key";
+  private static final String SIP_PRIVATE_KEY = "sipPrivateKey";
 
   private static final String UDP_EVENTLOOP_THREAD_COUNT = "dhruva.network.udpEventloopThreadCount";
 
