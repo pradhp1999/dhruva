@@ -155,6 +155,7 @@ public class AppEngine {
 
   BiConsumer<ControllerActor.RouteResult, Throwable> appCallback =
       (routeResult, throwable) -> {
+        logger.setMDC(routeResult.response.getLogContext().getLogContextAsMap());
         if (routeResult.error != null || throwable != null) {
           logger.error("exception in route processing {}", routeResult.error);
           IDhruvaMessage errorResponse = null;

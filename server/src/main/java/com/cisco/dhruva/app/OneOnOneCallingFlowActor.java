@@ -47,7 +47,7 @@ public class OneOnOneCallingFlowActor extends CallFlow {
             new Destination(
                 DestinationType.SRV,
                 dhruvaProperties.getL2SIPClusterAddress() + ":5061",
-                "DhruvaTlsNetwork"),
+                "DhruvaTlsPrivate"),
             null,
             doCallFlowCommand.dhurvaMessage));
     return this;
