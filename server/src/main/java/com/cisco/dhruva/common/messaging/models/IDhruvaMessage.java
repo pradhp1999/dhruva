@@ -50,6 +50,10 @@ public interface IDhruvaMessage extends Cloneable {
 
   public void setRequest(boolean isRequest);
 
+  public void setNetwork(String network);
+
+  public String getNetwork();
+
   /** Returns a copy of this message. */
   IDhruvaMessage clone();
 

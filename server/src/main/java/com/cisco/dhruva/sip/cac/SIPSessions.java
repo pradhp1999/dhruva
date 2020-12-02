@@ -163,9 +163,7 @@ public class SIPSessions {
     }
 
     // remove session from destination
-    Iterator<EndPoint> itr = activeSessionsByDestination.keySet().iterator();
-    while (itr.hasNext()) {
-      EndPoint sipDestination = (EndPoint) itr.next();
+    for (EndPoint sipDestination : activeSessionsByDestination.keySet()) {
       try {
         HashMap<String, SIPSession> activeSessions =
             activeSessionsByDestination.computeIfPresent(

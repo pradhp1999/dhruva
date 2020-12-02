@@ -26,10 +26,11 @@ public final class RouteAppMessage {
     private String reqURI;
     private boolean isMidCall;
     private boolean isRequest;
+    private String network;
     private LogContext loggingContext;
 
     private RouteAppMessageBuilder() {
-      routeAppMessageBuilder(null, null, null, null, null, null, null, false);
+      routeAppMessageBuilder(null, null, null, null, null, null, null, null, false);
     }
 
     private void routeAppMessageBuilder(
@@ -40,6 +41,7 @@ public final class RouteAppMessage {
         String sessionID,
         String correlationID,
         String reqURI,
+        String network,
         boolean isMidCall) {
       this.context = context;
       this.headers = headers;
@@ -49,6 +51,7 @@ public final class RouteAppMessage {
       this.correlationID = correlationID;
       this.reqURI = reqURI;
       this.isMidCall = isMidCall;
+      this.network = network;
     }
 
     public IDhruvaMessage build() {
@@ -64,6 +67,9 @@ public final class RouteAppMessage {
       }
       if (sessionID != null) {
         message.setSessionId(sessionID);
+      }
+      if (network != null) {
+        message.setNetwork(network);
       }
 
       message.setLoggingContext(loggingContext);
@@ -122,6 +128,11 @@ public final class RouteAppMessage {
 
     public RouteAppMessageBuilder loggingContext(LogContext loggingContext) {
       this.loggingContext = loggingContext;
+      return this;
+    }
+
+    public RouteAppMessageBuilder network(String network) {
+      this.network = network;
       return this;
     }
   }

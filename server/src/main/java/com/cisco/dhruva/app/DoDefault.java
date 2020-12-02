@@ -40,12 +40,15 @@ public class DoDefault extends CallFlow {
     getContext()
         .getLog()
         .info("Routing Decision is Default-SIP , Message will be routed to Route or Request URI");
+
     doCallFlowCommand.replyTo.tell(
         new RouteResponse(
             new Destination(
-                DestinationType.DEFAULT_SIP, doCallFlowCommand.dhurvaMessage.getReqURI(), "sipnet"),
+                DestinationType.DEFAULT_SIP,
+                doCallFlowCommand.dhruvaMessage.getReqURI(),
+                doCallFlowCommand.dhruvaMessage.getNetwork()),
             null,
-            doCallFlowCommand.dhurvaMessage));
+            doCallFlowCommand.dhruvaMessage));
     return this;
   }
 }

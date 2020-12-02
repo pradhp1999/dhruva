@@ -23,11 +23,12 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
   private boolean hasBody;
   private boolean isMidCall;
   private boolean isRequest;
+  private String network;
   private LogContext loggingContext;
 
   public DhruvaMessageImpl(ExecutionContext context, MessageHeaders headers, MessageBody payload) {
     this.context = context == null ? new ExecutionContext() : context;
-    this.headers = headers == null ? new MessageHeaders(new HashMap<String, Object>()) : headers;
+    this.headers = headers == null ? new MessageHeaders(new HashMap<>()) : headers;
     this.messageBody = payload;
   }
 
@@ -132,6 +133,16 @@ public class DhruvaMessageImpl implements Serializable, IDhruvaMessage {
   @Override
   public void setRequest(boolean isRequest) {
     this.isRequest = isRequest;
+  }
+
+  @Override
+  public void setNetwork(String network) {
+    this.network = network;
+  }
+
+  @Override
+  public String getNetwork() {
+    return network;
   }
 
   @Override

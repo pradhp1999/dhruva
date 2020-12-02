@@ -9,6 +9,8 @@
  */
 sparkPipeline {
 
+    builder = 'SPARK_BUILDER_JAVA8'
+
     notifySparkRoomId = 'Y2lzY29zcGFyazovL3VzL1JPT00vNDU5NWUzNTAtZjYyMy0xMWU5LThmMWQtYmY3OTJhYmQ3MzY0'
 
     build = { services ->
@@ -17,7 +19,7 @@ sparkPipeline {
         }
 
         // First we run yamllint over all the files in the config folder:
-        this.sh "mvn versions:set -DnewVersion=${this.env.BUILD_VERSION} && mvn -Dmaven.test.failure.ignore clean verify"
+        this.sh "JAVA_VERSION=8 mvn versions:set -DnewVersion=${this.env.BUILD_VERSION} && JAVA_VERSION=8 mvn -Dmaven.test.failure.ignore clean verify"
 
 
         this.step([$class: 'JacocoPublisher', changeBuildStatus: true, classPattern: 'server/target/classes,client/target/classes', execPattern: '**/*.exec', minimumInstructionCoverage: '1'])

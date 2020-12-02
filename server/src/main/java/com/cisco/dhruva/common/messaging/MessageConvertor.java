@@ -20,10 +20,14 @@ public class MessageConvertor {
     requireNonNull(message, "sip message should not be null");
     requireNonNull(context);
     String reqURI = null;
+    String network = null;
 
     if (type == MessageBodyType.SIPREQUEST) {
       DsSipRequest request = (DsSipRequest) message;
       reqURI = request.getURI().toString();
+      if (request.getNetwork() != null) {
+        network = request.getNetwork().getName();
+      }
     }
 
     LogContext logContext = LogContext.newLogContext();
@@ -35,6 +39,7 @@ public class MessageConvertor {
         .midCall(message.isMidCall())
         .request(message.isRequest())
         .loggingContext(logContext.getLogContext(message).get())
+        .network(network)
         .build();
   }
 

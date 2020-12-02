@@ -43,7 +43,7 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
         Behaviors.withMdc(
             Command.class,
             doCallFlowCommand ->
-                ((DoCallFlow) doCallFlowCommand).dhurvaMessage.getLogContext().getLogContextAsMap(),
+                ((DoCallFlow) doCallFlowCommand).dhruvaMessage.getLogContext().getLogContextAsMap(),
             create.get());
   }
 
@@ -60,11 +60,11 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
   private abstract static class DoCallFlow implements Command {
 
     final ActorRef replyTo;
-    final IDhruvaMessage dhurvaMessage;
+    final IDhruvaMessage dhruvaMessage;
 
     public DoCallFlow(ActorRef replyTo, IDhruvaMessage dhurvaMessage) {
       this.replyTo = replyTo;
-      this.dhurvaMessage = dhurvaMessage;
+      this.dhruvaMessage = dhurvaMessage;
     }
   }
 
@@ -92,7 +92,7 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
   }
 
   Behavior<Command> handleCall(CallFlow.DoCallFlow doCallFlowCommand) {
-    if (doCallFlowCommand.dhurvaMessage.isMidCall()) {
+    if (doCallFlowCommand.dhruvaMessage.isMidCall()) {
       getContext()
           .getLog()
           .info(
@@ -116,10 +116,10 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
         new RouteResponse(
             new Destination(
                 DestinationType.DEFAULT_SIP,
-                doCallFlowCommand.dhurvaMessage.getReqURI(),
+                doCallFlowCommand.dhruvaMessage.getReqURI(),
                 "DhruvaTlsNetwork"),
             null,
-            doCallFlowCommand.dhurvaMessage));
+            doCallFlowCommand.dhruvaMessage));
     return this;
   }
 }

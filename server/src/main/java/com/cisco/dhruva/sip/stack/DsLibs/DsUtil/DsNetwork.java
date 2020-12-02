@@ -9,7 +9,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
-import com.cisco.dhruva.transport.DhruvaTrustManager;
+import com.cisco.dhruva.transport.DhruvaTrustManagerFactory;
 import com.cisco.dhruva.transport.TLSAuthenticationType;
 import com.cisco.dhruva.util.log.Logger;
 import io.netty.handler.ssl.SslProvider;
@@ -1546,7 +1546,7 @@ public class DsNetwork implements Cloneable {
   }
 
   public TrustManager getTrustManager() throws Exception {
-    return DhruvaTrustManager.getSystemTrustManager();
+    return DhruvaTrustManagerFactory.getTrustManager("dhruva", this.tlsAuthType);
   }
 
   public String[] getProtocols() {

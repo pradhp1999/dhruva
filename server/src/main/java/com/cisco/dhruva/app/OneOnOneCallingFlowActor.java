@@ -5,11 +5,15 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.ReceiveBuilder;
 import com.cisco.dhruva.DhruvaProperties;
+import com.cisco.dhruva.Exception.DhruvaException;
 import com.cisco.dhruva.app.CallProcessor.RouteResponse;
 import com.cisco.dhruva.app.Destination.DestinationType;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
+import com.cisco.dhruva.common.messaging.models.MessageHeaders;
 import com.cisco.dhruva.util.SpringApplicationContext;
+import java.util.HashMap;
 import java.util.function.Predicate;
+import org.springframework.context.ApplicationContext;
 
 public class OneOnOneCallingFlowActor extends CallFlow {
 
@@ -22,7 +26,9 @@ public class OneOnOneCallingFlowActor extends CallFlow {
 
   public OneOnOneCallingFlowActor(ActorContext<Command> context) {
     super(context);
-    dhruvaProperties = SpringApplicationContext.getAppContext().getBean(DhruvaProperties.class);
+    ApplicationContext applicationContext = SpringApplicationContext.getAppContext();
+    if (applicationContext == null) throw new DhruvaException("spring app context null");
+    dhruvaProperties = applicationContext.getBean(DhruvaProperties.class);
   }
 
   static Behavior<Command> create() {
@@ -42,6 +48,12 @@ public class OneOnOneCallingFlowActor extends CallFlow {
   @Override
   Behavior<Command> handleRequest(CallFlow.DoCallFlowForRequest doCallFlowCommand) {
     getContext().getLog().info("Routing Decision is in cluster L2SIP");
+    IDhruvaMessage message = doCallFlowCommand.dhruvaMessage;
+    MessageHeaders headers = new MessageHeaders(new HashMap<>());
+    headers.put(
+        "Route",
+        "sip:" + dhruvaProperties.getL2SIPClusterAddress() + ":5061" + ";lr;transport=tls");
+    message.setHeaders(headers);
     doCallFlowCommand.replyTo.tell(
         new RouteResponse(
             new Destination(
@@ -49,7 +61,7 @@ public class OneOnOneCallingFlowActor extends CallFlow {
                 dhruvaProperties.getL2SIPClusterAddress() + ":5061",
                 "DhruvaTlsPrivate"),
             null,
-            doCallFlowCommand.dhurvaMessage));
+            doCallFlowCommand.dhruvaMessage));
     return this;
   }
 }
