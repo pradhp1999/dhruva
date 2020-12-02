@@ -45,7 +45,7 @@ public class SipServerLocatorService {
     final String name = sipDestination.getAddress();
     final LocateSIPServerTransportType transportLookupType =
         sipDestination.getTransportLookupType();
-    Integer iPort = (sipDestination.getPort() < 0) ? null : sipDestination.getPort();
+    Integer iPort = (sipDestination.getPort() <= 0) ? null : sipDestination.getPort();
     final String userIdInject = (user == null) ? null : user.getId().toString();
 
     // TODO enable when required

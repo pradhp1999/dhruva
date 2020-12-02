@@ -721,10 +721,9 @@ public class DsSipTransactionManager {
       Transport transport,
       LocateSIPServersResponse sipServersResponse) {
     try {
-      //      LocateSIPServersResponse sipServersResponse =
-      //              resolver.resolve(host, LocateSIPServerTransportType.TLS, port, null );
       List<Hop> networkHops = sipServersResponse.getHops();
       if (!networkHops.isEmpty()) {
+        //Get the first element in priority
         Hop nextElement = networkHops.get(0);
 
         if (lAddr == null && lPort <= 0) {
