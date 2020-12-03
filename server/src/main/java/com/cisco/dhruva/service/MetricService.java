@@ -109,6 +109,7 @@ public class MetricService {
             .tag("messageType", messageType.name())
             .tag("direction", direction.name())
             .tag("isMidCall", isMidCall)
+            .tag("transport", transport.name())
             .field("isInternallyGenerated", isInternallyGenerated)
             .field("callId", callId)
             .field("cSeq", cseq);
