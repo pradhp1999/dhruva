@@ -75,7 +75,7 @@ public class LMAUtil {
         message.getCallId().toString(),
         message.getCSeqMethod().toString(),
         sipMessageType,
-        message.getConnectionTransport(),
+        dsBindingInfo.getTransport(),
         direction,
         midDialog,
         message.isInternallyGenerated(),
