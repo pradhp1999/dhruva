@@ -7,6 +7,7 @@ package com.cisco.dhruva.util;
 import static com.cisco.dhruva.util.log.event.Event.DIRECTION.OUT;
 
 import com.cisco.dhruva.service.MetricService;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransaction;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTransactionManager;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipMessage;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
@@ -49,8 +50,8 @@ public class LMAUtil {
       midDialog =
           DsSipTransactionManager.getTransactionManager()
               .getClientTransaction((DsSipResponse) message)
-              .map(dsSipClientTransaction -> dsSipClientTransaction.getRequest())
-              .map(dsSipRequest -> dsSipRequest.isMidCall())
+              .map(DsSipTransaction::getRequest)
+              .map(DsSipMessage::isMidCall)
               .orElse(false);
     }
 

@@ -5,6 +5,7 @@
 package com.cisco.dhruva.sip.controller;
 
 import com.cisco.dhruva.adaptor.AppAdaptorInterface;
+import com.cisco.dhruva.common.dns.DnsException;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.config.sip.controller.UACfgStats;
 import com.cisco.dhruva.loadbalancer.*;
@@ -768,6 +769,8 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
         // clearing out the binding info so that response goes to the via and not to the binding
         // info CR8198
         ourRequest.setBindingInfo(new DsBindingInfo());
+
+        // Meetpass , any Dns exception will result in 6xx
         if (errorCode != DsControllerInterface.DESTINATION_UNREACHABLE)
           responseIf.handleResponse(
               location, Optional.empty(), ResponseReasonCodeConstants.PROXY_ERROR);
@@ -1156,6 +1159,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
   public AbstractServerGroup getDnsServerGroup(
       Location location, DsSipRequest request, int transport, DsNetwork network) throws Exception {
+    Optional<ServerGroupInterface> serverGroupInterface = Optional.empty();
     DsSipURL sipUri = location.getURI().isSipURL() ? (DsSipURL) location.getURI().clone() : null;
     if (sipUri != null) {
       if (location.getCopiedURIHeadersToRequest()) {
@@ -1177,11 +1181,16 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       if (host == null) host = sipUrl.getHost();
       // create Server Group from DNS lookup
       DnsServerGroupUtil dnsServerGroupUtil = new DnsServerGroupUtil(resolver);
-      if (!IPValidator.hostIsIPAddr(host.toString()))
-        dnsServerGroup =
+      if (!IPValidator.hostIsIPAddr(host.toString())) {
+        serverGroupInterface =
             dnsServerGroupUtil.createDNSServerGroup(
                 host, port, network, Transport.valueOf(routeTransport).get(), request);
-
+        if (serverGroupInterface.isPresent()) {
+          dnsServerGroup = serverGroupInterface.get();
+        } else {
+          throw new DnsException("exception in creating dns based server group for host");
+        }
+      }
       //      if (dnsServerGroup == null && dnsServerGroupUtil.getFailureException() != null) {
       //        throw dnsServerGroupUtil.getFailureException();
       //      }

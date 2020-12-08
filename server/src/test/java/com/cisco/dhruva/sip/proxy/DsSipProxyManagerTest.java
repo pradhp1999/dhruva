@@ -4,7 +4,10 @@ import static org.mockito.Mockito.*;
 
 import com.cisco.dhruva.adaptor.AppAdaptorInterface;
 import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
+import com.cisco.dhruva.router.AppEngine;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.service.SipServerLocatorService;
 import com.cisco.dhruva.sip.controller.DsREControllerFactory;
@@ -16,13 +19,14 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.SIPRequestBuilder;
+import com.cisco.dhruva.util.SpringApplicationContext;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -45,10 +49,20 @@ public class DsSipProxyManagerTest {
   private InetAddress remoteAddress;
   private int localPort, remotePort;
 
+  private ApplicationContext applicationContext;
+  private com.cisco.dhruva.common.executor.ExecutorService executorService;
+
   @Autowired SipServerLocatorService locatorService;
 
   @BeforeClass
   void init() throws Exception {
+
+    applicationContext = mock(ApplicationContext.class);
+    executorService = mock(ExecutorService.class);
+
+    SpringApplicationContext springApplicationContext = new SpringApplicationContext();
+    springApplicationContext.setApplicationContext(applicationContext);
+
     dsNetwork = DsNetwork.getNetwork("Default");
     ourConfig = DsControllerConfig.getCurrent();
 
@@ -120,6 +134,15 @@ public class DsSipProxyManagerTest {
     sipRequest.setNetwork(dsNetwork);
     sipRequest.setBindingInfo(incomingMessageBindingInfo);
 
+    // Mocks to manage the app dependencies
+    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor =
+        mock(ScheduledThreadPoolExecutor.class);
+
+    when(executorService.getScheduledExecutorThreadPool(ExecutorType.AKKA_CONTROLLER_TIMER))
+        .thenReturn(scheduledThreadPoolExecutor);
+
+    AppEngine.startShutdownTimers(executorService);
+
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
     DsSipServerTransaction serverTransaction =
@@ -149,6 +172,17 @@ public class DsSipProxyManagerTest {
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.ACK));
+    // Mocks to manage the app dependencies
+    ThreadPoolExecutor threadPoolExecutor = mock(ThreadPoolExecutor.class);
+    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor =
+        mock(ScheduledThreadPoolExecutor.class);
+    when(executorService.getExecutorThreadPool(ExecutorType.SIP_TRANSACTION_PROCESSOR))
+        .thenReturn(threadPoolExecutor);
+    when(executorService.getScheduledExecutorThreadPool(ExecutorType.AKKA_CONTROLLER_TIMER))
+        .thenReturn(scheduledThreadPoolExecutor);
+    when(applicationContext.getBean(ExecutorService.class)).thenReturn(executorService);
+
+    AppEngine.startShutdownTimers(executorService);
 
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);

@@ -5,9 +5,12 @@ import static org.mockito.Mockito.*;
 import com.cisco.dhruva.adaptor.ProxyAdaptor;
 import com.cisco.dhruva.adaptor.ProxyAdaptorFactory;
 import com.cisco.dhruva.adaptor.ProxyAdaptorFactoryInterface;
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.common.messaging.MessageConvertor;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
+import com.cisco.dhruva.router.AppEngine;
 import com.cisco.dhruva.router.AppInterface;
 import com.cisco.dhruva.router.AppSession;
 import com.cisco.dhruva.service.SipServerLocatorService;
@@ -19,12 +22,16 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.SIPRequestBuilder;
+import com.cisco.dhruva.util.SpringApplicationContext;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -41,9 +48,18 @@ public class DsProxyControllerClientTest {
   private InetAddress remoteAddress;
   private int localPort, remotePort;
   @Autowired SipServerLocatorService locatorService;
+  private ApplicationContext applicationContext;
+  private com.cisco.dhruva.common.executor.ExecutorService executorService;
 
   @BeforeClass
   void init() throws DsException, UnknownHostException {
+
+    applicationContext = mock(ApplicationContext.class);
+    executorService = mock(ExecutorService.class);
+
+    SpringApplicationContext springApplicationContext = new SpringApplicationContext();
+    springApplicationContext.setApplicationContext(applicationContext);
+
     dsNetwork = DsNetwork.getNetwork("Default");
     ourConfig = DsControllerConfig.getCurrent();
 
@@ -83,6 +99,14 @@ public class DsProxyControllerClientTest {
 
   @Test(description = "Basic client flow starting from App")
   public void testProxyTo() throws Exception {
+    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor =
+        mock(ScheduledThreadPoolExecutor.class);
+
+    when(executorService.getScheduledExecutorThreadPool(ExecutorType.AKKA_CONTROLLER_TIMER))
+        .thenReturn(scheduledThreadPoolExecutor);
+
+    AppEngine.startShutdownTimers(executorService);
+
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -141,6 +165,19 @@ public class DsProxyControllerClientTest {
 
   @Test(description = "test flow from onNewRequest -> App layer -> ProxyTo ")
   public void testAppHandleRequest() throws Exception {
+
+    // Mocks to manage the app dependencies
+    ThreadPoolExecutor threadPoolExecutor = mock(ThreadPoolExecutor.class);
+    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor =
+        mock(ScheduledThreadPoolExecutor.class);
+    when(executorService.getExecutorThreadPool(ExecutorType.SIP_TRANSACTION_PROCESSOR))
+        .thenReturn(threadPoolExecutor);
+    when(executorService.getScheduledExecutorThreadPool(ExecutorType.AKKA_CONTROLLER_TIMER))
+        .thenReturn(scheduledThreadPoolExecutor);
+    when(applicationContext.getBean(ExecutorService.class)).thenReturn(executorService);
+
+    AppEngine.startShutdownTimers(executorService);
+
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
@@ -189,6 +226,14 @@ public class DsProxyControllerClientTest {
 
   @Test
   public void testProxyToWithoutProcessRoute() throws Exception {
+    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor =
+        mock(ScheduledThreadPoolExecutor.class);
+
+    when(executorService.getScheduledExecutorThreadPool(ExecutorType.AKKA_CONTROLLER_TIMER))
+        .thenReturn(scheduledThreadPoolExecutor);
+
+    AppEngine.startShutdownTimers(executorService);
+
     DsSipRequest sipRequest =
         SIPRequestBuilder.createRequest(
             new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));

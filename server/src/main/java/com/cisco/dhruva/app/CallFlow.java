@@ -92,15 +92,18 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
   }
 
   Behavior<Command> handleCall(CallFlow.DoCallFlow doCallFlowCommand) {
-    if (doCallFlowCommand.dhruvaMessage.isMidCall()) {
-      getContext()
-          .getLog()
-          .info(
-              "Message is mid-call , routing decision is default , so Message will be routed to Route Header / Request URI");
-      return defaultSipResponse(doCallFlowCommand);
-    } else {
-      return handleRequest((DoCallFlowForRequest) doCallFlowCommand);
-    }
+    // MEETPASS TEMP for handling middialog requests in integration environment(l2sip LB issues)
+    //    if (doCallFlowCommand.dhruvaMessage.isMidCall()) {
+    //      getContext()
+    //          .getLog()
+    //          .info(
+    //              "Message is mid-call , routing decision is default , so Message will be routed
+    // to Route Header / Request URI");
+    //      return defaultSipResponse(doCallFlowCommand);
+    //    } else {
+    //      return handleRequest((DoCallFlowForRequest) doCallFlowCommand);
+    //    }
+    return handleRequest((DoCallFlowForRequest) doCallFlowCommand);
   }
 
   Behavior<Command> handleResponse(DoCallFlowForResponse doCallFlowCommand) {

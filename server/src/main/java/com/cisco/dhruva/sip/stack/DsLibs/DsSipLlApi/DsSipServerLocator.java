@@ -1,5 +1,6 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi;
 
+import com.cisco.dhruva.common.dns.DnsException;
 import com.cisco.dhruva.common.dns.DnsInjectionService;
 import com.cisco.dhruva.common.dns.DnsLookup;
 import com.cisco.dhruva.common.dns.dto.DNSARecord;
@@ -219,9 +220,15 @@ public class DsSipServerLocator implements DsSipResolver {
       }
       // If still no hits, try lookup as hostname. Any hops found are returned as TCP.
       if (response.getDnsARecords().size() <= 0) {
+        final int portScrubbed = ensurePort(null, Transport.TLS);
+        resolveHostname(response, responseLog, name, portScrubbed, Transport.TLS, injectA);
+      }
+
+      if (response.getDnsARecords().size() <= 0) {
         final int portScrubbed = ensurePort(null, Transport.TCP);
         resolveHostname(response, responseLog, name, portScrubbed, Transport.TCP, injectA);
       }
+
     } else {
       // Work backwards from port to deduce the transport. 5060->TCP, anything else assume TLS.
       final Transport transport = inferTransportFromPort(port);
@@ -250,6 +257,11 @@ public class DsSipServerLocator implements DsSipResolver {
         final int portScrubbed = ensurePort(null, Transport.TCP);
         resolveHostname(response, responseLog, name, portScrubbed, Transport.TCP, injectA);
       }
+
+      if (response.getDnsARecords().size() <= 0) {
+        final int portScrubbed = ensurePort(null, Transport.TLS);
+        resolveHostname(response, responseLog, name, portScrubbed, Transport.TLS, injectA);
+      }
     } else {
       // Work backwards from port to deduce the transport. 5060->TCP, anything else assume TLS.
       final Transport transport = inferTransportFromPort(port);
@@ -273,47 +285,56 @@ public class DsSipServerLocator implements DsSipResolver {
     // Also want to remove duplicate hops. LinkedHashSet does both.
     // If two hops differ only in source (DNS | INJECTED) they are not considered dups.
     // This allows us to send to a specific IP address earlier in the chain when needed.
-    Set<Hop> hops = new LinkedHashSet<>();
-    List<MatchedDNSSRVRecord> srvRecords =
-        resolveSRV(name, transport.toString(), injectSRV, responseLog);
-    response.setDnsSRVRecords(srvRecords);
-    for (MatchedDNSSRVRecord r : srvRecords) {
-      final DNSSRVRecord srvRecord = r.getRecord();
-      List<MatchedDNSARecord> aRecordsFromHost =
-          lookupHostname(srvRecord.getTarget(), injectA, responseLog);
-      // allow dups. Should be rare, but let's see them.
-      response.getDnsARecords().addAll(aRecordsFromHost);
-      // IP address comes from A record, port comes from the SRV record
-      List<Hop> srvHops =
-          aRecordsFromHost.stream()
-              .map(
-                  rA -> {
-                    // If the SRV or host record were injected, the hop is tagged as injected too.
-                    DNSRecordSource source =
-                        (r.getSource() == DNSRecordSource.INJECTED
-                                || rA.getSource() == DNSRecordSource.INJECTED)
-                            ? DNSRecordSource.INJECTED
-                            : DNSRecordSource.DNS;
-                    return new Hop(
-                        removeTrailingPeriod(rA.getRecord().getName()),
-                        rA.getRecord().getAddress(),
-                        transport,
-                        srvRecord.getPort(),
-                        srvRecord.getPriority(),
-                        source);
-                  })
-              .collect(Collectors.toList());
+    try {
+      Set<Hop> hops = new LinkedHashSet<>();
+      List<MatchedDNSSRVRecord> srvRecords =
+          resolveSRV(name, transport.toString(), injectSRV, responseLog);
+      response.setDnsSRVRecords(srvRecords);
+      for (MatchedDNSSRVRecord r : srvRecords) {
+        final DNSSRVRecord srvRecord = r.getRecord();
+        List<MatchedDNSARecord> aRecordsFromHost =
+            lookupHostname(srvRecord.getTarget(), injectA, responseLog);
+        // allow dups. Should be rare, but let's see them.
+        response.getDnsARecords().addAll(aRecordsFromHost);
+        // IP address comes from A record, port comes from the SRV record
+        List<Hop> srvHops =
+            aRecordsFromHost.stream()
+                .map(
+                    rA -> {
+                      // If the SRV or host record were injected, the hop is tagged as injected too.
+                      DNSRecordSource source =
+                          (r.getSource() == DNSRecordSource.INJECTED
+                                  || rA.getSource() == DNSRecordSource.INJECTED)
+                              ? DNSRecordSource.INJECTED
+                              : DNSRecordSource.DNS;
+                      return new Hop(
+                          removeTrailingPeriod(rA.getRecord().getName()),
+                          rA.getRecord().getAddress(),
+                          transport,
+                          srvRecord.getPort(),
+                          srvRecord.getPriority(),
+                          source);
+                    })
+                .collect(Collectors.toList());
 
-      hops.addAll(srvHops);
-    }
-    if (!hops.isEmpty()) {
-      response.setType(LocateSIPServersResponse.Type.SRV);
-    }
-    response.getHops().addAll(hops);
+        hops.addAll(srvHops);
+      }
+      if (!hops.isEmpty()) {
+        response.setType(LocateSIPServersResponse.Type.SRV);
+      }
+      response.getHops().addAll(hops);
 
-    responseLog.append(
-        "Found %s SRV records for name=%s transport=%s",
-        response.getDnsSRVRecords().size(), name, transport.toString());
+      responseLog.append(
+          "Found %s SRV records for name=%s transport=%s",
+          response.getDnsSRVRecords().size(), name, transport.toString());
+    } catch (DnsException ex) {
+      response.setDnsException(ex);
+    } catch (Exception e) {
+      if (e.getCause() instanceof DnsException) {
+        response.setDnsException((DnsException) e.getCause());
+      }
+      logger.warn("exception while resolving dns {}", e.getCause());
+    }
   }
 
   // Lookup name as hostname in DNS A (AAAA not implemented yet).
@@ -327,26 +348,34 @@ public class DsSipServerLocator implements DsSipResolver {
       Transport transport,
       List<InjectedDNSARecord> injectA)
       throws ExecutionException, InterruptedException {
-
-    responseLog.append("Lookup hostname=%s.", name);
-    response.setDnsARecords(lookupHostname(name + ".", injectA, responseLog));
-    responseLog.append("Found %s hostname records.", response.getDnsARecords().size());
-    if (!response.getDnsARecords().isEmpty()) {
-      response.setType(LocateSIPServersResponse.Type.HOSTNAME);
+    try {
+      responseLog.append("Lookup hostname=%s.", name);
+      response.setDnsARecords(lookupHostname(name + ".", injectA, responseLog));
+      responseLog.append("Found %s hostname records.", response.getDnsARecords().size());
+      if (!response.getDnsARecords().isEmpty()) {
+        response.setType(LocateSIPServersResponse.Type.HOSTNAME);
+      }
+      response.setHops(
+          response.getDnsARecords().stream()
+              .map(
+                  r ->
+                      new Hop(
+                          removeTrailingPeriod(r.getRecord().getName()),
+                          r.getRecord().getAddress(),
+                          transport,
+                          port,
+                          0,
+                          r.getSource()))
+              .distinct()
+              .collect(Collectors.toList()));
+    } catch (DnsException ex) {
+      response.setDnsException(ex);
+    } catch (Exception e) {
+      if (e.getCause() instanceof DnsException) {
+        response.setDnsException((DnsException) e.getCause());
+      }
+      logger.warn("exception while resolving dns {}", e.getCause());
     }
-    response.setHops(
-        response.getDnsARecords().stream()
-            .map(
-                r ->
-                    new Hop(
-                        removeTrailingPeriod(r.getRecord().getName()),
-                        r.getRecord().getAddress(),
-                        transport,
-                        port,
-                        0,
-                        r.getSource()))
-            .distinct()
-            .collect(Collectors.toList()));
   }
 
   private List<MatchedDNSARecord> lookupHostname(

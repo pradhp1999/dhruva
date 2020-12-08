@@ -360,7 +360,7 @@ public abstract class DsTransportLayer
             network, transport, localAddress, localPort, remoteAddress, remotePort);
 
     try {
-      // TODO
+      // TODO MEETPASS Client Aysnc story
       connection = connectionFuture.get(network.getTcpConnectionTimeout(), TimeUnit.MILLISECONDS);
 
       logger.setMDC(

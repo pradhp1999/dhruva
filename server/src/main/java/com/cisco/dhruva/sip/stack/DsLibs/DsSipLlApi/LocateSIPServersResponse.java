@@ -6,9 +6,11 @@ import com.cisco.dhruva.sip.dto.Hop;
 import com.cisco.dhruva.sip.dto.MatchedDNSARecord;
 import com.cisco.dhruva.sip.dto.MatchedDNSSRVRecord;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class LocateSIPServersResponse {
@@ -18,6 +20,7 @@ public class LocateSIPServersResponse {
   private List<MatchedDNSARecord> dnsARecords;
   private List<String> log;
   private Type type;
+  @JsonIgnore private Exception dnsException;
 
   @JsonCreator
   public LocateSIPServersResponse(
@@ -25,16 +28,24 @@ public class LocateSIPServersResponse {
       @JsonProperty("dnsSRVRecords") List<MatchedDNSSRVRecord> dnsSRVRecords,
       @JsonProperty("dnsARecords") List<MatchedDNSARecord> dnsARecords,
       @JsonProperty("log") List<String> log,
-      @JsonProperty("type") Type type) {
+      @JsonProperty("type") Type type,
+      @JsonProperty("dnsException") Exception dnsException) {
     this.hops = hops;
     this.dnsSRVRecords = dnsSRVRecords;
     this.dnsARecords = dnsARecords;
     this.log = log;
     this.type = type;
+    this.dnsException = dnsException;
   }
 
   public LocateSIPServersResponse() {
-    this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), Type.UNKNOWN);
+    this(
+        new ArrayList<>(),
+        new ArrayList<>(),
+        new ArrayList<>(),
+        new ArrayList<>(),
+        Type.UNKNOWN,
+        null);
   }
 
   public List<Hop> getHops() {
@@ -71,6 +82,14 @@ public class LocateSIPServersResponse {
 
   public void setType(Type type) {
     this.type = type;
+  }
+
+  public Optional<Exception> getDnsException() {
+    return Optional.ofNullable(dnsException);
+  }
+
+  public void setDnsException(Exception dnsException) {
+    this.dnsException = dnsException;
   }
 
   public static enum Type {

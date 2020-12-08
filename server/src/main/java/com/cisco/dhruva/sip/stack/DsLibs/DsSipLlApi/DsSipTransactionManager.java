@@ -597,7 +597,6 @@ public class DsSipTransactionManager {
           Optional<DsSipConnection> conn = getConnectionFromBindingInfo(bInfo);
           if (conn.isPresent()) ret_connection = conn.get();
         }
-
       } catch (Exception e) {
         logger.error("exception {}", e);
       }
@@ -767,7 +766,7 @@ public class DsSipTransactionManager {
                       bInfo.getTransport(),
                       false);
 
-      return Optional.of(ret_connection);
+      return Optional.ofNullable(ret_connection);
     } catch (Exception e) {
       logger.error("Exception {}", e);
       return Optional.empty();

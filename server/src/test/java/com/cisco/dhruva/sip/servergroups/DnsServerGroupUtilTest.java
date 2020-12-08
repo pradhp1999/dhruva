@@ -15,6 +15,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
 import com.cisco.dhruva.transport.Transport;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import org.testng.Assert;
@@ -50,12 +51,16 @@ public class DnsServerGroupUtilTest {
                 null,
                 null,
                 null,
-                LocateSIPServersResponse.Type.HOSTNAME));
+                LocateSIPServersResponse.Type.HOSTNAME,
+                null));
 
     DnsServerGroupUtil dnsServerGroupUtil = new DnsServerGroupUtil(sipServerLocatorService);
-    ServerGroupInterface dnsServerGroup =
+    Optional<ServerGroupInterface> group =
         dnsServerGroupUtil.createDNSServerGroup(
             new DsByteString("webex.example.com"), 5061, dsNetwork, Transport.TLS, null);
+
+    Assert.assertTrue(group.isPresent());
+    ServerGroupInterface dnsServerGroup = group.get();
 
     TreeSet<ServerGroupElementInterface> actualElementList = dnsServerGroup.getElements();
 

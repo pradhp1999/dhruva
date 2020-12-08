@@ -46,11 +46,12 @@ public class RouteResponseHandler implements MessageListener {
         case SRV: // L2SIP cluster address
           loc.setURI(request.getURI());
           loc.setProcessRoute(true);
+          // Below is true , if we want to modify outgoing requri to the destination
           // loc.setURI(DsURI.constructFrom("sip:" + routeResult.address));
-          // loc.setURI(request.getURI());
+          // processRoute should be false
           break;
         default:
-          logger.warn("routeResult not set properly for request {}", request.getCallId());
+          logger.warn("routeResult not set properly for request, {}", routeResult);
       }
       loc.setNetwork(network);
       return loc;
@@ -91,7 +92,13 @@ public class RouteResponseHandler implements MessageListener {
               DsSipRouteHeader r = new DsSipRouteHeader(DsURI.constructFrom(routeHeader));
               DsSipHeaderList routeHeaders = new DsSipHeaderList();
               routeHeaders.addLast(r);
-              loc.setRouteHeaders(routeHeaders);
+              // MEETPASS tEMP
+              // loc.setRouteHeaders(routeHeaders);
+              // Adding at the begining , in middialog there will be Route headers already.We want
+              // to priotize ours
+              // Dhruva point Route will be removed by Server transaction.
+              request.removeHeaders(DsSipConstants.ROUTE);
+              request.addHeaders(routeHeaders, true);
               logger.info("adding route header {} in to location {}", r.toString(), loc);
             } catch (DsSipParserException e) {
               throw new DhruvaException(

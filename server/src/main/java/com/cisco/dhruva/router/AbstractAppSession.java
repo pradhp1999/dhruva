@@ -15,6 +15,9 @@ public abstract class AbstractAppSession implements AppInterface {
   private final Logger logger = DhruvaLoggerFactory.getLogger(AbstractAppSession.class);
 
   public AbstractAppSession() {
+    //      ApplicationContext applicationContext = SpringApplicationContext.getAppContext();
+    //      if (applicationContext == null) throw new DhruvaException("spring app context null");
+    //      dhruvaProperties = applicationContext.getBean(DhruvaProperties.class);
     this.appEngine = new AppEngine(this.handleResponseFromApp);
   }
 
@@ -31,7 +34,7 @@ public abstract class AbstractAppSession implements AppInterface {
   Consumer<IDhruvaMessage> handleResponseFromApp =
       (response) -> {
         Objects.requireNonNull(response);
-        logger.info("onResponse: invoking message handler {}", response.getSessionId());
+        logger.info("onResponse: invoking message handler for message {}", response.getSessionId());
         MessageListener handler;
         handler = (MessageListener) response.getContext().get(CommonContext.PROXY_RESPONSE_HANDLER);
         handler.onMessage(response);

@@ -9,6 +9,7 @@ import com.cisco.dhruva.common.executor.ExecutorService;
 import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
+import com.cisco.dhruva.router.AppEngine;
 import com.cisco.dhruva.sip.bean.SIPListenPoint;
 import com.cisco.dhruva.sip.controller.DsREControllerFactory;
 import com.cisco.dhruva.sip.proxy.DsSipProxyManager;
@@ -75,6 +76,8 @@ public class SIPService {
         new DsSipProxyManager(sipTransportLayer, controllerFactory, transactionFactory, resolver);
     proxyManager.setRouteFixInterface(controllerFactory);
     DsControllerConfig.getCurrent().setLocatorService(resolver);
+
+    AppEngine.startShutdownTimers(executorService);
   }
 
   private void initTransportLayer(List<SIPListenPoint> sipListenPoints) throws Exception {

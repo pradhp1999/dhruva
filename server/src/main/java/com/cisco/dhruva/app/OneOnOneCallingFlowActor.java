@@ -20,6 +20,9 @@ public class OneOnOneCallingFlowActor extends CallFlow {
   private static Predicate<IDhruvaMessage> filter;
   private DhruvaProperties dhruvaProperties;
 
+  // TODO, This is temp fix for predicate checks.
+  // Currently we are not handling cascade calls and accepting calls with reqURI ending with
+  // webex.com
   static void init() {
     filter = dhruvaMessage -> true;
   }
@@ -62,6 +65,7 @@ public class OneOnOneCallingFlowActor extends CallFlow {
                 "DhruvaTlsPrivate"),
             null,
             doCallFlowCommand.dhruvaMessage));
+
     return this;
   }
 }

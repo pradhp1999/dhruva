@@ -18,7 +18,7 @@ import java.util.Optional;
 public class DsAppController extends DsProxyController implements DsControllerInterface {
 
   // MEETPASS set through config
-  private boolean processRouteHeader = false;
+  private boolean processRouteHeader = true;
 
   protected static Logger Log = DhruvaLoggerFactory.getLogger(DsAppController.class);
 
@@ -59,7 +59,7 @@ public class DsAppController extends DsProxyController implements DsControllerIn
           || request.getHeader(DsSipConstants.ROUTE) == null
           || !DsSipClientTransactionImpl.isMidDialogRequest(request)) {
         Log.info(
-            "sending the request to adaptor layer for further processing "
+            "sending the request to adaptor layer for further processing, not a midcall: "
                 + !DsSipClientTransactionImpl.isMidDialogRequest(request)
                 + "; route: "
                 + request.getHeader(DsSipConstants.ROUTE)

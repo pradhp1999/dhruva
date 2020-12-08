@@ -14,6 +14,7 @@ public class DnsException extends RuntimeException {
   }
 
   public DnsException(int queryType, String query, DnsErrorCode errorCode) {
+    super("query:" + query + " type" + queryType + " description" + errorCode.getDescription());
     this.queryType = queryType;
     this.query = query;
     this.errorCode = errorCode;
@@ -29,5 +30,9 @@ public class DnsException extends RuntimeException {
 
   public String getQuery() {
     return query;
+  }
+
+  public String toString() {
+    return "query: " + query + " type " + queryType + " description " + errorCode.getDescription();
   }
 }

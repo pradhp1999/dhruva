@@ -9,7 +9,6 @@ import com.cisco.dhruva.common.dns.metrics.DnsTimingContext;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import org.xbill.DNS.Type;
 
 /** Tracks metrics for DnsSrvResolver calls. */
 class MeteredDnsResolver implements DnsLookup {
@@ -38,10 +37,10 @@ class MeteredDnsResolver implements DnsLookup {
       }
     } catch (DnsException error) {
       reporter.reportFailure(fqdn, "SRV", error);
-      throw error;
+      f1.completeExceptionally(error);
     } catch (InterruptedException | ExecutionException error) {
       reporter.reportFailure(fqdn, "SRV", error);
-      throw new DnsException(Type.SRV, fqdn, DnsErrorCode.ERROR_DNS_INTERNAL_ERROR);
+      f1.completeExceptionally(error.getCause());
     } finally {
       resolveTimer.stop(fqdn, "SRV");
     }
@@ -66,10 +65,10 @@ class MeteredDnsResolver implements DnsLookup {
       }
     } catch (DnsException error) {
       reporter.reportFailure(host, "A", error);
-      throw error;
+      f1.completeExceptionally(error);
     } catch (InterruptedException | ExecutionException error) {
       reporter.reportFailure(host, "A", error);
-      throw new DnsException(Type.A, host, DnsErrorCode.ERROR_DNS_INTERNAL_ERROR);
+      f1.completeExceptionally(error.getCause());
     } finally {
       resolveTimer.stop(host, "A");
     }

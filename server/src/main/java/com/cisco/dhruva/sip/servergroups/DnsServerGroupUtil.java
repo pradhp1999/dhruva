@@ -12,9 +12,11 @@ import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 public class DnsServerGroupUtil {
   private float maxDnsPriority = 65535f;
@@ -28,31 +30,51 @@ public class DnsServerGroupUtil {
     this.locatorService = locatorService;
   }
 
-  public ServerGroupInterface createDNSServerGroup(
+  public Optional<ServerGroupInterface> createDNSServerGroup(
       DsByteString host, int port, DsNetwork network, Transport protocol, DsSipRequest request)
       throws ExecutionException, InterruptedException {
     // create DNS ServerGroup from from SRV, if SRV lookup fails then do A records lookup
 
     log.debug("new Server Group will be created by doing DNS SRV/A lookup for host : " + host);
 
-    DnsDestination dnsDestination =
-        new DnsDestination(host.toString(), port, LocateSIPServerTransportType.TLS_AND_TCP);
+    LocateSIPServerTransportType transportType = LocateSIPServerTransportType.TLS;
+    switch (protocol) {
+      case TLS:
+        transportType = LocateSIPServerTransportType.TLS_AND_TCP;
+        break;
+      case TCP:
+        transportType = LocateSIPServerTransportType.TCP_AND_TLS;
+        break;
+      case UDP:
+        transportType = LocateSIPServerTransportType.UDP;
+        break;
+      default:
+        log.error("unknown transport type", protocol);
+    }
+
+    DnsDestination dnsDestination = new DnsDestination(host.toString(), port, transportType);
 
     LocateSIPServersResponse locateSIPServersResponse =
         locatorService.locateDestination(null, dnsDestination, null);
 
-    return getServerGroupFromHops(locateSIPServersResponse, network, host, protocol);
+    List<Hop> hops = locateSIPServersResponse.getHops();
+    if (hops == null || hops.isEmpty()) {
+      log.warn("dns resolution failed for host {}", host.toString());
+      return Optional.empty();
+    }
 
-    // TODO DNS Handle failures
+    Optional<Exception> ex = locateSIPServersResponse.getDnsException();
+    if (ex.isPresent()) return Optional.empty();
+
+    return Optional.ofNullable(getServerGroupFromHops(hops, network, host, protocol));
   }
 
   public ServerGroupInterface getServerGroupFromHops(
-      LocateSIPServersResponse response, DsNetwork network, DsByteString host, Transport protocol) {
+      @Nullable List<Hop> hops, DsNetwork network, DsByteString host, Transport protocol) {
 
-    List<Hop> networkHops = response.getHops();
-
+    assert hops != null;
     TreeSet<ServerGroupElementInterface> elementList =
-        networkHops.stream()
+        hops.stream()
             .map(
                 r ->
                     new DnsNextHop(

@@ -12,6 +12,8 @@ import com.cisco.dhruva.Exception.DhruvaException;
 import com.cisco.dhruva.app.ControllerActor;
 import com.cisco.dhruva.app.ControllerActor.Command;
 import com.cisco.dhruva.common.context.ExecutionContext;
+import com.cisco.dhruva.common.executor.ExecutorService;
+import com.cisco.dhruva.common.executor.ExecutorType;
 import com.cisco.dhruva.common.messaging.DhruvaMessageImpl;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.common.messaging.models.MessageBody;
@@ -19,16 +21,17 @@ import com.cisco.dhruva.common.messaging.models.MessageBodyType;
 import com.cisco.dhruva.sip.controller.DsProxyResponseGenerator;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
+import com.cisco.dhruva.util.SpringApplicationContext;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import org.springframework.context.ApplicationContext;
 
 public class AppEngine {
 
@@ -41,6 +44,9 @@ public class AppEngine {
 
   private static final ActorSystem<SpawnProtocol.Command> system;
 
+  private static ExecutorService executorService;
+  private static ScheduledExecutorService timer;
+
   static {
     // TODO,need to call system.terminate while shutting down
     system =
@@ -50,8 +56,20 @@ public class AppEngine {
   public AppEngine(Consumer<IDhruvaMessage> session) {
     Objects.requireNonNull(session);
     this.session = session;
+
+    ApplicationContext applicationContext = SpringApplicationContext.getAppContext();
+    if (applicationContext == null) throw new DhruvaException("spring app context null");
+    executorService = applicationContext.getBean(ExecutorService.class);
     // Spawn Akka actor to handle all messages for this transaction
     this.start();
+  }
+
+  public static void startShutdownTimers(ExecutorService executorService) {
+    if (timer != null) {
+      timer.shutdownNow();
+    }
+    executorService.startScheduledExecutorService(ExecutorType.AKKA_CONTROLLER_TIMER, 5);
+    timer = executorService.getScheduledExecutorThreadPool(ExecutorType.AKKA_CONTROLLER_TIMER);
   }
 
   public void start() {
@@ -80,10 +98,12 @@ public class AppEngine {
               system.scheduler());
 
       result
-          .whenCompleteAsync(appCallback)
+          .whenCompleteAsync(
+              appCallback,
+              executorService.getExecutorThreadPool(ExecutorType.SIP_TRANSACTION_PROCESSOR))
           .exceptionally(
               throwable -> {
-                logger.error("exit" + "error in route processing", throwable.getMessage());
+                logger.error("error in route processing", throwable.getMessage());
                 return new ControllerActor.RouteResult(
                     null, null, new DhruvaException("route failure"));
               });
@@ -95,7 +115,9 @@ public class AppEngine {
               Duration.ofSeconds(60),
               system.scheduler());
       result
-          .whenCompleteAsync(appCallback)
+          .whenCompleteAsync(
+              appCallback,
+              executorService.getExecutorThreadPool(ExecutorType.SIP_TRANSACTION_PROCESSOR))
           .exceptionally(
               throwable -> {
                 logger.error("error in route processing", throwable.getMessage());
@@ -135,19 +157,17 @@ public class AppEngine {
         // Schedule release of controller actor after 120 sec, TODO make time val configurable
         // Use Scheduled Executor service
 
-        new Timer()
-            .schedule(
-                wrap(
-                    () -> {
-                      if (actorRef != null)
-                        actorRef.tell(ControllerActor.GracefulShutdown.INSTANCE);
-                    }),
-                320000);
+        timer.schedule(
+            () -> {
+              if (actorRef != null) actorRef.tell(ControllerActor.GracefulShutdown.INSTANCE);
+            },
+            240,
+            TimeUnit.SECONDS);
 
       } catch (Exception e) {
         throw new DhruvaException(
             "Exception spawning controller actor using spawn-protocol , call will fail",
-            e,
+            e.getCause(),
             "Could be a bug in Controller actor spawn");
       }
     }
@@ -157,12 +177,12 @@ public class AppEngine {
       (routeResult, throwable) -> {
         logger.setMDC(routeResult.response.getLogContext().getLogContextAsMap());
         if (routeResult.error != null || throwable != null) {
-          logger.error("exception in route processing {}", routeResult.error);
+          logger.error("exception in route processing {}", routeResult.error.getMessage());
           IDhruvaMessage errorResponse = null;
           try {
             errorResponse =
                 new DhruvaMessageImpl(
-                    null,
+                    routeResult.response.getContext().copy(),
                     null,
                     MessageBody.fromPayloadData(
                         DsProxyResponseGenerator.createNotFoundResponse(
@@ -178,14 +198,4 @@ public class AppEngine {
           session.accept(routeResult.response);
         }
       };
-
-  private static TimerTask wrap(Runnable r) {
-    return new TimerTask() {
-
-      @Override
-      public void run() {
-        r.run();
-      }
-    };
-  }
 }

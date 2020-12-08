@@ -7,7 +7,8 @@ public enum ExecutorType {
   SIP_TIMER(3),
   SERVER_TRANSACTION_CALLBACK(4),
   CLIENT_TRANSACTION_CALLBACK(5),
-  METRIC_SERVICE(6);
+  METRIC_SERVICE(6),
+  AKKA_CONTROLLER_TIMER(7);
 
   ExecutorType(int val) {}
 

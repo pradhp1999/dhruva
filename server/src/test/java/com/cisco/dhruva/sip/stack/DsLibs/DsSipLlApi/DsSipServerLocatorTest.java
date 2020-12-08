@@ -321,8 +321,8 @@ public class DsSipServerLocatorTest {
             new Hop(
                 srvHostname,
                 injectSRVTargetAddress,
-                Transport.TCP,
-                5060,
+                Transport.TLS,
+                5061,
                 0,
                 DNSRecordSource.INJECTED));
       }

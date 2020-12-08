@@ -11,6 +11,7 @@ import com.cisco.dhruva.common.dns.metrics.DnsReporter;
 import com.cisco.dhruva.common.dns.metrics.DnsTimingContext;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -96,7 +97,7 @@ public class MeteredDnsResolverTest {
       f = resolver.lookupSRV(FQDN);
       List<DNSSRVRecord> dnssrvRecords = f.get();
       Assert.fail();
-    } catch (DnsException ignored) {
+    } catch (DnsException | ExecutionException ignored) {
 
     }
 
@@ -113,10 +114,9 @@ public class MeteredDnsResolverTest {
       f = resolver.lookupA(FQDN);
       List<DNSARecord> dnssrvRecords = f.get();
       Assert.fail();
-    } catch (DnsException ignored) {
+    } catch (DnsException | ExecutionException ignored) {
 
     }
-
     verify(reporter, never()).reportEmpty(FQDN, "A");
     verify(reporter).reportFailure(FQDN, "A", EXCEPTION);
   }

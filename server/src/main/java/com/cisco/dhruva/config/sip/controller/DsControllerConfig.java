@@ -12,6 +12,7 @@ import com.cisco.dhruva.sip.DsUtil.ViaListenIf;
 import com.cisco.dhruva.sip.controller.DsProxyController;
 import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationException;
 import com.cisco.dhruva.sip.controller.exceptions.DsSipHostNotValidException;
+import com.cisco.dhruva.sip.dto.Hop;
 import com.cisco.dhruva.sip.enums.LocateSIPServerTransportType;
 import com.cisco.dhruva.sip.proxy.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.*;
@@ -455,10 +456,17 @@ public final class DsControllerConfig
         LocateSIPServerTransportType transportType = LocateSIPServerTransportType.TLS;
         if (transport == Transport.TLS) transportType = LocateSIPServerTransportType.TLS;
         if (transport == Transport.TCP) transportType = LocateSIPServerTransportType.TCP;
+        if (transport == Transport.UDP) transportType = LocateSIPServerTransportType.UDP;
 
         DnsDestination destination = new DnsDestination(host.toString(), port, transportType);
         LocateSIPServersResponse locateSIPServersResponse =
             sipLocator.locateDestination(null, destination, null);
+
+        List<Hop> hops = locateSIPServersResponse.getHops();
+
+        if (hops == null || hops.isEmpty()) {
+          throw new DsSipHostNotValidException(new Exception("failed"));
+        }
 
         List<DsBindingInfo> bInfos =
             sipLocator.getBindingInfoMapFromHops(
