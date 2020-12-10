@@ -18,7 +18,8 @@ import java.util.Optional;
 public class DsAppController extends DsProxyController implements DsControllerInterface {
 
   // MEETPASS set through config
-  private boolean processRouteHeader = true;
+  // If this is True, packet will be sent to App.
+  private boolean processRouteHeader = false;
 
   protected static Logger Log = DhruvaLoggerFactory.getLogger(DsAppController.class);
 
@@ -57,14 +58,17 @@ public class DsAppController extends DsProxyController implements DsControllerIn
 
       if (processRouteHeader
           || request.getHeader(DsSipConstants.ROUTE) == null
-          || !DsSipClientTransactionImpl.isMidDialogRequest(request)) {
+          || !DsSipClientTransactionImpl.isMidDialogRequest(request)
+          || !request.getNetwork().getName().equalsIgnoreCase("DhruvaTlsPrivate")) {
         Log.info(
-            "sending the request to adaptor layer for further processing, not a midcall: "
+            "sending the request to adaptor layer for further processing: "
                 + !DsSipClientTransactionImpl.isMidDialogRequest(request)
                 + "; route: "
                 + request.getHeader(DsSipConstants.ROUTE)
                 + "; processRoute: "
-                + processRouteHeader);
+                + processRouteHeader
+                + "; request Network Name "
+                + request.getNetwork().getName());
         AppAdaptorInterface proxyAdaptor = getProxyAdaptor();
         Optional<AppAdaptorInterface> p = Optional.ofNullable(proxyAdaptor);
         if (p.isPresent()) proxyAdaptor.handleRequest(request);
