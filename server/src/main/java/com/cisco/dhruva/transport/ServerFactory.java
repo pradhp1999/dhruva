@@ -13,9 +13,6 @@ import com.cisco.dhruva.transport.netty.ssl.NettyTLSServer;
 
 public class ServerFactory {
 
-  private Server udpServer;
-  private Server tlsServer;
-  private final Object lock = new Object();
   private static ServerFactory serverFactory = new ServerFactory();
 
   public static ServerFactory newInstance() {
@@ -35,38 +32,21 @@ public class ServerFactory {
       MetricService metricService,
       ChannelEventsListener connectionCacheEventHandler)
       throws Exception {
-    Server server;
     switch (transport) {
       case UDP:
-        if (udpServer == null) {
-          synchronized (lock) {
-            if (udpServer == null) {
-              udpServer =
-                  new NettyUDPServer(
-                      messageForwarder, networkConfig, executorService, metricService);
-              udpServer.addConnectionEventHandler(connectionCacheEventHandler);
-            }
-          }
-        }
-        server = udpServer;
-        break;
+        Server udpServer =
+            new NettyUDPServer(messageForwarder, networkConfig, executorService, metricService);
+        udpServer.addConnectionEventHandler(connectionCacheEventHandler);
+        return udpServer;
 
       case TLS:
-        if (tlsServer == null) {
-          synchronized (lock) {
-            if (tlsServer == null) {
-              tlsServer =
-                  new NettyTLSServer(
-                      messageForwarder, networkConfig, executorService, metricService);
-              tlsServer.addConnectionEventHandler(connectionCacheEventHandler);
-            }
-          }
-        }
-        server = tlsServer;
-        break;
+        Server tlsServer =
+            new NettyTLSServer(messageForwarder, networkConfig, executorService, metricService);
+        tlsServer.addConnectionEventHandler(connectionCacheEventHandler);
+        return tlsServer;
+
       default:
         throw new Exception("Transport " + transport.name() + " not supported");
     }
-    return server;
   }
 }

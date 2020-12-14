@@ -502,40 +502,40 @@ public class DsProxyControllerServerTest {
   public Object[] getRecordRouteHeader() throws DsSipParserListenerException, DsSipParserException {
     // single network (hostPort true/false & host IP/FQDN will result in same output after flip)
     DsSipRecordRouteHeader rr1 =
-        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
+        new DsSipRecordRouteHeader("<sip:rr$n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
     DsSipRecordRouteHeader rr1AfterFlip =
-        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
+        new DsSipRecordRouteHeader("<sip:rr$n=Default@127.0.0.1:5060;transport=udp;lr>".getBytes());
 
     // host portion is a 'external IP' attached network
     DsSipRecordRouteHeader rr2 =
-        new DsSipRecordRouteHeader("<sip:rr,n=Default@1.1.1.1:5061;transport=udp;lr>".getBytes());
+        new DsSipRecordRouteHeader("<sip:rr$n=Default@1.1.1.1:5061;transport=udp;lr>".getBytes());
     DsSipRecordRouteHeader rr2AfterFlip =
         new DsSipRecordRouteHeader(
-            "<sip:rr,n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
+            "<sip:rr$n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
 
     // user portion is a 'external IP' attached network
     DsSipRecordRouteHeader rr3 =
         new DsSipRecordRouteHeader(
-            "<sip:rr,n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
+            "<sip:rr$n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
     DsSipRecordRouteHeader rr3AfterFlip =
-        new DsSipRecordRouteHeader("<sip:rr,n=Default@1.1.1.1:5061;transport=udp;lr>".getBytes());
+        new DsSipRecordRouteHeader("<sip:rr$n=Default@1.1.1.1:5061;transport=udp;lr>".getBytes());
     DsSipRecordRouteHeader rr3AfterFlipWithHostPortDisabled =
-        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5061;transport=udp;lr>".getBytes());
+        new DsSipRecordRouteHeader("<sip:rr$n=Default@127.0.0.1:5061;transport=udp;lr>".getBytes());
     DsSipRecordRouteHeader rr3AfterFlipWithFqdn =
         new DsSipRecordRouteHeader(
-            "<sip:rr,n=Default@dhruva.sjc.webex.com:5061;transport=udp;lr>".getBytes());
+            "<sip:rr$n=Default@dhruva.sjc.webex.com:5061;transport=udp;lr>".getBytes());
 
     // host portion is a 'external IP' attached network but 'hostPort' toggle is disabled
     DsSipRecordRouteHeader rr4 =
-        new DsSipRecordRouteHeader("<sip:rr,n=Default@127.0.0.1:5061;transport=udp;lr>".getBytes());
+        new DsSipRecordRouteHeader("<sip:rr$n=Default@127.0.0.1:5061;transport=udp;lr>".getBytes());
     DsSipRecordRouteHeader rr4AfterFlip =
         new DsSipRecordRouteHeader(
-            "<sip:rr,n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
+            "<sip:rr$n=External_IP_enabled@127.0.0.1:5060;transport=udp;lr>".getBytes());
 
     // host portion is a 'external IP' attached network, FQDN provided
     DsSipRecordRouteHeader rr5 =
         new DsSipRecordRouteHeader(
-            "<sip:rr,n=Default@dhruva.sjc.webex.com:5061;transport=udp;lr>".getBytes());
+            "<sip:rr$n=Default@dhruva.sjc.webex.com:5061;transport=udp;lr>".getBytes());
 
     String hostIP = "1.1.1.1";
     String hostFqdn = "dhruva.sjc.webex.com";
@@ -637,7 +637,7 @@ public class DsProxyControllerServerTest {
         DsProxyResponseGenerator.createResponse(DsSipResponseCode.DS_RESPONSE_OK, sipRequest);
 
     DsSipRecordRouteHeader rr1 =
-        new DsSipRecordRouteHeader("<sip:rr,n=service@1.2.3.4:5080;transport=udp;lr>".getBytes());
+        new DsSipRecordRouteHeader("<sip:rr$n=service@1.2.3.4:5080;transport=udp;lr>".getBytes());
     resp.addHeader(rr1);
     resp.addHeader(rrProvider.rrToAdd);
 

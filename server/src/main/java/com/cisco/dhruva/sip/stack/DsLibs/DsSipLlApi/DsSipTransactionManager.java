@@ -722,7 +722,7 @@ public class DsSipTransactionManager {
     try {
       List<Hop> networkHops = sipServersResponse.getHops();
       if (!networkHops.isEmpty()) {
-        //Get the first element in priority
+        // Get the first element in priority
         Hop nextElement = networkHops.get(0);
 
         if (lAddr == null && lPort <= 0) {

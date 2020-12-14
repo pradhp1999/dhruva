@@ -425,7 +425,7 @@ public class DsProxyTransactionTest {
         new RRViaHeaderValidationDataProvider(
             dsNetwork,
             incomingMessageBindingInfo1,
-            "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            "<sip:rr$n=Default@127.0.0.1:5060;transport=udp;lr>",
             "1.1.1.1",
             true)
       },
@@ -433,7 +433,7 @@ public class DsProxyTransactionTest {
         new RRViaHeaderValidationDataProvider(
             externalIpEnabledNetwork,
             incomingMessageBindingInfo2,
-            "<sip:rr,n=External_IP_enabled@1.1.1.1:5061;transport=udp;lr>",
+            "<sip:rr$n=External_IP_enabled@1.1.1.1:5061;transport=udp;lr>",
             "1.1.1.1",
             true)
       },
@@ -441,7 +441,7 @@ public class DsProxyTransactionTest {
         new RRViaHeaderValidationDataProvider(
             dsNetwork,
             incomingMessageBindingInfo1,
-            "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            "<sip:rr$n=Default@127.0.0.1:5060;transport=udp;lr>",
             "1.1.1.1",
             false)
       },
@@ -449,7 +449,7 @@ public class DsProxyTransactionTest {
         new RRViaHeaderValidationDataProvider(
             externalIpEnabledNetwork,
             incomingMessageBindingInfo2,
-            "<sip:rr,n=External_IP_enabled@127.0.0.1:5061;transport=udp;lr>",
+            "<sip:rr$n=External_IP_enabled@127.0.0.1:5061;transport=udp;lr>",
             "1.1.1.1",
             false)
       },
@@ -457,7 +457,7 @@ public class DsProxyTransactionTest {
         new RRViaHeaderValidationDataProvider(
             dsNetwork,
             incomingMessageBindingInfo1,
-            "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            "<sip:rr$n=Default@127.0.0.1:5060;transport=udp;lr>",
             "dhruva.sjc.webex.com",
             true)
       },
@@ -465,7 +465,7 @@ public class DsProxyTransactionTest {
         new RRViaHeaderValidationDataProvider(
             externalIpEnabledNetwork,
             incomingMessageBindingInfo2,
-            "<sip:rr,n=External_IP_enabled@dhruva.sjc.webex.com:5061;transport=udp;lr>",
+            "<sip:rr$n=External_IP_enabled@dhruva.sjc.webex.com:5061;transport=udp;lr>",
             "dhruva.sjc.webex.com",
             true)
       },
@@ -473,7 +473,7 @@ public class DsProxyTransactionTest {
         new RRViaHeaderValidationDataProvider(
             dsNetwork,
             incomingMessageBindingInfo1,
-            "<sip:rr,n=Default@127.0.0.1:5060;transport=udp;lr>",
+            "<sip:rr$n=Default@127.0.0.1:5060;transport=udp;lr>",
             "dhruva.sjc.webex.com",
             false)
       },
@@ -481,7 +481,7 @@ public class DsProxyTransactionTest {
         new RRViaHeaderValidationDataProvider(
             externalIpEnabledNetwork,
             incomingMessageBindingInfo2,
-            "<sip:rr,n=External_IP_enabled@127.0.0.1:5061;transport=udp;lr>",
+            "<sip:rr$n=External_IP_enabled@127.0.0.1:5061;transport=udp;lr>",
             "dhruva.sjc.webex.com",
             false)
       }
@@ -718,7 +718,7 @@ public class DsProxyTransactionTest {
 
     DsSipRecordRouteHeader rrHeader =
         new DsSipRecordRouteHeader(
-            "Record-Route: <sip:rr,n=Default@1.2.3.4:5060;transport=udp;lr>".getBytes());
+            "Record-Route: <sip:rr$n=Default@1.2.3.4:5060;transport=udp;lr>".getBytes());
 
     resp.addHeader(rrHeader);
 

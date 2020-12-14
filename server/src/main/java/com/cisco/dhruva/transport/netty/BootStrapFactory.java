@@ -14,16 +14,17 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BootStrapFactory {
 
   private static final BootStrapFactory bootStrapFactory = new BootStrapFactory();
-  private Bootstrap udpClientBootstrap;
-  private AbstractBootstrap udpServerBootstrap;
-  private AbstractBootstrap tlsServerBootstrap;
 
-  private final Object lock = new Object();
-  private Bootstrap tlsClientBootstrap;
+  private static final String NETWORK_CLIENT_BOOTSTRAP = "client";
+  private static final String NETWORK_SERVER_BOOTSTRAP = "server";
+
+  private ConcurrentHashMap<DsNetwork, ConcurrentHashMap<String, AbstractBootstrap>>
+      bootStrapNetworkMap = new ConcurrentHashMap<>();
 
   public static BootStrapFactory getInstance() {
     return bootStrapFactory;
@@ -32,32 +33,34 @@ public class BootStrapFactory {
   public Bootstrap getClientBootStrap(
       Transport transport, DsNetwork networkConfig, ChannelInitializer channelInitializer)
       throws Exception {
+    ConcurrentHashMap<String, AbstractBootstrap> networkClientMap;
     switch (transport) {
       case UDP:
-        synchronized (lock) {
-          if (udpClientBootstrap == null) {
-            udpClientBootstrap =
-                new Bootstrap()
-                    .channel(NioDatagramChannel.class)
-                    .handler(channelInitializer)
-                    .group(EventLoopGroupFactory.getInstance(Transport.UDP, networkConfig));
-          }
-        }
+        networkClientMap =
+            bootStrapNetworkMap.computeIfAbsent(networkConfig, k -> new ConcurrentHashMap<>());
 
-        return udpClientBootstrap;
+        return (Bootstrap)
+            networkClientMap.computeIfAbsent(
+                NETWORK_CLIENT_BOOTSTRAP,
+                k ->
+                    new Bootstrap()
+                        .channel(NioDatagramChannel.class)
+                        .handler(channelInitializer)
+                        .group(EventLoopGroupFactory.getInstance(Transport.UDP, networkConfig)));
 
       case TLS:
-        synchronized (lock) {
-          if (tlsClientBootstrap == null) {
-            tlsClientBootstrap =
-                new Bootstrap()
-                    .channel(NioSocketChannel.class)
-                    .handler(channelInitializer)
-                    .group(EventLoopGroupFactory.getInstance(Transport.TLS, networkConfig));
-          }
-        }
+        networkClientMap =
+            bootStrapNetworkMap.computeIfAbsent(networkConfig, k -> new ConcurrentHashMap<>());
 
-        return tlsClientBootstrap;
+        return (Bootstrap)
+            networkClientMap.computeIfAbsent(
+                NETWORK_CLIENT_BOOTSTRAP,
+                k ->
+                    new Bootstrap()
+                        .channel(NioSocketChannel.class)
+                        .handler(channelInitializer)
+                        .group(EventLoopGroupFactory.getInstance(Transport.TLS, networkConfig)));
+
       default:
         throw new Exception("Transport " + transport + " not supported in getClientBootStrap");
     }
@@ -65,32 +68,29 @@ public class BootStrapFactory {
 
   public AbstractBootstrap getServerBootStrap(
       Transport transport, DsNetwork networkConfig, ChannelInitializer channelInitializer) {
-
+    ConcurrentHashMap<String, AbstractBootstrap> networkServerMap;
     switch (transport) {
       case UDP:
-        synchronized (lock) {
-          if (udpServerBootstrap == null) {
-            udpServerBootstrap =
+        networkServerMap =
+            bootStrapNetworkMap.computeIfAbsent(networkConfig, k -> new ConcurrentHashMap<>());
+        return networkServerMap.computeIfAbsent(
+            NETWORK_SERVER_BOOTSTRAP,
+            k ->
                 new Bootstrap()
                     .channel(NioDatagramChannel.class)
                     .handler(channelInitializer)
-                    .group(EventLoopGroupFactory.getInstance(Transport.UDP, networkConfig));
-          }
-        }
-        return udpServerBootstrap;
+                    .group(EventLoopGroupFactory.getInstance(Transport.UDP, networkConfig)));
 
       case TLS:
-        synchronized (lock) {
-          if (tlsServerBootstrap == null) {
-            tlsServerBootstrap =
+        networkServerMap =
+            bootStrapNetworkMap.computeIfAbsent(networkConfig, k -> new ConcurrentHashMap<>());
+        return networkServerMap.computeIfAbsent(
+            NETWORK_SERVER_BOOTSTRAP,
+            k ->
                 new ServerBootstrap()
                     .channel(NioServerSocketChannel.class)
                     .childHandler(channelInitializer)
-                    .group(EventLoopGroupFactory.getInstance(Transport.TLS, networkConfig));
-          }
-        }
-
-        return tlsServerBootstrap;
+                    .group(EventLoopGroupFactory.getInstance(Transport.TLS, networkConfig)));
     }
 
     return null;
@@ -99,8 +99,11 @@ public class BootStrapFactory {
   /*
   only used for Testing
    */
-  public void setUdpBootstrap(Bootstrap udpBootstrap) {
-    this.udpClientBootstrap = udpBootstrap;
-    this.udpServerBootstrap = udpBootstrap;
+  public void setUdpBootstrap(Bootstrap udpBootstrap, DsNetwork networkConfig) {
+    ConcurrentHashMap<String, AbstractBootstrap> networkMap;
+    networkMap = new ConcurrentHashMap<>();
+    networkMap.putIfAbsent(NETWORK_CLIENT_BOOTSTRAP, udpBootstrap);
+    networkMap.putIfAbsent(NETWORK_SERVER_BOOTSTRAP, udpBootstrap);
+    this.bootStrapNetworkMap.putIfAbsent(networkConfig, networkMap);
   }
 }

@@ -747,6 +747,8 @@ public class DsBindingInfo implements Cloneable, Serializable {
         .append(getRemotePort())
         .append(" Transport= ")
         .append(getTransport().name())
+        .append(" Network= ")
+        .append((getNetwork() == null) ? "NA" : getNetwork().getName())
         .toString();
   }
 

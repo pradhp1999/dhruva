@@ -8,7 +8,7 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
  */
 public class DsReConstants {
   public static final String DELIMITER_STR =
-      System.getProperty("com.cisco.re.util.PARAMS_DELIMITER", ",");
+      System.getProperty("com.cisco.re.util.PARAMS_DELIMITER", "$");
   public static final char DELIMITER_CHAR = DELIMITER_STR.charAt(0);
 
   public static final char EQUAL_CHAR = '=';

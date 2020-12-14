@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
 import com.cisco.dhruva.config.sip.controller.DsControllerConfig;
 import com.cisco.dhruva.sip.DsUtil.ListenIf;
+import com.cisco.dhruva.sip.controller.exceptions.DsInconsistentConfigurationException;
 import com.cisco.dhruva.sip.proxy.DsListenInterface;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipURL;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
@@ -48,7 +49,7 @@ public class HostPortUtilTest {
   }
 
   @BeforeMethod
-  private void addListenInterfaces() {
+  private void addListenInterfaces() throws Exception {
 
     // Add listen interfaces in DsControllerConfig
     try {
@@ -59,7 +60,10 @@ public class HostPortUtilTest {
           Transport.UDP,
           InetAddress.getByName(localIp),
           false);
+    } catch (DsInconsistentConfigurationException ignored) {
+    }
 
+    try {
       DsControllerConfig.addListenInterface(
           externalIpEnabledNetwork,
           InetAddress.getByName(localIp),
@@ -68,8 +72,7 @@ public class HostPortUtilTest {
           InetAddress.getByName(localIp),
           true);
 
-    } catch (Exception ignored) {
-      // In this case it was already set, there is no means to remove the key from map
+    } catch (DsInconsistentConfigurationException ignored) {
     }
   }
 
