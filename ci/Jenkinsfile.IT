@@ -59,7 +59,7 @@ node() {
                 sh '''
                  env
                  ls -lrth
-                 docker run --rm -v `pwd`:/opt/code -w /opt/code -e JAVA_VERSION=8  containers.cisco.com/ayogalin/maven-builder:one sh -c "/setenv.sh; java -version; /usr/share/maven/bin/mvn -Dmaven.test.failure.ignore clean verify"
+                 docker run --rm -v `pwd`:/opt/code -w /opt/code -e JAVA_VERSION=11  containers.cisco.com/ayogalin/maven-builder:one sh -c "/setenv.sh; java -version; /usr/share/maven/bin/mvn -Dmaven.test.failure.ignore clean verify"
                 '''
                 step([$class: 'JacocoPublisher', changeBuildStatus: true, classPattern: 'server/target/classes,client/target/classes', execPattern: '**/target/**.exec', minimumInstructionCoverage: '1'])
             }
