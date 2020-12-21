@@ -85,14 +85,14 @@ public abstract class AbstractDnsCache<T> {
       case Lookup.SUCCESSFUL:
         errorCode = DnsErrorCode.ERROR_UNKNOWN;
         break;
+      case Lookup.TRY_AGAIN:
+        errorCode = DnsErrorCode.ERROR_DNS_QUERY_TIMEDOUT;
+        break;
       case Lookup.HOST_NOT_FOUND:
         errorCode = DnsErrorCode.ERROR_DNS_HOST_NOT_FOUND;
         break;
       case Lookup.TYPE_NOT_FOUND:
         errorCode = DnsErrorCode.ERROR_DNS_INVALID_TYPE;
-        break;
-      case Lookup.TRY_AGAIN:
-        errorCode = DnsErrorCode.ERROR_DNS_QUERY_TIMEDOUT;
         break;
       default:
         errorCode = DnsErrorCode.ERROR_DNS_OTHER;

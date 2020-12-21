@@ -79,13 +79,14 @@ public class MetricService {
     sendMetric(metric);
   }
 
-  public void sendDNSMetric(String query, String queryType, long totalDurationsMillis) {
+  public void sendDNSMetric(String query, String queryType, long totalDurationsMillis, String errorMsg) {
     Metric metric =
         Metrics.newMetric()
             .measurement("dns")
             .field("dnsProcessingDelayMillis", totalDurationsMillis)
             .field("query", query)
-            .tag("queryType", queryType);
+            .tag("queryType", queryType)
+            .tag("failureReason", errorMsg);
 
     sendMetric(metric);
   }

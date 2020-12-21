@@ -59,7 +59,7 @@ public class MeteredDnsResolverTest {
   }
 
   @Test
-  public void shouldCountSuccessfulForSrv() throws Exception {
+  public void shouldCountSuccessfulForSrv() {
     when(delegate.lookupSRV(FQDN)).thenReturn(CompletableFuture.completedFuture(NOT_EMPTY_SRV));
 
     resolver.lookupSRV(FQDN);
@@ -69,7 +69,7 @@ public class MeteredDnsResolverTest {
   }
 
   @Test
-  public void shouldCountSuccessfulForA() throws Exception {
+  public void shouldCountSuccessfulForA() {
     when(delegate.lookupA(FQDN)).thenReturn(CompletableFuture.completedFuture(NOT_EMPTY_A));
 
     resolver.lookupA(FQDN);
@@ -79,7 +79,7 @@ public class MeteredDnsResolverTest {
   }
 
   @Test
-  public void shouldReportEmpty() throws Exception {
+  public void shouldReportEmpty() {
     when(delegate.lookupSRV(FQDN)).thenReturn(CompletableFuture.completedFuture(EMPTY_SRV));
 
     resolver.lookupSRV(FQDN);
@@ -93,7 +93,7 @@ public class MeteredDnsResolverTest {
     when(delegate.lookupSRV(FQDN)).thenThrow(EXCEPTION);
 
     try {
-      CompletableFuture<List<DNSSRVRecord>> f = new CompletableFuture<>();
+      CompletableFuture<List<DNSSRVRecord>> f;
       f = resolver.lookupSRV(FQDN);
       List<DNSSRVRecord> dnssrvRecords = f.get();
       Assert.fail();
@@ -110,7 +110,7 @@ public class MeteredDnsResolverTest {
     when(delegate.lookupA(FQDN)).thenThrow(EXCEPTION);
 
     try {
-      CompletableFuture<List<DNSARecord>> f = new CompletableFuture<>();
+      CompletableFuture<List<DNSARecord>> f;
       f = resolver.lookupA(FQDN);
       List<DNSARecord> dnssrvRecords = f.get();
       Assert.fail();
