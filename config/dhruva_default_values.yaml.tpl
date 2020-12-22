@@ -80,5 +80,6 @@ Dhruva:
     CATALINA_OPTS: null
     canary: 'false'
     JAVA_OPTS: null
+    l2sipClusterAddress: 'l2sip.l2sip'
   secret:
     elasticache_dhruva_password: null
