@@ -19,4 +19,5 @@ public class Token {
   public static final String SIPS_COLON_DOUBLE_SLASH = SIPS_COLON + DOUBLE_SLASH;
 
   public static final String UDP = "udp";
+  public static final String TLS = "tls";
 }

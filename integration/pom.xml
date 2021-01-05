@@ -18,8 +18,8 @@
         <tomcat.ajp.port>9222</tomcat.ajp.port>
         <tomcat.rmi.port>9223</tomcat.rmi.port>
         <helloWorldPublicUrl>http://localhost:${tomcat.server.port}/api/v1</helloWorldPublicUrl>
-    </properties>
 
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.ciscospark</groupId>
@@ -44,6 +44,10 @@
         <dependency>
             <groupId>com.cisco.wx2</groupId>
             <artifactId>core-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.cisco.wx2</groupId>
+            <artifactId>certs-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.cafesip.sipunit</groupId>
@@ -98,6 +102,14 @@
                     <testSourceDirectory>${project.build.sourceDirectory}</testSourceDirectory>
                     <environmentVariables>
                         <helloWorldPublicUrl>${helloWorldPublicUrl}</helloWorldPublicUrl>
+                        <dhruvaHost>localhost</dhruvaHost>
+                        <testHost>localhost</testHost>
+                        <testUdpPort>5061</testUdpPort>
+                        <testTlsPort>5062</testTlsPort>
+
+                        <dhruvaSipUdpPort>5070</dhruvaSipUdpPort>
+                        <dhruvaSipTlsPort>5071</dhruvaSipTlsPort>
+
                     </environmentVariables>
                 </configuration>
                 <executions>
@@ -121,6 +133,13 @@
                         <zipUrlInstaller>
                             <url>https://repo1.maven.org/maven2/org/apache/tomcat/tomcat/9.0.0.M15/tomcat-9.0.0.M15.zip</url>
                         </zipUrlInstaller>
+                        <systemProperties>
+                            <sipListenPoints>[{"name":"DhruvaUDPNetwork","transport":"UDP","port":5070,"recordRoute":true},{"name":"DhruvaTLSNetwork","transport":"TLS","port":5071,"recordRoute":true,"tlsAuthType": "NONE"}]</sipListenPoints>
+
+                            <!-- self signed certs passed to dhruva server -->
+                            <sipCertificate>-----BEGIN CERTIFICATE----- MIIFeDCCA2ACCQDPnu6yzuA9YjANBgkqhkiG9w0BAQsFADB+MQswCQYDVQQGEwJJTjELMAkGA1UECAwCS0ExEjAQBgNVBAcMCUJhbmdhbG9yZTEOMAwGA1UECgwFQ2lzY28xDzANBgNVBAsMBmRocnV2YTEWMBQGA1UEAwwNZGhydXZhLXNlcnZlcjEVMBMGCSqGSIb3DQEJARYGZGhydXZhMB4XDTIxMDEwNTAzMTg1MloXDTMxMDEwMzAzMTg1MlowfjELMAkGA1UEBhMCSU4xCzAJBgNVBAgMAktBMRIwEAYDVQQHDAlCYW5nYWxvcmUxDjAMBgNVBAoMBUNpc2NvMQ8wDQYDVQQLDAZkaHJ1dmExFjAUBgNVBAMMDWRocnV2YS1zZXJ2ZXIxFTATBgkqhkiG9w0BCQEWBmRocnV2YTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAL3NzBtD6/e0kWfil385FUUnVeGnsQbnPjV1suGLc6S9jaBAv2tvqie731Is0y34q9pJgzlerN6jbczcdWzWWrmgi2L84H82IWfJCPyYgAKliUPWz6M3hkBFDLw1BgM4JKli+K7FbptWgDvLndO9VzowvvUJoaS+GLD1R3BsYNrwmioQKT7CQzstAEH//fWZLyNyk/WDEOnLHASlAWb4VdGtX+Za/asC4kASZShnm7ezK/druI9jtJQ9+Gwxy7Pk1DqbKE760Un+VGZRG1YK7oRxKn5y0+cA5GVdt638ggNqOBElt0FQ6mTlQ9WWugA/VXjGjE6c8806FhXKZtxK9yJqVd/L347TYIU5qf3196BO6uQIm+Ex0WnPQPQT/4xG3CYTruDDuJgmieoIPbACVRPUiKpbuwruWIZNezvAD23t2k6aOlDRz/wmSZVka54LT2D+oMu1aR8OrlldpagSj9JTvd2gNO59hxuCEFXSLaoUfachGtSuPwkZqLJvdpwXoaGUsoTtj4Hc390qM6obz5meJdowv37MOLPdsYGh6W4dOy2i9G8tz+Sei4HequOKK5yon/NZ0j7SUrxBRqXCwPaiYmZEkcaF32aCVekmYRB2Gaq0kQDWadnEgfpq2BP0xcQr617RsgekxvkjWnqV7ba2PnSO9/yBRVQEzLOd2BYNAgMBAAEwDQYJKoZIhvcNAQELBQADggIBADvUQS1R1EDCz9bHxfamijBWW4/yLeKHnoFIeSxUNTKNNKXgGJDC+QsDBjcqmoxNih46boKZq8qex8iQlBw3DmznSDQ/A71q6ZB3N7QGDB3qkqe1Cd5rvO9UA30pqz7IvkbpEW+caCFh3iqw4AIoaanDl7kwaDzxTvxmGZCdm/UZVBjBO+2Mf2JwToNggfmJWa9i2di/8gfzCPGum+PR+/++t/erJp277iACC4zKp4C0LEMFd+tkLwdCRfoJ0Ms2h3oNxwsKhiSwk0eQ+td9xbxWcDg19Pt+Zn1nRCL+8fmLYA1uU1M/YbW/3oqBxbF+GPRWdKXzVl1Z3M7qPZfOoFL0bd9HvCiN5pRbUEmIYGYJaXRNkKaoQgQzP+cvvZu2zWptUYnbYaTljnil5JAcwZK/0fYZtXoLDQK1WziNK/bxZzFBsdvuHrszxwdZNTO2H4gpqQjLCaRPR24UCctVn2CGa3s0C5F/0sM9hdNXL0kYIgdeZUj9uUPfNDyI2lKxjL2O89TmG1mkkEKr/VzmZ/CUDHATyx7LPOLsMazFS4fK+FR+vMgoU2TU5e4TmqpIYEiIfUquOg/+ZMLYmpEF6TwPkDNhGqSI/1FgUOkdqX+UvwYDrraY2n9+KnxGgdWxjN3eO4E/0UV9uMNR7uzsikyuwusJdAjsWj2gbJON2BPV-----END CERTIFICATE-----</sipCertificate>
+                            <sipPrivateKey>-----BEGIN PRIVATE KEY----- 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-----END PRIVATE KEY-----</sipPrivateKey>
+                        </systemProperties>
                     </container>
                     <configuration>
                         <type>standalone</type>

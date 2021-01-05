@@ -5,6 +5,8 @@ import com.ciscospark.dhruva.DhruvaTestProperties;
 import com.ciscospark.dhruva.TestGroups;
 import com.ciscospark.dhruva.util.DhruvaSipPhone;
 import com.ciscospark.dhruva.util.Token;
+import java.text.ParseException;
+import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
@@ -19,28 +21,17 @@ public class OptionsPingIT extends DhruvaIT {
   DhruvaTestProperties testPro = new DhruvaTestProperties();
   private String testHost = testPro.getTestAddress();
   private int testUdpPort = testPro.getTestUdpPort();
+  private int testTlsPort = testPro.getTestTlsPort();
 
   private String dhruvaHost = testPro.getDhruvaHost();
   private int dhruvaUdpPort = testPro.getDhruvaUdpPort();
-
-  private String optionsPingUrl = dhruvaHost + Token.COLON + dhruvaUdpPort;
-
+  private int dhruvaTlsPort = testPro.getDhruvaTlsPort();
+  private String optionsPingUrlUdp = dhruvaHost + Token.COLON + dhruvaUdpPort;
+  private String optionsPingUrlTls = dhruvaHost + Token.COLON + dhruvaTlsPort;
   private int timeOutValue = 10000;
 
-  @Test(groups = TestGroups.DhruvaIT)
-  void testOptions() throws Exception {
-    DhruvaSipPhone phone;
-
-    phone =
-        new DhruvaSipPhone(
-            super.sipStackService.getSipStack(),
-            testHost,
-            "udp",
-            testUdpPort,
-            "sip:sipptest@" + testHost);
-
-    String optionsReqUri =
-        Request.OPTIONS + " " + Token.SIP_COLON + optionsPingUrl + " SIP/2.0\r\n\r\n";
+  int sendOptions(DhruvaSipPhone phone, String optionsReqUri)
+      throws ParseException, InvalidArgumentException {
 
     Request option = phone.getParent().getMessageFactory().createRequest(optionsReqUri);
 
@@ -54,7 +45,7 @@ public class OptionsPingIT extends DhruvaIT {
 
     Address toAddress =
         addressFactory.createAddress(
-            addressFactory.createURI(Token.SIP_COLON + "service@" + optionsPingUrl));
+            addressFactory.createURI(Token.SIP_COLON + "service@" + optionsReqUri));
     option.addHeader(headerFactory.createToHeader(toAddress, null));
 
     option.addHeader(headerFactory.createContactHeader(phone.getAddress()));
@@ -64,6 +55,42 @@ public class OptionsPingIT extends DhruvaIT {
     SipTransaction transaction = phone.sendRequestWithTransaction(option, false, null);
     ResponseEvent responseEvent = (ResponseEvent) phone.waitResponse(transaction, timeOutValue);
 
-    Assert.assertEquals(responseEvent.getResponse().getStatusCode(), 200);
+    return responseEvent.getResponse().getStatusCode();
+  }
+
+  @Test(groups = TestGroups.DhruvaIT)
+  void testOptionsPingTLS() throws Exception {
+    DhruvaSipPhone phone;
+
+    phone =
+        new DhruvaSipPhone(
+            super.sipStackService.getSipStackTls(),
+            testHost,
+            Token.TLS,
+            testTlsPort,
+            "sip:sipptest@" + testHost);
+
+    String optionsReqUri =
+        Request.OPTIONS + " " + Token.SIP_COLON + optionsPingUrlTls + " SIP/2.0\r\n\r\n";
+
+    Assert.assertEquals(sendOptions(phone, optionsReqUri), 200);
+  }
+
+  @Test(groups = TestGroups.DhruvaIT)
+  void testOptionsPingUdp() throws Exception {
+    DhruvaSipPhone phone;
+
+    phone =
+        new DhruvaSipPhone(
+            super.sipStackService.getSipStackUdp(),
+            testHost,
+            Token.UDP,
+            testUdpPort,
+            "sip:sipptest@" + testHost);
+
+    String optionsReqUri =
+        Request.OPTIONS + " " + Token.SIP_COLON + optionsPingUrlUdp + " SIP/2.0\r\n\r\n";
+
+    Assert.assertEquals(sendOptions(phone, optionsReqUri), 200);
   }
 }
