@@ -106,7 +106,7 @@ public class CallProcessor extends AbstractBehavior<CallProcessor.CallProcessorC
 
     if (callFlowActor == null) {
       Optional<Supplier<Behavior<CallFlow.Command>>> actorCreate =
-          getCallFlowActor(findCallPathRequest.dhurvaMessage);
+          Optional.of(getCallFlowActor(findCallPathRequest.dhurvaMessage));
 
       if (actorCreate.isPresent()) {
         createCallFlowActor(actorCreate.get(), findCallPathRequest.dhurvaMessage);
@@ -124,8 +124,7 @@ public class CallProcessor extends AbstractBehavior<CallProcessor.CallProcessorC
   }
 
   @NotNull
-  private Optional<Supplier<Behavior<CallFlow.Command>>> getCallFlowActor(
-      IDhruvaMessage dhruvaMessage) {
+  private Supplier<Behavior<CallFlow.Command>> getCallFlowActor(IDhruvaMessage dhruvaMessage) {
     System.out.println(
         Thread.currentThread().getName()
             + " "
@@ -135,11 +134,13 @@ public class CallProcessor extends AbstractBehavior<CallProcessor.CallProcessorC
     ConcurrentHashMap<Predicate<IDhruvaMessage>, Supplier<Behavior<CallFlow.Command>>> callFlowMap =
         CallFlow.getCallFlow();
 
-    Optional<Supplier<Behavior<CallFlow.Command>>> actorCreate =
+    Supplier<Behavior<CallFlow.Command>> actorCreate =
         callFlowMap.entrySet().stream()
             .filter(predicateBehaviorEntry -> predicateBehaviorEntry.getKey().test(dhruvaMessage))
             .map(Entry::getValue)
-            .findFirst();
+            .findFirst()
+            .orElseGet(() -> CallFlow.behaviourWithMDC(DoDefault::create));
+
     return actorCreate;
   }
 

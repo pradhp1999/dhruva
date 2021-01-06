@@ -34,11 +34,21 @@ public abstract class CallFlow extends AbstractBehavior<Command> {
   }
 
   static void registerCallFlow() {
+    //
     callFlowMap.put(
         OneOnOneCallingFlowActor.getFilter(), behaviourWithMDC(OneOnOneCallingFlowActor::create));
+    callFlowMap.put(
+        DialInStandardCMRCallFlowActor.getFilter(),
+        behaviourWithMDC(DialInStandardCMRCallFlowActor::create));
+    callFlowMap.put(
+        DialInVanityCMRCallFlowActor.getFilter(),
+        behaviourWithMDC(DialInVanityCMRCallFlowActor::create));
+    callFlowMap.put(
+        DialInShortUriCMRCallFlowActor.getFilter(),
+        behaviourWithMDC(DialInShortUriCMRCallFlowActor::create));
   }
 
-  private static Supplier<Behavior<Command>> behaviourWithMDC(Supplier<Behavior<Command>> create) {
+  static Supplier<Behavior<Command>> behaviourWithMDC(Supplier<Behavior<Command>> create) {
     return () ->
         Behaviors.withMdc(
             Command.class,
