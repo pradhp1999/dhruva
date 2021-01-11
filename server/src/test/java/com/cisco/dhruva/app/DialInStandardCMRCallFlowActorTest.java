@@ -45,6 +45,22 @@ public class DialInStandardCMRCallFlowActorTest {
   }
 
   @Test
+  public void testValidCaseWithParams() throws Exception {
+
+    ExecutionContext context = new ExecutionContext();
+
+    DsSipRequest request =
+            SIPRequestBuilder.createRequest(
+                    new SIPRequestBuilder()
+                            .getRequestAsString(
+                                    SIPRequestBuilder.RequestMethod.INVITE, "supnaras@cisco.webex.com;call-type=dialInStandard;svc-type=cmr"));
+    IDhruvaMessage reqMsg =
+            MessageConvertor.convertSipMessageToDhruvaMessage(
+                    request, MessageBodyType.SIPREQUEST, context);
+    Assert.assertTrue(DialInStandardCMRCallFlowActor.getFilter().test(reqMsg));
+  }
+
+  @Test
   public void testInvalidHost() throws Exception {
 
     ExecutionContext context = new ExecutionContext();

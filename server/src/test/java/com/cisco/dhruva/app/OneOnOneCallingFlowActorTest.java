@@ -27,6 +27,22 @@ public class OneOnOneCallingFlowActorTest {
   }
 
   @Test
+  public void testValidCaseWithParams() throws Exception {
+
+    ExecutionContext context = new ExecutionContext();
+
+    DsSipRequest request =
+            SIPRequestBuilder.createRequest(
+                    new SIPRequestBuilder()
+                            .getRequestAsString(
+                                    SIPRequestBuilder.RequestMethod.INVITE, "dhruva@cisco.call.ciscospark.com"));
+    IDhruvaMessage reqMsg =
+            MessageConvertor.convertSipMessageToDhruvaMessage(
+                    request, MessageBodyType.SIPREQUEST, context);
+    Assert.assertTrue(OneOnOneCallingFlowActor.getFilter().test(reqMsg));
+  }
+
+  @Test
   public void testDMZValidCase() throws Exception {
 
     ExecutionContext context = new ExecutionContext();

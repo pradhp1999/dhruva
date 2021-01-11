@@ -22,6 +22,8 @@ public class DhruvaMessageHelper {
     String host = null;
     if (matcher.find()) {
       host = matcher.group(4);
+      String s[] = host.split(";");
+      host = s[0];
     }
     return host;
   }

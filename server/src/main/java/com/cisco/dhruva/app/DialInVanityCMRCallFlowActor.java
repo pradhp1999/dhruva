@@ -5,12 +5,17 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.ReceiveBuilder;
 import com.cisco.dhruva.DhruvaProperties;
+import com.cisco.dhruva.Exception.DhruvaException;
+import com.cisco.dhruva.app.CallProcessor.RouteResponse;
+import com.cisco.dhruva.app.Destination.DestinationType;
 import com.cisco.dhruva.app.util.DhruvaMessageHelper;
 import com.cisco.dhruva.app.util.predicates.CMRPredicates;
 import com.cisco.dhruva.app.util.predicates.SipPredicates;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.common.messaging.models.MessageHeaders;
 import com.cisco.dhruva.util.SpringApplicationContext;
+import org.springframework.context.ApplicationContext;
+
 import java.util.HashMap;
 import java.util.function.Predicate;
 
@@ -22,7 +27,9 @@ public class DialInVanityCMRCallFlowActor extends CallFlow {
   public DialInVanityCMRCallFlowActor(ActorContext<Command> context) {
 
     super(context);
-    dhruvaProperties = SpringApplicationContext.getAppContext().getBean(DhruvaProperties.class);
+    ApplicationContext applicationContext = SpringApplicationContext.getAppContext();
+    if (applicationContext == null) throw new DhruvaException("spring app context null");
+    dhruvaProperties = applicationContext.getBean(DhruvaProperties.class);
   }
 
   static void init() {
@@ -63,9 +70,9 @@ public class DialInVanityCMRCallFlowActor extends CallFlow {
         "sip:" + dhruvaProperties.getL2SIPClusterAddress() + ":5061" + ";lr;transport=tls");
     message.setHeaders(headers);
     doCallFlowCommand.replyTo.tell(
-        new CallProcessor.RouteResponse(
+        new RouteResponse(
             new Destination(
-                Destination.DestinationType.SRV,
+                DestinationType.SRV,
                 dhruvaProperties.getL2SIPClusterAddress() + ":5061",
                 "DhruvaTlsPrivate"),
             null,
