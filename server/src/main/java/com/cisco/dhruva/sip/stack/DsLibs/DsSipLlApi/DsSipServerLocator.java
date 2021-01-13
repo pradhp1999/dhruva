@@ -333,7 +333,7 @@ public class DsSipServerLocator implements DsSipResolver {
       if (e.getCause() instanceof DnsException) {
         response.setDnsException((DnsException) e.getCause());
       }
-      logger.warn("exception while resolving dns {}", e.getCause());
+      logger.warn("exception while resolving dns {}", e.getCause().getMessage());
     }
   }
 
@@ -374,7 +374,7 @@ public class DsSipServerLocator implements DsSipResolver {
       if (e.getCause() instanceof DnsException) {
         response.setDnsException((DnsException) e.getCause());
       }
-      logger.warn("exception while resolving dns {}", e.getCause());
+      logger.warn("exception while resolving dns {}", e.getCause().getMessage());
     }
   }
 

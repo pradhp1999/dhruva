@@ -111,7 +111,7 @@ public class MetricService {
             .tag("direction", direction.name())
             .tag("isMidCall", isMidCall)
             .tag("transport", transport.name())
-            .field("isInternallyGenerated", isInternallyGenerated)
+            .tag("isInternallyGenerated", isInternallyGenerated)
             .field("callId", callId)
             .field("cSeq", cseq);
 

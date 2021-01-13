@@ -18,6 +18,7 @@ public class Event {
 
   private static final String ISMIDDIALOG = "isMidDialog";
   private static final String DHRUVA_PROCESSING_DELAY_IN_MILLIS = "dhruvaProcessingDelayInMillis";
+  private static final String ISINTERNALLYGENERATED = "isInternallyGenerated";
   public static String DIRECTION = "direction";
   public static String REMOTEIP = "remoteIp";
   public static String REMOTEPORT = "remotePort";
@@ -90,6 +91,7 @@ public class Event {
     messageInfoMap.put(Event.LOCALIP, messageBindingInfo.getLocalAddress().getHostAddress());
     messageInfoMap.put(Event.LOCALPORT, String.valueOf(messageBindingInfo.getLocalPort()));
     messageInfoMap.put(Event.ISMIDDIALOG, String.valueOf(isMidDialog));
+    messageInfoMap.put(Event.ISINTERNALLYGENERATED, String.valueOf(message.isInternallyGenerated()));
     if (direction == OUT) {
       messageInfoMap.put(
           Event.DHRUVA_PROCESSING_DELAY_IN_MILLIS, String.valueOf(dhruvaProcessingDelayInMillis));
