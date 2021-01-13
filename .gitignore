@@ -1,6 +1,7 @@
 target/
 .idea/
 *.iml
+*.jks
 dependency-reduced-pom.xml
 .project
 .settings/

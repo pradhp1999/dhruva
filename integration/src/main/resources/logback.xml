@@ -1,0 +1,28 @@
+<!-- Minimal logback.xml for testing -->
+<configuration>
+    <!-- Ensure that logback level changes are also propagated to java.util.logging framework -->
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
+
+    <!-- Squelch logback status messages -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
+    <if condition = 'property("debug_mode").equals("enabled")' >
+        <then>
+            <logger name="com.ciscospark.dhruva" level="DEBUG" />
+        </then>
+        <else>
+            <logger name="com.ciscospark.dhruva" level="INFO" />
+        </else>
+    </if>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %level [%thread] %logger{36} %file:%line %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

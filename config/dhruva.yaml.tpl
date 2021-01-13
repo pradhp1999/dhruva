@@ -49,6 +49,7 @@ enableLettuceRedisDataSourceForFlsCache: '{{ .Dhruva.config.enableLettuceRedisDa
 enableLettuceRedisDataSourceForOrgCache: '{{ .Dhruva.config.enableLettuceRedisDataSourceForOrgCache }}'
 enableLettuceRedisDataSourceForUserCache: '{{ .Dhruva.config.enableLettuceRedisDataSourceForUserCache }}'
 dhruva_configprefix: '{{ .Dhruva.config.dhruva_configprefix }}'
+debug_mode: '{{ .Dhruva.config.debug_mode }}'
 flsCacheRedisDataSource_configprefix: '{{ .Dhruva.config.flsCacheRedisDataSource_configprefix }}'
 orgCacheRedisDataSource_configprefix: '{{ .Dhruva.config.orgCacheRedisDataSource_configprefix }}'
 userCacheRedisDataSource_configprefix: '{{ .Dhruva.config.userCacheRedisDataSource_configprefix }}'

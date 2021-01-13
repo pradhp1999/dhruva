@@ -75,6 +75,7 @@ Dhruva:
     elasticache_ratelimit_host: null
     elasticache_ratelimit_commandTimeoutMillis: 2000
     stdout_level_threshold: 'OFF'
+    debug_mode: 'disabled'
   deploy:
     APPLICATION_NAME: dhruva
     CATALINA_OPTS: null
