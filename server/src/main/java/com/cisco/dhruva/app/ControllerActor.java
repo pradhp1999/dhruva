@@ -10,7 +10,6 @@ import com.cisco.dhruva.app.CallProcessor.FindCallPathRequest;
 import com.cisco.dhruva.app.CallProcessor.FindCallPathResponse;
 import com.cisco.dhruva.common.messaging.DhruvaMessageImpl;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
-import com.cisco.dhruva.router.RouteResult;
 
 public class ControllerActor {
 

@@ -11,9 +11,7 @@ import com.cisco.dhruva.app.Destination.DestinationType;
 import com.cisco.dhruva.app.util.predicates.CallingPredicates;
 import com.cisco.dhruva.app.util.predicates.SipPredicates;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
-import com.cisco.dhruva.common.messaging.models.MessageHeaders;
 import com.cisco.dhruva.util.SpringApplicationContext;
-import java.util.HashMap;
 import java.util.function.Predicate;
 import org.springframework.context.ApplicationContext;
 
@@ -55,13 +53,8 @@ public class OneOnOneCallingFlowActor extends CallFlow {
 
   @Override
   Behavior<Command> handleRequest(CallFlow.DoCallFlowForRequest doCallFlowCommand) {
-    getContext().getLog().info("Routing Decision is in 1:1 dialin calling");
-    IDhruvaMessage message = doCallFlowCommand.dhruvaMessage;
-    MessageHeaders headers = new MessageHeaders(new HashMap<>());
-    headers.put(
-        "Route",
-        "sip:" + dhruvaProperties.getL2SIPClusterAddress() + ":5061" + ";lr;transport=tls");
-    message.setHeaders(headers);
+    getContext().getLog().info("Routing Decision is in cluster L2SIP");
+
     doCallFlowCommand.replyTo.tell(
         new RouteResponse(
             new Destination(

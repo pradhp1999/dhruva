@@ -25,19 +25,20 @@ public class DialInShortUriCMRCallFlowActorTest {
     Assert.assertTrue(DialInShortUriCMRCallFlowActor.getFilter().test(reqMsg));
   }
 
-
   @Test
   public void testValidCaseWithParams() throws Exception {
 
     ExecutionContext context = new ExecutionContext();
 
     DsSipRequest request =
-            SIPRequestBuilder.createRequest(
-                    new SIPRequestBuilder()
-                            .getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE, "12345678@webex.com;call-type=dialInShortUri"));
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder()
+                .getRequestAsString(
+                    SIPRequestBuilder.RequestMethod.INVITE,
+                    "12345678@webex.com;call-type=dialInShortUri"));
     IDhruvaMessage reqMsg =
-            MessageConvertor.convertSipMessageToDhruvaMessage(
-                    request, MessageBodyType.SIPREQUEST, context);
+        MessageConvertor.convertSipMessageToDhruvaMessage(
+            request, MessageBodyType.SIPREQUEST, context);
     Assert.assertTrue(DialInShortUriCMRCallFlowActor.getFilter().test(reqMsg));
   }
 }

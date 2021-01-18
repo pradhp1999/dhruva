@@ -50,13 +50,14 @@ public class DialInStandardCMRCallFlowActorTest {
     ExecutionContext context = new ExecutionContext();
 
     DsSipRequest request =
-            SIPRequestBuilder.createRequest(
-                    new SIPRequestBuilder()
-                            .getRequestAsString(
-                                    SIPRequestBuilder.RequestMethod.INVITE, "supnaras@cisco.webex.com;call-type=dialInStandard;svc-type=cmr"));
+        SIPRequestBuilder.createRequest(
+            new SIPRequestBuilder()
+                .getRequestAsString(
+                    SIPRequestBuilder.RequestMethod.INVITE,
+                    "supnaras@cisco.webex.com;call-type=dialInStandard;svc-type=cmr"));
     IDhruvaMessage reqMsg =
-            MessageConvertor.convertSipMessageToDhruvaMessage(
-                    request, MessageBodyType.SIPREQUEST, context);
+        MessageConvertor.convertSipMessageToDhruvaMessage(
+            request, MessageBodyType.SIPREQUEST, context);
     Assert.assertTrue(DialInStandardCMRCallFlowActor.getFilter().test(reqMsg));
   }
 

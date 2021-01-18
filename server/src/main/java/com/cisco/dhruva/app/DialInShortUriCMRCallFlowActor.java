@@ -11,12 +11,9 @@ import com.cisco.dhruva.app.Destination.DestinationType;
 import com.cisco.dhruva.app.util.predicates.CMRPredicates;
 import com.cisco.dhruva.app.util.predicates.SipPredicates;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
-import com.cisco.dhruva.common.messaging.models.MessageHeaders;
 import com.cisco.dhruva.util.SpringApplicationContext;
-import org.springframework.context.ApplicationContext;
-
-import java.util.HashMap;
 import java.util.function.Predicate;
+import org.springframework.context.ApplicationContext;
 
 public class DialInShortUriCMRCallFlowActor extends CallFlow {
   private DhruvaProperties dhruvaProperties;
@@ -57,20 +54,15 @@ public class DialInShortUriCMRCallFlowActor extends CallFlow {
   Behavior<Command> handleRequest(CallFlow.DoCallFlowForRequest doCallFlowCommand) {
 
     getContext().getLog().info("Routing Decision is in CMR dial in ShortUri");
-    IDhruvaMessage message = doCallFlowCommand.dhruvaMessage;
-    MessageHeaders headers = new MessageHeaders(new HashMap<>());
-    headers.put(
-        "Route",
-        "sip:" + dhruvaProperties.getL2SIPClusterAddress() + ":5061" + ";lr;transport=tls");
-    message.setHeaders(headers);
+
     doCallFlowCommand.replyTo.tell(
-            new RouteResponse(
-                    new Destination(
-                            DestinationType.SRV,
-                            dhruvaProperties.getL2SIPClusterAddress() + ":5061",
-                            "DhruvaTlsPrivate"),
-                    null,
-                    doCallFlowCommand.dhruvaMessage));
+        new RouteResponse(
+            new Destination(
+                DestinationType.SRV,
+                dhruvaProperties.getL2SIPClusterAddress() + ":5061",
+                "DhruvaTlsPrivate"),
+            null,
+            doCallFlowCommand.dhruvaMessage));
 
     return this;
   }

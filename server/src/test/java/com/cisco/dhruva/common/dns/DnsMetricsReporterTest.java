@@ -112,7 +112,10 @@ public class DnsMetricsReporterTest {
 
     when(lookupFactory.createLookup(query, Type.SRV)).thenReturn(testLookupSrv(query));
     when(xbillResolver.send(any(Message.class)))
-        .thenReturn(messageWithRCode(query, Rcode.SERVFAIL)); // RCode = 2 (try again) -> DnsErrorCode.ERROR_DNS_QUERY_TIMEDOUT
+        .thenReturn(
+            messageWithRCode(
+                query,
+                Rcode.SERVFAIL)); // RCode = 2 (try again) -> DnsErrorCode.ERROR_DNS_QUERY_TIMEDOUT
 
     resolver.lookupSRV(query);
 

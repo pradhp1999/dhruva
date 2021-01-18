@@ -79,7 +79,8 @@ public class MetricService {
     sendMetric(metric);
   }
 
-  public void sendDNSMetric(String query, String queryType, long totalDurationsMillis, String errorMsg) {
+  public void sendDNSMetric(
+      String query, String queryType, long totalDurationsMillis, String errorMsg) {
     Metric metric =
         Metrics.newMetric()
             .measurement("dns")

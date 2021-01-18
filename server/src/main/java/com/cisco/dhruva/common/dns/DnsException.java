@@ -33,6 +33,11 @@ public class DnsException extends RuntimeException {
   }
 
   public String toString() {
-    return "query: " + query + " type: " + queryType + " description: " + errorCode.getDescription();
+    return "query: "
+        + query
+        + " type: "
+        + queryType
+        + " description: "
+        + errorCode.getDescription();
   }
 }

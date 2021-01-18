@@ -4,6 +4,7 @@
 package com.cisco.dhruva.sip.stack.DsLibs.DsUtil;
 
 import com.cisco.dhruva.config.sip.DhruvaSIPConfigProperties;
+import com.cisco.dhruva.sip.bean.SIPListenPoint;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipLlApi.DsSipTimers;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipConstants;
@@ -11,10 +12,12 @@ import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipTransportType;
 import com.cisco.dhruva.transport.DhruvaTrustManagerFactory;
 import com.cisco.dhruva.transport.TLSAuthenticationType;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.Logger;
 import io.netty.handler.ssl.SslProvider;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import javax.net.ssl.TrustManager;
 import org.slf4j.event.Level;
 
@@ -1559,5 +1562,12 @@ public class DsNetwork implements Cloneable {
 
   public static boolean getIsAcceptedIssuersEnabled() {
     return dhruvaSIPConfigProperties.getIsAcceptedIssuersEnabled();
+  }
+
+  public static Optional<Transport> getTransport(String networkName) {
+    return dhruvaSIPConfigProperties.getListeningPoints().stream()
+        .filter((listenPoint) -> listenPoint.getName().equalsIgnoreCase(networkName))
+        .map(SIPListenPoint::getTransport)
+        .findFirst();
   }
 }

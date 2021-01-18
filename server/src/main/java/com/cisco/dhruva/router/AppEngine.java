@@ -20,6 +20,7 @@ import com.cisco.dhruva.common.messaging.models.MessageBody;
 import com.cisco.dhruva.common.messaging.models.MessageBodyType;
 import com.cisco.dhruva.sip.controller.DsProxyResponseGenerator;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRequest;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipResponseCode;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.util.SpringApplicationContext;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
@@ -86,9 +87,6 @@ public class AppEngine {
   }
 
   private void callActor(IDhruvaMessage message, boolean isRequest) throws DhruvaException {
-
-    // TODO supply our own executor service
-    // Emit event in case of route failure
     if (isRequest) {
       CompletionStage<ControllerActor.RouteResult> result =
           AskPattern.ask(
@@ -193,9 +191,28 @@ public class AppEngine {
           }
           session.accept(errorResponse);
         } else {
-          ExecutionContext ctx = routeResult.response.getContext();
-          ctx.set(PROXY_ROUTE_RESULT, routeResult.destination);
-          session.accept(routeResult.response);
+          try {
+            ExecutionContext ctx = routeResult.response.getContext();
+            ctx.set(PROXY_ROUTE_RESULT, routeResult.destination);
+            session.accept(routeResult.response);
+          } catch (DhruvaException ex) {
+            IDhruvaMessage errorResponse = null;
+            try {
+              errorResponse =
+                  new DhruvaMessageImpl(
+                      routeResult.response.getContext().copy(),
+                      null,
+                      MessageBody.fromPayloadData(
+                          DsProxyResponseGenerator.createResponse(
+                              DsSipResponseCode.DS_RESPONSE_INTERNAL_SERVER_ERROR,
+                              (DsSipRequest)
+                                  routeResult.response.getMessageBody().getPayloadData()),
+                          MessageBodyType.SIPRESPONSE));
+            } catch (DsException e) {
+              logger.error("exception in app layer {}", e);
+            }
+            session.accept(errorResponse);
+          }
         }
       };
 }

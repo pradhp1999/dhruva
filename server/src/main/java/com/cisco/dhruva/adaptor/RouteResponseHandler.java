@@ -9,16 +9,19 @@ import com.cisco.dhruva.common.context.ExecutionContext;
 import com.cisco.dhruva.common.messaging.MessageConvertor;
 import com.cisco.dhruva.common.messaging.models.IDhruvaMessage;
 import com.cisco.dhruva.common.messaging.models.MessageBodyType;
-import com.cisco.dhruva.common.messaging.models.MessageHeaders;
 import com.cisco.dhruva.router.MessageListener;
 import com.cisco.dhruva.sip.proxy.Location;
 import com.cisco.dhruva.sip.proxy.ProxyInterface;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.*;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserException;
+import com.cisco.dhruva.sip.stack.DsLibs.DsSipParser.DsSipParserListenerException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsException;
 import com.cisco.dhruva.sip.stack.DsLibs.DsUtil.DsNetwork;
+import com.cisco.dhruva.transport.Transport;
 import com.cisco.dhruva.util.log.DhruvaLoggerFactory;
 import com.cisco.dhruva.util.log.Logger;
+import java.util.Objects;
+import java.util.Optional;
 
 // MEETPASS
 // Use the same MessageListener interface for any communication,let the context object store the
@@ -33,27 +36,49 @@ public class RouteResponseHandler implements MessageListener {
     this.proxyAdaptor = proxyAdaptor;
   }
 
+  public void addRequestDestinationSipRoutes(DsSipRequest request, Destination destination)
+      throws DsSipParserListenerException, DsSipParserException {
+    Objects.requireNonNull(destination);
+    Objects.requireNonNull(request);
+    Transport outgoingTransport = Transport.TLS;
+    if (destination.network != null) {
+      Optional<Transport> transportOptional = DsNetwork.getTransport(destination.network);
+      if (transportOptional.isPresent()) {
+        outgoingTransport = transportOptional.get();
+      }
+    }
+    String transportStr = Transport.getTypeAsByteString(outgoingTransport).toString().toLowerCase();
+
+    DsSipRouteHeader routeHeader =
+        new DsSipRouteHeader(
+            ("<sip:" + destination.address + ";lr" + ";transport=" + transportStr + ">")
+                .getBytes());
+
+    DsSipHeaderList routeHeaders = new DsSipHeaderList();
+    routeHeaders.addLast(routeHeader);
+    request.addHeaders(routeHeaders, true);
+  }
+
   public Location constructProxyLocation(DsSipRequest request, Destination routeResult)
       throws DhruvaException {
     try {
       DsNetwork network = DsNetwork.findNetwork(routeResult.network);
       Location loc = new Location(request.getURI());
+      loc.setNetwork(network);
       switch (routeResult.destinationType) {
         case DEFAULT_SIP: // Mid Dialog cases
           loc.setProcessRoute(true);
-          network = request.getNetwork();
           break;
         case SRV: // L2SIP cluster address
           loc.setURI(request.getURI());
           loc.setProcessRoute(true);
-          // Below is true , if we want to modify outgoing requri to the destination
-          // loc.setURI(DsURI.constructFrom("sip:" + routeResult.address));
-          // processRoute should be false
+          // If we want to change outgoing requri
+          // loc.setURI(DsURI.constructFrom(routeResult.address));
           break;
         default:
           logger.warn("routeResult not set properly for request, {}", routeResult);
       }
-      loc.setNetwork(network);
+
       return loc;
     } catch (Exception ex) {
       throw new DhruvaException(
@@ -82,32 +107,17 @@ public class RouteResponseHandler implements MessageListener {
 
         DsSipRequest request =
             (DsSipRequest) MessageConvertor.convertDhruvaMessageToSipMessage(message);
-        Location loc = constructProxyLocation(request, routeResult);
 
-        MessageHeaders newHeaders = message.getHeaders();
-        if (!newHeaders.isEmpty()) {
-          String routeHeader = (String) newHeaders.get("Route");
-          if (routeHeader != null) {
-            try {
-              DsSipRouteHeader r = new DsSipRouteHeader(DsURI.constructFrom(routeHeader));
-              DsSipHeaderList routeHeaders = new DsSipHeaderList();
-              routeHeaders.addLast(r);
-              // MEETPASS tEMP
-              // loc.setRouteHeaders(routeHeaders);
-              // Adding at the begining , in middialog there will be Route headers already.We want
-              // to priotize ours
-              // Dhruva point Route will be removed by Server transaction.
-              request.removeHeaders(DsSipConstants.ROUTE);
-              request.addHeaders(routeHeaders, true);
-              logger.info("adding route header {} in to location {}", r.toString(), loc);
-            } catch (DsSipParserException e) {
-              throw new DhruvaException(
-                  "exception while constructing route header", e.getMessage());
-            }
-          }
+        try {
+          addRequestDestinationSipRoutes(request, routeResult);
+          // If App has modified reqURI , modify in outgoing request
+          request.setURI(DsURI.constructFrom(message.getReqURI()));
+        } catch (DsSipParserException | DsSipParserListenerException e) {
+          throw new DhruvaException("exception while constructing route header", e.getMessage());
         }
 
-        // Location loc = new Location(request.getURI());
+        Location loc = constructProxyLocation(request, routeResult);
+
         logger.info("route result {}", routeResult);
         controller.proxyTo(loc, request, proxyAdaptor);
         break;

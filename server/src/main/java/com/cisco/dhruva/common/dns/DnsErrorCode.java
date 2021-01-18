@@ -9,7 +9,9 @@ public enum DnsErrorCode {
   },
   ERROR_DNS_HOST_NOT_FOUND(901, "DNS Failed, Invalid host name") {
     @Override
-    public String toString() { return getDescription(); }
+    public String toString() {
+      return getDescription();
+    }
   },
   ERROR_DNS_OTHER(902, "DNS Failed, Due To Any Other Reason") {
     @Override
@@ -37,11 +39,15 @@ public enum DnsErrorCode {
   },
   ERROR_DNS_NO_RECORDS_FOUND(906, "DNS Failed, no records found") {
     @Override
-    public String toString() { return getDescription(); }
+    public String toString() {
+      return getDescription();
+    }
   },
   ERROR_UNKNOWN(907, "DNS Failed, Unknown error") {
     @Override
-    public String toString() {  return getDescription(); }
+    public String toString() {
+      return getDescription();
+    }
   };
 
   private final int value;
