@@ -105,7 +105,6 @@ public final class DsControllerConfig
 
   // MEETPASS Adding by default
   protected boolean doRecordRoute = true;
-
   protected boolean isRecursing = false;
 
   protected int defaultRetryAfterMilliSeconds = 0;
@@ -601,6 +600,46 @@ public final class DsControllerConfig
     currentConfig.recordRoutesMap.put(direction.getName(), rr);
 
     Log.info("Setting record route(" + rr + ") on network: " + direction);
+  }
+
+  public static synchronized void removeRecordRouteInterface(String direction) {
+    Log.debug("Entering removeRecordRouteInterface(direction) with direction = " + direction);
+    Log.debug("Removing record route on :" + direction);
+    currentConfig.recordRoutesMap.remove(direction);
+
+    if (currentConfig.recordRoutesMap.size() == 0) {
+      currentConfig.doRecordRoute = false;
+    }
+    /*
+    switch (direction) {
+      case LISTEN_EXTERNAL:
+        //case INBOUND:
+        if (currentConfig.recordRouteExternal != null) {
+          update();
+
+          if (Log.on && Log.isDebugEnabled())
+            Log.debug( "Removing external record route interface ");
+          recordRoutesMap.remove("external");
+          currentConfig.recordRouteExternal = null;
+        }
+        break;
+      default:
+        if (currentConfig.recordRouteInternal != null) {
+          update();
+          recordRoutesMap.remove("internal");
+          if (Log.on && Log.isDebugEnabled())
+            Log.debug( "Removing internal record route interface ");
+
+          currentConfig.recordRouteInternal = null;
+        }
+        break;
+    }
+
+    if (currentConfig.recordRouteInternal == null &&
+      currentConfig.recordRouteExternal == null)
+      currentConfig.doRecordRoute = false;
+    */
+    Log.debug("Leaving removeRecordRouteInterface(direction)");
   }
 
   /*

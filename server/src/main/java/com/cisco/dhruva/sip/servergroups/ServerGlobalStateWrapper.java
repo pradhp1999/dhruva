@@ -40,7 +40,9 @@ public class ServerGlobalStateWrapper extends PingObject {
   private EndpointEvent overloaded;
   private int numReferences = 1;
   private List parentServerGroupList = new LinkedList();
-
+  static final int udpTries = 10;
+  static final int tcpTries = 1;
+  static final int tlsTries = 1;
   private int activeUsageLimit = -1;
   private AtomicLong usageCount = new AtomicLong();
   private AtomicLong failureCount = new AtomicLong();
@@ -71,6 +73,7 @@ public class ServerGlobalStateWrapper extends PingObject {
       Boolean dnsServerGroup) {
     super(network, host, port, protocol, dnsServerGroup);
     resetTries();
+
     clearUnreachable = new EndpointEvent(this, EndpointEvent.CLEAR_UNREACHABLE, parentServerGroup);
     clearOverloaded = new EndpointEvent(this, EndpointEvent.CLEAR_OVERLOADED, parentServerGroup);
     unreachable = new EndpointEvent(this, EndpointEvent.UNREACHABLE, parentServerGroup);
@@ -144,6 +147,7 @@ public class ServerGlobalStateWrapper extends PingObject {
    */
   public boolean isServerAvailable() {
     boolean success = (checkServerState() && checkRetryAfter() && checkActiveUsageLimit());
+    //    boolean success= true;
     if (Log.on && Log.isInfoEnabled()) Log.info(this + "--->isServerAvailable(): " + success);
     return success;
   }

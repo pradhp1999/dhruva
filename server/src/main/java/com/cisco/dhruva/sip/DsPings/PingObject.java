@@ -19,6 +19,7 @@ package com.cisco.dhruva.sip.DsPings;
  *
  * <p>*****************************************************************************
  */
+import com.cisco.dhruva.loadbalancer.LBFactory;
 import com.cisco.dhruva.sip.DsUtil.EndPoint;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsByteString;
 import com.cisco.dhruva.sip.stack.DsLibs.DsSipObject.DsSipRetryAfterHeader;
@@ -45,6 +46,7 @@ import java.util.Date;
 public class PingObject extends EndPoint implements DsSelectable {
 
   private static final Trace Log = Trace.getTrace(PingObject.class.getName());
+  private static int defaultRetryAfter = 0;
 
   private boolean pingOn = false;
 
@@ -141,7 +143,18 @@ public class PingObject extends EndPoint implements DsSelectable {
 
   /** Resets the number of tries to the maximum. */
   public synchronized void resetTries() {
-
+    switch (protocol) {
+      case UDP:
+        numTries = LBFactory.getUDPTries();
+        break;
+      case TCP:
+        numTries = LBFactory.getTCPTries();
+        break;
+      case TLS:
+        numTries = LBFactory.getTLSTries();
+        break;
+    }
+    Log.info("Endpoint( {} ): number of tries left: {}", this, numTries);
     EndPointUsed();
   }
 
@@ -165,13 +178,46 @@ public class PingObject extends EndPoint implements DsSelectable {
     return numTries;
   }
 
+  public synchronized boolean setRetryAfter(Date retryAfterDate) {
+    boolean b = false;
+
+    // Did we get a Retry-After?
+    if (retryAfterDate != null) {
+      Date date = new Date();
+
+      // Is the Retry-After later than now?
+      if (retryAfterDate.compareTo(date) > 0) {
+        // Do we already have a retry after, and if so, is the new one greater than the old one?
+        if ((retryAfter == null) || (retryAfterDate.compareTo(retryAfter) > 0)) {
+          retryAfter = retryAfterDate;
+
+          Log.debug("Endpoint( {} ): RetryAfter set to {}", this, retryAfter);
+
+          b = true;
+        }
+      }
+    } else {
+
+      if (defaultRetryAfter > 0) {
+
+        retryAfter = new Date(System.currentTimeMillis() + defaultRetryAfter);
+
+        if (Log.on && Log.isDebugEnabled()) {
+          Log.debug("Endpoint(" + this + "): RetryAfter set to default(" + retryAfter + ')');
+        }
+
+        b = true;
+      }
+    }
+
+    return b;
+  }
+
   public synchronized boolean setRetryAfter(DsSipRetryAfterHeader header) {
     Date date = null;
 
     if (header != null) {
-      if (Log.on && Log.isTraceEnabled()) {
-        Log.trace("Endpoint(" + this + "): RetryAfter header found: " + header);
-      }
+      Log.trace("Endpoint( {} ): RetryAfter header found: {}", this, header);
 
       if (header.isSipDate()) {
         date = header.getDate().getDate();
@@ -180,7 +226,7 @@ public class PingObject extends EndPoint implements DsSelectable {
       }
     }
 
-    return false;
+    return setRetryAfter(date);
   }
 
   /**

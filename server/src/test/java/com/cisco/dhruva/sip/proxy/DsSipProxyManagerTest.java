@@ -75,8 +75,8 @@ public class DsSipProxyManagerTest {
     transportLayer = mock(DsSipTransportLayer.class);
     if (dsSipProxyManager == null) {
       dsSipProxyManager =
-          new DsSipProxyManager(
-              transportLayer, controllerFactory, transactionFactory, locatorService);
+              new DsSipProxyManager(
+                      transportLayer, controllerFactory, transactionFactory, locatorService);
     }
 
     DsSipProxyManager.setM_Singleton(dsSipProxyManager);
@@ -90,29 +90,29 @@ public class DsSipProxyManagerTest {
     localPort = 5060;
     remotePort = 5070;
     incomingMessageBindingInfo =
-        new DsBindingInfo(localAddress, localPort, localAddress, remotePort, Transport.UDP);
+            new DsBindingInfo(localAddress, localPort, localAddress, remotePort, Transport.UDP);
     dsNetwork = DsNetwork.getNetwork("Default");
     incomingMessageBindingInfo.setNetwork(dsNetwork);
 
     DsSipServerTransactionImpl.setThreadPoolExecutor(
-        (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
+            (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
 
     DsSipClientTransactionImpl.setThreadPoolExecutor(
-        (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
+            (ThreadPoolExecutor) Executors.newFixedThreadPool(1));
 
     // Add listen interfaces in DsControllerConfig, causes issues in getVia while sending out the
     // packet
     try {
       DsControllerConfig.addListenInterface(
-          dsNetwork,
-          InetAddress.getByName("127.0.0.1"),
-          5060,
-          Transport.UDP,
-          InetAddress.getByName("127.0.0.1"),
-          false);
+              dsNetwork,
+              InetAddress.getByName("127.0.0.1"),
+              5060,
+              Transport.UDP,
+              InetAddress.getByName("127.0.0.1"),
+              false);
 
       DsControllerConfig.addRecordRouteInterface(
-          InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
+              InetAddress.getByName("127.0.0.1"), 5060, Transport.UDP, dsNetwork);
     } catch (DsInconsistentConfigurationException ignored) {
       // In this case it was already set, there is no means to remove the key from map
     }
@@ -128,25 +128,25 @@ public class DsSipProxyManagerTest {
   public void testRequestInterface() throws Exception {
 
     DsSipRequest sipRequest =
-        SIPRequestBuilder.createRequest(
-            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
+            SIPRequestBuilder.createRequest(
+                    new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.INVITE));
     DsSipTransactionKey key = sipRequest.forceCreateKey();
     sipRequest.setNetwork(dsNetwork);
     sipRequest.setBindingInfo(incomingMessageBindingInfo);
 
     // Mocks to manage the app dependencies
     ScheduledThreadPoolExecutor scheduledThreadPoolExecutor =
-        mock(ScheduledThreadPoolExecutor.class);
+            mock(ScheduledThreadPoolExecutor.class);
 
     when(executorService.getScheduledExecutorThreadPool(ExecutorType.AKKA_CONTROLLER_TIMER))
-        .thenReturn(scheduledThreadPoolExecutor);
+            .thenReturn(scheduledThreadPoolExecutor);
 
     AppEngine.startShutdownTimers(executorService);
 
     DsSipTransactionFactory m_transactionFactory = new DsSipDefaultTransactionFactory();
 
     DsSipServerTransaction serverTransaction =
-        m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
+            m_transactionFactory.createServerTransaction(sipRequest, key, key, false);
 
     DsControllerInterface controller = mock(DsControllerInterface.class);
     when(controllerFactory.getController(
@@ -156,7 +156,7 @@ public class DsSipProxyManagerTest {
             any(AppInterface.class),
             any(DsProxyFactoryInterface.class),
             any()))
-        .thenReturn(controller);
+            .thenReturn(controller);
     ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
     dsSipProxyManager.request(serverTransaction, sipRequest);
 
@@ -170,16 +170,16 @@ public class DsSipProxyManagerTest {
   public void testStrayAck() throws Exception {
 
     DsSipRequest sipRequest =
-        SIPRequestBuilder.createRequest(
-            new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.ACK));
+            SIPRequestBuilder.createRequest(
+                    new SIPRequestBuilder().getRequestAsString(SIPRequestBuilder.RequestMethod.ACK));
     // Mocks to manage the app dependencies
     ThreadPoolExecutor threadPoolExecutor = mock(ThreadPoolExecutor.class);
     ScheduledThreadPoolExecutor scheduledThreadPoolExecutor =
-        mock(ScheduledThreadPoolExecutor.class);
+            mock(ScheduledThreadPoolExecutor.class);
     when(executorService.getExecutorThreadPool(ExecutorType.SIP_TRANSACTION_PROCESSOR))
-        .thenReturn(threadPoolExecutor);
+            .thenReturn(threadPoolExecutor);
     when(executorService.getScheduledExecutorThreadPool(ExecutorType.AKKA_CONTROLLER_TIMER))
-        .thenReturn(scheduledThreadPoolExecutor);
+            .thenReturn(scheduledThreadPoolExecutor);
     when(applicationContext.getBean(ExecutorService.class)).thenReturn(executorService);
 
     AppEngine.startShutdownTimers(executorService);
@@ -190,17 +190,17 @@ public class DsSipProxyManagerTest {
 
     DsControllerInterface controller = mock(DsControllerInterface.class);
     when(controllerFactory.getController(
-            any(DsSipServerTransaction.class),
+            isNull(),
             any(DsSipRequest.class),
             any(ProxyAdaptorFactoryInterface.class),
             any(AppInterface.class),
             any(DsProxyFactoryInterface.class),
-            any()))
-        .thenReturn(controller);
+            isNull()))
+            .thenReturn(controller);
     ArgumentCaptor<DsSipRequest> argumentCaptor = ArgumentCaptor.forClass(DsSipRequest.class);
     dsSipProxyManager.strayAck((DsSipAckMessage) sipRequest);
 
-    verify(controller).onNewRequest(any(DsSipServerTransaction.class), argumentCaptor.capture());
+    verify(controller).onNewRequest(isNull(), argumentCaptor.capture());
 
     DsSipRequest request = argumentCaptor.getValue();
     Assert.assertNotNull(request);
@@ -232,7 +232,7 @@ public class DsSipProxyManagerTest {
     response.setBindingInfo(incomingMessageBindingInfo);
 
     DsSipViaHeader localViaHeader =
-        new DsSipViaHeader(new DsByteString("127.0.0.1"), 5060, Transport.UDP);
+            new DsSipViaHeader(new DsByteString("127.0.0.1"), 5060, Transport.UDP);
 
     response.addHeader(localViaHeader, true, false);
 
@@ -256,12 +256,12 @@ public class DsSipProxyManagerTest {
     response.setBindingInfo(incomingMessageBindingInfo);
 
     DsSipViaHeader localViaHeader1 =
-        new DsSipViaHeader(new DsByteString("127.0.0.1"), 5070, Transport.UDP);
+            new DsSipViaHeader(new DsByteString("127.0.0.1"), 5070, Transport.UDP);
     localViaHeader1.setBranch(new DsByteString("z9hG4bKUsaQangfWbsEVmsoPdTNBA~~4"));
     response.addHeader(localViaHeader1, true, false);
 
     DsSipViaHeader localViaHeader2 =
-        new DsSipViaHeader(new DsByteString("127.0.0.1"), 5060, Transport.UDP);
+            new DsSipViaHeader(new DsByteString("127.0.0.1"), 5060, Transport.UDP);
     localViaHeader2.setBranch(new DsByteString("z9hG4bKUsaQangfWbsEVmsoPdTNBA~~1"));
     response.addHeader(localViaHeader2, true, false);
 
@@ -270,11 +270,11 @@ public class DsSipProxyManagerTest {
     DsSipConnection sendConnection = mock(DsSipConnection.class);
     // return isLocalInterface true
     doReturn(true)
-        .when(transportLayer)
-        .isListenInterface(anyString(), anyInt(), any(Transport.class));
+            .when(transportLayer)
+            .isListenInterface(anyString(), anyInt(), any(Transport.class));
     when(transportLayer.getConnection(
             any(DsNetwork.class), any(InetAddress.class), anyInt(), any(Transport.class)))
-        .thenReturn(sendConnection);
+            .thenReturn(sendConnection);
     dsSipProxyManager.strayResponse(response);
 
     // TODO, it should be invoked once.Transport Mock is causing issues

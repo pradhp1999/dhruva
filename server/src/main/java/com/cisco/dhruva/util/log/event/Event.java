@@ -91,7 +91,8 @@ public class Event {
     messageInfoMap.put(Event.LOCALIP, messageBindingInfo.getLocalAddress().getHostAddress());
     messageInfoMap.put(Event.LOCALPORT, String.valueOf(messageBindingInfo.getLocalPort()));
     messageInfoMap.put(Event.ISMIDDIALOG, String.valueOf(isMidDialog));
-    messageInfoMap.put(Event.ISINTERNALLYGENERATED, String.valueOf(message.isInternallyGenerated()));
+    messageInfoMap.put(
+        Event.ISINTERNALLYGENERATED, String.valueOf(message.isInternallyGenerated()));
     if (direction == OUT) {
       messageInfoMap.put(
           Event.DHRUVA_PROCESSING_DELAY_IN_MILLIS, String.valueOf(dhruvaProcessingDelayInMillis));

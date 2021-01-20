@@ -86,7 +86,7 @@ public abstract class LBBase implements RepositoryReceiverInterface {
    * Gives the load balancer all the information necessary to pick the next hop.
    *
    * @param serverGroupName the name of the server group that this load balancer is created for.
-   * @param serverGroups the entire server group repository.
+   * @param serverGroup the entire server group repository.
    * @param request the request used for the hash algorithm.
    */
   public final void setServerInfo(
@@ -157,6 +157,14 @@ public abstract class LBBase implements RepositoryReceiverInterface {
   public final int getNumberOfUntriedElements() {
     if (domainsToTry == null) return 0;
     else return domainsToTry.size();
+  }
+
+  public TreeSet getDomainsToTry() {
+    return domainsToTry;
+  }
+
+  public void setDomainsToTry(TreeSet domainsToTry) {
+    this.domainsToTry = domainsToTry;
   }
 
   /**

@@ -238,6 +238,38 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     return ourRequest;
   }
 
+  public LBRepositoryHolder getRepositoryHolder() {
+    return repositoryHolder;
+  }
+
+  public void setRepositoryHolder(LBRepositoryHolder repositoryHolder) {
+    this.repositoryHolder = repositoryHolder;
+  }
+
+  public DsProxyParamsInterface getPpIface() {
+    return ppIface;
+  }
+
+  public void setPpIface(DsProxyParamsInterface ppIface) {
+    this.ppIface = ppIface;
+  }
+
+  public DsProxyInterface getOurProxy() {
+    return ourProxy;
+  }
+
+  public void setOurProxy(DsProxyInterface ourProxy) {
+    this.ourProxy = ourProxy;
+  }
+
+  public DsSipRequest getPreprocessedRequest() {
+    return preprocessedRequest;
+  }
+
+  public void setPreprocessedRequest(DsSipRequest preprocessedRequest) {
+    this.preprocessedRequest = preprocessedRequest;
+  }
+
   /**
    * DsControllerInterface onNewRequest() method implementation. Creates a proxy transaction if one
    * for this controller hasn't been set/created yet. If this is a request that maps to an existing
@@ -1528,7 +1560,7 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
     }
   }
 
-  protected void proxyToServerGroup(
+  public void proxyToServerGroup(
       Location location,
       AppAdaptorInterface responseIf,
       DsSipRequest request,
@@ -1578,7 +1610,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
       // return the correct type of load balancer for the specified server group.
       try {
         lb = LBFactory.createLoadBalancer(location.getServerGroupName(), serverGroup, ourRequest);
-
       } catch (LBException e) {
         Log.error("Load Balance exception. Sending a 500", e);
 
@@ -1597,7 +1628,6 @@ public abstract class DsProxyController implements DsControllerInterface, ProxyI
 
     // Get the next hop
     ServerInterface lbServer = lb.getServer();
-
     // Odds are all the servers have been tried in the server group.  We will keep
     // searching by trying another logical address.
     if (lbServer == null) {

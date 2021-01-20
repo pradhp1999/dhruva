@@ -1,0 +1,401 @@
+[
+    {
+        "description": "Test case for highest-q loadbalancing, 2 elements are down, only element with highest qvalue should get the call.",
+        "id": "1",
+        "inputServerGroup":
+        {
+            "elements": [
+                {
+                    "ip" : "1.1.1.1",
+                    "port" : 1001,
+                    "qvalue": 0.8,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.2",
+                    "port" : 1002,
+                    "qvalue": 0.9,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "down"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.3",
+                    "port" : 1003,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "down"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.4",
+                    "port" : 1004,
+                    "qvalue": 0.9,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                }
+            ],
+            "name": "sg1",
+            "failover" : [502,503],
+            "testConfig": {
+                "totalCalls": 20,
+                "testCombination": {
+                    "loadBalancerType": ["highest-q"],
+                    "incomingTransport": ["udp","tcp","tls"],
+                    "outgoingTransport": ["udp","tcp","tls"]
+                }
+            }
+        }
+    },
+    {
+        "description": "Test case for highest-q loadbalancing, 4 elements failover, up element with highest qvalue should get the call.",
+        "id": "2",
+        "inputServerGroup":
+        {
+            "elements": [
+                {
+                    "ip" : "1.1.1.1",
+                    "port" : 1001,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "failoverType": "PROXY_FAILURE",
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.2",
+                    "port" : 1002,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "failoverType": "FAILURE_RESPONSE",
+                        "failoverCode" : 502,
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.3",
+                    "port" : 1003,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up",
+                        "failoverType": "REQUEST_TIMEOUT"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.4",
+                    "port" : 1004,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up",
+                        "failoverType": "ICMP_ERROR"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.5",
+                    "port" : 1005,
+                    "qvalue": 0.9,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.6",
+                    "port" : 1006,
+                    "qvalue": 0.9,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                }
+            ],
+            "name": "sg1",
+            "failover" : [502,503],
+            "testConfig": {
+                "totalCalls": 20,
+                "testCombination": {
+                    "loadBalancerType": ["highest-q"],
+                    "incomingTransport": ["udp","tcp","tls"],
+                    "outgoingTransport": ["udp","tcp","tls"]
+                }
+            }
+        }
+    },
+    {
+        "description": "Test case for call-id loadbalancing, 2 elements are down, remaining two elements with highest qvalue should get the call.",
+        "id": "3",
+        "inputServerGroup":
+        {
+            "elements": [
+                {
+                    "ip" : "1.1.1.1",
+                    "port" : 1001,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.2",
+                    "port" : 1002,
+                    "qvalue": 0.9,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "down"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.3",
+                    "port" : 1003,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "down"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.4",
+                    "port" : 1004,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                }
+            ],
+            "name": "sg1",
+            "failover" : [502,503],
+            "testConfig": {
+                "totalCalls": 500,
+                "testCombination": {
+                    "loadBalancerType": ["call-id", "request-uri", "to-uri"],
+                    "incomingTransport": ["udp","tcp","tls"],
+                    "outgoingTransport": ["udp","tcp","tls"]
+                }
+            }
+        }
+    },
+    {
+        "description": "Test case for call-id loadbalancing, 4 elements failover, remaining two elements with highest qvalue should get the call.",
+        "id": "4",
+        "inputServerGroup":
+        {
+            "elements": [
+                {
+                    "ip" : "1.1.1.1",
+                    "port" : 1001,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "failoverType": "PROXY_FAILURE",
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.2",
+                    "port" : 1002,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "failoverType": "FAILURE_RESPONSE",
+                        "failoverCode" : 502,
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.3",
+                    "port" : 1003,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up",
+                        "failoverType": "REQUEST_TIMEOUT"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.4",
+                    "port" : 1004,
+                    "qvalue": 1.0,
+                    "weight": 40,
+                    "testConfig": {
+                        "status": "up",
+                        "failoverType": "ICMP_ERROR"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.5",
+                    "port" : 1005,
+                    "qvalue": 1.0,
+                    "weight": 50,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.6",
+                    "port" : 1006,
+                    "qvalue": 1.0,
+                    "weight": 60,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                }
+            ],
+            "name": "sg1",
+            "failover" : [502,503],
+            "testConfig": {
+                "totalCalls": 500,
+                "testCombination": {
+                    "loadBalancerType": ["call-id", "request-uri", "to-uri"],
+                    "incomingTransport": ["udp","tcp","tls"],
+                    "outgoingTransport": ["udp","tcp","tls"]
+                }
+            }
+        }
+    },
+    {
+        "description": "Test case for call-id loadbalancing, 2 elements are down, remaining two elements with highest qvalue should get the call based on their weights.",
+        "id": "5",
+        "inputServerGroup":
+        {
+            "elements": [
+                {
+                    "ip" : "1.1.1.1",
+                    "port" : 1001,
+                    "qvalue": 1.0,
+                    "weight": 10,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.2",
+                    "port" : 1002,
+                    "qvalue": 0.9,
+                    "weight": 20,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.3",
+                    "port" : 1003,
+                    "qvalue": 1.0,
+                    "weight": 30,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.4",
+                    "port" : 1004,
+                    "qvalue": 1.0,
+                    "weight": 40,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                }
+            ],
+            "name": "sg1",
+            "failover" : [502,503],
+            "testConfig": {
+                "totalCalls": 500,
+                "testCombination": {
+                    "loadBalancerType": ["weight"],
+                    "incomingTransport": ["udp","tcp","tls"],
+                    "outgoingTransport": ["udp","tcp","tls"]
+                }
+            }
+        }
+    },
+    {
+        "description": "Test case for call-id loadbalancing, 4 elements failover, remaining two elements with highest qvalue should get the call based on their weights.",
+        "id": "6",
+        "inputServerGroup":
+        {
+            "elements": [
+                {
+                    "ip" : "1.1.1.1",
+                    "port" : 1001,
+                    "qvalue": 1.0,
+                    "weight": 10,
+                    "testConfig": {
+                        "failoverType": "FAILURE_RESPONSE",
+                        "failoverCode" : 502,
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.2",
+                    "port" : 1002,
+                    "qvalue": 1.0,
+                    "weight": 20,
+                    "testConfig": {
+                        "failoverType": "PROXY_FAILURE",
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.3",
+                    "port" : 1003,
+                    "qvalue": 1.0,
+                    "weight": 0,
+                    "testConfig": {
+                        "status": "up",
+                        "failoverType": "REQUEST_TIMEOUT"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.4",
+                    "port" : 1004,
+                    "qvalue": 1.0,
+                    "weight": 40,
+                    "testConfig": {
+                        "status": "up",
+                        "failoverType": "ICMP_ERROR"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.5",
+                    "port" : 1005,
+                    "qvalue": 1.0,
+                    "weight": 50,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                },
+                {
+                    "ip" : "1.1.1.6",
+                    "port" : 1006,
+                    "qvalue": 1.0,
+                    "weight": 60,
+                    "testConfig": {
+                        "status": "up"
+                    }
+                }
+            ],
+            "name": "sg1",
+            "failover" : [502,503],
+            "testConfig": {
+                "totalCalls": 500,
+                "testCombination": {
+                    "loadBalancerType": ["weight"],
+                    "incomingTransport": ["udp","tcp","tls"],
+                    "outgoingTransport": ["udp","tcp","tls"]
+                }
+            }
+        }
+    }
+]

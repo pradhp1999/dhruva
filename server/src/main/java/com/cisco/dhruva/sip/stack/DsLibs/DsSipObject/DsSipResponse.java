@@ -414,7 +414,7 @@ public class DsSipResponse extends DsSipMessage {
    *
    * @return the status code.
    */
-  public final int getStatusCode() {
+  public int getStatusCode() {
     return m_StatusCode;
   }
 
