@@ -14,7 +14,12 @@ public class DhruvaTrustManagerFactory {
 
   public static TrustManager getTrustManager(
       String deploymentName, TLSAuthenticationType tlsAuthenticationType) throws Exception {
-    if (tlsAuthenticationType == TLSAuthenticationType.NONE)
+    if (tlsAuthenticationType == TLSAuthenticationType.CLIENT) {
+      CertTrustManager certTrustManager = CertTrustManager.createCertTrustManager();
+
+      return certTrustManager.getTrustManager();
+
+    } else if (tlsAuthenticationType == TLSAuthenticationType.NONE)
       // return a dummy trust manager which does nothing
       return new X509TrustManager() {
 
