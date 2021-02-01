@@ -23,6 +23,7 @@ public class SipStackService {
 
   private int testUdpPort = testPro.getTestUdpPort();
   private int testTlsPort = testPro.getTestTlsPort();
+  private String testHost = testPro.getTestAddress();
 
   public SipStackService() {}
 
@@ -32,7 +33,7 @@ public class SipStackService {
     createKeyStoreHolder();
     properties = new Properties();
     properties.setProperty("javax.sip.STACK_NAME", "TestDhruva");
-    properties.setProperty("javax.sip.IP_ADDRESS", "127.0.0.1");
+    properties.setProperty("javax.sip.IP_ADDRESS", testHost);
     properties.setProperty("javax.net.ssl.keyStore", KeyStoreHolder.KEY_STORE_JKS);
     properties.setProperty("javax.net.ssl.keyStorePassword", value);
     properties.setProperty("javax.net.ssl.trustStore", KeyStoreHolder.TRUST_STORE_JKS);
@@ -43,6 +44,7 @@ public class SipStackService {
     if (sipStack != null) {
       sipStack.dispose();
     }
+    properties.setProperty("javax.sip.IP_ADDRESS", testHost);
     sipStack = new SipStack(Token.UDP, testUdpPort, properties);
     return sipStack;
   }
@@ -51,7 +53,7 @@ public class SipStackService {
     if (sipStack != null) {
       sipStack.dispose();
     }
-
+    properties.setProperty("javax.sip.IP_ADDRESS", testHost);
     sipStack = new SipStack(Token.TLS, testTlsPort, properties);
     return sipStack;
   }
@@ -75,12 +77,12 @@ public class SipStackService {
     Date endDate = calendar.getTime();
 
     X509Certificate[] chain =
-        certificateGenerator.generateCertificateChain(
-            subject, null, clientKeys, startDate, endDate);
+            certificateGenerator.generateCertificateChain(
+                    subject, null, clientKeys, startDate, endDate);
 
     KeyStoreHolder keyStoreHolder = new KeyStoreHolder("password");
     String trustStore =
-        Resources.toString(Resources.getResource("trustStore.pem"), StandardCharsets.UTF_8);
+            Resources.toString(Resources.getResource("trustStore.pem"), StandardCharsets.UTF_8);
     keyStoreHolder.createTrustStore(trustStore);
     keyStoreHolder.setKeyEntry(chain, clientKeys.getPrivate());
     keyStoreHolder.persistStores();
