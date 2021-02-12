@@ -9,7 +9,7 @@ We use some functions from WebexSquared/pipeline, e.g. notifyPipelineRoom
 //Being a multi-branch pipeline job, adding parameters via properties is how we can parameterize this job. It's not possible to create from UI
 properties([
         parameters ([
-                string(name: 'TAG', defaultValue: '34', description: 'Tag of the docker image containers.cisco.com/edge_group/dhruva-integration-tests'),
+                string(name: 'TAG', defaultValue: '35', description: 'Tag of the docker image containers.cisco.com/edge_group/dhruva-integration-tests'),
                 choice(name: 'CLUSTER', choices: ['wsjcint01', 'wdfwint01'], description: 'Choose a cluster'),
                 string(name: 'UDP_PORT', defaultValue: '11500', description: 'UDP Port'),
                 string(name: 'TLS_PORT', defaultValue: '11501', description: 'TLS Port'),

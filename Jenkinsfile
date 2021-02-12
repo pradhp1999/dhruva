@@ -89,7 +89,7 @@ def initiateImageBuilderInMeetPaas() {
                 parameters: [string(name: 'target_build', value: BUILD_NUMBER),
                              string(name: 'artifact_url', value: JOB_URL),
                              string(name: 'service', value: 'dhruva'),
-                             string(name: 'filters', value: '^.*.war$ ^.*.microservice$ ^.*microservice.yml$ ^.*migration.jar$ ^.*migration-shaded.jar$ ^.*integration.jar ^.*integration-tests.jar ^.*integration-tests.sh ^.*integration-bin.tar.gz  ^.*Dockerfile  ^.*env.sh')],
+                             string(name: 'filters', value: '^.*.war$ ^.*.microservice$ ^.*microservice.yml$ ^.*migration.jar$ ^.*migration-shaded.jar$ ^.*integration.jar ^.*integration-tests.jar ^.*integration-tests.sh ^.*integration-bin.tar.gz  ^.*Dockerfile  ^.*env.sh ^.*testng.xml')],
                 promptForAction : false, indirect_build : true
 
         if (result.result == 'SUCCESS') {
