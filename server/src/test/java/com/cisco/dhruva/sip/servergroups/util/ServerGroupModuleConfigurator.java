@@ -76,12 +76,8 @@ public class ServerGroupModuleConfigurator implements ModuleConfigurator {
     LBFactory.setTCPTries(tcpTries);
     LBFactory.setTLSTries(tlsTries);
 
-    //    CallProcessingConfig cpConfig = CallProcessingConfig.getInstance();
-    //    cpConfig.setServerGroupBackupToPrimary();
-    //    dsScriptController = new DsScriptController(cpConfig.getXCLRepository());
     ProxyAdaptorFactoryInterface pf = new ProxyAdaptorFactory();
     AppInterface app = new AppSession();
-    //    AppInterface app = ServerGroupTestController.app;
     dsAppController = new DsAppController(pf, app);
   }
 
@@ -89,9 +85,6 @@ public class ServerGroupModuleConfigurator implements ModuleConfigurator {
     DsControllerConfig ourConfig = DsControllerConfig.getCurrent();
     int requestTimeout =
         DsConfigManager.getTimerValue(DsNetwork.getDefault(), DsSipConstants.serverTn);
-    //    final int SEQ_REQUEST_TIMEOUT_DIVISIBLE =
-    //        Integer.parseInt(System.getProperty("SEQ_REQUEST_TIMEOUT_DIVISIBLE", "2"));
-    //    int sequentialSearchTimeout = requestTimeout / SEQ_REQUEST_TIMEOUT_DIVISIBLE;
     DsProxyFactoryInterface proxyFactory = mock(DsProxyFactoryInterface.class);
     dsAppController.init(
         ourConfig.getSearchType(),
